@@ -126,3 +126,38 @@ def translate_cds_with_qc(
     )
 
     return protein, qc
+
+def reverse_complement_dna(dna: str) -> str:
+    """
+    Returns the reverse complement of a DNA sequence.
+
+    This function is required for handling genes encoded on the reverse
+    stand of circular plasmids.
+    """
+    dna = normalise_dna(dna)
+    return str(Seq(dna).reverse_complement())
+
+def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
+    """
+   Extracts a subsequence from circular DNA using 0-based coordinates. 
+
+   Deals with wrap-around when the end position is before the start position.
+   e.g. circular_slice("ACGTACGT", 6, 2) -> "GTAC"
+   """
+    dna = normalise_dna(dna)
+    n = len(dna)
+
+    if n == 0:
+        return ""
+    
+    start = start_0based % n
+    end = end_0based_excl % n
+
+    if start < end:
+        return dna[start:end]
+    elif start > end:
+        # Wrap-around case
+        return dna[start:] + dna[:end]
+    else:
+        # start == end implies empty slice in CDS context 
+        return ""
