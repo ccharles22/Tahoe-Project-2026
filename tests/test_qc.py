@@ -74,3 +74,27 @@ def test_invalid_dna_characters():
     errors, warnings = qc.validate_record(record, row_num=1)
     
     assert len(errors) > 0, "Should detect invalid DNA characters"
+
+
+def test_duplicate_variant_indices():
+    """Test detection of duplicate variant indices."""
+    qc = QualityControl()
+    records = [
+        {'variant_index': 1, 'generation': 0},
+        {'variant_index': 1, 'generation': 1},  # Duplicate
+    ]
+    errors, warnings = qc.validate_cross_record(records)
+    assert len(errors) > 0, "Should detect duplicate variant indices"
+    assert '1' in errors[0], "Error should mention duplicate ID"
+
+
+def test_orphaned_parent():
+    """Test detection of orphaned parent indices."""
+    qc = QualityControl()
+    records = [
+        {'variant_index': 1, 'generation': 0, 'parent_variant_index': None},
+        {'variant_index': 2, 'generation': 1, 'parent_variant_index': 99},  # Parent doesn't exist
+    ]
+    errors, warnings = qc.validate_cross_record(records)
+    assert len(warnings) > 0, "Should warn about orphaned parent"
+    assert "Parent variant 99" in warnings[0]

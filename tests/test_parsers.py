@@ -40,19 +40,28 @@ def test_json_parsing():
 
 
 def test_full_tsv_workflow():
+    """Test complete parsing + QC workflow with BSU TSV file."""
+
+    # --- Step 1: Parse TSV ---
     parser = TSVParser("data/DE_BSU_Pol_Batch_1.tsv")
     success = parser.parse()
+    assert success is True, "TSV parsing failed"
 
-    if not success:
-        print("\nPARSER ERRORS:")
-        for err in parser.errors:
-            print(err)
+    # --- Step 2: Run QC (per-record + cross-record) ---
+    # Use percentile-mode so thresholds are computed from this dataset
+    qc = QualityControl(percentile_mode=True, percentile_low=5.0, percentile_high=95.0)
 
-    assert success is True
+    # Compute and show thresholds derived from the dataset, then run validation
+    qc.compute_thresholds_from_records(parser.records)
+    print("\nComputed thresholds:")
+    print(f"  dna_yield_min_warning: {qc.dna_yield_min_warning}")
+    print(f"  dna_yield_max_warning: {qc.dna_yield_max_warning}")
+    print(f"  protein_yield_min_warning: {qc.protein_yield_min_warning}")
+    print(f"  protein_yield_max_warning: {qc.protein_yield_max_warning}\n")
 
-    qc = QualityControl()
     parser.validate_all(qc)
 
+    # --- Step 3: Get summary ---
     summary = parser.get_summary()
 
     print("\n=== PARSING SUMMARY ===")
@@ -61,4 +70,15 @@ def test_full_tsv_workflow():
     print(f"Warnings: {summary['warning_count']}")
     print(f"Fields detected: {summary['detected_fields']}")
 
-    assert summary["total_records"] > 0
+    if summary['errors']:
+        print("\nFirst 5 errors:")
+        for err in summary['errors'][:5]:
+            print(f"  - {err}")
+
+    if summary['warnings']:
+        print("\nFirst 5 warnings:")
+        for warn in summary['warnings'][:5]:
+            print(f"  - {warn}")
+
+    # --- Step 4: Basic assertions ---
+    assert summary['total_records'] > 0, "No records were parsed"
