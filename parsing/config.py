@@ -73,12 +73,20 @@ FIELD_MAPPING = {
 # =========================
 
 VALIDATION_RULES = {
-    "sequence_min_length": 100,
-    "sequence_max_length": 50000,
-    "yield_min_warning": 0.0,
-    "yield_max_warning": 10000.0,
-    "allowed_dna_chars": set("ATGCNatgcn"),
-    "min_identity_threshold": 0.98,  # reserved for later
+    # Dataset-appropriate defaults (adjust per-run via QualityControl(config=...))
+    'sequence_min_length': 100,
+    'sequence_max_length': 10000,
+
+    'yield_min_warning': 50.0,
+    'yield_max_warning': 1000.0,
+
+    # Per-metric overrides (can be tuned per-dataset)
+    'protein_yield_min_warning': 45.0,
+    'protein_yield_max_warning': 1000.0,
+
+    # Use uppercase allowed characters; parsers normalize sequences to uppercase
+    'allowed_dna_chars': set('ATGCN'),
+    'min_identity_threshold': 0.98,
 }
 
 # =========================
@@ -93,8 +101,12 @@ ERROR_THRESHOLDS = {
 }
 
 WARNING_THRESHOLDS = {
-    "negative_yield": True,
-    "extreme_yield": True,
-    "frameshift_sequence": True,
-    "unusual_sequence_length": True,
+    'negative_yield': True,
+    'extreme_yield': True,
+
+    # Only relevant for CDS-only datasets, not plasmids
+    'frameshift_sequence': False,
+
+    # Enable only if sequence length is truly extreme
+    'unusual_sequence_length': True,
 }

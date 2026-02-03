@@ -47,10 +47,35 @@ class BaseParser(ABC):
         return core_data, metadata
 
     def validate_all(self, qc_validator) -> None:
+        """
+        Run QC validation on all parsed records.
+
+        Args:
+            qc_validator: QualityControl instance
+        """
+        # If the QC validator supports computing dataset-level thresholds
+        # (data-driven mode), compute them before performing per-record checks.
+        try:
+            if getattr(qc_validator, "percentile_mode", False):
+                qc_validator.compute_thresholds_from_records(self.records)
+        except Exception:
+            # Any error computing thresholds shouldn't stop per-record validation
+            pass
+
+        # Per-record validation
         for idx, record in enumerate(self.records):
             errors, warnings = qc_validator.validate_record(record, idx)
             self.errors.extend(errors)
             self.warnings.extend(warnings)
+
+        # Cross-record validation
+        try:
+            cross_errors, cross_warnings = qc_validator.validate_cross_record(self.records)
+            self.errors.extend(cross_errors)
+            self.warnings.extend(cross_warnings)
+        except AttributeError:
+            # Validator does not implement cross-record checks; ignore
+            pass
 
     def get_summary(self) -> Dict[str, Any]:
         return {
