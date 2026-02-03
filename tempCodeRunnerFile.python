@@ -1,0 +1,13 @@
+pip install flask flask_sqlalchemy flask_login flask_bcrypt flask_wtf wtforms email_validator
+
+from flask import Flask # Importing Flask module
+
+app = Flask(__name__) # Creating a Flask application instance
+
+@app.route('/') # Defining a route for the home page
+def index():
+    return "Welcome to App 1!" # Function to handle requests to the home pagep
+
+if __name__ == '__main__': # Running the application
+    app.run(debug=True)  # Enabling debug mode for development purposes
+# To run this application, use the command: python app.py
