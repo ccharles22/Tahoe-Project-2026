@@ -35,7 +35,7 @@ def main():
         return
 
     # Enable percentile-mode so thresholds are computed from this dataset
-    qc = QualityControl(percentile_mode=True, percentile_low=5.0, percentile_high=95.0)
+    qc = QualityControl(percentile_mode=True, percentile_low=1.0, percentile_high=99.0)
 
     # Compute and show thresholds derived from the dataset, then run validation
     qc.compute_thresholds_from_records(parser.records)

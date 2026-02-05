@@ -4,16 +4,17 @@ Quality Control validation for parsed experimental data.
 
 from typing import Dict, List, Any, Tuple
 from parsing.config import (
-    REQUIRED_FIELDS, 
-    VALIDATION_RULES, 
+    REQUIRED_FIELDS,
+    VALIDATION_RULES,
     ERROR_THRESHOLDS,
-    WARNING_THRESHOLDS
+    WARNING_THRESHOLDS,
 )
+import parsing.config as cfg
 
 class QualityControl:
     """Quality control validator for experimental records."""
     
-    def __init__(self, config: Dict = None, *, percentile_mode: bool = False, percentile_low: float = 5.0, percentile_high: float = 95.0):
+    def __init__(self, config: Dict = None, *, percentile_mode: bool = False, percentile_low: float = 1.0, percentile_high: float = 99.0):
         """
         Initialize QC validator.
         
@@ -38,6 +39,26 @@ class QualityControl:
         self.dna_yield_max_warning = self.validation_rules.get('dna_yield_max_warning', self.validation_rules.get('yield_max_warning'))
         self.protein_yield_min_warning = self.validation_rules.get('protein_yield_min_warning', self.validation_rules.get('yield_min_warning'))
         self.protein_yield_max_warning = self.validation_rules.get('protein_yield_max_warning', self.validation_rules.get('yield_max_warning'))
+        # Read project-level QC policy from parsing.config when available
+        try:
+            # allow config module to override defaults unless explicit args were passed
+            self.percentile_mode = bool(getattr(cfg, 'QC_PERCENTILE_MODE', self.percentile_mode))
+            self.percentile_low = float(getattr(cfg, 'QC_PERCENTILE_LOW', self.percentile_low))
+            self.percentile_high = float(getattr(cfg, 'QC_PERCENTILE_HIGH', self.percentile_high))
+            self.min_samples_for_percentiles = int(getattr(cfg, 'QC_MIN_SAMPLES_FOR_PERCENTILES', 30))
+
+            # Absolute critical safety limits (if defined) — always treated as errors
+            self.dna_yield_critical_min = getattr(cfg, 'DNA_YIELD_CRITICAL_MIN', None)
+            self.dna_yield_critical_max = getattr(cfg, 'DNA_YIELD_CRITICAL_MAX', None)
+            self.protein_yield_critical_min = getattr(cfg, 'PROTEIN_YIELD_CRITICAL_MIN', None)
+            self.protein_yield_critical_max = getattr(cfg, 'PROTEIN_YIELD_CRITICAL_MAX', None)
+        except Exception:
+            # If config import fails for any reason, fall back to previously set values
+            self.min_samples_for_percentiles = 30
+            self.dna_yield_critical_min = None
+            self.dna_yield_critical_max = None
+            self.protein_yield_critical_min = None
+            self.protein_yield_critical_max = None
     
     def validate_record(self, record: Dict[str, Any], row_num: int) -> Tuple[List[str], List[str]]:
         """
@@ -76,6 +97,36 @@ class QualityControl:
         # Check value ranges (generates warnings)
         range_warnings = self._validate_ranges(record, row_num)
         warnings.extend(range_warnings)
+
+        # Critical safety limit checks -> produce errors (require immediate attention)
+        try:
+            if 'dna_yield' in record:
+                dna_val = float(record['dna_yield'])
+                if getattr(self, 'dna_yield_critical_min', None) is not None and dna_val < self.dna_yield_critical_min:
+                    errors.append(
+                        f"Row {row_num}: CRITICAL - DNA yield ({dna_val}) below critical minimum ({self.dna_yield_critical_min})"
+                    )
+                if getattr(self, 'dna_yield_critical_max', None) is not None and dna_val > self.dna_yield_critical_max:
+                    errors.append(
+                        f"Row {row_num}: CRITICAL - DNA yield ({dna_val}) above critical maximum ({self.dna_yield_critical_max})"
+                    )
+        except (ValueError, TypeError):
+            # type errors already reported elsewhere
+            pass
+
+        try:
+            if 'protein_yield' in record:
+                prot_val = float(record['protein_yield'])
+                if getattr(self, 'protein_yield_critical_min', None) is not None and prot_val < self.protein_yield_critical_min:
+                    errors.append(
+                        f"Row {row_num}: CRITICAL - protein yield ({prot_val}) below critical minimum ({self.protein_yield_critical_min})"
+                    )
+                if getattr(self, 'protein_yield_critical_max', None) is not None and prot_val > self.protein_yield_critical_max:
+                    errors.append(
+                        f"Row {row_num}: CRITICAL - protein yield ({prot_val}) above critical maximum ({self.protein_yield_critical_max})"
+                    )
+        except (ValueError, TypeError):
+            pass
         
         # Validate DNA sequence
         seq_errors, seq_warnings = self._validate_sequence(record, row_num)
