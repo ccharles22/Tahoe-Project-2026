@@ -111,3 +111,25 @@ WARNING_THRESHOLDS = {
     # Enable only if sequence length is truly extreme
     'unusual_sequence_length': True,
 }
+
+
+# =========================
+# Dataset-adaptive QC policy
+# =========================
+# Use percentile-based thresholds computed per-upload when enabled. These
+# settings provide sensible defaults (p1/p99) and a minimum-sample guard so
+# small experiments don't compute unstable percentiles. In addition, define
+# absolute "critical" safety limits which always flag values that are
+# biologically or instrumentally impossible and require immediate review.
+
+QC_PERCENTILE_MODE = True
+QC_PERCENTILE_LOW = 1.0    # lower percentile (p1)
+QC_PERCENTILE_HIGH = 99.0  # upper percentile (p99)
+QC_MIN_SAMPLES_FOR_PERCENTILES = 30
+
+# Absolute critical safety limits (examples — tune with assay owners)
+DNA_YIELD_CRITICAL_MIN = 300.0
+DNA_YIELD_CRITICAL_MAX = 5000.0
+PROTEIN_YIELD_CRITICAL_MIN = 20.0
+PROTEIN_YIELD_CRITICAL_MAX = 2000.0
+
