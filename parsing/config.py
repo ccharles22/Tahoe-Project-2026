@@ -78,10 +78,11 @@ VALIDATION_RULES = {
     'sequence_max_length': 10000,
 
     'yield_min_warning': 50.0,
-    'yield_max_warning': 1000.0,
+    'yield_max_warning': 2000.0,
 
     # Per-metric overrides (can be tuned per-dataset)
-    'protein_yield_min_warning': 45.0,
+    'dna_yield_max_warning': 2000.0,
+    'protein_yield_min_warning': 40.0,
     'protein_yield_max_warning': 1000.0,
 
     # Use uppercase allowed characters; parsers normalize sequences to uppercase

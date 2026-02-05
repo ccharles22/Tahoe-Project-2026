@@ -1,3 +1,4 @@
+pytest-flask>=1.2.0
 blinker==1.9.0
 click==8.3.1
 colorama==0.4.6
@@ -19,3 +20,9 @@ SQLAlchemy==2.0.46
 typing_extensions==4.15.0
 tzdata==2025.3
 Werkzeug==3.1.5
+
+# Development/linting tools
+flake8>=7.0.0
+black>=24.0.0
+isort>=5.13.0
+mypy>=1.8.0

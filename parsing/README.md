@@ -130,3 +130,71 @@ CREATE TABLE variants (
 If you'd like, I can:
 - Add a `--persist` option to `tools/qc_summary.py` to write computed thresholds to a JSON file.
 - Add a unit test that asserts `QualityControl(percentile_mode=True)` computes expected percentiles.
+
+## File Upload API
+
+### Endpoints
+
+#### POST /parsing/upload
+Upload and parse experimental data files.
+
+**Request:**
+- Method: POST
+- Content-Type: multipart/form-data
+- Parameters:
+    - `file`: TSV, CSV, or JSON file (required)
+    - `experiment_id`: Integer experiment ID (optional, default=1)
+    - `persist_thresholds`: Boolean for percentile mode (optional, default=false)
+
+**Response:**
+- Success (200):
+```json
+    {
+        "success": true,
+        "total_records": 100,
+        "inserted_count": 100,
+        "warnings": [],
+        "warnings_count": 0,
+        "detected_fields": ["variant_index", "generation", "assembled_dna_sequence"]
+    }
+```
+- Client Error (400): Invalid file or validation errors
+- Server Error (500): Database error
+
+**Security:**
+- File size limited to 50 MB
+- Only `.tsv`, `.csv`, `.json` extensions allowed
+- Filenames sanitized with `secure_filename()`
+- Temporary files cleaned up after processing
+
+#### GET /parsing/health
+Health check endpoint.
+
+**Response:**
+```json
+{"status": "ok"}
+```
+
+### Setup Database
+```bash
+python parsing/models.py
+```
+
+Or in Python:
+```python
+from parsing.models import init_db
+init_db()
+```
+
+### Example Usage
+```bash
+# Upload TSV file
+curl -X POST http://localhost:5000/parsing/upload \
+    -F "file=@data/DE_BSU_Pol_Batch_1.tsv" \
+    -F "experiment_id=1"
+
+# Upload JSON file
+curl -X POST http://localhost:5000/parsing/upload \
+    -F "file=@data/DE_BSU_Pol_Batch_1.json" \
+    -F "experiment_id=2"
+```

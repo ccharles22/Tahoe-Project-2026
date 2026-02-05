@@ -1,0 +1,85 @@
+{% extends "parsing/base.html" %}
+
+{% block title %}Upload Data - Data Parsing QC{% endblock %}
+
+{% block content %}
+<h2>Upload Experimental Data</h2>
+<p>Select a TSV, CSV, or JSON file containing variant data to parse and validate.</p>
+
+<form action="{{ url_for('parsing.upload_form_submit') }}" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <label for="file">Data File</label>
+        <input type="file" 
+               id="file" 
+               name="file" 
+               accept=".tsv,.csv,.json"
+               required>
+        <p class="help-text">Accepted formats: TSV, CSV, JSON (max 50 MB)</p>
+    </div>
+    
+    <div class="form-group">
+        <label for="experiment_id">Experiment</label>
+        <select id="experiment_id" name="experiment_id">
+            <option value="">-- Create New Experiment --</option>
+            {% for exp_id in experiment_ids %}
+                <option value="{{ exp_id }}" {% if exp_id == selected_experiment %}selected{% endif %}>
+                    Experiment {{ exp_id }}
+                </option>
+            {% endfor %}
+        </select>
+        <p class="help-text">Select an existing experiment or create a new one</p>
+    </div>
+    
+    <div class="form-group" id="new-experiment-group">
+        <label for="new_experiment_id">New Experiment ID</label>
+        <input type="number" 
+               id="new_experiment_id" 
+               name="new_experiment_id" 
+               min="1" 
+               placeholder="Enter experiment ID (e.g., 1, 2, 3...)">
+        <p class="help-text">Required if creating a new experiment</p>
+    </div>
+    
+    <div class="form-group">
+        <button type="submit" class="btn btn-primary">
+            Upload & Validate
+        </button>
+    </div>
+</form>
+
+<details>
+    <summary>📋 Expected Data Format</summary>
+    <div class="details-content">
+        <p>Your data file should contain the following fields:</p>
+        <ul>
+            <li><strong>variant_index</strong> - Unique identifier for the variant (integer)</li>
+            <li><strong>generation</strong> - Generation number (integer, starting from 0)</li>
+            <li><strong>parent_variant_index</strong> - Parent variant ID (integer, or empty for generation 0)</li>
+            <li><strong>assembled_dna_sequence</strong> - DNA sequence string (A, T, G, C characters)</li>
+            <li><strong>dna_yield</strong> - DNA yield measurement (numeric)</li>
+            <li><strong>protein_yield</strong> - Protein yield measurement (numeric)</li>
+        </ul>
+        <p style="margin-top: 15px;">Additional columns will be stored as metadata.</p>
+    </div>
+</details>
+
+<details>
+    <summary>ℹ️ How It Works</summary>
+    <div class="details-content">
+        <ol style="margin-left: 20px;">
+            <li>Upload your data file (TSV, CSV, or JSON format)</li>
+            <li>The system parses and validates each record</li>
+            <li>Quality control checks are performed:
+                <ul>
+                    <li>Required fields presence</li>
+                    <li>Data type validation</li>
+                    <li>Value range checks</li>
+                    <li>DNA sequence validation</li>
+                </ul>
+            </li>
+            <li>Valid records are stored in the database</li>
+            <li>You'll see a summary with any warnings or errors</li>
+        </ol>
+    </div>
+</details>
+{% endblock %}
