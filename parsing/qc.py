@@ -56,7 +56,18 @@ class QualityControl:
         # Check required fields
         missing = self._check_required_fields(record)
         if missing:
-            errors.append(f"Row {row_num}: Missing required fields: {', '.join(missing)}")
+            field_hints = {
+                'variant_index': 'Plasmid_Variant_Index, variant_id, id',
+                'generation': 'Directed_Evolution_Generation, gen, round',
+                'assembled_dna_sequence': 'Assembled_DNA_Sequence, sequence, dna_seq',
+                'dna_yield': 'DNA_Quantification_fg, dna_quant',
+                'protein_yield': 'Protein_Quantification_pg, protein_quant'
+            }
+            hints = [f"'{f}' (also accepts: {field_hints.get(f, 'N/A')})" for f in missing]
+            errors.append(
+                f"Row {row_num}: Missing required fields: {', '.join(missing)}. "
+                f"Expected columns: {'; '.join(hints)}. Check your file headers match these names."
+            )
         
         # Check data types
         type_errors = self._validate_types(record, row_num)
@@ -111,35 +122,50 @@ class QualityControl:
             try:
                 int(record['variant_index'])
             except (ValueError, TypeError):
-                errors.append(f"Row {row_num}: variant_index must be an integer, got '{record['variant_index']}'")
+                errors.append(
+                    f"Row {row_num}: variant_index must be an integer, got '{record['variant_index']}'. "
+                    f"Please provide a whole number (e.g., 1, 2, 3)."
+                )
         
         # Generation should be integer
         if 'generation' in record:
             try:
                 int(record['generation'])
             except (ValueError, TypeError):
-                errors.append(f"Row {row_num}: generation must be an integer, got '{record['generation']}'")
+                errors.append(
+                    f"Row {row_num}: generation must be an integer, got '{record['generation']}'. "
+                    f"Use 0 for wild-type/control, 1 for first round, etc."
+                )
         
         # Parent variant index (if present) should be integer or None
         if 'parent_variant_index' in record and record['parent_variant_index'] not in [None, '', 'NULL']:
             try:
                 int(record['parent_variant_index'])
             except (ValueError, TypeError):
-                errors.append(f"Row {row_num}: parent_variant_index must be an integer or NULL, got '{record['parent_variant_index']}'")
+                errors.append(
+                    f"Row {row_num}: parent_variant_index must be an integer or NULL, got '{record['parent_variant_index']}'. "
+                    f"Use a valid variant_index of the parent, or leave empty/NULL for generation 0."
+                )
         
         # DNA yield should be numeric
         if 'dna_yield' in record:
             try:
                 float(record['dna_yield'])
             except (ValueError, TypeError):
-                errors.append(f"Row {row_num}: dna_yield must be numeric, got '{record['dna_yield']}'")
+                errors.append(
+                    f"Row {row_num}: dna_yield must be numeric, got '{record['dna_yield']}'. "
+                    f"Please provide a valid number (e.g., 100.5, 85.2). Use 0 if unknown."
+                )
         
         # Protein yield should be numeric
         if 'protein_yield' in record:
             try:
                 float(record['protein_yield'])
             except (ValueError, TypeError):
-                errors.append(f"Row {row_num}: protein_yield must be numeric, got '{record['protein_yield']}'")
+                errors.append(
+                    f"Row {row_num}: protein_yield must be numeric, got '{record['protein_yield']}'. "
+                    f"Please provide a valid number (e.g., 50.0, 75.3). Use 0 if unknown."
+                )
         
         return errors
     
@@ -292,17 +318,27 @@ class QualityControl:
         seq_len = len(sequence)
         
         if seq_len < self.validation_rules['sequence_min_length']:
-            warnings.append(f"Row {row_num}: DNA sequence is very short ({seq_len} bp) - may be incomplete")
+            warnings.append(
+                f"Row {row_num}: DNA sequence is very short ({seq_len} bp) - may be incomplete. "
+                f"Expected minimum {self.validation_rules['sequence_min_length']} bp."
+            )
         
         if seq_len > self.validation_rules['sequence_max_length']:
-            warnings.append(f"Row {row_num}: DNA sequence is very long ({seq_len} bp) - may include vector sequence")
+            warnings.append(
+                f"Row {row_num}: DNA sequence is very long ({seq_len} bp) - may include vector sequence. "
+                f"Expected maximum {self.validation_rules['sequence_max_length']} bp. Consider trimming."
+            )
         
         # Check for invalid characters
         allowed_chars = self.validation_rules['allowed_dna_chars']
         invalid_chars = set(sequence) - allowed_chars
         
         if invalid_chars:
-            errors.append(f"Row {row_num}: DNA sequence contains invalid characters: {', '.join(sorted(invalid_chars))}")
+            errors.append(
+                f"Row {row_num}: DNA sequence contains invalid characters: {', '.join(sorted(invalid_chars))}. "
+                f"Valid characters are: {', '.join(sorted(allowed_chars))}. "
+                f"Ensure sequence is uppercase and contains only nucleotide codes."
+            )
         
         # Check if divisible by 3 (frameshift warning)
         if (
@@ -310,7 +346,8 @@ class QualityControl:
             and seq_len % 3 != 0
         ):
             warnings.append(
-                f"Row {row_num}: DNA sequence length ({seq_len}) not divisible by 3"
+                f"Row {row_num}: DNA sequence length ({seq_len}) not divisible by 3 - possible frameshift. "
+                f"Check for insertions or deletions."
             )
         return errors, warnings
 
@@ -331,12 +368,40 @@ class QualityControl:
         variant_indices = [r.get("variant_index") for r in records if r.get("variant_index") is not None]
         duplicates = {idx for idx in variant_indices if variant_indices.count(idx) > 1}
         if duplicates:
-            errors.append(f"Duplicate variant indices found: {sorted(duplicates)}")
+            # Find all rows with duplicates for better error message
+            dup_rows = {}
+            for r in records:
+                vid = r.get("variant_index")
+                if vid in duplicates:
+                    row = r.get("_row_number", "?")
+                    if vid not in dup_rows:
+                        dup_rows[vid] = []
+                    dup_rows[vid].append(str(row))
+            
+            dup_details = [f"variant_index {k} appears in rows {', '.join(v)}" for k, v in sorted(dup_rows.items())]
+            errors.append(
+                f"Duplicate variant indices found: {sorted(duplicates)}. "
+                f"Each variant_index must be unique. Details: {'; '.join(dup_details)}. "
+                f"Please assign unique IDs to each variant."
+            )
 
         # --- Generation 0 exists ---
-        generations = [r.get("generation") for r in records if r.get("generation") is not None]
+        generations = []
+        for r in records:
+            gen = r.get("generation")
+            try:
+                if gen is not None and gen != '':
+                    generations.append(int(gen))
+            except (ValueError, TypeError):
+                # skip non-integer generation values; they'll be reported in per-record checks
+                continue
+
         if generations and 0 not in generations:
-            warnings.append("No generation 0 (WT control) records found")
+            warnings.append(
+                "No generation 0 (WT control) records found. "
+                "Consider adding wild-type control records with generation=0 and empty parent_variant_index "
+                "to establish baseline for directed evolution lineage."
+            )
 
         # --- Generation continuity ---
         if generations:
@@ -344,25 +409,49 @@ class QualityControl:
             expected = list(range(min(unique_gens), max(unique_gens) + 1))
             missing_gens = set(expected) - set(unique_gens)
             if missing_gens:
-                warnings.append(f"Missing generations: {sorted(missing_gens)}")
+                warnings.append(
+                    f"Missing generations: {sorted(missing_gens)}. "
+                    f"Found generations {unique_gens}. This may indicate incomplete data or data entry errors."
+                )
 
         # --- Orphaned parent variants ---
-        all_variant_ids = {r.get("variant_index") for r in records if r.get("variant_index") is not None}
+        # Build set of variant ids as ints where possible
+        all_variant_ids = set()
+        for r in records:
+            vid = r.get("variant_index")
+            try:
+                if vid is not None and vid != '':
+                    all_variant_ids.add(int(vid))
+            except (ValueError, TypeError):
+                continue
 
+        orphan_warnings = []
         for record in records:
             parent_id = record.get("parent_variant_index")
             gen = record.get("generation")
             row = record.get("_row_number", "?")
 
             # Skip generation 0 or missing parent
-            if not parent_id or gen == 0:
+            try:
+                gen_int = None if gen is None or gen == '' else int(gen)
+            except (ValueError, TypeError):
+                gen_int = None
+
+            if parent_id in (None, '', 'NULL') or gen_int == 0:
                 continue
 
             try:
                 parent_id_int = int(parent_id)
                 if parent_id_int not in all_variant_ids:
-                    warnings.append(f"Row {row}: Parent variant {parent_id} not found in dataset")
+                    orphan_warnings.append(f"Row {row} references parent {parent_id}")
             except (ValueError, TypeError):
-                pass  # Already handled in per-record validation
+                pass  # per-record validation will flag this
+
+        if orphan_warnings:
+            warnings.append(
+                f"Orphaned parent references: {'; '.join(orphan_warnings)}. "
+                f"These parent_variant_index values don't exist in the dataset. "
+                f"Ensure parent variants are included or correct the references."
+            )
 
         return errors, warnings

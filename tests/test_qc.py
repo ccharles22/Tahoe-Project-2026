@@ -97,4 +97,5 @@ def test_orphaned_parent():
     ]
     errors, warnings = qc.validate_cross_record(records)
     assert len(warnings) > 0, "Should warn about orphaned parent"
-    assert "Parent variant 99" in warnings[0]
+    assert "99" in warnings[0], "Warning should mention orphaned parent ID"
+    assert "parent" in warnings[0].lower(), "Warning should mention 'parent'"

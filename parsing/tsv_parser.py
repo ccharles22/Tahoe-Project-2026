@@ -62,6 +62,15 @@ class TSVParser(BaseParser):
         try:
             with open(self.filepath, "r", encoding="utf-8") as f:
                 first_line = f.readline()
+                
+                # Handle empty file
+                if not first_line or first_line.strip() == '':
+                    self.errors.append(
+                        "File is empty. Please provide a file with headers and data rows. "
+                        "Expected format: header row followed by data rows separated by tabs or commas."
+                    )
+                    return False
+                
                 self.delimiter = self._detect_delimiter(first_line)
                 f.seek(0)
 
@@ -80,19 +89,31 @@ class TSVParser(BaseParser):
                         self.records.append(normalized)
 
                     except Exception as row_error:
-                        self.errors.append(f"Row {row_num}: {row_error}")
+                        self.errors.append(f"Row {row_num}: Error processing row - {row_error}")
+
+            # Handle file with only headers (no data rows)
+            if not self.records:
+                self.errors.append(
+                    "File contains headers but no data rows. "
+                    "Please add at least one data row after the header row."
+                )
+                return False
 
             return True
 
         except FileNotFoundError:
-            self.errors.append(f"File not found: {self.filepath}")
+            self.errors.append(
+                f"File not found: {self.filepath}. "
+                f"Please check the file path and ensure the file exists."
+            )
             return False
         except UnicodeDecodeError:
             self.errors.append(
-                "File encoding error. Please ensure file is UTF-8 encoded."
+                "File encoding error. Please ensure file is UTF-8 encoded. "
+                "Try opening the file in a text editor and saving with UTF-8 encoding."
             )
             return False
         except Exception as e:
-            self.errors.append(f"Unexpected error parsing TSV: {e}")
+            self.errors.append(f"Unexpected error parsing TSV/CSV: {e}")
             return False
 

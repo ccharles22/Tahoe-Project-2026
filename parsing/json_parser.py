@@ -47,13 +47,27 @@ class JSONParser(BaseParser):
         """
         try:
             with open(self.filepath, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                content = f.read()
+            
+            # Handle empty file
+            if not content or content.strip() == '':
+                self.errors.append(
+                    "File is empty. Please provide a JSON file with variant data. "
+                    "Expected format: array of objects [{...}, {...}] or object with 'records' key."
+                )
+                return False
+            
+            data = json.loads(content)
             
             # Extract records from structure
             records = self._extract_records(data)
             
             if not records:
-                self.errors.append("No records found in JSON file")
+                self.errors.append(
+                    "No records found in JSON file. "
+                    "Expected an array of variant objects [{...}, {...}] "
+                    "or an object with 'records' or 'variants' key containing the array."
+                )
                 return False
             
             # Process each record
@@ -77,10 +91,16 @@ class JSONParser(BaseParser):
             return True
             
         except FileNotFoundError:
-            self.errors.append(f"File not found: {self.filepath}")
+            self.errors.append(
+                f"File not found: {self.filepath}. "
+                f"Please check the file path and ensure the file exists."
+            )
             return False
         except json.JSONDecodeError as e:
-            self.errors.append(f"Invalid JSON format: {str(e)}")
+            self.errors.append(
+                f"Invalid JSON format at line {e.lineno}, column {e.colno}: {e.msg}. "
+                f"Please validate your JSON syntax using a JSON validator tool."
+            )
             return False
         except Exception as e:
             self.errors.append(f"Unexpected error parsing JSON: {str(e)}")

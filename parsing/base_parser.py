@@ -1,17 +1,34 @@
+"""
+Abstract base class for data file parsers.
+
+Provides common interface and utility methods for TSV, CSV, and JSON parsers.
+"""
+
 from abc import ABC, abstractmethod
-from typing import Dict, Any
+from typing import Dict, Any, List, Tuple, Set, Optional
 from parsing.config import FIELD_MAPPING, REQUIRED_FIELDS, OPTIONAL_FIELDS
 
-class BaseParser(ABC):
-    """Abstract base class for data parsers."""
 
-    def __init__(self, filepath: str):
-        self.filepath = filepath
-        self.records = []
-        self.errors = []
-        self.warnings = []
-        self.detected_fields = set()
-        self.metadata = {}
+class BaseParser(ABC):
+    """
+    Abstract base class for data parsers.
+    
+    Attributes:
+        filepath: Path to the file being parsed
+        records: List of parsed record dictionaries
+        errors: List of validation error messages
+        warnings: List of validation warning messages
+        detected_fields: Set of field names found in the file
+        metadata: Additional file-level metadata
+    """
+
+    def __init__(self, filepath: str) -> None:
+        self.filepath: str = filepath
+        self.records: List[Dict[str, Any]] = []
+        self.errors: List[str] = []
+        self.warnings: List[str] = []
+        self.detected_fields: Set[str] = set()
+        self.metadata: Dict[str, Any] = {}
 
     @abstractmethod
     def parse(self) -> bool:
@@ -19,10 +36,19 @@ class BaseParser(ABC):
         pass
 
     def normalize_field_names(self, record: Dict[str, Any]) -> Dict[str, Any]:
-        normalized = {}
+        """
+        Normalize field names to standard format using FIELD_MAPPING.
+        
+        Args:
+            record: Raw record dictionary with potentially varied field names
+            
+        Returns:
+            Dictionary with standardized field names
+        """
+        normalized: Dict[str, Any] = {}
 
         for key, value in record.items():
-            standard_name = None
+            standard_name: Optional[str] = None
 
             if key in FIELD_MAPPING:
                 standard_name = key
@@ -38,8 +64,17 @@ class BaseParser(ABC):
 
         return normalized
 
-    def extract_metadata(self, record: Dict[str, Any]) -> tuple:
-        all_known_fields = set(REQUIRED_FIELDS + OPTIONAL_FIELDS)
+    def extract_metadata(self, record: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, Any]]:
+        """
+        Extract core fields and additional metadata from a record.
+        
+        Args:
+            record: Parsed record dictionary
+            
+        Returns:
+            Tuple of (core_data dict, metadata dict)
+        """
+        all_known_fields: Set[str] = set(REQUIRED_FIELDS + OPTIONAL_FIELDS)
 
         core_data = {k: v for k, v in record.items() if k in all_known_fields}
         metadata = {k: v for k, v in record.items() if k not in all_known_fields}
