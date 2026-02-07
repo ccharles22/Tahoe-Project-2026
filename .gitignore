@@ -1,2 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.env
+
+# Flask
+instance/
+*.log
+
+# VS Code / OS
+.vscode/
 .DS_Store
-.DS_Store
+
+# Database / data
+*.db
+*.sqlite
+*.tsv
+*.csv
+*.json
