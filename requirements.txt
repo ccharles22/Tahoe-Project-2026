@@ -1,0 +1,6 @@
+
+flask
+Flask-SQLAlchemy
+requests
+python-dotenv
+biopython

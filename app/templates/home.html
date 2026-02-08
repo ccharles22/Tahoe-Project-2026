@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}TAHOE DEM — Home{% endblock %}
+
+{% block page_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<section class="heroBand">
+  <div class="heroInner">
+    <div class="hero">
+      <h1 class="hero__title">DIRECT<br>EVOLUTION<br>MONITORING</h1>
+
+      <div class="hero__subtitle">
+        <span>Staging • Parsing & QC • Analyse</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+{% endblock %}
+
+{% block page_js %}
+
+
+
+{% endblock %}

@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Experiment</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/staging.css') }}">
+  </head>
+
+  <body>
+    <div class="appShell">
+
+      <!-- LEFT SIDEBAR / TASK BAR -->
+      <aside class="sidebar">
+        <div class="sidebar__header">
+          <div class="sidebar__title">STAGING</div>
+          <div class="sidebar__subtitle">Protein selection & plasmid validation</div>
+
+          {% if experiment_id %}
+            <div class="pill">
+              Experiment: <strong>#{{ experiment_id }}</strong>
+            </div>
+          {% else %}
+            <div class="pill pill--muted">No experiment yet</div>
+          {% endif %}
+        </div>
+
+        <!-- STEP A -->
+        <div class="task">
+          <div class="task__top">
+            <div class="task__name">Step A</div>
+            {% if wt %}
+              <span class="badge badge--ok">Loaded</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
+          </div>
+
+          <div class="task__title">Fetch WT (UniProt)</div>
+          <form class="task__form" action="{{ url_for('staging.fetch_uniprot') }}" method="post">
+            <label class="label">UniProt accession</label>
+            <input class="input" name="accession" placeholder="e.g., O34996" required>
+            <button class="btn" type="submit">Fetch WT</button>
+          </form>
+
+          {% if wt_message %}
+            <p class="task__hint">{{ wt_message }}</p>
+          {% endif %}
+        </div>
+
+        <!-- STEP B -->
+        <div class="task {% if not experiment_id %}is-disabled{% endif %}">
+          <div class="task__top">
+            <div class="task__name">Step B</div>
+            {% if validation %}
+              {% if validation.is_valid %}
+                <span class="badge badge--ok">PASS</span>
+              {% else %}
+                <span class="badge badge--bad">FAIL</span>
+              {% endif %}
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
+          </div>
+
+          <div class="task__title">Upload plasmid FASTA + validate</div>
+
+          {% if experiment_id %}
+            <form class="task__form"
+                  action="{{ url_for('staging.upload_plasmid') }}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+
+              <label class="label">Plasmid FASTA</label>
+              <input class="input" type="file" name="plasmid_fasta" required>
+
+              <button class="btn" type="submit">Validate</button>
+            </form>
+          {% else %}
+            <p class="task__hint">
+              Fetch WT first to create an experiment.
+            </p>
+          {% endif %}
+        </div>
+      </aside>
+
+      <!-- MAIN RESULTS WORKSPACE -->
+      <main class="workspace">
+        <div class="workspace__header">
+          <h1 class="workspace__title">Results</h1>
+          <p class="workspace__sub">Outputs load here after each backend step completes.</p>
+        </div>
+
+        <!-- WT OUTPUT -->
+        <section class="panel">
+          <div class="panel__title">WT (UniProt) Output</div>
+
+          {% if wt %}
+            <div class="grid2">
+              <div class="kv">
+                <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_accession }}</strong></div>
+                <div class="kv__row"><span>Length</span><strong>{{ wt.protein_length if wt.protein_length else "—" }}</strong></div>
+                <div class="kv__row"><span>Status</span><strong>Loaded</strong></div>
+              </div>
+
+              <div class="note">
+                WT sequence has been stored for this experiment.
+                You can now upload a plasmid FASTA for validation.
+              </div>
+            </div>
+          {% else %}
+            <div class="empty">
+              Waiting for WT fetch…
+              <div class="empty__muted">Use Step A on the left.</div>
+            </div>
+          {% endif %}
+        </section>
+
+        <!-- VALIDATION OUTPUT -->
+        <section class="panel">
+          <div class="panel__title">Plasmid Validation Output</div>
+
+          {% if validation %}
+            <div class="statusline">
+              {% if validation.is_valid %}
+                <span class="badge badge--ok">PASS</span>
+              {% else %}
+                <span class="badge badge--bad">FAIL</span>
+              {% endif %}
+              <span class="statusline__msg">{{ validation.message }}</span>
+            </div>
+
+            <details class="details">
+              <summary>View technical details</summary>
+              <ul class="mono">
+                <li>Identity: {{ validation.identity }}</li>
+                <li>Coverage: {{ validation.coverage }}</li>
+                <li>Strand: {{ validation.strand }}</li>
+                <li>Start_nt: {{ validation.start_nt }}</li>
+                <li>End_nt: {{ validation.end_nt }}</li>
+                <li>Wraps: {{ validation.wraps }}</li>
+              </ul>
+            </details>
+          {% else %}
+            <div class="empty">
+              No validation run yet.
+              <div class="empty__muted">Use Step B on the left.</div>
+            </div>
+          {% endif %}
+        </section>
+      </main>
+
+    </div>
+  </body>
+</html>

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <link href="https://api.fontshare.com/v2/css?f[]=boska@400,500,700&display=swap" rel="stylesheet">
+
+
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}TAHOE DEM{% endblock %}</title>
+
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/staging.css') }}">
+
+
+  <!-- Page-specific CSS -->
+
+  
+  {% block page_css %}{% endblock %}
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <!-- Brand -->
+      <div class="brand">
+        
+        <!-- <div class="brand__dem__text">DEM.</div> -->
+        <div class="brand__tahoe__text">TAHOE</div>
+        
+      </div>
+
+      <!-- Right side -->
+      <nav class="nav">
+        <a class="btn btn--primary" href="{{ url_for('home.start') }}">START</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+
+  
+  {% block page_js %}{% endblock %}
+</body>
+</html>
