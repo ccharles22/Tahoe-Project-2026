@@ -1,0 +1,49 @@
+# virtual environment
+venv/
+
+# python cache
+__pycache__/
+*.pyc
+
+# data files
+
+data/*.fasta
+data/*.db
+*.sqlite
+*.sqlite3
+
+# environments
+.env
+.venv/
+env/
+
+# packaging
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+
+# testing & caches
+.coverage
+.pytest_cache/
+.mypy_cache/
+.cache/
+
+# jupyter
+.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+
+# temporary files
+temp.py
+
+# OneDrive conflict files
+*Conflict*
