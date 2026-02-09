@@ -3,127 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-<<<<<<< HEAD
-  <title>Register</title>
-  <style>
-    /*
-      Register Template Theme Notes
-
-      This file includes a compact theme (blue / yellow / pink) using CSS variables.
-    */
-    :root{
-      --primary:#1E90FF;   /* main blue */
-      --highlight:#FFD54F; /* yellow badge / highlights */
-      --accent:#FF6FA3;    /* pink accent for secondary actions */
-      --surface:#FFFFFF;    /* card background */
-      --muted:#6b7c88;      /* muted text */
-    }
-
-    /* Basic form styling using theme variables */
-    body{font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial; background:#F6FBFF; margin:0;color:#03304b}
-    .wrap{max-width:480px;margin:3rem auto;padding:1rem}
-    .card{background:var(--surface);padding:1.25rem;border-radius:10px;box-shadow:0 8px 20px rgba(3,48,75,0.06)}
-    label{display:block;font-size:.9rem;margin-bottom:.25rem;color:var(--muted)}
-    input[type="text"],input[type="email"],input[type="password"]{width:100%;padding:.6rem .75rem;border:1px solid #e6eefb;border-radius:6px;margin-bottom:.75rem}
-    .form-actions{display:flex;gap:.5rem;align-items:center}
-    .btn{padding:.5rem .9rem;border-radius:6px;color:white;text-decoration:none;display:inline-block}
-    .btn-primary{background:var(--primary)}
-    .btn-accent{background:var(--accent)}
-    .hint{font-size:.85rem;color:var(--muted);margin-top:.5rem}
-
-    /* Explanatory CSS comments:
-       - Use `--primary` for main CTAs and headers.
-       - Use `--accent` for secondary CTAs and emphasis.
-       - Use `--highlight` or a badge for status messages or small highlights.
-    */
-  </style>
-</head>
-<body>
-  <div class="wrap">
-    <div class="card">
-      <h2>Create an account</h2>
-      <form action="{{ url_for('register') }}" method="post">
-        <div>
-          <label for="name">Full name</label>
-          <input id="name" name="name" type="text" placeholder="Jane Doe" required>
-        </div>
-        <div>
-          <label for="email">Email</label>
-          <input id="email" name="email" type="email" placeholder="you@example.com" required>
-        </div>
-        <div>
-          <label for="password">Password</label>
-          <input id="password" name="password" type="password" required>
-        </div>
-
-        <div class="form-actions" style="margin-top:.5rem">
-          <button type="submit" class="btn btn-primary">Register</button>
-          <a href="{{ url_for('login') }}" class="btn btn-accent">Already have an account?</a>
-        </div>
-
-        <p class="hint">Password should be at least 8 characters. Use a mix of letters and numbers.
-        <!-- Consider server-side validation and secure password storage. -->
-        </p>
-      </form>
-
-      <!-- Developer notes:
-           - These styles are intentionally small and inline for quick editing.
-           - For larger apps, move styles into `static/css/theme.css` and
-             reference it from all templates to keep consistency.
-           - The color variables are easy to tweak: change `--primary`, `--accent`,
-             and `--highlight` to update theme at once.
-      -->
-    </div>
-  </div>
-</body>
-</html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Register</title>
-  <!-- # CSS explanation:
-     # This <style> block defines the same blue/yellow/pink theme used in other templates.
-     # CSS rules below control layout, colors, spacing and interactive states.
-  -->
-  <style>
-  :root{ --primary:#1E90FF; --accent:#FF6FA3; --highlight:#FFD54F; }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--highlight)0%,#87CEEB50%,var(--accent)100%);font-family:system-ui,Segoe UI,Roboto,Arial}
-  .card{background:#fff;padding:32px;border-radius:12px;box-shadow:0 8px 24px rgba(3,48,75,0.08);max-width:420px;width:92%}
-  h1{color:var(--primary);font-size:1.9rem;margin-bottom:.6rem;text-align:center}
-  p.lead{color:var(--accent);text-align:center;margin-bottom:1rem}
-  .form-group{margin-bottom:14px}
-  label{display:block;color:var(--accent);margin-bottom:6px;font-weight:600}
-  input{width:100%;padding:10px;border:2px solid var(--highlight);border-radius:8px;font-size:1rem}
-  input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 6px rgba(30,144,255,0.18)}
-  .btn{width:100%;padding:12px;border-radius:8px;border:none;background:var(--primary);color:#fff;font-weight:700;cursor:pointer}
-  .note{font-size:.95rem;text-align:center;margin-top:.75rem;color:#334}
-  </style>
-</head>
-<body>
-  <div class="card">
-  <h1>Create account</h1>
-  <p class="lead">Register to access protected areas of the app</p>
-  <!-- # The form below is a visual example. In a real app, set method="post" and action="/register" -->
-  <form>
-    <div class="form-group">
-    <label for="username">Username</label>
-    <input id="username" name="username" type="text" placeholder="Choose a username" required>
-    </div>
-    <div class="form-group">
-    <label for="email">Email</label>
-    <input id="email" name="email" type="email" placeholder="you@example.com" required>
-    </div>
-    <div class="form-group">
-    <label for="password">Password</label>
-    <input id="password" name="password" type="password" placeholder="Create a strong password" required>
-    </div>
-    <button class="btn" type="submit">Register</button>
-    <p class="note">Tip: Store passwords hashed on the server; never in plain text.</p>
-  </form>
-=======
   <title>Register - Direct Evolution Monitoring</title>
 
   <style>
@@ -447,7 +326,6 @@
     <div class="card-footer">
       <p>Already have an account? <a href="{{ url_for('login') }}">Sign in</a></p>
     </div>
->>>>>>> origin/User-Authetication-&-Security
   </div>
 </body>
 </html>

@@ -1,37 +1,6 @@
-<<<<<<< HEAD
 
 flask
 Flask-SQLAlchemy
 requests
 python-dotenv
 biopython
-=======
-pytest-flask>=1.2.0
-blinker==1.9.0
-click==8.3.1
-colorama==0.4.6
-Flask==3.1.2
-greenlet==3.3.1
-iniconfig==2.3.0
-itsdangerous==2.2.0
-Jinja2==3.1.6
-MarkupSafe==3.0.3
-numpy==2.4.1
-packaging==26.0
-pandas==3.0.0
-pluggy==1.6.0
-Pygments==2.19.2
-pytest==9.0.2
-python-dateutil==2.9.0.post0
-six==1.17.0
-SQLAlchemy==2.0.46
-typing_extensions==4.15.0
-tzdata==2025.3
-Werkzeug==3.1.5
-
-# Development/linting tools
-flake8>=7.0.0
-black>=24.0.0
-isort>=5.13.0
-mypy>=1.8.0
->>>>>>> origin/Data-Parsing-and-QC
