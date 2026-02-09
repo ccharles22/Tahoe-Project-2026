@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!doctype html>
 <html lang="en">
 <head>
@@ -80,3 +81,159 @@ Web Portal</h1>
   </main>
 </body>
 </html>
+=======
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Direct Evolution Monitoring Portal</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #FFD700 0%, #87CEEB 50%, #FF69B4 100%);
+      min-height: 100vh;
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+    }
+    .header {
+      width: 100%;
+      background: linear-gradient(135deg, #1E90FF, #2fbff4);
+      color: #fff;
+      padding: 2rem 1rem;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+    .main-card {
+      background: rgba(255,255,255,0.95);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(3,48,75,0.15);
+      margin: 3rem auto;
+      padding: 2.5rem 2rem;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
+    .main-card h1 {
+      font-size: 2.2rem;
+      margin-bottom: 1rem;
+      background: linear-gradient(135deg, #1E90FF, #FF6FA3);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 700;
+    }
+    .main-card p.subtitle {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 1.5rem;
+    }
+    .main-card p.description {
+      font-size: 1rem;
+      color: #666;
+      margin-bottom: 2rem;
+    }
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+    }
+    .feature {
+      background: linear-gradient(135deg, #e3f2fd 0%, #fce4ec 100%);
+      border-radius: 12px;
+      padding: 1.2rem 1rem;
+      min-width: 180px;
+      box-shadow: 0 2px 8px rgba(30,144,255,0.08);
+      text-align: center;
+    }
+    .feature-icon {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    .feature-title {
+      font-weight: 600;
+      color: #1E90FF;
+      margin-bottom: 0.3rem;
+    }
+    .feature-desc {
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .btn-container {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 2rem;
+    }
+    .btn {
+      padding: 0.8rem 2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      color: #fff;
+      font-weight: 600;
+      font-size: 1.1rem;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #1E90FF, #2fbff4);
+      transition: background 0.3s, transform 0.3s;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.12);
+    }
+    .btn-accent {
+      background: linear-gradient(135deg, #FF6FA3, #ff4081);
+    }
+    .btn:hover {
+      background: linear-gradient(135deg, #1873CC, #2fbff4);
+      transform: translateY(-2px) scale(1.04);
+    }
+    .btn-accent:hover {
+      background: linear-gradient(135deg, #ff4081, #FF6FA3);
+    }
+    @media (max-width: 600px) {
+      .header { font-size: 1.3rem; padding: 1.2rem 0.5rem; }
+      .main-card { padding: 1.2rem 0.5rem; }
+      .main-card h1 { font-size: 1.3rem; }
+      .btn { width: 100%; }
+      .btn-container { flex-direction: column; gap: 0.7rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">🧬 Direct Evolution Monitoring Portal 🧬</div>
+  <div class="main-card">
+    <h1>Welcome! Create an account or Log in to get started!</h1>
+    <p class="subtitle">Advanced Research Portal for Direct Evolution Studies</p>
+    <p class="description">
+      Access cutting-edge tools and data management systems designed for biological research and evolution monitoring. Join our secure platform to collaborate, analyze, and advance scientific discovery.
+    </p>
+    <div class="features">
+      <div class="feature">
+        <div class="feature-icon">🔬</div>
+        <div class="feature-title">Staging & Data Parsing</div>
+        <div class="feature-desc">Advanced analysis systems</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📊</div>
+        <div class="feature-title">Data Visualisation</div>
+        <div class="feature-desc">Analysis of metrics and visualisation of data</div>
+      </div>
+    </div>
+    <div class="btn-container">
+      <a href="{{ url_for('register') }}" class="btn">
+        <span>🔬 Create Account</span>
+      </a>
+      <a href="{{ url_for('login') }}" class="btn btn-accent">
+        <span>🧪 Sign In</span>
+      </a>
+    </div>
+  </div>
+</body>
+</html>
+>>>>>>> origin/User-Authetication-&-Security
