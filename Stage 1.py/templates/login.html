@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        * {
+            margin: 0;
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Login</title>
+                <!-- # Explanation: CSS (Cascading Style Sheets) is used to style HTML elements.
+                     # It controls colors, layout, fonts, spacing, and responsive behavior.
+                     # The <style> block below contains CSS rules that style this login page.
+                -->
+                <style>
+                    /* # This rule resets margin/padding and ensures consistent box-sizing */
+                    * {
+                        margin: 0;
+                        padding: 0;
+                        box-sizing: border-box;
+                    }
+
+                    /* # The 'body' rule sets the gradient background and centers content */
+                    /* # Why: to apply the blue, yellow, and pink theme and center the login card */
+                    body {
+                        background: linear-gradient(135deg, #FFD700 0%, #87CEEB 50%, #FF69B4 100%);
+                        min-height: 100vh;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                    }
+
+                    /* # The .container is the white card holding the form */
+                    .container {
+                        background-color: white;
+                        border-radius: 15px;
+                        padding: 50px;
+                        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+                        max-width: 400px;
+                        width: 90%;
+                    }
+
+                    /* # Heading styling */
+                    h1 {
+                        color: #0066cc; /* blue */
+                        font-size: 2.2em;
+                        margin-bottom: 30px;
+                        text-align: center;
+                        font-weight: 700;
+                    }
+
+                    /* # Spacing for form groups */
+                    .form-group {
+                        margin-bottom: 20px;
+                    }
+
+                    /* # Label styling (pink color) */
+                    label {
+                        display: block;
+                        color: #FF1493; /* pink */
+                        font-weight: 600;
+                        margin-bottom: 8px;
+                        font-size: 1.1em;
+                    }
+
+                    /* # Input styling with yellow border to match theme */
+                    input {
+                        width: 100%;
+                        padding: 12px;
+                        border: 2px solid #FFD700; /* yellow */
+                        border-radius: 8px;
+                        font-size: 1em;
+                        transition: border-color 0.3s;
+                    }
+
+                    /* # Focus state improves accessibility and clarity */
+                    input:focus {
+                        outline: none;
+                        border-color: #0066cc;
+                        box-shadow: 0 0 5px rgba(0, 102, 204, 0.3);
+                    }
+
+                    /* # Button styling (blue) */
+                    button {
+                        width: 100%;
+                        padding: 12px;
+                        background-color: #0066cc;
+                        color: white;
+                        border: none;
+                        border-radius: 8px;
+                        font-size: 1.1em;
+                        font-weight: 600;
+                        cursor: pointer;
+                        transition: background-color 0.3s, transform 0.2s;
+                    }
+
+                    /* # Hover effect makes buttons feel interactive */
+                    button:hover {
+                        background-color: #0052a3;
+                        transform: translateY(-2px);
+                    }
+                </style>
+            </head>
+            <body>
+                <!-- # The HTML below defines the structure (DOM) that the CSS styles -->
+                <div class="container">
+                    <h1>Login Page</h1>
+                    <!-- # The form is a basic example. In a real app you'd POST to /login -->
+                    <form>
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" placeholder="Enter your username" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                        </div>
+                        <button type="submit">Login</button>
+                    </form>
+                </div>
+            </body>
+            </html>
