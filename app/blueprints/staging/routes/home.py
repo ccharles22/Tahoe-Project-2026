@@ -8,4 +8,4 @@ def home():
 
 @home_bp.get("/start")
 def start():
-    return redirect(url_for("staging.create_experiment"))
+    return redirect(url_for("staging.create_experiment")) #may need to change later if we change staging route name
