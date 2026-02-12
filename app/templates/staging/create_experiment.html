@@ -151,6 +151,37 @@
             </div>
           {% endif %}
         </section>
+
+        <section class="panel">
+          <div class="panel__title">Parsing Upload</div>
+
+          {% if experiment_id %}
+            <form class="task__form" action="{{ url_for('parsing.upload_form_submit') }}" method="post" enctype="multipart/form-data">
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+
+              <label class="label">Data File (TSV, CSV, JSON)</label>
+              <input class="input" type="file" name="file" accept=".tsv,.csv,.json" required>
+              <button class="btn" type="submit">Upload &amp; Validate</button>
+            </form>
+
+            <details class="details">
+              <summary>Expected Data Format</summary>
+              <ul class="mono">
+                <li>variant_index (int)</li>
+                <li>generation (int)</li>
+                <li>parent_variant_index (int or empty for gen 0)</li>
+                <li>assembled_dna_sequence (A/T/G/C)</li>
+                <li>dna_yield (numeric)</li>
+                <li>protein_yield (numeric)</li>
+              </ul>
+            </details>
+          {% else %}
+            <div class="empty">
+              Create an experiment before uploading parsing data.
+              <div class="empty__muted">Use Step A on the left.</div>
+            </div>
+          {% endif %}
+        </section>
       </main>
 
     </div>

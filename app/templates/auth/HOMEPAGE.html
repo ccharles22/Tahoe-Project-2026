@@ -100,6 +100,23 @@
       box-shadow: 0 5px 15px rgba(255, 111, 163, 0.4);
     }
 
+    .start-btn {
+      padding: 0.6rem 1.5rem;
+      background: linear-gradient(135deg, var(--primary), var(--blue-700));
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 3px 10px rgba(30, 144, 255, 0.3);
+      margin-right: 0.5rem;
+    }
+
+    .start-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(30, 144, 255, 0.4);
+    }
+
     .container {
       max-width: 1200px;
       margin: 2rem auto;
@@ -199,7 +216,10 @@
     <div class="user-info">
       👤 Logged in as: <strong>{{ current_user.username }}</strong>
     </div>
-    <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
+    <div>
+      <a href="{{ url_for('staging.create_experiment') }}" class="start-btn">Start Experiment</a>
+      <a href="{{ url_for('auth.logout') }}" class="logout-btn">🚪 Logout</a>
+    </div>
   </nav>
 
   <main class="container">
@@ -208,29 +228,30 @@
       <p>You have successfully logged into the Evolution Monitoring Portal</p>
     </section>
 
-    <a href="{{ url_for('homepage') }}" style="text-decoration:none; color:inherit;">
-  <div class="dashboard-card">
-    <div class="card-icon">🔬</div>
-    <h3 class="card-title">Data Staging: Protein Selection & Plasmid Validation</h3>
-    <p class="card-description">
-      Initialize a new experiment using a known wild-type protein by accepting a UniProt Accession ID, retrieving the protein’s amino acid sequence and annotated functional domains via the UniProt API, and storing this information in the system.
-    </p>
-  </div>
-</a>
+    <div class="dashboard-grid">
+      <a href="{{ url_for('staging.create_experiment') }}" style="text-decoration:none; color:inherit;">
+        <div class="dashboard-card">
+          <div class="card-icon">🔬</div>
+          <h3 class="card-title">Data Staging: Protein Selection &amp; Plasmid Validation</h3>
+          <p class="card-description">
+            Initialize a new experiment using a known wild-type protein by accepting a UniProt Accession ID, retrieving the protein's amino acid sequence and annotated functional domains via the UniProt API, and storing this information in the system.
+          </p>
+        </div>
+      </a>
 
       <div class="dashboard-card">
         <div class="card-icon">📊</div>
-        <h3 class="card-title">Experimental Data Parsing & QC</h3>
+        <h3 class="card-title">Experimental Data Parsing &amp; QC</h3>
         <p class="card-description">
-         Enable upload and parsing of directed evolution experimental datasets by allowing users to submit data files in either TSV or JSON format and correctly ingesting the contents into the system.
+          Enable upload and parsing of directed evolution experimental datasets by allowing users to submit data files in either TSV or JSON format and correctly ingesting the contents into the system.
         </p>
       </div>
 
       <div class="dashboard-card">
         <div class="card-icon">🧬</div>
-        <h3 class="card-title">Data Analysis & Metrics</h3>
+        <h3 class="card-title">Data Analysis &amp; Metrics</h3>
         <p class="card-description">
-         Perform Sequence Processing (DNA to Protein) and Unifying Activity Metric Calculations.
+          Perform Sequence Processing (DNA to Protein) and Unifying Activity Metric Calculations.
         </p>
       </div>
 

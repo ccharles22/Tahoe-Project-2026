@@ -4,7 +4,7 @@ home_bp = Blueprint("home", __name__)
 
 @home_bp.get("/")
 def home():
-    return render_template("home.html")
+    return redirect(url_for("auth.login"))
 
 @home_bp.get("/start")
 def start():

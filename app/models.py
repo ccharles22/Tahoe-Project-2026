@@ -1,10 +1,20 @@
-from flask_login import UserMixin
+import os
 from datetime import datetime
+
+from flask_login import UserMixin
+
 from .extensions import db
+
+
+def _user_table_args():
+    db_url = os.getenv("DATABASE_URL", "")
+    if db_url.startswith("sqlite"):
+        return {"extend_existing": True}
+    return {"schema": "public", "extend_existing": True}
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"
-    __table_args__ = {"schema": "public", "extend_existing": True}
+    __table_args__ = _user_table_args()
 
     user_id = db.Column(db.BigInteger, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
@@ -63,3 +73,29 @@ class StagingValidation(db.Model):
     wraps = db.Column(db.Boolean, nullable=True)
 
     message = db.Column(db.Text, nullable=True)
+
+
+class Variant(db.Model):
+    __tablename__ = "variants"
+
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    experiment_id = db.Column(db.Integer, nullable=False, index=True)
+    variant_index = db.Column(db.Integer, nullable=False)
+    generation = db.Column(db.Integer, nullable=False)
+    parent_variant_index = db.Column(db.Integer, nullable=True)
+    assembled_dna_sequence = db.Column(db.Text, nullable=False)
+    # Allow yields to be nullable to tolerate upstream missing or malformed values.
+    dna_yield = db.Column(db.Float, nullable=True)
+    protein_yield = db.Column(db.Float, nullable=True)
+    additional_metadata = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+
+    __table_args__ = (
+        db.UniqueConstraint("experiment_id", "variant_index", name="uq_experiment_variant"),
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"<Variant(id={self.id}, experiment={self.experiment_id}, "
+            f"variant={self.variant_index}, gen={self.generation})>"
+        )

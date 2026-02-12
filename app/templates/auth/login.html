@@ -10,268 +10,7 @@
   <!-- Browser tab title -->
   <title>Login - Direct Evolution Monitoring</title>
 
-  <style>
-    :root {
-      --blue-500:#1E90FF;
-      --blue-700:#2fbff4;
-      --yellow-500:#FFD54F;
-      --pink-500:#FF6FA3;
-      --primary: var(--blue-500);
-      --accent: var(--pink-500);
-      --highlight: var(--yellow-500);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; }
-
-    body {
-      font-family: 'Segoe UI', Roboto, 'Times New Roman', Times, serif;
-      background: linear-gradient(135deg, #FFD700 0%, #87CEEB 50%, #FF69B4 100%);
-      background-attachment: fixed;
-      color: #03304b;
-      overflow-x: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, var(--primary), var(--blue-700));
-      color: #fff;
-      padding: 2rem 1rem;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      position: relative;
-      overflow: hidden;
-      animation: headerGlow 3s ease-in-out infinite;
-    }
-
-    @keyframes headerGlow {
-      0%, 100% { box-shadow: 0 4px 20px rgba(30, 144, 255, 0.3); }
-      50% { box-shadow: 0 6px 30px rgba(255, 111, 163, 0.4); }
-    }
-
-    .header h1 {
-      font-size: 2.5rem;
-      font-weight: 700;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .header::before,
-    .header::after {
-      content: '🧬';
-      position: absolute;
-      font-size: 4rem;
-      opacity: 0.1;
-      top: 50%;
-      transform: translateY(-50%);
-      animation: spin 20s linear infinite;
-    }
-
-    .header::before { left: 10%; }
-    .header::after { right: 10%; animation-direction: reverse; }
-
-    @keyframes spin {
-      from { transform: translateY(-50%) rotate(0deg); }
-      to { transform: translateY(-50%) rotate(360deg); }
-    }
-
-    .container {
-      max-width: 900px;
-      margin: 3rem auto;
-      padding: 1rem;
-      position: relative;
-      z-index: 10;
-    }
-
-    .card {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 16px;
-      padding: 3rem;
-      box-shadow: 0 10px 30px rgba(3, 48, 75, 0.15);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      animation: cardEntrance 0.8s ease-out;
-      max-width: 500px;
-      margin: auto;
-    }
-
-    @keyframes cardEntrance {
-      from { opacity: 0; transform: translateY(30px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .page-title {
-      text-align: center;
-      margin-bottom: 0.5rem;
-      font-size: 2.5rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      font-weight: 700;
-    }
-
-    .subtitle {
-      text-align: center;
-      font-size: 1rem;
-      color: #555;
-      margin-bottom: 2rem;
-    }
-
-    /* Flash Messages */
-    .flashes {
-      list-style: none;
-      margin-bottom: 1.5rem;
-      padding: 0;
-    }
-
-    .flashes li {
-      padding: 1rem;
-      border-radius: 10px;
-      margin-bottom: 0.5rem;
-      font-weight: 500;
-      animation: slideIn 0.5s ease-out;
-    }
-
-    @keyframes slideIn {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .flashes li.success {
-      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.15));
-      color: #065F46;
-      border: 2px solid rgba(16, 185, 129, 0.3);
-    }
-
-    .flashes li.error {
-      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.15));
-      color: #991B1B;
-      border: 2px solid rgba(239, 68, 68, 0.3);
-    }
-
-    /* Form Styles */
-    .form-group {
-      margin-bottom: 1.5rem;
-    }
-
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 0.5rem;
-      color: var(--primary);
-      font-size: 0.95rem;
-    }
-
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 0.85rem 1rem;
-      border-radius: 10px;
-      border: 2px solid rgba(255, 215, 0, 0.4);
-      font-size: 1rem;
-      transition: all 0.3s ease;
-      background: white;
-    }
-
-    input:focus {
-      outline: none;
-      border-color: var(--primary);
-      box-shadow: 0 0 15px rgba(30, 144, 255, 0.2);
-    }
-
-    input.is-invalid {
-      border-color: #EF4444;
-      background: rgba(239, 68, 68, 0.05);
-    }
-
-    .error-message {
-      color: #EF4444;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      display: block;
-      font-weight: 500;
-    }
-
-    /* Buttons */
-    .btn-container {
-      display: flex;
-      gap: 1rem;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 2rem;
-    }
-
-    .btn {
-      padding: 0.9rem 2rem;
-      border-radius: 10px;
-      text-decoration: none;
-      color: white;
-      font-weight: 600;
-      font-size: 1.1rem;
-      text-align: center;
-      border: none;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-      position: relative;
-      overflow: hidden;
-      min-width: 180px;
-    }
-
-    .btn::before {
-      content: '';
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      width: 0;
-      height: 0;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: translate(-50%, -50%);
-      transition: width 0.6s, height 0.6s;
-    }
-
-    .btn:hover::before {
-      width: 300px;
-      height: 300px;
-    }
-
-    .btn span { position: relative; z-index: 1; }
-
-    .btn-primary {
-      background: linear-gradient(135deg, var(--primary), var(--blue-700));
-    }
-
-    .btn:hover {
-      transform: translateY(-3px) scale(1.05);
-    }
-
-    .text-link {
-      text-align: center;
-      margin-top: 1.5rem;
-      padding-top: 1.5rem;
-      border-top: 2px solid rgba(255, 215, 0, 0.3);
-      color: #555;
-      font-size: 0.95rem;
-    }
-
-    .text-link a {
-      color: var(--primary);
-      text-decoration: none;
-      font-weight: 600;
-      transition: all 0.3s ease;
-    }
-
-    .text-link a:hover {
-      color: var(--accent);
-      text-decoration: underline;
-    }
-
-    @media (max-width: 600px) {
-      .header h1 { font-size: 1.8rem; }
-      .card { padding: 2rem; }
-      .page-title { font-size: 1.8rem; }
-      .btn { width: 100%; }
-    }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
 
 <body>
@@ -279,7 +18,7 @@
   <!-- Blue gradient header with animated glow effect -->
   <header class="header">
     <!-- Main title with DNA emojis (animated spinning in CSS) -->
-    <h1>🧬 Direct Evolution Monitoring Portal 🧬</h1>
+    <h1>Direct Evolution Monitoring</h1>
   </header>
 
   <!-- MAIN CONTENT AREA -->
@@ -293,7 +32,7 @@
       <h1 class="page-title">Sign In</h1>
       
       <!-- Gray subtitle text below the title -->
-      <p class="subtitle">Access your research dashboard</p>
+      <p class="subtitle">Access your experiments</p>
 
       <!-- FLASH MESSAGES SECTION -->
       <!-- Flash messages are temporary messages from the server (success, error, info) -->
@@ -325,7 +64,7 @@
       {% endwith %}
 
       <!-- Login Form: Submits to /login route via POST method -->
-      <form action="{{ url_for('login') }}" method="post">
+      <form action="{{ url_for('auth.login') }}" method="post">
         
         <!-- CSRF Protection Token: Required by Flask-WTF for security -->
         <!-- Prevents Cross-Site Request Forgery attacks -->
@@ -387,7 +126,7 @@
         <div class="btn-container">
           <!-- Submit button: sends form data to server when clicked -->
           <button type="submit" class="btn btn-primary">
-            <span>🧪 Sign In</span>
+            <span>Sign In</span>
           </button>
         </div>
       </form>
@@ -399,8 +138,8 @@
         Don't have an account? 
         
         <!-- Link to registration page (blue, underlines on hover) -->
-        <!-- url_for('register') generates the /register URL -->
-        <a href="{{ url_for('register') }}">Create one here</a>
+        <!-- url_for('auth.register') generates the /auth/register URL -->
+        <a href="{{ url_for('auth.register') }}">Create one here</a>
       </p>
     </section>
   </main>

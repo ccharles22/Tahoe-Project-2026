@@ -1,15 +1,14 @@
 import json
-from flask import Blueprint, jsonify, render_template, request, redirect, url_for, Response
+from flask import jsonify, render_template, request, redirect, url_for, Response
 from uuid import uuid4
-from app.services.parse_fasta import parse_fasta
+from app.services.staging.parse_fasta import parse_fasta
 from app.models import Experiment, WildtypeProtein, Plasmid, StagingValidation
-from app.db import db
-from app.services.uniprot_service import UniprotService, UniprotServiceError
-from app.services.plasmid_validator import validate_plasmid
-from app.services.backtranslate import backtranslate
+from app.extensions import db
+from app.services.staging.uniprot_service import UniprotService, UniprotServiceError
+from app.services.staging.plasmid_validator import validate_plasmid
+from app.services.staging.backtranslate import backtranslate
 
-
-staging_bp = Blueprint('staging', __name__, url_prefix='/staging')
+from .. import staging_bp
 
 # Route to create or view an experiment
 @staging_bp.get('/')
@@ -27,7 +26,7 @@ def create_experiment():
         validation = StagingValidation.query.filter_by(experiment_id=exp_id_int).first()
 
     return render_template(
-        "create_experiment.html",
+        "staging/create_experiment.html",
         experiment_id=experiment_id,
         wt=wt,
         validation=validation,

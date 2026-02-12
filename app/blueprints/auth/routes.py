@@ -30,8 +30,8 @@ def register():
             db.session.add(new_user)
             db.session.commit()
 
-            flash("Account created successfully! Please log in.", "success")
-            return redirect(url_for("auth.login"))
+            flash("Account created successfully!", "success")
+            return redirect(url_for("auth.homepage"))
 
         except Exception as e:
             db.session.rollback()
@@ -83,5 +83,9 @@ def homepage():
 
 @auth_bp.route("/")
 def home():
-    # Optional: a stage-1 landing page
-    return render_template("home.html")
+    return redirect(url_for("auth.login"))
+
+
+@auth_bp.route("/home-main")
+def home_main():
+    return render_template("home_main.html")
