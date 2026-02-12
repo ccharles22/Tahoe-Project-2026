@@ -85,6 +85,52 @@
             </p>
           {% endif %}
         </div>
+
+        <!-- STEP C (PARSING UPLOAD) -->
+        <div class="task task--parsing {% if not experiment_id %}is-disabled{% endif %}">
+          <div class="task__top">
+            <div class="task__name">Step C</div>
+            {% if experiment_id %}
+              <span class="badge badge--idle">Ready</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
+          </div>
+
+          <div class="task__title">Upload parsing data</div>
+
+          {% if experiment_id %}
+            <form class="task__form"
+                  action="{{ url_for('parsing.upload_form_submit') }}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+
+              <label class="label">Data File (TSV, CSV, JSON)</label>
+              <input class="input" type="file" name="file" accept=".tsv,.csv,.json" required>
+
+              <button class="btn" type="submit">Upload &amp; Validate</button>
+            </form>
+
+            <details class="details">
+              <summary>Expected Data Format</summary>
+              <ul class="mono">
+                <li>variant_index (int)</li>
+                <li>generation (int)</li>
+                <li>parent_variant_index (int or empty for gen 0)</li>
+                <li>assembled_dna_sequence (A/T/G/C)</li>
+                <li>dna_yield (numeric)</li>
+                <li>protein_yield (numeric)</li>
+              </ul>
+            </details>
+          {% else %}
+            <p class="task__hint">
+              Create an experiment before uploading parsing data.
+            </p>
+          {% endif %}
+        </div>
+
       </aside>
 
       <!-- MAIN RESULTS WORKSPACE -->
@@ -152,36 +198,89 @@
           {% endif %}
         </section>
 
+        <!-- PARSING UPLOAD RESULTS -->
         <section class="panel">
-          <div class="panel__title">Parsing Upload</div>
+          <div class="panel__title">Parsing Upload Results</div>
 
-          {% if experiment_id %}
-            <form class="task__form" action="{{ url_for('parsing.upload_form_submit') }}" method="post" enctype="multipart/form-data">
-              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+          {% if parsing_result %}
+            {% if parsing_result.success %}
+              <div class="message-box success">
+                <h3>Upload Successful</h3>
+                <p>Your data has been parsed, validated, and stored in the database.</p>
+              </div>
 
-              <label class="label">Data File (TSV, CSV, JSON)</label>
-              <input class="input" type="file" name="file" accept=".tsv,.csv,.json" required>
-              <button class="btn" type="submit">Upload &amp; Validate</button>
-            </form>
+              <div class="stats">
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.total_records }}</div>
+                  <div class="label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.inserted_count }}</div>
+                  <div class="label">Inserted</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.updated_count }}</div>
+                  <div class="label">Updated</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.warnings_count }}</div>
+                  <div class="label">Warnings</div>
+                </div>
+              </div>
 
-            <details class="details">
-              <summary>Expected Data Format</summary>
-              <ul class="mono">
-                <li>variant_index (int)</li>
-                <li>generation (int)</li>
-                <li>parent_variant_index (int or empty for gen 0)</li>
-                <li>assembled_dna_sequence (A/T/G/C)</li>
-                <li>dna_yield (numeric)</li>
-                <li>protein_yield (numeric)</li>
-              </ul>
-            </details>
+              {% if parsing_result.detected_fields %}
+                <div class="form-group">
+                  <label>Detected Fields</label>
+                  <div class="field-list">
+                    {% for field in parsing_result.detected_fields %}
+                      <span class="field-tag">{{ field }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+
+            {% else %}
+              <div class="message-box error">
+                <h3>Upload Failed</h3>
+                <p>{{ parsing_result.error_message }}</p>
+              </div>
+            {% endif %}
+
+            {% if parsing_result.errors and parsing_result.errors|length > 0 %}
+              <details open class="details">
+                <summary>Errors ({{ parsing_result.errors|length }})</summary>
+                <div class="details-content">
+                  <ul class="mono">
+                    {% for error in parsing_result.errors %}
+                      <li style="color:#721c24;">{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </details>
+            {% endif %}
+
+            {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
+              <details class="details" {% if not parsing_result.success %}open{% endif %}>
+                <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
+                <div class="details-content">
+                  <ul class="mono">
+                    {% for warning in parsing_result.warnings %}
+                      <li style="color:#856404;">{{ warning }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </details>
+            {% endif %}
+
           {% else %}
             <div class="empty">
-              Create an experiment before uploading parsing data.
-              <div class="empty__muted">Use Step A on the left.</div>
+              No parsing upload yet.
+              <div class="empty__muted">Use Step C on the left.</div>
             </div>
           {% endif %}
         </section>
+        
+
       </main>
 
     </div>

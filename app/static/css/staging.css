@@ -353,56 +353,6 @@ body{
   justify-content:flex-end;
 }
 
-/* ---------- TOP BAR (base.html) ---------- */
-
-.topbar__inner{
-  max-width: none;        /* remove the 980px constraint */
-  width: 100%;
-  margin: 0;              /* remove centering */
-  padding: 14px 24px;     /* side padding so it's not flush */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-
-.brand{
-  display:flex;
-  flex-direction: column;
-  line-height: 1;
-}
-
-.brand__tahoe__text{
-  display: flex;
-  font-family: "Boska", serif;
-  flex-direction: column;
-  gap: 0px;               /* tight */
-  font-weight: 900;
-  font-size: 44px;        /* bigger than your 14px */
-  line-height: 0.88;      /* stacked tight like LN */
-  letter-spacing: -0.02em;/* NOT wide */
-  text-transform: uppercase;
-  color: var(--text);
-}
-
-.brand__dem__text{
-  display: flex;
-  font-family: "Boska", serif;
-  flex-direction: column;
-  gap: 0px;               /* tight */
-  font-weight: 900;
-  font-size:44px;        /* bigger than your 14px */
-  line-height: 0.88;      /* stacked tight like LN */
-  letter-spacing: 0.02em;/* NOT wide */
-  text-transform: uppercase;
-  color: var(--text);
-}
-
-.nav{
-  margin-left: auto;
-  display:flex;
-  align-items:center;
-}
 
 
 
