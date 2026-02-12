@@ -16,3 +16,6 @@ Flask-Bcrypt
 WTForms
 email-validator
 psycopg2-binary
+SQLAlchemy>=2.0
+mysql-connector-python==9.5.0
+PyMySQL>=1.1
