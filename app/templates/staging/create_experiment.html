@@ -131,6 +131,31 @@
           {% endif %}
         </div>
 
+        <!-- STEP D (ANALYSIS) -->
+        <div class="task task--analysis {% if not experiment_id %}is-disabled{% endif %}">
+          <div class="task__top">
+            <div class="task__name">Step D</div>
+            {% if experiment_id %}
+              <span class="badge badge--idle">Ready</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
+          </div>
+
+          <div class="task__title">Run analysis</div>
+
+          {% if experiment_id %}
+            <form class="task__form" action="{{ url_for('staging.run_analysis') }}" method="post">
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+              <button class="btn" type="submit">Run Analysis</button>
+            </form>
+          {% else %}
+            <p class="task__hint">
+              Create an experiment before running analysis.
+            </p>
+          {% endif %}
+        </div>
+
       </aside>
 
       <!-- MAIN RESULTS WORKSPACE -->
@@ -276,6 +301,37 @@
             <div class="empty">
               No parsing upload yet.
               <div class="empty__muted">Use Step C on the left.</div>
+            </div>
+          {% endif %}
+        </section>
+
+        <!-- ANALYSIS RESULTS -->
+        <section class="panel">
+          <div class="panel__title">Analysis Results</div>
+
+          {% if analysis_message %}
+            <div class="note">{{ analysis_message }}</div>
+          {% endif %}
+
+          {% if analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
+            <div class="analysis-block">
+              <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution plot">
+            </div>
+          {% else %}
+            <div class="empty">
+              No analysis outputs yet.
+              <div class="empty__muted">Run Step D to generate results.</div>
+            </div>
+          {% endif %}
+
+          {% if analysis_outputs %}
+            <div class="analysis-links">
+              {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Download Top 10 CSV</a>
+              {% endif %}
+              {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC CSV</a>
+              {% endif %}
             </div>
           {% endif %}
         </section>

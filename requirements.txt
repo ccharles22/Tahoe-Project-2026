@@ -9,8 +9,6 @@ numpy
 matplotlib
 pillow
 
-
-
 Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
