@@ -1,0 +1,77 @@
+site_name: BIO727P Data Parsing & QC
+site_description: Documentation for the Directed Evolution Data Parsing and Quality Control Module
+site_author: BIO727P Group Project Team
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - content.code.copy
+  icon:
+    repo: fontawesome/brands/github
+
+nav:
+  - Home: index.md
+  - User Guide:
+    - Getting Started: guide/getting-started.md
+    - Uploading Data: guide/uploading-data.md
+    - File Formats: guide/file-formats.md
+  - Quality Control:
+    - Overview: qc/overview.md
+    - Threshold System: qc/thresholds.md
+    - Validation Checks: qc/validation-checks.md
+  - API Reference:
+    - Endpoints: api/endpoints.md
+  - Troubleshooting: troubleshooting.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/your-repo
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
