@@ -49,16 +49,29 @@ def get_or_create_generation(session: Session, experiment_id: int, generation_nu
         experiment_id=experiment_id,
         generation_number=generation_number
     ).first()
-    
-    if not gen:
-        gen = Generation(
-            experiment_id=experiment_id,
-            generation_number=generation_number
-        )
-        session.add(gen)
+
+    if gen:
+        return gen.generation_id
+
+    gen = Generation(
+        experiment_id=experiment_id,
+        generation_number=generation_number
+    )
+    session.add(gen)
+    try:
         session.flush()
         logger.info(f"Created generation {generation_number} for experiment {experiment_id}")
-    
+    except IntegrityError:
+        # Another transaction created it first; fetch existing instead of failing
+        session.rollback()
+        existing = session.query(Generation).filter_by(
+            experiment_id=experiment_id,
+            generation_number=generation_number
+        ).first()
+        if not existing:
+            raise
+        gen = existing
+
     return gen.generation_id
 
 
