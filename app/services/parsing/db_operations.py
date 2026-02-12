@@ -8,6 +8,7 @@ Uses bulk operations where possible for improved performance with large datasets
 import logging
 from typing import List, Dict, Any, Tuple, Set, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
 from app.models import Variant
 from app.services.parsing.utils import safe_int, safe_float, prepare_variant_data
@@ -157,9 +158,35 @@ def batch_upsert_variants(
     
     # Bulk insert new records
     if to_insert:
-        # Use bulk_insert_mappings for better performance
-        session.bulk_insert_mappings(Variant, to_insert)
-        inserted_count = len(to_insert)
+        # Use bulk_insert_mappings for better performance;
+        # fall back to one-by-one on duplicate constraint violations.
+        try:
+            session.bulk_insert_mappings(Variant, to_insert)
+            inserted_count = len(to_insert)
+        except IntegrityError:
+            session.rollback()
+            logger.warning("Bulk insert hit duplicates; falling back to row-by-row insert")
+            inserted_count = 0
+            for variant_data in to_insert:
+                try:
+                    session.add(Variant(**variant_data))
+                    session.flush()
+                    inserted_count += 1
+                except IntegrityError:
+                    session.rollback()
+                    # Try to update instead
+                    existing = session.query(Variant).filter_by(
+                        experiment_id=variant_data['experiment_id'],
+                        variant_index=variant_data['variant_index']
+                    ).first()
+                    if existing:
+                        existing.generation = variant_data['generation']
+                        existing.parent_variant_index = variant_data['parent_variant_index']
+                        existing.assembled_dna_sequence = variant_data['assembled_dna_sequence']
+                        existing.dna_yield = variant_data['dna_yield']
+                        existing.protein_yield = variant_data['protein_yield']
+                        existing.additional_metadata = variant_data['additional_metadata']
+                        updated_count += 1
     
     logger.info(
         f"Batch upsert complete: {inserted_count} inserted, {updated_count} updated "
