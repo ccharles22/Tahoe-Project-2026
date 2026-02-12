@@ -22,8 +22,13 @@ from sqlalchemy.orm import sessionmaker, scoped_session
 # Configure logging
 logger = logging.getLogger(__name__)
 
-# Get database URL from environment or default to SQLite
-DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///data/variants.db')
+# Get database URL from environment.
+# Fail fast if not provided to avoid silently writing to a local SQLite file.
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL is not set. Set it to the Bio727p Postgres URL before starting the app."
+    )
 
 # Create engine
 engine = create_engine(
