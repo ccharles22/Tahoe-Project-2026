@@ -29,17 +29,28 @@ def get_or_create_experiment(session: Session, experiment_id: int) -> int:
     user_id and wt_id values.
     """
     exp = session.query(Experiment).filter_by(experiment_id=experiment_id).first()
-    if not exp:
-        # Create new experiment with default user and wild type
-        exp = Experiment(
-            user_id=DEFAULT_USER_ID,
-            wt_id=DEFAULT_WT_ID,
-            name=f"Experiment {experiment_id}",
-            description=f"Auto-created experiment {experiment_id}"
-        )
-        session.add(exp)
+    if exp:
+        return exp.experiment_id
+
+    # Create new experiment with default user and wild type
+    exp = Experiment(
+        experiment_id=experiment_id,
+        user_id=DEFAULT_USER_ID,
+        wt_id=DEFAULT_WT_ID,
+        name=f"Experiment {experiment_id}",
+        description=f"Auto-created experiment {experiment_id}"
+    )
+    session.add(exp)
+    try:
         session.flush()
         logger.info(f"Created experiment {exp.experiment_id}: {exp.name}")
+    except IntegrityError:
+        # Another transaction inserted it first; fetch instead
+        session.rollback()
+        existing = session.query(Experiment).filter_by(experiment_id=experiment_id).first()
+        if not existing:
+            raise
+        exp = existing
     return exp.experiment_id
 
 
