@@ -3,7 +3,7 @@ MariaDB repository service module.
 This module is where the raw SQL and database access occur
 
 Design principles:
-- no biological logic here; (handled in app/services/sequence_service) 
+- no biological logic here; (handled in app/services/sequence/sequence_service)
 - no Flask-specific code here
 - Deterministic, idempotent database writes
 
@@ -16,7 +16,7 @@ from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
 
 from app.config import settings
-from app.services.sequence_service import (
+from app.services.sequence.sequence_service import (
     WTMapping,
     VariantSeqResult,
     MutationRecord,

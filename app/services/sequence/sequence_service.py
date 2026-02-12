@@ -7,7 +7,7 @@ from Bio.Align import PairwiseAligner
 from Bio.Align import substitution_matrices
 
 from app.config import settings
-from app.utils.seq_utils import (
+from .seq_utils import (
     normalise_dna,
     reverse_complement,
     circular_slice,

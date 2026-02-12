@@ -137,6 +137,20 @@ def reverse_complement_dna(dna: str) -> str:
     dna = normalise_dna(dna)
     return str(Seq(dna).reverse_complement())
 
+def reverse_complement(dna: str) -> str:
+    """Backward-compatible alias for reverse complement."""
+    return reverse_complement_dna(dna)
+
+def contains_ambiguous_bases(dna: str) -> bool:
+    """Return True if sequence contains non-ACGT bases."""
+    dna = normalise_dna(dna)
+    return any(base not in VALID_DNA for base in dna)
+
+def translate_dna(dna: str, *, table: int = 11, to_stop: bool = True) -> str:
+    """Translate DNA to protein using Biopython."""
+    dna = normalise_dna(dna)
+    return str(Seq(dna).translate(table=table, to_stop=to_stop))
+
 def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
     """
    Extracts a subsequence from circular DNA using 0-based coordinates. 

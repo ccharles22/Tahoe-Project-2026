@@ -4,9 +4,9 @@ import sys
 import logging
 
 from app.config import settings
-from app.services import db_repo
-from app.services.db_repo import get_engine
-from app.services.sequence_service import(
+from app.services.sequence import db_repo
+from app.services.sequence.db_repo import get_engine
+from app.services.sequence.sequence_service import(
     map_wt_gene_in_plasmid,
     process_variant_plasmid,
     call_mutations_against_wt,
