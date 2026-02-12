@@ -22,7 +22,7 @@ from sqlalchemy import distinct
 from parsing.tsv_parser import TSVParser
 from parsing.json_parser import JSONParser
 from parsing.qc import QualityControl
-from parsing.models import Variant, get_db_session, close_db_session
+from parsing.models import Variant, Generation, Metric, Experiment, get_db_session, close_db_session
 from parsing.base_parser import BaseParser
 from parsing.utils import safe_int, safe_float
 from parsing.db_operations import batch_upsert_variants
@@ -82,7 +82,7 @@ def get_experiment_ids() -> list[int]:
     """Get list of distinct experiment IDs from database."""
     session = get_db_session()
     try:
-        result = session.query(distinct(Variant.experiment_id)).order_by(Variant.experiment_id).all()
+        result = session.query(distinct(Experiment.experiment_id)).order_by(Experiment.experiment_id).all()
         return [row[0] for row in result if row[0] is not None]
     except Exception:
         return []

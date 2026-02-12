@@ -4,7 +4,7 @@ Minimal Flask application for data parsing service.
 Entry point for the data parsing and QC pipeline web service.
 """
 
-from flask import Flask
+from flask import Flask, redirect, url_for
 from parsing.routes import parsing_bp
 from parsing.models import init_db
 
@@ -21,6 +21,11 @@ def create_app() -> Flask:
     # Configuration
     app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50 MB max
     app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
+    
+    # Root route - redirect to upload page
+    @app.route('/')
+    def index():
+        return redirect(url_for('parsing.upload_form'))
     
     # Register blueprints
     app.register_blueprint(parsing_bp)
