@@ -9,10 +9,10 @@ from Bio.Align import substitution_matrices
 from app.config import settings
 from app.utils.seq_utils import (
     normalise_dna,
-    reverse_complement,
+    reverse_complement_dna,
     circular_slice,
     contains_ambiguous_bases,
-    translate_dna,
+    translate_cds_with_qc,
 )
 
 @dataclass(frozen=True)
@@ -60,6 +60,50 @@ class MutationCounts:
     nonsynonymous: int
     total: int
 
+# Indel alignment helpers
+
+def _make_protein_aligner() -> PairwiseAligner:
+    aligner = PairwiseAligner()
+    aligner.mode = "global"
+    aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
+    aligner.open_gap_score = -10.0
+    aligner.extend_gap_score = -0.5
+    return aligner
+
+def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
+    if codon_index_1based is None:
+        return None
+    i0 = (codon_index_1based -1) * 3
+    i1 = i0 + 3
+    if i1 > len(dna):
+        return None
+    return dna[i0:i1]
+
+def _identity_pct_from_alignment(
+        query: str,
+        target: str,
+        alignment,
+) -> float:
+    """
+   Identity over the aligned (non-gap) columns.
+   Utilises alignment.aligned spans rather than parsing formatted strings.
+    """
+    q_spans = alignment.aligned[0]
+    t_spans = alignment.aligned[1]
+
+    matches = 0 
+    aligned_cols = 0
+
+    for (q0, q1), (t0, t1) in zip(q_spans, t_spans):
+        seg_q = query[q0:q1]
+        seg_t = target[t0:t1]
+        seg_len = min(len(seg_q), len(seg_t))
+
+        aligned_cols += seg_len
+        matches += sum(1 for i in range(seg_len) if seg_q[i] == seg_t[i])
+
+    return (matches / aligned_cols * 100.0) if aligned_cols else 0.0
+
 # WT mapping
 
 def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping:
@@ -81,21 +125,18 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
     aligner = _make_protein_aligner()
 
     best_score = float("-inf")
-    best_identity = 0.0
-    best_alignment_score = 0.0
     best_mapping = None
 
+    # Search both strands over the same circularise coordinate space.
     strands = {
         "PLUS": circular,
-        "MINUS": reverse_complement(circular),
+        "MINUS": reverse_complement_dna(circular),
     }
 
     for strand_name, seq in strands.items():
-
         for frame in (0, 1, 2):
-
             translated = str(
-                translate_dna(
+                translate_cds_with_qc(
                     seq[frame:],
                     table=settings.GENETIC_CODE_TABLE,
                     to_stop=False,
@@ -106,32 +147,20 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
                 continue
 
             alignment = aligner.align(translated, wt_protein_aa)[0]
-
-            aligned_query, aligned_target = alignment.format().split("\n")[0], alignment.format().split("\n")[2]
-
-            matches = sum(
-                1 for a, b in zip(aligned_query, aligned_target) if a == b and a != "-")
-            
-            aligned_len = sum(
-                1 for a, b in zip (aligned_query, aligned_target) if a != "-" and b != "-")
-            
-            if aligned_len == 0:
-                continue
-
-            identity_pct = (matches / aligned_len) * 100.0
+            identity_pct = _identity_pct_from_alignment(translated, wt_protein_aa, alignment)
 
             if identity_pct < settings.WT_MIN_IDENTITY_PCT:
                 continue
 
             if alignment.score > best_score:
-                best_score = alignment.score
-                best_identity = identity_pct
-                best_alignment_score = float(alignment.score)
+                # only commit a candidate when it beats current best score
+                best_score = float(alignment.score)
+            
+                # Start of aligned query region in protein coordinates.
+                # This anchors nucleotide start to the best matching segment.
+                q0 = int(alignment.aligned[0][0][0])
 
-                # Determine protein start index in translated sequence
-                prot_start = alignment.aligned[0][0][0]
-
-                nt_start = frame + (prot_start * 3)
+                nt_start = frame + (q0 * 3)
                 nt_end = nt_start + (len(wt_protein_aa) * 3)
 
                 # Map back to original plasmid coordinates 
@@ -143,9 +172,9 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
                     nt_start_mod,
                     nt_end_mod,
                 )
-
+                # CDS must always be returned in coding orientation
                 if strand_name == "MINUS":
-                    wt_cds = reverse_complement(wt_cds)
+                    wt_cds = reverse_complement_dna(wt_cds)
 
                 best_mapping = WTMapping(
                     strand=strand_name,
@@ -155,7 +184,7 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
                     wt_cds_dna=wt_cds,
                     wt_protein_aa=wt_protein_aa,
                     match_identity_pct=identity_pct,
-                    alignment_score=best_alignment_score,
+                    alignment_score=best_score,
                 )
         if best_mapping is None:
             raise RuntimeError(
@@ -187,11 +216,12 @@ def process_variant_plasmid(
     
     # 2) Apply strand
     if wt_mapping.strand == "MINUS":
-        cds_dna = reverse_complement(cds_dna)
+        cds_dna = reverse_complement_dna(cds_dna)
 
     # 3) Apply frame by trimming leading bases
     if wt_mapping.frame in (0,1,2):
         cds_dna = cds_dna[wt_mapping.frame:]
+    
     has_frameshift = (len(cds_dna) % 3 != 0)
     has_ambig = contains_ambiguous_bases(cds_dna)
 
@@ -204,7 +234,7 @@ def process_variant_plasmid(
 
     if cds_dna:
         try:
-            protein = translate_dna(cds_dna, table=settings.GENETIC_CODE_TABLE, to_stop=to_stop,)
+            protein = translate_cds_with_qc(cds_dna, table=settings.GENETIC_CODE_TABLE, to_stop=to_stop,)
 
             if settings.STOP_POLICY != "truncate" and protein and "*" in protein:
                 prem_stop = True
@@ -228,7 +258,7 @@ def process_variant_plasmid(
     )
     
     if fallback_search and (protein is None or has_frameshift):
-        # Future extension : re-map CDS via protein alignment search
+        # Future extension : repeat mapping for this variant only
         pass
 
     return VariantSeqResult(
@@ -241,24 +271,7 @@ def process_variant_plasmid(
         qc=qc,
     )
 
-# Indel alignment helpers
 
-def _make_protein_aligner() -> PairwiseAligner:
-    aligner = PairwiseAligner()
-    aligner.mode = "global"
-    aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
-    aligner.open_gap_score = -10.0
-    aligner.extend_gap_score = -0.5
-    return aligner
-
-def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
-    if codon_index_1based is None:
-        return None
-    i0 = (codon_index_1based -1) * 3
-    i1 = i0 + 3
-    if i1 > len(dna):
-        return None
-    return dna[i0:i1]
 
 # Mutation calling
 
@@ -266,162 +279,38 @@ def call_mutation_via_protein_alignment(
         wt_cds_dna: str,
         var_cds_dna: str, 
 ) -> Tuple[List[MutationRecord], MutationCounts]:
-    
-    wt_prot = translate_dna(
-        wt_cds_dna,
-        table=settings.GENETIC_CODE_TABLE,
-        to_stop=False,
-    )
-
-    var_prot = translate_dna(
-        var_cds_dna,
-        table=settings.GENETIC_CODE_TABLE,
-        to_stop=False,
-    )
-
-    aligner = _make_protein_aligner()
-    alignment = aligner.align(wt_prot, var_prot)[0]
-
-    # Extract gapped strings from alignment
-    lines = alignment.format().split("\n")
-    wt_aln = lines[0]
-    var_aln = lines[2]
-
-    muts: List[MutationRecord] = []
-    syn = 0
-    nonsyn = 0
-    total = 0
-
-    wt_aa_pos = 0
-    var_aa_pos = 0
-
-    for wa, va in zip(wt_aln, var_aln):
-
-        if wa != "-":
-            wt_aa_pos += 1
-        if va != "-":
-            var_aa_pos += 1
-
-        # Insertion
-        if wa == "-" and va != "-":
-            total += 1
-            muts.append(
-                MutationRecord(
-                    mutation_type="INSERTION",
-                    codon_index_1based=var_aa_pos,
-                    aa_position_1based=var_aa_pos,
-                    wt_codon=None,
-                    var_codon=_safe_codon(var_cds_dna, var_aa_pos),
-                    wt_aa=None,
-                    var_aa=va,
-                    notes="In-frame insertion (protein alignment)."
-                )
-            )
-            continue
-
-        # Deletion
-        if wa != "-" and va == "-":
-            total += 1
-            muts.append(
-                MutationRecord(
-                    mutation_type="DELETION",
-                    codon_index_1based=wt_aa_pos,
-                    aa_position_1based=wt_aa_pos,
-                    wt_codon=_safe_codon(wt_cds_dna, wt_aa_pos), 
-                    var_codon=None,
-                    wt_aa=wa,
-                    var_aa=None,
-                    notes="In-frame deletion (protein alignment)."
-                )
-            )
-            continue
-
-        if wa == va:
-            continue
-
-        total += 1
-
-        wt_codon = _safe_codon(wt_cds_dna, wt_aa_pos)
-        var_codon = _safe_codon(var_cds_dna, var_aa_pos)
-
-        if wt_codon and var_codon:
-            wt_aa = translate_dna(
-                wt_codon,
-                table=settings.GENETIC_CODE_TABLE,
-                to_stop=False,
-            )
-
-            var_aa = translate_dna(
-                var_codon,
-                table=settings.GENETIC_CODE_TABLE,
-                to_stop=False,
-            )
-
-            if var_aa == "*":
-                mtype = "NONSENSE"
-                nonsyn += 1
-            elif wt_aa == var_aa:
-                mtype = "SYNONYMOUS"
-                syn += 1
-            else: 
-                mtype = "NONSYNONYMOUS"
-                nonsyn += 1
-        else:
-            mtype = "NONSYNONYMOUS"
-            nonsyn += 1
-
-        muts.append(
-            MutationRecord(
-                mutation_type=mtype,
-                codon_index_1based=wt_aa_pos,
-                aa_position_1based=wt_aa_pos,
-                wt_codon=wt_codon,
-                var_codon=var_codon,
-                wt_aa=wa,
-                var_aa=va,
-                notes=None
-            )
-        )
-
-    return muts, MutationCounts(syn, nonsyn, total)
-
-
-def call_mutations_against_wt(
-        wt_cds_dna: str,
-        var_cds_dna: str,
-) -> Tuple[List[MutationRecord], MutationCounts]:
-
+    """
+     Main entry point: substitutions fast path, indel fallback, frameshift flagging.
+    """
     wt = normalise_dna(wt_cds_dna)
     var = normalise_dna(var_cds_dna)
 
-    # Frameshift
     if (len(wt) % 3 != 0) or (len(var) % 3 != 0):
         return (
             [
-            MutationRecord(
-                mutation_type="FRAMESHIFT",
-                codon_index_1based=None,
-                aa_position_1based=None,
-                wt_codon=None,
-                var_codon=None,
-                wt_aa=None,
-                var_aa=None,
-                notes="CDS not divisible by 3; frameshift detected.",
-            )
-        ],
-        MutationCounts(0, 0, 1),
+                MutationRecord(
+                    mutation_type="FRAMESHIFT",
+                    codon_index_1based=None,
+                    aa_position_1based=None,
+                    wt_codon=None,
+                    var_codon=None,
+                    wt_aa=None,
+                    var_aa=None,
+                    notes="CDS not divisible by 3; frameshift detected.",
+                )
+            ],
+            MutationCounts(0, 0, 1),
         )
-        
-    # In-frame indels
+
     if len(wt) != len(var):
-        return call_mutation_via_protein_alignment(wt_cds_dna, var_cds_dna)
+        return call_mutation_via_protein_alignment(wt, var)
 
     muts: List[MutationRecord] = []
     syn = 0
     nonsyn = 0
     total = 0
-    codons = len(wt) // 3
 
+    codons = len(wt) // 3
     for i in range(codons):
         wt_codon = wt[i * 3 : i * 3 + 3]
         var_codon = var[i * 3 : i * 3 + 3]
@@ -431,16 +320,8 @@ def call_mutations_against_wt(
 
         total += 1
 
-        wt_aa = translate_dna(
-            wt_codon,
-            table=settings.GENETIC_CODE_TABLE,
-            to_stop=False,
-        )
-        var_aa = translate_dna(
-            var_codon, 
-            table=settings.GENETIC_CODE_TABLE,
-            to_stop=False,
-        )
+        wt_aa = translate_cds_with_qc(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+        var_aa = translate_cds_with_qc(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
 
         if var_aa == "*":
             mtype = "NONSENSE"
