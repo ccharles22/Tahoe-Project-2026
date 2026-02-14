@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Set
+from typing import Optional, Set, Tuple
 from Bio.Seq import Seq
 
-# Valid unambiguous DNA bases
+# Unambiguous DNA bases used for strict QC checks.
 VALID_DNA: Set[str] = {"A", "C", "G", "T"}
 
 # Common IUPAC ambiguous codes produced by assemblers
@@ -26,34 +26,51 @@ class TranslationQC:
 
 def normalise_dna(seq: str) -> str:
     """
-    Organises DNA input by removing whitespace and applying uppercase.
-    Ensures consistent behaviour across uploaded FASTA / TSV sources.
+    Normalise DNA input by removing whitespace and applying uppercase.
+    This prevents subtle differences between FASTA/TSV inputs from altering results.
     """
     return "".join(seq.split()).upper()
 
 def contains_ambiguous_bases(dna: str) -> bool:
     """
-    Activates when DNA contains any non-ACGT bases, used for QC flags and mutation 
-    calling decisions
+    Activates when DNA consists of any non-ACGT bases, used to flag low-confidence bases in assembled sequences.
     """
     dna = normalise_dna(dna)
-    return any(base not in {"A","C","G","T"} for base in dna)
+    return any(base not in VALID_DNA for base in dna)
+
+def reverse_complement_dna(dna: str) -> str:
+    """
+    Returns the reverse complement of a DNA sequence.
+    This essential for handling genes encoded on the reverse strand.
+    """
+    return str(Seq(normalise_dna(dna)).reverse_complement())
+
+def translate_dna(
+        dna:str,
+        *,
+        table: int = 11,
+        to_stop: bool = False,
+    ) -> str:
+    """
+    Lightweight wrapper around Biopython's Seq.translate with built-in normalisation.
+    """
+    dna = normalise_dna(dna)
+    return str(Seq(dna).translate(table=table, to_stop=to_stop))
+
 
 def translate_cds_with_qc(
-        cds_dna:str,
+        cds_dna: str,
         *,
         genetic_code_table: int = 11,
-        stop_policy: str = "truncate",   # "truncate" or "keep_stops"
+        stop_policy: str = "truncate",
         min_len_nt: int = 3,
-    ) -> tuple[Optional[str], TranslationQC]:
+) -> Tuple[Optional[str], TranslationQC]:
     """
     Translates a coding DNA sequence (CDS) into a protein while performing structured QC checks.
     
-    This function is purposefully self-contained so it can be:
-    1) unit tested without Flask or the database
-    2) reused for WT and variant sequences 
-    3) called inside background jobs
-    
+    stop_policy controls how internal stop codons are handled:
+    - "truncate": translation stops at the first stop codon, producing a truncated protein.
+    - "keep_stops": translation continues through stop codons, keeping them in the protein sequence.
     """
 
     if stop_policy not in {"truncate", "keep_stops"}:
@@ -81,8 +98,9 @@ def translate_cds_with_qc(
     has_frameshift = (len(dna) % 3 != 0)
 
     if has_frameshift:
-        notes.append("CDS length not divisible by 3 (possible frameshift).")
+        notes.append("CDS length not divisible by 3.")
 
+    # Translates first without truncation to detect internal stop codons consistently.
     try: 
         full_translation = str(
             Seq(dna).translate(table=genetic_code_table, to_stop=False)
@@ -122,15 +140,11 @@ def translate_cds_with_qc(
 
     return protein, qc
 
-def reverse_complement_dna(dna: str) -> str:
-    """
-    Returns the reverse complement of a DNA sequence.
-    """
-    return str(Seq(normalise_dna(dna)).reverse_complement)
+
 
 def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
     """
-   Extracts a subsequence from circular DNA using 0-based coordinates. 
+   Takes out a subsequence from circular DNA using 0-based coordinates. 
 
    Deals with wrap-around when the end position is before the start position.
 
@@ -141,7 +155,6 @@ def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
 
     dna = normalise_dna(dna)
     n = len(dna)
-
     if n == 0:
         return ""
     
@@ -150,7 +163,8 @@ def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
 
     if start < end:
         return dna[start:end]
-    elif start > end:
+    if start > end:
         return dna[start:] + dna[:end]
-    else:
-        return ""
+    
+    # start == end means a full circle, but to avoid ambiguity we return an empty string and rely on the caller to check the length if they want to interpret it as a full circle.
+    return ""
