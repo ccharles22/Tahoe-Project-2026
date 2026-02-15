@@ -9,6 +9,7 @@ from app.services.staging.uniprot_service import UniprotService, UniprotServiceE
 from app.services.staging.plasmid_validator import validate_plasmid
 from app.services.staging.backtranslate import backtranslate
 from app.services.analysis import report
+from app.jobs.run_sequence_processing import run_sequence_processing
 
 from .. import staging_bp
 
@@ -19,6 +20,7 @@ def create_experiment():
     accession = request.args.get('accession', '').strip()
     wt_message = request.args.get('wt_message', '').strip()
     analysis_message = request.args.get('analysis_message', '').strip()
+    sequence_message = request.args.get('sequence_message', '').strip()
 
     analysis_outputs = {}
 
@@ -63,7 +65,8 @@ def create_experiment():
         validation=validation,
         wt_message=wt_message,
         analysis_message=analysis_message,
-        analysis_outputs=analysis_outputs
+        analysis_outputs=analysis_outputs,
+        sequence_message=sequence_message,
     )
 
 
@@ -89,6 +92,21 @@ def run_analysis():
             os.environ["EXPERIMENT_ID"] = prev_env
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, analysis_message=message))
+
+
+@staging_bp.post('/sequence/run')
+def run_sequence():
+    experiment_id = request.form.get('experiment_id', '').strip()
+    if not experiment_id.isdigit():
+        return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
+
+    try:
+        run_sequence_processing(int(experiment_id))
+        message = "Sequence processing completed. Outputs are stored in the database."
+    except Exception as exc:
+        message = f"Sequence processing failed: {exc}"
+
+    return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
 
 # Route to handle UniProt accession submission  
 @staging_bp.post('/uniprot')

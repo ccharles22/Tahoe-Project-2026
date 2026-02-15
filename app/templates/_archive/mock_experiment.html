@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Create Experiment - Mock</title>
+
+    <link rel="stylesheet" href="./app/static/css/staging.css">
+  </head>
+
+  <body>
+    <div class="appShell">
+
+      <!-- LEFT SIDEBAR / TASK BAR -->
+      <aside class="sidebar">
+        <div class="sidebar__header">
+          <div class="sidebar__title">STAGING</div>
+          <div class="sidebar__subtitle">Protein selection & plasmid validation</div>
+
+          <div class="pill pill--muted">No experiment yet</div>
+        </div>
+
+        <!-- STEP A -->
+        <div class="task">
+          <div class="task__top">
+            <div class="task__name">Step A</div>
+            <span class="badge badge--idle">Waiting</span>
+          </div>
+
+          <div class="task__title">Fetch WT (UniProt)</div>
+          <form class="task__form">
+            <label class="label">UniProt accession</label>
+            <input class="input" name="accession" placeholder="e.g., O34996" required>
+            <button class="btn" type="submit">Fetch WT</button>
+          </form>
+        </div>
+
+        <!-- STEP B -->
+        <div class="task is-disabled">
+          <div class="task__top">
+            <div class="task__name">Step B</div>
+            <span class="badge badge--idle">Waiting</span>
+          </div>
+
+          <div class="task__title">Upload plasmid FASTA + validate</div>
+          <p class="task__hint">Complete Step A first</p>
+        </div>
+
+        <!-- STEP C (PARSING UPLOAD) -->
+        <div class="task task--parsing is-disabled">
+          <div class="task__top">
+            <div class="task__name">Step C</div>
+            <span class="badge badge--idle">Waiting</span>
+          </div>
+
+          <div class="task__title">Upload parsing data</div>
+          <p class="task__hint">Complete previous steps first</p>
+        </div>
+
+        <!-- STEP D (ANALYSIS) -->
+        <div class="task task--analysis is-disabled">
+          <div class="task__top">
+            <div class="task__name">Step D</div>
+            <span class="badge badge--idle">Waiting</span>
+          </div>
+
+          <div class="task__title">Run analysis</div>
+          <p class="task__hint">Complete previous steps first</p>
+        </div>
+
+        <!-- STEP E (SEQUENCE PROCESSING) -->
+        <div class="task task--sequence is-disabled">
+          <div class="task__top">
+            <div class="task__name">Step E</div>
+            <span class="badge badge--idle">Waiting</span>
+          </div>
+
+          <div class="task__title">Run sequence processing</div>
+          <p class="task__hint">Complete previous steps first</p>
+        </div>
+
+      </aside>
+
+      <!-- MAIN RESULTS WORKSPACE -->
+      <main class="workspace">
+        <div class="workspace__header">
+          <h1 class="workspace__title">Results</h1>
+          <p class="workspace__sub">Outputs load here after each backend step completes.</p>
+        </div>
+
+        <!-- WT OUTPUT -->
+        <section class="panel">
+          <div class="panel__title">WT (UniProt) Output</div>
+          <p class="note">No data yet. Complete Step A to see results.</p>
+        </section>
+
+        <!-- VALIDATION OUTPUT -->
+        <section class="panel">
+          <div class="panel__title">Plasmid Validation Output</div>
+          <p class="note">No data yet. Complete Step B to see results.</p>
+        </section>
+
+        <!-- PARSING UPLOAD RESULTS -->
+        <section class="panel">
+          <div class="panel__title">Parsing Upload Results</div>
+          <p class="note">No data yet. Complete Step C to see results.</p>
+        </section>
+
+        <!-- ANALYSIS RESULTS -->
+        <section class="panel">
+          <div class="panel__title">Analysis Results</div>
+          <p class="note">No data yet. Complete Step D to see results.</p>
+        </section>
+
+        <!-- SEQUENCE PROCESSING RESULTS -->
+        <section class="panel">
+          <div class="panel__title">Sequence Processing Results</div>
+          <p class="note">No data yet. Complete Step E to see results.</p>
+        </section>
+
+      </main>
+
+    </div>
+  </body>
+</html>

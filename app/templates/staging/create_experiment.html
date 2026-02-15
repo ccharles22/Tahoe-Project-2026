@@ -156,6 +156,31 @@
           {% endif %}
         </div>
 
+        <!-- STEP E (SEQUENCE PROCESSING) -->
+        <div class="task task--sequence {% if not experiment_id %}is-disabled{% endif %}">
+          <div class="task__top">
+            <div class="task__name">Step E</div>
+            {% if experiment_id %}
+              <span class="badge badge--idle">Ready</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
+          </div>
+
+          <div class="task__title">Run sequence processing</div>
+
+          {% if experiment_id %}
+            <form class="task__form" action="{{ url_for('staging.run_sequence') }}" method="post">
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+              <button class="btn" type="submit">Run Sequence Processing</button>
+            </form>
+          {% else %}
+            <p class="task__hint">
+              Create an experiment before running sequence processing.
+            </p>
+          {% endif %}
+        </div>
+
       </aside>
 
       <!-- MAIN RESULTS WORKSPACE -->
@@ -332,6 +357,20 @@
               {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
                 <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC CSV</a>
               {% endif %}
+            </div>
+          {% endif %}
+        </section>
+
+        <!-- SEQUENCE PROCESSING RESULTS -->
+        <section class="panel">
+          <div class="panel__title">Sequence Processing Results</div>
+
+          {% if sequence_message %}
+            <div class="note">{{ sequence_message }}</div>
+          {% else %}
+            <div class="empty">
+              No sequence processing run yet.
+              <div class="empty__muted">Use Step E on the left.</div>
             </div>
           {% endif %}
         </section>

@@ -1,6 +1,6 @@
 """
 Quick QC summary helper — prints warning counts and yield statistics.
-Run with: PYTHONPATH=. python scripts/parsing/qc_summary.py
+Run with: PYTHONPATH=. python -m app.services.parsing.qc.qc_summary
 """
 import re
 from collections import Counter

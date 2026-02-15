@@ -1,6 +1,6 @@
 """
 Categorize QC warnings for a TSV file and print counts + examples.
-Run with: PYTHONPATH=. py -3 scripts/parsing/warning_breakdown.py data/parsing/DE_BSU_Pol_Batch_1.tsv
+Run with: PYTHONPATH=. python -m app.services.parsing.qc.warning_breakdown data/parsing/DE_BSU_Pol_Batch_1.tsv
 """
 import sys
 import collections
@@ -29,7 +29,7 @@ def categorize(warning_text: str) -> str:
 
 def main():
     if len(sys.argv) < 2:
-        print('Usage: scripts/parsing/warning_breakdown.py <tsv-file> [percentile_low percentile_high dna_floor protein_floor]')
+        print('Usage: app.services.parsing.qc.warning_breakdown <tsv-file> [percentile_low percentile_high dna_floor protein_floor]')
         return
 
     path = sys.argv[1]

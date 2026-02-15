@@ -14,6 +14,22 @@ Before uploading data, ensure:
 
 ---
 
+## Repository Layout (Team Standard)
+
+Use this structure so app logic and scripts stay predictable:
+
+- app/ : Flask app code (blueprints, services, jobs, templates, static)
+- app/services/ : Reusable domain logic (parsing, QC, analysis, sequence)
+- app/jobs/ : Long-running or CLI-invoked jobs
+- scripts/ : One-off utilities and maintenance tasks
+- docs/ : Documentation
+- tests/ : Test suites
+- data/ : Sample or local data files
+
+If a script becomes reused by the app, move it into app/services/ and keep only a thin CLI wrapper in scripts/.
+
+---
+
 ## Upload Workflow
 
 ```mermaid

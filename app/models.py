@@ -32,10 +32,17 @@ class User(db.Model, UserMixin):
 
 class Experiment(db.Model):
     __tablename__ = "experiments"
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.String(64), nullable=True)
-    status = db.Column(db.String(32), nullable=False, default="CREATED")
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    __table_args__ = _user_table_args()
+
+    experiment_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.BigInteger, db.ForeignKey("public.users.user_id"), nullable=False)
+    wt_id = db.Column(db.BigInteger, nullable=False)
+    status = db.Column(db.String(32), nullable=True)
+    name = db.Column(db.String(255), nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
+    extra_metadata = db.Column(db.JSON, nullable=True)
 
     wt = db.relationship("WildtypeProtein", uselist=False, backref="experiment", cascade="all, delete-orphan")
     plasmid = db.relationship("Plasmid", uselist=False, backref="experiment", cascade="all, delete-orphan")
@@ -44,7 +51,11 @@ class Experiment(db.Model):
 
 class WildtypeProtein(db.Model):
     __tablename__ = "wildtype_protein"
-    experiment_id = db.Column(db.Integer, db.ForeignKey("experiments.id"), primary_key=True)
+    experiment_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("public.experiments.experiment_id"),
+        primary_key=True,
+    )
 
     uniprot_accession = db.Column(db.String(32), nullable=False)
     wt_protein_sequence = db.Column(db.Text, nullable=True)
@@ -55,13 +66,21 @@ class WildtypeProtein(db.Model):
 
 class Plasmid(db.Model):
     __tablename__ = "plasmid"
-    experiment_id = db.Column(db.Integer, db.ForeignKey("experiments.id"), primary_key=True)
+    experiment_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("public.experiments.experiment_id"),
+        primary_key=True,
+    )
     dna_sequence = db.Column(db.Text, nullable=False)
 
 
 class StagingValidation(db.Model):
     __tablename__ = "staging_validation"
-    experiment_id = db.Column(db.Integer, db.ForeignKey("experiments.id"), primary_key=True)
+    experiment_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("public.experiments.experiment_id"),
+        primary_key=True,
+    )
 
     is_valid = db.Column(db.Boolean, nullable=False, default=False)
     identity = db.Column(db.Float, nullable=True)
