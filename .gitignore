@@ -19,3 +19,6 @@ instance/
 *.tsv
 *.csv
 *.json
+
+# Generated outputs
+app/static/generated/
