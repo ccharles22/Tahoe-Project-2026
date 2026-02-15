@@ -1,5 +1,5 @@
 """
-MariaDB repository service module.
+PostgreSQL repository service module.
 This module is where the raw SQL and database access occur
 
 Design principles:
@@ -10,7 +10,7 @@ Design principles:
 """
 from __future__ import annotations
 
-from typing import Iterable, Optional, Tuple, List
+from typing import TYPE_CHECKING, Iterable, Optional, Tuple, List
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -26,7 +26,7 @@ from app.services.sequence.sequence_service import (
 # Engine/connection handling
 def get_engine() -> Engine:
     """
-    Constructs and returns a SQLAlchemy engine that's bound to MariaDB.
+    Constructs and returns a SQLAlchemy engine that's bound to postgreSQL.
 
     pool_pre_ping is enabled to help with dropped connections so that long
     running processes don't fail due to connection timeouts.
@@ -49,7 +49,7 @@ def save_staged_wt_protein(
 
     This function is triggered only during the staging step.
     Capturing the data conserves the downstream analysis to be deterministic and 
-    independent of external UiProt availability.
+    independent of external UniProt availability.
     """
     with engine.begin() as conn:
         conn.execute(
@@ -66,18 +66,15 @@ def save_staged_wt_protein(
                  :seq,
                  CURRENT_TIMESTAMP()
                  )
-                ON DUPLICATE KEY UPDATE
-                 uniprot_accession = VALUES(uniprot_accession),
-                 wt_protein_sequence = VALUES(wt_protein_sequence),
-                 retrieved_at = VALUES(retrieved_at)
-                 """),
-            {
-                "eid": experiment_id,
-                "acc": uniprot_accession,
-                "seq": wt_protein_sequence,
-            },
+                ON CONFLICT (experiment_id) DO UPDATE SET
+                 uniprot_accession = EXCLUDED.uniprot_accession,
+                 wt_protein_sequence = EXCLUDED.wt_protein_sequence,
+                 retrieved_at = EXCLUDED.retrieved_at
+            """),
+            {"eid": experiment_id, "acc": uniprot_accession, "seq": wt_protein_sequence},
         )
 
+         
 def get_staged_wt_protein(
         engine: Engine,
         experiment_id: int,
@@ -147,7 +144,9 @@ def load_wt_mapping(engine: Engine, experiment_id: int) -> Optional[WTMapping]:
                     cds_end_0based_excl,
                     wt_cds_dna,
                     wt_translated_protein,
-                    mapping_identity
+                    mapping_identity= :identity,
+                    validation_status = 'VALID',
+                    mapping_alignment_score = :score,
                 FROM plasmids
                 WHERE experiment_id = :eid
             """),
@@ -166,6 +165,7 @@ def load_wt_mapping(engine: Engine, experiment_id: int) -> Optional[WTMapping]:
         wt_cds_dna=row["wt_cds_dna"],
         wt_protein_aa=row["wt_translated_protein"],
         match_identity_pct=float(row["mapping_identity"]),
+        alignment_score=float(row["mapping_alignment_score"]),
     )
 
 def list_variants(engine: Engine, experiment_id: int) -> List[Tuple[int, str]]:
@@ -173,7 +173,7 @@ def list_variants(engine: Engine, experiment_id: int) -> List[Tuple[int, str]]:
     Retrieve all variant plasmid sequences for an experiment.
 
     Returns only: 
-        List od (variant_id, assembled_dna_sequence)
+        List of (variant_id, assembled_dna_sequence)
     """
     with engine.connect() as conn:
         rows = conn.execute(
@@ -228,7 +228,7 @@ def save_wt_mapping(engine: Engine, experiment_id: int, mapping: WTMapping) -> N
                     cds_end_0based_excl = :cds_end,
                     wt_cds_dna = :wt_cds,
                     wt_translated_protein = :wt_protein,
-                    mapping_identity = :identity
+                    mapping_identity = :identity,
                     validation_status = 'VALID',
                     mapped_at = CURRENT_TIMESTAMP()
                 WHERE experiment_id = :eid
@@ -298,23 +298,23 @@ def save_variant_sequence_analysis(
                     :syn,
                     :nonsyn,
                     :total,
-                    CURRENT_TIMESTAMP()
+                    CURRENT_TIMESTAMP
                 )
-                ON DUPLICATE KEY UPDATE
-                    cds_start_0based = VALUES(cds_start_0based),
-                    cds_end_0based_excl = VALUES(cds_end_0based_excl),
-                    strand = VALUES(strand),
-                    frame = VALUES(frame),
-                    cds_dna = VALUES(cds_dna),
-                    protein_sequence = VALUES(protein_sequence),
-                    has_frameshift = VALUES(has_frameshift),
-                    has_premature_stop = VALUES(has_premature_stop),
-                    has_ambiguous_bases = VALUES(has_ambiguous_bases),
-                    qc_notes = VALUES(qc_notes),
-                    synonymous_count = VALUES(synonymous_count),
-                    nonsynonymous_count = VALUES(nonsynonymous_count),
-                    total_mutation_count = VALUES(total_mutation_count),
-                    analysed_at = VALUES(analysed_at)
+                ON CONFLICT (variant_id) DO UPDATE SET
+                    cds_start_0based = EXCLUDED.cds_start_0based,
+                    cds_end_0based_excl = EXCLUDED.cds_end_0based_excl,
+                    strand = EXCLUDED.strand,
+                    frame = EXCLUDED.frame,
+                    cds_dna = EXCLUDED.cds_dna,
+                    protein_sequence = EXCLUDED.protein_sequence,
+                    has_frameshift = EXCLUDED.has_frameshift,
+                    has_premature_stop = EXCLUDED.has_premature_stop,
+                    has_ambiguous_bases = EXCLUDED.has_ambiguous_bases,
+                    qc_notes = EXCLUDED.qc_notes,
+                    synonymous_count = EXCLUDED.synonymous_count,
+                    nonsynonymous_count = EXCLUDED.nonsynonymous_count,
+                    total_mutation_count = EXCLUDED.total_mutation_count,
+                    analysed_at = EXCLUDED.analysed_at
             """),
             {
                 "variant_id": variant_id,
@@ -323,11 +323,11 @@ def save_variant_sequence_analysis(
                 "strand": result.strand,
                 "frame": result.frame,
                 "cds_dna": result.cds_dna,
-                "protein": result.protein_aa,
-                "frameshift": int(result.qc.has_frameshift),
-                "prem_stop": int(result.qc.has_premature_stop),
-                "ambig": int(result.qc.has_ambiguous_bases),
-                "notes": result.qc.notes,
+                "protein": result.protein_sequence,
+                "frameshift": result.has_frameshift,
+                "prem_stop": result.has_premature_stop,
+                "ambig": result.has_ambiguous_bases,
+                "notes": result.qc_notes,
                 "syn": counts.synonymous,
                 "nonsyn": counts.nonsynonymous,
                 "total": counts.total,

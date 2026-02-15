@@ -18,7 +18,7 @@ def _get_str(name: str, default: str) -> str:
 @dataclass(frozen=True)
 class Settings:
     # Database
-    DATABASE_URL: str = _get_str("DATABASE_URL", "mysql+pymysql://patriciaosire:blue@100.80.183.102:5432/bio727p_group_project")
+    DATABASE_URL: str = _get_str("DATABASE_URL", "postgresql+psycopg://patriciaosire:blue@100.80.183.102:5432/bio727p_group_project")
     
     # Sequence processing policies 
     GENETIC_CODE_TABLE: int = _get_int("GENETIC_CODE_TABLE", "11")
@@ -31,6 +31,9 @@ class Settings:
     # Job logging
     LOG_EVERY_N: int = _get_int("LOG_EVERY_N", 10)
 
+    # WT mapping
+    WT_MIN_IDENTITY_PCT: float = 60.0
+    MAX_ALIGNMENT_GAP_PENALTY: float = -10.0
 
 settings = Settings()
 

@@ -6,7 +6,7 @@ import logging
 from app.config import settings
 from app.services.sequence import db_repo
 from app.services.sequence.db_repo import get_engine
-from app.services.sequence.sequence_service import(
+from app.services.sequence.sequence_service import (
     map_wt_gene_in_plasmid,
     process_variant_plasmid,
     call_mutations_against_wt,
@@ -23,7 +23,7 @@ def run_sequence_processing(experiment_id: int) -> None:
     - Load WT references (UniProt WT protein + WT plasmid DNA)
     - Ensure WT gene mapping exists (cached in DB)
     - Process each variant deterministically (CDS extraction -> translation -> QC)
-    - Save all analysis outputs onto MariaDB
+    - Save all analysis outputs onto PostgreSQL
     """
     engine = get_engine()
 
@@ -60,20 +60,34 @@ def run_sequence_processing(experiment_id: int) -> None:
             experiment_id,
         )
 
-        LOG_EVERY_N = settings.LOG_EVERY_N
+        log_every_n = settings.LOG_EVERY_N
 
-        for idx, (variant_id, variant_plasmid_dna) in enumerate( variants, start=1):
-                                                                
+        for idx, (variant_id, variant_plasmid_dna) in enumerate(variants, start=1):                                                    
             # Extract CDS, translate to protein, and genereate QC flags 
             seq_result = process_variant_plasmid(
-                variant_plasmid_dna, wt_mapping
+                variant_plasmid_dna, 
+                wt_mapping,
+                fallback_search=settings.FALLBACK_SEARCH,
             )
+
+            # If CDS extraction/translation failed, store QC-only output and skip mutation calling.
+            if not seq_result.cds_dna:
+                db_repo.save_variant_sequence_analysis(
+                    engine,
+                    variant_id,
+                    seq_result,
+                    counts=settings.EMPTY_MUTATION_COUNTS, 
+                )
+                if idx % log_every_n == 0 or idx == total_variants:
+                    logger.info("Processed %d/%d variants (experiment %s)", idx,
+                                total_variants, experiment_id)
+                    continue
+
 
             # Identify and classify mutations vs WT
             mutations, counts = call_mutations_against_wt(
                 wt_mapping.wt_cds_dna,
                 seq_result.cds_dna,
-                genetic_code_table = settings.GENETIC_CODE_TABLE,
             )
 
             # Persist per-variant outputs required for reporting
@@ -85,7 +99,7 @@ def run_sequence_processing(experiment_id: int) -> None:
             )
 
             # Periodic progress logging 
-            if idx % LOG_EVERY_N == 0 or idx == total_variants:
+            if idx % log_every_n == 0 or idx == total_variants:
                 logger.info(
                     "Processed %d/%d variants (experiment %s)",
                     idx, 
@@ -96,7 +110,7 @@ def run_sequence_processing(experiment_id: int) -> None:
         db_repo.update_experiment_status(engine, experiment_id, "ANALYSED")
 
         logger.info(
-            "Sequence processing cleted sucessfully for experiment %s",
+            "Sequence processing completed successfully for experiment %s",
             experiment_id,
         )
 
@@ -121,6 +135,6 @@ if __name__ == "__main__":
     This is beneficial for testing and batch execution outside Flask.
     """
     if len(sys.argv) != 2:
-        raise SystemExit("Usage: run_sequence_processing <experiment_id>")
+        raise SystemExit("Usage: python -m app.jobs.run_sequence_processing <experiment_id>")
     run_sequence_processing(int(sys.argv[1]))
     

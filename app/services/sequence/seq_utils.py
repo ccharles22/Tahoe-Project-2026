@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional, Set
+from typing import Optional, Set, Tuple
 from Bio.Seq import Seq
 
-# Valid unambiguous DNA bases
+# Unambiguous DNA bases used for strict QC checks.
 VALID_DNA: Set[str] = {"A", "C", "G", "T"}
 
 # Common IUPAC ambiguous codes produced by assemblers
-IUPAC_AMBIGUOUS: Set[str] = set("NRYWSKMBDHV")
+AMBIGUOUS_BASES: Set[str] = set("NRYWSKMBDHV")
 
 @dataclass(frozen=True)
 class TranslationQC:
@@ -26,35 +26,61 @@ class TranslationQC:
 
 def normalise_dna(seq: str) -> str:
     """
-    Organises DNA input by removing whitespace and applying uppercase.
-    Ensures consistent behaviour across uploaded FASTA / TSV sources.
+    Normalise DNA input by removing whitespace and applying uppercase.
+    This prevents subtle differences between FASTA/TSV inputs from altering results.
     """
     return "".join(seq.split()).upper()
 
+def contains_ambiguous_bases(dna: str) -> bool:
+    """
+    Activates when DNA consists of any non-ACGT bases, used to flag low-confidence bases in assembled sequences.
+    """
+    dna = normalise_dna(dna)
+    return any(base not in VALID_DNA for base in dna)
+
+def reverse_complement_dna(dna: str) -> str:
+    """
+    Returns the reverse complement of a DNA sequence.
+    This essential for handling genes encoded on the reverse strand.
+    """
+    return str(Seq(normalise_dna(dna)).reverse_complement())
+
+def translate_dna(
+        dna:str,
+        *,
+        table: int = 11,
+        to_stop: bool = False,
+    ) -> str:
+    """
+    Lightweight wrapper around Biopython's Seq.translate with built-in normalisation.
+    """
+    dna = normalise_dna(dna)
+    return str(Seq(dna).translate(table=table, to_stop=to_stop))
+
+
 def translate_cds_with_qc(
-        cds_dna:str,
+        cds_dna: str,
         *,
         genetic_code_table: int = 11,
-        stop_policy: str = "truncate",   # "truncate" or "keep_stops"
+        stop_policy: str = "truncate",
         min_len_nt: int = 3,
-    ) -> tuple[Optional[str], TranslationQC]:
+) -> Tuple[Optional[str], TranslationQC]:
     """
-    Translates a coding DNA sequence (CDS) into a protein while performing QC checks.
+    Translates a coding DNA sequence (CDS) into a protein while performing structured QC checks.
     
-    This function is purposefully self-contained so it can be:
-    1) unit tested without Flask or the database
-    2) reused for WT and variant sequences 
-    3) called inside background jobs
-    
-    Returns:
-        (protein_sequence | None, TranslationQC)
+    stop_policy controls how internal stop codons are handled:
+    - "truncate": translation stops at the first stop codon, producing a truncated protein.
+    - "keep_stops": translation continues through stop codons, keeping them in the protein sequence.
     """
+
+    if stop_policy not in {"truncate", "keep_stops"}:
+        raise ValueError("stop_policy must be 'truncate' or 'keep_stops'")
 
     # Normalisation ensures all downstream checks are consistent
     dna = normalise_dna(cds_dna)
-    notes = None
+    notes = []
 
-    # Reject sequences that too short to encode even a single codon
+    # Reject sequences that are too short to encode even a single codon
     if len(dna) < min_len_nt:
         qc = TranslationQC(
             normalised_len=len(dna),
@@ -67,22 +93,17 @@ def translate_cds_with_qc(
         )
         return None, qc
 
-    # Any base outside A,C,G,T is treated as ambiguous for QC purposes
-    # although Biopython may still translate them to 'X'
-    has_ambiguous = any(base not in VALID_DNA for base in dna)
-
-    # Frameshifts break codon alignment and usually invalidate translation
+    
+    has_ambiguous = bool(set(dna) - VALID_DNA)
     has_frameshift = (len(dna) % 3 != 0)
+
     if has_frameshift:
-        notes = "CDS length not divisible by 3 (from frameshift or incomplete assembly)."
+        notes.append("CDS length not divisible by 3.")
 
-    # Translation policy:
-    # - "truncate": stop translation at first stop codon
-    # - "keep_stops": retain stop codons as '*' in protein sequence
-
+    # Translates first without truncation to detect internal stop codons consistently.
     try: 
-        protein = str(
-            Seq(dna).translate(table=genetic_code_table, to_stop=(stop_policy=="truncate"))
+        full_translation = str(
+            Seq(dna).translate(table=genetic_code_table, to_stop=False)
         )
     except Exception as e:
         # Translation can fail for badly malformed sequences 
@@ -96,24 +117,16 @@ def translate_cds_with_qc(
             notes=f"Translation failed: {type(e).__name__}: {e}"
         ) 
         return None, qc
+    
+    stop_index = full_translation.find("*")
+    has_stop = (stop_index != -1)
 
-    # Stop codon detection differs depending on translation policy
-    if stop_policy == "keep_stops":
-        stop_index = protein.find("*")
-        has_stop = (stop_index != -1)
-        is_truncated = False
-    else:
-        # when trucating, stops are removed - so we detect them by translating
-        # without truncation and checking for '*'
-        full_translation = str(
-            Seq(dna).translate(
-                table=genetic_code_table, 
-                to_stop=False
-                )
-        )
-        stop_index = full_translation.find("*")
-        has_stop = (stop_index != -1)
+    if stop_policy == "truncate":
+        protein = full_translation.split("*")[0]
         is_truncated = has_stop
+    else:
+       protein = full_translation
+       is_truncated = False
 
     qc = TranslationQC(
         normalised_len=len(dna),
@@ -122,20 +135,12 @@ def translate_cds_with_qc(
         has_stop_codon=has_stop,
         is_truncated=is_truncated,
         stop_index=(stop_index if has_stop else None),
-        notes=notes,
+        notes="; ".join(notes) if notes else None,
     )
 
     return protein, qc
 
-def reverse_complement_dna(dna: str) -> str:
-    """
-    Returns the reverse complement of a DNA sequence.
 
-    This function is required for handling genes encoded on the reverse
-    stand of circular plasmids.
-    """
-    dna = normalise_dna(dna)
-    return str(Seq(dna).reverse_complement())
 
 def reverse_complement(dna: str) -> str:
     """Backward-compatible alias for reverse complement."""
@@ -153,14 +158,17 @@ def translate_dna(dna: str, *, table: int = 11, to_stop: bool = True) -> str:
 
 def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
     """
-   Extracts a subsequence from circular DNA using 0-based coordinates. 
+   Takes out a subsequence from circular DNA using 0-based coordinates. 
 
    Deals with wrap-around when the end position is before the start position.
-   e.g. circular_slice("ACGTACGT", 6, 2) -> "GTAC"
+
    """
+    
+    if start_0based < 0 or end_0based_excl < 0:
+        raise ValueError("Coordinates must be non-negative.")
+
     dna = normalise_dna(dna)
     n = len(dna)
-
     if n == 0:
         return ""
     
@@ -169,9 +177,8 @@ def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
 
     if start < end:
         return dna[start:end]
-    elif start > end:
-        # Wrap-around case
+    if start > end:
         return dna[start:] + dna[:end]
-    else:
-        # start == end implies empty slice in CDS context 
-        return ""
+    
+    # start == end means a full circle, but to avoid ambiguity we return an empty string and rely on the caller to check the length if they want to interpret it as a full circle.
+    return ""
