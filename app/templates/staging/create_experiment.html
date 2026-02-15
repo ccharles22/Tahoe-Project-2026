@@ -5,28 +5,48 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Create Experiment</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/staging.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mock_staging.css') }}">
   </head>
 
   <body>
+    <!-- PAGE HEADER -->
+    <header class="page-header">
+      <a href="{{ url_for('auth.homepage') }}" class="back-btn">
+        <span class="back-btn__icon">←</span>
+        <span class="back-btn__text">Back to Homepage</span>
+      </a>
+    </header>
+
     <div class="appShell">
 
-      <!-- LEFT SIDEBAR / TASK BAR -->
+      <!-- LEFT TASKBAR -->
+      <nav class="taskbar">
+        <a href="#experiments" class="taskbar__item" data-section="experiments">
+          <span class="taskbar__icon"></span>
+          <span class="taskbar__label">Experiments</span>
+        </a>
+        <a href="#tools" class="taskbar__item" data-section="tools">
+          <span class="taskbar__icon"></span>
+          <span class="taskbar__label">Tools</span>
+        </a>
+      </nav>
+
+      <!-- SIDEBAR -->
       <aside class="sidebar">
-        <div class="sidebar__header">
-          <div class="sidebar__title">STAGING</div>
-          <div class="sidebar__subtitle">Protein selection & plasmid validation</div>
+        <!-- TOOLS SECTION -->
+        <div class="sidebar__section sidebar__section--tools">
+          <div class="sidebar__header">
+            <div class="sidebar__title">WORKFLOW</div>
+            <div class="sidebar__subtitle">5-step processing pipeline</div>
 
-          {% if experiment_id %}
-            <div class="pill">
-              Experiment: <strong>#{{ experiment_id }}</strong>
-            </div>
-          {% else %}
-            <div class="pill pill--muted">No experiment yet</div>
-          {% endif %}
-        </div>
+            {% if experiment_id %}
+              <div class="pill">
+                Experiment: <strong>#{{ experiment_id }}</strong>
+              </div>
+            {% endif %}
+          </div>
 
-        <!-- STEP A -->
+          <!-- STEP A -->
         <div class="task">
           <div class="task__top">
             <div class="task__name">Step A</div>
@@ -64,7 +84,7 @@
             {% endif %}
           </div>
 
-          <div class="task__title">Upload plasmid FASTA + validate</div>
+          <div class="task__title">Validate Plasmid</div>
 
           {% if experiment_id %}
             <form class="task__form"
@@ -79,10 +99,6 @@
 
               <button class="btn" type="submit">Validate</button>
             </form>
-          {% else %}
-            <p class="task__hint">
-              Fetch WT first to create an experiment.
-            </p>
           {% endif %}
         </div>
 
@@ -124,10 +140,6 @@
                 <li>protein_yield (numeric)</li>
               </ul>
             </details>
-          {% else %}
-            <p class="task__hint">
-              Create an experiment before uploading parsing data.
-            </p>
           {% endif %}
         </div>
 
@@ -149,10 +161,6 @@
               <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
               <button class="btn" type="submit">Run Analysis</button>
             </form>
-          {% else %}
-            <p class="task__hint">
-              Create an experiment before running analysis.
-            </p>
           {% endif %}
         </div>
 
@@ -167,20 +175,58 @@
             {% endif %}
           </div>
 
-          <div class="task__title">Run sequence processing</div>
+          <div class="task__title">Process Sequences</div>
 
           {% if experiment_id %}
             <form class="task__form" action="{{ url_for('staging.run_sequence') }}" method="post">
               <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
-              <button class="btn" type="submit">Run Sequence Processing</button>
+              <button class="btn" type="submit">Process</button>
             </form>
-          {% else %}
-            <p class="task__hint">
-              Create an experiment before running sequence processing.
-            </p>
           {% endif %}
         </div>
+        </div>
 
+        <!-- EXPERIMENTS SECTION -->
+        <div class="sidebar__section sidebar__section--experiments">
+          <div class="sidebar__header">
+            <div class="sidebar__title">EXPERIMENTS</div>
+            <div class="sidebar__subtitle">Manage your experiments</div>
+          </div>
+
+          <button class="new-experiment-btn" id="newExperimentBtn">
+            <span class="new-experiment-btn__icon">+</span>
+            <span class="new-experiment-btn__text">New Experiment</span>
+          </button>
+
+          <div class="experiments-list">
+            <div class="experiment-item">
+              <div class="experiment-item__id">#001</div>
+              <div class="experiment-item__info">
+                <div class="experiment-item__name">Current Experiment</div>
+                <div class="experiment-item__date">Today</div>
+              </div>
+              <button class="experiment-item__btn">Open</button>
+            </div>
+
+            <div class="experiment-item">
+              <div class="experiment-item__id">#002</div>
+              <div class="experiment-item__info">
+                <div class="experiment-item__name">Previous Run</div>
+                <div class="experiment-item__date">Feb 14</div>
+              </div>
+              <button class="experiment-item__btn">Open</button>
+            </div>
+
+            <div class="experiment-item">
+              <div class="experiment-item__id">#003</div>
+              <div class="experiment-item__info">
+                <div class="experiment-item__name">Archive Test</div>
+                <div class="experiment-item__date">Feb 12</div>
+              </div>
+              <button class="experiment-item__btn">Open</button>
+            </div>
+          </div>
+        </div>
       </aside>
 
       <!-- MAIN RESULTS WORKSPACE -->
@@ -189,7 +235,6 @@
           <h1 class="workspace__title">Results</h1>
           <p class="workspace__sub">Outputs load here after each backend step completes.</p>
         </div>
-
         <!-- WT OUTPUT -->
         <section class="panel">
           <div class="panel__title">WT (UniProt) Output</div>
@@ -378,6 +423,37 @@
 
       </main>
 
+      <!-- RIGHT SIDEBAR: AI Chat Helper -->
+      <aside class="rightbar">
+        <div class="chat-panel">
+          <div class="chat-panel__header">
+            <div class="chat-panel__title">AI Helper</div>
+            <div class="chat-panel__icon"></div>
+          </div>
+
+          <div class="chat-panel__messages" id="chatMessages">
+            <div class="chat-message chat-message--bot">
+              <div class="chat-message__content">
+                Hi! I'm your AI assistant. I can help you with the workflow, answer questions, and provide guidance. What would you like to know?
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-panel__input-area">
+            <input 
+              type="text" 
+              class="chat-panel__input" 
+              id="chatInput"
+              placeholder="Ask me anything..."
+              autocomplete="off"
+            >
+            <button class="chat-panel__send-btn" id="chatSendBtn">Send</button>
+          </div>
+        </div>
+      </aside>
+
     </div>
+
+    <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>

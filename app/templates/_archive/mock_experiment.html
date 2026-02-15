@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Create Experiment - Mock</title>
+    <title>Create Experiment</title>
 
-    <link rel="stylesheet" href="./app/static/css/staging.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mock_staging.css') }}">
   </head>
 
   <body>
@@ -17,66 +17,168 @@
           <div class="sidebar__title">STAGING</div>
           <div class="sidebar__subtitle">Protein selection & plasmid validation</div>
 
-          <div class="pill pill--muted">No experiment yet</div>
+          {% if experiment_id %}
+            <div class="pill">
+              Experiment: <strong>#{{ experiment_id }}</strong>
+            </div>
+          {% else %}
+            <div class="pill pill--muted">No experiment yet</div>
+          {% endif %}
         </div>
 
         <!-- STEP A -->
         <div class="task">
           <div class="task__top">
             <div class="task__name">Step A</div>
-            <span class="badge badge--idle">Waiting</span>
+            {% if wt %}
+              <span class="badge badge--ok">Loaded</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
           </div>
 
           <div class="task__title">Fetch WT (UniProt)</div>
-          <form class="task__form">
+          <form class="task__form" action="{{ url_for('staging.fetch_uniprot') }}" method="post">
             <label class="label">UniProt accession</label>
             <input class="input" name="accession" placeholder="e.g., O34996" required>
             <button class="btn" type="submit">Fetch WT</button>
           </form>
+
+          {% if wt_message %}
+            <p class="task__hint">{{ wt_message }}</p>
+          {% endif %}
         </div>
 
         <!-- STEP B -->
-        <div class="task is-disabled">
+        <div class="task {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
             <div class="task__name">Step B</div>
-            <span class="badge badge--idle">Waiting</span>
+            {% if validation %}
+              {% if validation.is_valid %}
+                <span class="badge badge--ok">PASS</span>
+              {% else %}
+                <span class="badge badge--bad">FAIL</span>
+              {% endif %}
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
           </div>
 
           <div class="task__title">Upload plasmid FASTA + validate</div>
-          <p class="task__hint">Complete Step A first</p>
+
+          {% if experiment_id %}
+            <form class="task__form"
+                  action="{{ url_for('staging.upload_plasmid') }}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+
+              <label class="label">Plasmid FASTA</label>
+              <input class="input" type="file" name="plasmid_fasta" required>
+
+              <button class="btn" type="submit">Validate</button>
+            </form>
+          {% else %}
+            <p class="task__hint">
+              Fetch WT first to create an experiment.
+            </p>
+          {% endif %}
         </div>
 
         <!-- STEP C (PARSING UPLOAD) -->
-        <div class="task task--parsing is-disabled">
+        <div class="task task--parsing {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
             <div class="task__name">Step C</div>
-            <span class="badge badge--idle">Waiting</span>
+            {% if experiment_id %}
+              <span class="badge badge--idle">Ready</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
           </div>
 
           <div class="task__title">Upload parsing data</div>
-          <p class="task__hint">Complete previous steps first</p>
+
+          {% if experiment_id %}
+            <form class="task__form"
+                  action="{{ url_for('parsing.upload_form_submit') }}"
+                  method="post"
+                  enctype="multipart/form-data">
+
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+
+              <label class="label">Data File (TSV, CSV, JSON)</label>
+              <input class="input" type="file" name="file" accept=".tsv,.csv,.json" required>
+
+              <button class="btn" type="submit">Upload &amp; Validate</button>
+            </form>
+
+            <details class="details">
+              <summary>Expected Data Format</summary>
+              <ul class="mono">
+                <li>variant_index (int)</li>
+                <li>generation (int)</li>
+                <li>parent_variant_index (int or empty for gen 0)</li>
+                <li>assembled_dna_sequence (A/T/G/C)</li>
+                <li>dna_yield (numeric)</li>
+                <li>protein_yield (numeric)</li>
+              </ul>
+            </details>
+          {% else %}
+            <p class="task__hint">
+              Create an experiment before uploading parsing data.
+            </p>
+          {% endif %}
         </div>
 
         <!-- STEP D (ANALYSIS) -->
-        <div class="task task--analysis is-disabled">
+        <div class="task task--analysis {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
             <div class="task__name">Step D</div>
-            <span class="badge badge--idle">Waiting</span>
+            {% if experiment_id %}
+              <span class="badge badge--idle">Ready</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
           </div>
 
           <div class="task__title">Run analysis</div>
-          <p class="task__hint">Complete previous steps first</p>
+
+          {% if experiment_id %}
+            <form class="task__form" action="{{ url_for('staging.run_analysis') }}" method="post">
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+              <button class="btn" type="submit">Run Analysis</button>
+            </form>
+          {% else %}
+            <p class="task__hint">
+              Create an experiment before running analysis.
+            </p>
+          {% endif %}
         </div>
 
         <!-- STEP E (SEQUENCE PROCESSING) -->
-        <div class="task task--sequence is-disabled">
+        <div class="task task--sequence {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
             <div class="task__name">Step E</div>
-            <span class="badge badge--idle">Waiting</span>
+            {% if experiment_id %}
+              <span class="badge badge--idle">Ready</span>
+            {% else %}
+              <span class="badge badge--idle">Waiting</span>
+            {% endif %}
           </div>
 
           <div class="task__title">Run sequence processing</div>
-          <p class="task__hint">Complete previous steps first</p>
+
+          {% if experiment_id %}
+            <form class="task__form" action="{{ url_for('staging.run_sequence') }}" method="post">
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+              <button class="btn" type="submit">Run Sequence Processing</button>
+            </form>
+          {% else %}
+            <p class="task__hint">
+              Create an experiment before running sequence processing.
+            </p>
+          {% endif %}
         </div>
 
       </aside>
@@ -87,36 +189,191 @@
           <h1 class="workspace__title">Results</h1>
           <p class="workspace__sub">Outputs load here after each backend step completes.</p>
         </div>
-
         <!-- WT OUTPUT -->
         <section class="panel">
           <div class="panel__title">WT (UniProt) Output</div>
-          <p class="note">No data yet. Complete Step A to see results.</p>
+
+          {% if wt %}
+            <div class="grid2">
+              <div class="kv">
+                <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_accession }}</strong></div>
+                <div class="kv__row"><span>Length</span><strong>{{ wt.protein_length if wt.protein_length else "—" }}</strong></div>
+                <div class="kv__row"><span>Status</span><strong>Loaded</strong></div>
+              </div>
+
+              <div class="note">
+                WT sequence has been stored for this experiment.
+                You can now upload a plasmid FASTA for validation.
+              </div>
+            </div>
+          {% else %}
+            <div class="empty">
+              Waiting for WT fetch…
+              <div class="empty__muted">Use Step A on the left.</div>
+            </div>
+          {% endif %}
         </section>
 
         <!-- VALIDATION OUTPUT -->
         <section class="panel">
           <div class="panel__title">Plasmid Validation Output</div>
-          <p class="note">No data yet. Complete Step B to see results.</p>
+
+          {% if validation %}
+            <div class="statusline">
+              {% if validation.is_valid %}
+                <span class="badge badge--ok">PASS</span>
+              {% else %}
+                <span class="badge badge--bad">FAIL</span>
+              {% endif %}
+              <span class="statusline__msg">{{ validation.message }}</span>
+            </div>
+
+            <details class="details">
+              <summary>View technical details</summary>
+              <ul class="mono">
+                <li>Identity: {{ validation.identity }}</li>
+                <li>Coverage: {{ validation.coverage }}</li>
+                <li>Strand: {{ validation.strand }}</li>
+                <li>Start_nt: {{ validation.start_nt }}</li>
+                <li>End_nt: {{ validation.end_nt }}</li>
+                <li>Wraps: {{ validation.wraps }}</li>
+              </ul>
+            </details>
+          {% else %}
+            <div class="empty">
+              No validation run yet.
+              <div class="empty__muted">Use Step B on the left.</div>
+            </div>
+          {% endif %}
         </section>
 
         <!-- PARSING UPLOAD RESULTS -->
         <section class="panel">
           <div class="panel__title">Parsing Upload Results</div>
-          <p class="note">No data yet. Complete Step C to see results.</p>
+
+          {% if parsing_result %}
+            {% if parsing_result.success %}
+              <div class="message-box success">
+                <h3>Upload Successful</h3>
+                <p>Your data has been parsed, validated, and stored in the database.</p>
+              </div>
+
+              <div class="stats">
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.total_records }}</div>
+                  <div class="label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.inserted_count }}</div>
+                  <div class="label">Inserted</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.updated_count }}</div>
+                  <div class="label">Updated</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.warnings_count }}</div>
+                  <div class="label">Warnings</div>
+                </div>
+              </div>
+
+              {% if parsing_result.detected_fields %}
+                <div class="form-group">
+                  <label>Detected Fields</label>
+                  <div class="field-list">
+                    {% for field in parsing_result.detected_fields %}
+                      <span class="field-tag">{{ field }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+
+            {% else %}
+              <div class="message-box error">
+                <h3>Upload Failed</h3>
+                <p>{{ parsing_result.error_message }}</p>
+              </div>
+            {% endif %}
+
+            {% if parsing_result.errors and parsing_result.errors|length > 0 %}
+              <details open class="details">
+                <summary>Errors ({{ parsing_result.errors|length }})</summary>
+                <div class="details-content">
+                  <ul class="mono">
+                    {% for error in parsing_result.errors %}
+                      <li style="color:#721c24;">{{ error }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </details>
+            {% endif %}
+
+            {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
+              <details class="details" {% if not parsing_result.success %}open{% endif %}>
+                <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
+                <div class="details-content">
+                  <ul class="mono">
+                    {% for warning in parsing_result.warnings %}
+                      <li style="color:#856404;">{{ warning }}</li>
+                    {% endfor %}
+                  </ul>
+                </div>
+              </details>
+            {% endif %}
+
+          {% else %}
+            <div class="empty">
+              No parsing upload yet.
+              <div class="empty__muted">Use Step C on the left.</div>
+            </div>
+          {% endif %}
         </section>
 
         <!-- ANALYSIS RESULTS -->
         <section class="panel">
           <div class="panel__title">Analysis Results</div>
-          <p class="note">No data yet. Complete Step D to see results.</p>
+
+          {% if analysis_message %}
+            <div class="note">{{ analysis_message }}</div>
+          {% endif %}
+
+          {% if analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
+            <div class="analysis-block">
+              <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution plot">
+            </div>
+          {% else %}
+            <div class="empty">
+              No analysis outputs yet.
+              <div class="empty__muted">Run Step D to generate results.</div>
+            </div>
+          {% endif %}
+
+          {% if analysis_outputs %}
+            <div class="analysis-links">
+              {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Download Top 10 CSV</a>
+              {% endif %}
+              {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC CSV</a>
+              {% endif %}
+            </div>
+          {% endif %}
         </section>
 
         <!-- SEQUENCE PROCESSING RESULTS -->
         <section class="panel">
           <div class="panel__title">Sequence Processing Results</div>
-          <p class="note">No data yet. Complete Step E to see results.</p>
+
+          {% if sequence_message %}
+            <div class="note">{{ sequence_message }}</div>
+          {% else %}
+            <div class="empty">
+              No sequence processing run yet.
+              <div class="empty__muted">Use Step E on the left.</div>
+            </div>
+          {% endif %}
         </section>
+        
 
       </main>
 
