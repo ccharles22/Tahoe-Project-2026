@@ -89,14 +89,14 @@ Thresholds and behaviour
 - Percentile-mode computes dataset percentiles and sets per-metric min/max warnings automatically.
 
 ## Example: percentile-mode in the summary tool
-The repository includes `scripts/parsing/qc_summary.py` which runs parsing + QC and prints computed
+The repository includes `app/services/parsing/qc/qc_summary.py` which runs parsing + QC and prints computed
 percentile thresholds (5th/95th by default) then runs validation using those thresholds.
 
 Run it from the repo root with your venv active:
 
 ```bash
 # with venv activated
-PYTHONPATH=. python scripts/parsing/qc_summary.py
+PYTHONPATH=. python -m app.services.parsing.qc.qc_summary
 ```
 
 ## Database schema (suggested)
@@ -128,7 +128,7 @@ CREATE TABLE variants (
     into a config file and use those stable values for reporting/alerts.
 
 If you'd like, I can:
-- Add a `--persist` option to `scripts/parsing/qc_summary.py` to write computed thresholds to a JSON file.
+- Add a `--persist` option to `app/services/parsing/qc/qc_summary.py` to write computed thresholds to a JSON file.
 - Add a unit test that asserts `QualityControl(percentile_mode=True)` computes expected percentiles.
 
 ## File Upload API

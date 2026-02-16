@@ -13,19 +13,23 @@ def create_app():
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev")
     db_url = os.getenv("DATABASE_URL")
     if db_url and db_url.startswith("sqlite:"):
-        base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-        if db_url.startswith("sqlite:////"):
-            abs_path = db_url.replace("sqlite:////", "", 1)
+        if db_url in {"sqlite:///:memory:", "sqlite://"}:
+            app.config["SQLALCHEMY_DATABASE_URI"] = db_url
         else:
-            rel_path = db_url.replace("sqlite:///", "", 1)
-            abs_path = rel_path if os.path.isabs(rel_path) else os.path.join(base_dir, rel_path)
-            db_url = "sqlite:////" + abs_path.replace("\\", "/")
+            base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+            if db_url.startswith("sqlite:////"):
+                abs_path = db_url.replace("sqlite:////", "", 1)
+            else:
+                rel_path = db_url.replace("sqlite:///", "", 1)
+                abs_path = rel_path if os.path.isabs(rel_path) else os.path.join(base_dir, rel_path)
+                db_url = "sqlite:////" + abs_path.replace("\\", "/")
 
-        db_dir = os.path.dirname(abs_path)
-        if db_dir:
-            os.makedirs(db_dir, exist_ok=True)
+            db_dir = os.path.dirname(abs_path)
+            if db_dir:
+                os.makedirs(db_dir, exist_ok=True)
 
-    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
+    if not app.config.get("SQLALCHEMY_DATABASE_URI"):
+        app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     if not app.config["SQLALCHEMY_DATABASE_URI"]:

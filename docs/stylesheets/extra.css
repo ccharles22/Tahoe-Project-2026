@@ -1,0 +1,93 @@
+/* Custom styling for the Parsing & QC documentation */
+
+/* Mermaid diagram styling */
+.mermaid {
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+/* Better table styling */
+.md-typeset table:not([class]) {
+  font-size: 0.85rem;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 600;
+}
+
+/* Code block enhancements */
+.md-typeset pre > code {
+  font-size: 0.8rem;
+}
+
+/* Threshold visualization styling */
+.md-typeset pre:has(code:contains("═")) {
+  font-family: 'Cascadia Code', 'Fira Code', monospace;
+  line-height: 1.4;
+}
+
+/* Improve admonition icons */
+.md-typeset .admonition.success {
+  border-color: #51cf66;
+}
+
+.md-typeset .admonition.success > .admonition-title::before {
+  background-color: #51cf66;
+}
+
+/* Card grid improvements */
+.grid.cards > ul > li {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Emoji sizing in headers */
+.md-typeset h2 .twemoji,
+.md-typeset h3 .twemoji {
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
+
+/* Better inline code */
+.md-typeset code {
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* Tab content spacing */
+.md-typeset .tabbed-content {
+  padding-top: 0.5rem;
+}
+
+/* Footer improvements */
+.md-footer-meta {
+  background-color: var(--md-footer-bg-color);
+}
+
+/* Search result highlighting */
+.md-search-result mark {
+  background-color: #ffd43b;
+  color: #000;
+}
+
+/* Navigation improvements */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* Print optimizations */
+@media print {
+  .mermaid {
+    page-break-inside: avoid;
+  }
+  
+  .admonition {
+    page-break-inside: avoid;
+  }
+}

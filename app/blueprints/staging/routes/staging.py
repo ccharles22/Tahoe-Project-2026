@@ -1,5 +1,6 @@
 import json
-from flask import jsonify, render_template, request, redirect, url_for, Response
+import os
+from flask import jsonify, render_template, request, redirect, url_for, Response, current_app
 from uuid import uuid4
 from app.services.staging.parse_fasta import parse_fasta
 from app.models import Experiment, WildtypeProtein, Plasmid, StagingValidation
@@ -7,6 +8,8 @@ from app.extensions import db
 from app.services.staging.uniprot_service import UniprotService, UniprotServiceError
 from app.services.staging.plasmid_validator import validate_plasmid
 from app.services.staging.backtranslate import backtranslate
+from app.services.analysis import report
+from app.jobs.run_sequence_processing import run_sequence_processing
 
 from .. import staging_bp
 
@@ -16,6 +19,10 @@ def create_experiment():
     experiment_id = request.args.get('experiment_id', '').strip()
     accession = request.args.get('accession', '').strip()
     wt_message = request.args.get('wt_message', '').strip()
+    analysis_message = request.args.get('analysis_message', '').strip()
+    sequence_message = request.args.get('sequence_message', '').strip()
+
+    analysis_outputs = {}
 
     wt = None
     validation = None
@@ -25,13 +32,81 @@ def create_experiment():
         wt = WildtypeProtein.query.filter_by(experiment_id=exp_id_int).first()
         validation = StagingValidation.query.filter_by(experiment_id=exp_id_int).first()
 
+        gen_dir = os.path.join(current_app.root_path, "static", "generated")
+        plot_path = os.path.join(gen_dir, "activity_distribution.png")
+        top10_path = os.path.join(gen_dir, "top10_variants.csv")
+        qc_path = os.path.join(gen_dir, "stage4_qc_debug.csv")
+
+        analysis_outputs = {
+            "plot": {
+                "path": plot_path,
+                "url": url_for("static", filename="generated/activity_distribution.png"),
+                "label": "Activity distribution plot",
+                "exists": os.path.exists(plot_path),
+            },
+            "top10": {
+                "path": top10_path,
+                "url": url_for("static", filename="generated/top10_variants.csv"),
+                "label": "Top 10 variants (CSV)",
+                "exists": os.path.exists(top10_path),
+            },
+            "qc": {
+                "path": qc_path,
+                "url": url_for("static", filename="generated/stage4_qc_debug.csv"),
+                "label": "Stage 4 QC debug (CSV)",
+                "exists": os.path.exists(qc_path),
+            },
+        }
+
     return render_template(
         "staging/create_experiment.html",
         experiment_id=experiment_id,
         wt=wt,
         validation=validation,
-        wt_message=wt_message
+        wt_message=wt_message,
+        analysis_message=analysis_message,
+        analysis_outputs=analysis_outputs,
+        sequence_message=sequence_message,
     )
+
+
+@staging_bp.post('/analysis/run')
+def run_analysis():
+    experiment_id = request.form.get('experiment_id', '').strip()
+    if not experiment_id.isdigit():
+        return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
+
+    exp_id_int = int(experiment_id)
+    prev_env = os.getenv("EXPERIMENT_ID")
+    os.environ["EXPERIMENT_ID"] = str(exp_id_int)
+
+    try:
+        report.main()
+        message = "Analysis completed. Results are available below."
+    except Exception as exc:
+        message = f"Analysis failed: {exc}"
+    finally:
+        if prev_env is None:
+            os.environ.pop("EXPERIMENT_ID", None)
+        else:
+            os.environ["EXPERIMENT_ID"] = prev_env
+
+    return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, analysis_message=message))
+
+
+@staging_bp.post('/sequence/run')
+def run_sequence():
+    experiment_id = request.form.get('experiment_id', '').strip()
+    if not experiment_id.isdigit():
+        return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
+
+    try:
+        run_sequence_processing(int(experiment_id))
+        message = "Sequence processing completed. Outputs are stored in the database."
+    except Exception as exc:
+        message = f"Sequence processing failed: {exc}"
+
+    return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
 
 # Route to handle UniProt accession submission  
 @staging_bp.post('/uniprot')
