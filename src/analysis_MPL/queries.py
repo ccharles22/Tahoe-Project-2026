@@ -80,6 +80,62 @@ WHERE m.metric_name='activity_score'
 ORDER BY g.generation_number;
 """
 
+LINEAGE_NODES_SQL = """
+WITH scores AS (
+  SELECT
+    v.variant_id,
+    g.experiment_id,
+    m.value AS activity_score
+  FROM variants v
+  JOIN generations g ON g.generation_id = v.generation_id
+  LEFT JOIN metrics m
+    ON m.variant_id = v.variant_id
+   AND m.metric_name = 'activity_score'
+   AND m.metric_type = 'derived'
+  WHERE g.experiment_id = %s
+),
+ranked AS (
+  SELECT
+    variant_id,
+    activity_score,
+    ROW_NUMBER() OVER (
+      ORDER BY activity_score DESC NULLS LAST
+    ) AS rn
+  FROM scores
+)
+SELECT
+  v.variant_id,
+  v.parent_variant_id,
+  v.generation_id,
+  g.generation_number,
+  v.plasmid_variant_index,
+  r.activity_score,
+  CASE WHEN r.rn <= 10 AND r.activity_score IS NOT NULL THEN 1 ELSE 0 END AS is_top10
+FROM variants v
+JOIN generations g ON g.generation_id = v.generation_id
+LEFT JOIN ranked r ON r.variant_id = v.variant_id
+WHERE g.experiment_id = %s
+ORDER BY g.generation_number, v.plasmid_variant_index;
+"""
+
+
+LINEAGE_EDGES_SQL = """
+SELECT
+  child.variant_id  AS child_id,
+  child.parent_variant_id AS parent_id
+FROM variants child
+JOIN generations g ON g.generation_id = child.generation_id
+WHERE g.experiment_id = %s
+  AND child.parent_variant_id IS NOT NULL;
+"""
+
+EXPERIMENT_IDS_SQL = """
+SELECT experiment_id
+FROM experiments
+ORDER BY experiment_id;
+"""
+
+
 def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float]]:
     df = pd.read_sql(WT_BASELINE_SQL, conn, params=(experiment_id,))
     baselines: Dict[int, Tuple[float, float]] = {}
@@ -111,3 +167,13 @@ def fetch_top10(conn, experiment_id: int) -> pd.DataFrame:
 
 def fetch_distribution(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(DISTRIBUTION_SQL, conn, params=(experiment_id,))
+
+def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
+    return pd.read_sql(LINEAGE_NODES_SQL, conn, params=(experiment_id, experiment_id))
+
+def fetch_lineage_edges(conn, experiment_id: int) -> pd.DataFrame:
+    return pd.read_sql(LINEAGE_EDGES_SQL, conn, params=(experiment_id,))
+
+def fetch_experiment_ids(conn) -> list[int]:
+    df = pd.read_sql(EXPERIMENT_IDS_SQL, conn)
+    return [int(x) for x in df["experiment_id"].tolist()]
