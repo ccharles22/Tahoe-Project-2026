@@ -1,29 +1,34 @@
 from __future__ import annotations
 
+import matplotlib
+matplotlib.use("Agg")
+
 import os
 from pathlib import Path
-from typing import Tuple, List, Dict, Any
+from typing import Any
 
 import numpy as np
 import pandas as pd
 
-from src.analysis_MPL.database import get_conn
-from src.analysis_MPL.queries import (
-    fetch_wt_baselines,
-    fetch_variant_raw,
-    fetch_top10,
-    fetch_distribution,
-)
 from src.analysis_MPL.activity_score import compute_stage4_metrics
+from src.analysis_MPL.database import get_conn
 from src.analysis_MPL.metrics import upsert_variant_metrics
-from src.analysis_MPL.plots.top10 import plot_top10_table
 from src.analysis_MPL.plots.distribution import plot_activity_distribution
-
+from src.analysis_MPL.plots.lineage import PlotConfig, plot_layered_lineage  # rename to .lineages if your file is lineages.py
+from src.analysis_MPL.plots.top10 import plot_top10_table
+from src.analysis_MPL.queries import (
+    fetch_distribution,
+    fetch_lineage_edges,
+    fetch_lineage_nodes,
+    fetch_top10,
+    fetch_variant_raw,
+    fetch_wt_baselines,
+)
 
 OUTPUT_DIR = Path("app/static/generated")
 
 
-def db_count_activity_scores(conn, experiment_id: int) -> Tuple[int, int]:
+def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
     """Returns (all_activity_scores, this_experiment_activity_scores)."""
     with conn.cursor() as cur:
         cur.execute(
@@ -54,7 +59,9 @@ def db_count_activity_scores(conn, experiment_id: int) -> Tuple[int, int]:
     return all_n, exp_n
 
 
-def compute_activity_score_fallback(df_variants: pd.DataFrame) -> Tuple[List[Dict[str, Any]], pd.DataFrame]:
+def compute_activity_score_fallback(
+    df_variants: pd.DataFrame,
+) -> tuple[list[dict[str, Any]], pd.DataFrame]:
     """
     WT-free scoring fallback:
     - Within each generation, normalise DNA and protein yields by generation median
@@ -66,21 +73,19 @@ def compute_activity_score_fallback(df_variants: pd.DataFrame) -> Tuple[List[Dic
     """
     d = df_variants.copy()
 
-    # Required columns
     required = {"variant_id", "generation_id", "dna_yield_raw", "protein_yield_raw"}
     missing = required - set(d.columns)
     if missing:
-        raise ValueError(f"Fallback scoring requires columns {sorted(required)}; missing {sorted(missing)}")
+        raise ValueError(
+            f"Fallback scoring requires columns {sorted(required)}; missing {sorted(missing)}"
+        )
 
-    # Coerce numeric
     d["dna_yield_raw"] = pd.to_numeric(d["dna_yield_raw"], errors="coerce")
     d["protein_yield_raw"] = pd.to_numeric(d["protein_yield_raw"], errors="coerce")
 
-    # Compute per-generation medians
     d["dna_med"] = d.groupby("generation_id")["dna_yield_raw"].transform("median")
     d["prot_med"] = d.groupby("generation_id")["protein_yield_raw"].transform("median")
 
-    # Avoid divide by zero
     d.loc[d["dna_med"] == 0, "dna_med"] = np.nan
     d.loc[d["prot_med"] == 0, "prot_med"] = np.nan
 
@@ -88,7 +93,6 @@ def compute_activity_score_fallback(df_variants: pd.DataFrame) -> Tuple[List[Dic
     d["protein_yield_norm"] = d["protein_yield_raw"] / d["prot_med"]
     d["activity_score"] = d["dna_yield_norm"] / d["protein_yield_norm"]
 
-    # QC
     d["qc_stage4"] = "ok"
     bad_mask = (
         d["variant_id"].isna()
@@ -104,7 +108,7 @@ def compute_activity_score_fallback(df_variants: pd.DataFrame) -> Tuple[List[Dic
 
     ok = d[d["qc_stage4"] == "ok"].copy()
 
-    rows: List[Dict[str, Any]] = []
+    rows: list[dict[str, Any]] = []
     for r in ok.itertuples(index=False):
         variant_id = int(r.variant_id)
         generation_id = int(r.generation_id)
@@ -159,6 +163,7 @@ def main() -> None:
     qc_path = OUTPUT_DIR / f"exp_{experiment_id}_stage4_qc_debug.csv"
     top10_path = OUTPUT_DIR / f"exp_{experiment_id}_top10_variants.csv"
     plot_path = OUTPUT_DIR / f"exp_{experiment_id}_activity_distribution.png"
+    lineage_path = OUTPUT_DIR / f"exp_{experiment_id}_lineage.png"
 
     with get_conn() as conn:
         # 1) Raw variant metrics (needed for BOTH WT-based + fallback)
@@ -175,9 +180,7 @@ def main() -> None:
             print(f"[Stage4] WT baselines found for generations: {len(baselines)}")
 
             rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
-
         except Exception as e:
-            # Most common expected failure: no valid WT baselines (ValueError from fetch_wt_baselines)
             score_mode = "fallback (no WT baselines)"
             print(f"[Stage4] WT-based scoring unavailable ({type(e).__name__}: {e})")
             print("[Stage4] Using fallback scoring (generation-median normalisation).")
@@ -231,6 +234,28 @@ def main() -> None:
 
         plot_activity_distribution(df_dist, str(plot_path))
         print("[File] Wrote:", plot_path)
+
+        # 7) Lineage plot
+        df_nodes = fetch_lineage_nodes(conn, experiment_id)
+        df_edges = fetch_lineage_edges(conn, experiment_id)
+
+        if df_nodes.empty:
+            print("[Lineage] No lineage nodes returned; skipping lineage plot.")
+        else:
+            plot_layered_lineage(
+                df_nodes,
+                df_edges,
+                lineage_path,
+                config=PlotConfig(
+                    label_mode="top10",        # <-- not "all"
+                    layout_mode="pack",
+                    pack_generation_height=6.0,
+                    generation_band_gap=0.6,
+                    label_fontsize=8,
+                ),
+            )
+
+            print("[File] Wrote:", lineage_path)
 
 
 if __name__ == "__main__":
