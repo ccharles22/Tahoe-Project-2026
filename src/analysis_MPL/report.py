@@ -8,8 +8,8 @@ from src.analysis_MPL.queries import (
     fetch_distribution,
 )
 from src.analysis_MPL.activity_score import compute_stage4_metrics
-from src.analysis_MPL.metrics_io import upsert_variant_metrics
-from src.analysis_MPL.plots import plot_activity_distribution
+from src.analysis_MPL.metrics_io import upsert_variant_metrics # type: ignore
+from src.analysis_MPL.plots import plot_activity_distribution    
 
 OUTPUT_DIR = "app/static/generated"
 

@@ -14,12 +14,12 @@ def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
         %(metric_name)s,
         %(metric_type)s,
         %(value)s,
-        %(unit)s
+        %(unit)s,
+        %(generation_id)s
     FROM variants v
     WHERE v.variant_id = %(variant_id)s
     ON CONFLICT (variant_id, metric_name, metric_type)
     DO UPDATE SET
-        generation_id = EXCLUDED.generation_id,
         value         = EXCLUDED.value,
         unit          = EXCLUDED.unit;
     """
