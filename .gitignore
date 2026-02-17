@@ -16,3 +16,6 @@ instance/
 data/app.db
 *.db
 *.sqlite
+
+# Analysis outputs (generated at runtime)
+app/static/generated/

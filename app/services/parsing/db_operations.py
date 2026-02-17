@@ -1,173 +1,192 @@
 """
 Database operations for batch insert/update of variant records.
 
-Provides optimized batch operations with all-or-nothing transaction semantics.
-Uses bulk operations where possible for improved performance with large datasets.
+Adapted for the normalised Postgres schema:
+  experiments -> generations -> variants -> metrics
+
+Records from parsed files are grouped by generation_number, inserted into
+the generations table, then variants + metric rows are created.
 """
 
 import logging
-from typing import List, Dict, Any, Tuple, Set
+from typing import List, Dict, Any, Tuple, Set, Optional
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 
-from app.models import Variant
-from app.services.parsing.utils import safe_int, safe_float, prepare_variant_data
+from app.models import Generation, Variant, Metric
+from app.services.parsing.utils import safe_int, safe_float
 
 logger = logging.getLogger(__name__)
 
 
-def get_existing_variant_indices(
-    session: Session,
-    experiment_id: int
-) -> Set[int]:
-    """
-    Fetch all existing variant indices for an experiment.
+# ---------------------------------------------------------------------------
+# helpers
+# ---------------------------------------------------------------------------
 
-    This is done once before batch processing to avoid N+1 queries.
-
-    Args:
-        session: SQLAlchemy session
-        experiment_id: Experiment ID to query
-
-    Returns:
-        Set of existing variant indices
-    """
-    try:
-        rows = session.query(Variant.variant_index).filter_by(
-            experiment_id=experiment_id
-        ).all()
-        return {row[0] for row in rows if row[0] is not None}
-    except Exception as exc:
-        logger.warning("Error fetching existing variant indices: %s", exc)
-        return set()
-
-
-def get_existing_variants_map(
+def get_or_create_generation(
     session: Session,
     experiment_id: int,
-    variant_indices: List[int]
-) -> Dict[int, Variant]:
-    """
-    Fetch existing Variant objects for given indices.
+    generation_number: int,
+) -> Generation:
+    """Return existing Generation or create a new one (idempotent)."""
+    gen = session.query(Generation).filter_by(
+        experiment_id=experiment_id,
+        generation_number=generation_number,
+    ).first()
+    if gen:
+        return gen
 
-    Args:
-        session: SQLAlchemy session
-        experiment_id: Experiment ID
-        variant_indices: List of variant indices to fetch
-
-    Returns:
-        Dictionary mapping variant_index to Variant object
-    """
-    if not variant_indices:
-        return {}
-
+    gen = Generation(
+        experiment_id=experiment_id,
+        generation_number=generation_number,
+    )
+    session.add(gen)
     try:
-        variants = session.query(Variant).filter(
-            Variant.experiment_id == experiment_id,
-            Variant.variant_index.in_(variant_indices)
-        ).all()
-        return {v.variant_index: v for v in variants}
-    except Exception as exc:
-        logger.warning("Error fetching existing variants: %s", exc)
-        return {}
+        session.flush()
+    except IntegrityError:
+        session.rollback()
+        gen = session.query(Generation).filter_by(
+            experiment_id=experiment_id,
+            generation_number=generation_number,
+        ).first()
+    return gen
 
+
+def _create_metrics_for_variant(
+    session: Session,
+    generation_id: int,
+    variant_id: int,
+    dna_yield: Optional[float],
+    protein_yield: Optional[float],
+) -> int:
+    """Insert metric rows for a variant. Returns count of metrics created."""
+    count = 0
+    if dna_yield is not None:
+        session.add(Metric(
+            generation_id=generation_id,
+            variant_id=variant_id,
+            metric_name="dna_yield",
+            metric_type="raw",
+            value=dna_yield,
+            unit="ng/uL",
+        ))
+        count += 1
+    if protein_yield is not None:
+        session.add(Metric(
+            generation_id=generation_id,
+            variant_id=variant_id,
+            metric_name="protein_yield",
+            metric_type="raw",
+            value=protein_yield,
+            unit="mg/L",
+        ))
+        count += 1
+    return count
+
+
+# ---------------------------------------------------------------------------
+# public API -- called from parsing routes
+# ---------------------------------------------------------------------------
 
 def batch_upsert_variants(
     session: Session,
     records: List[Dict[str, Any]],
     experiment_id: int,
-    extract_metadata_func: callable
+    extract_metadata_func: callable,
 ) -> Tuple[int, int]:
     """
-    Batch insert/update variant records with all-or-nothing semantics.
+    Parse records and persist into generations -> variants -> metrics.
 
-    This function optimizes database operations by:
-    1. Fetching all existing variant indices in one query
-    2. Separating records into insert vs update batches
-    3. Using bulk operations where possible
-    4. Committing all changes in a single transaction
-
-    If any error occurs, the entire batch is rolled back.
+    Uses no_autoflush + periodic batch flushes for connection stability
+    on remote Postgres over Tailscale/VPN.
 
     Args:
-        session: SQLAlchemy session (caller manages commit/rollback)
-        records: List of parsed record dictionaries
-        experiment_id: Experiment ID for all records
-        extract_metadata_func: Function to extract core_data and metadata from record
+        session: SQLAlchemy session (caller commits/rollbacks)
+        records: List of parsed record dicts
+        experiment_id: Target experiment
+        extract_metadata_func: Parser helper that splits a record into
+            (core_data, extra_metadata)
 
     Returns:
-        Tuple of (inserted_count, updated_count)
-
-    Raises:
-        Exception: Re-raises any database error after logging
-
-    Example:
-        >>> session = db.session
-        >>> try:
-        ...     inserted, updated = batch_upsert_variants(
-        ...         session, records, 1, parser.extract_metadata
-        ...     )
-        ...     session.commit()
-        ... except Exception:
-        ...     session.rollback()
-        ...     raise
+        (inserted_count, updated_count)
     """
     if not records:
         return 0, 0
 
     inserted_count = 0
     updated_count = 0
+    BATCH_SIZE = 50
 
-    # Prepare all variant data first
-    prepared_records = []
+    # Pre-create all generations first
+    gen_cache: Dict[int, Generation] = {}
+    gen_nums_needed: Set[int] = set()
     for record in records:
-        core_data, metadata = extract_metadata_func(record)
-        variant_data = prepare_variant_data(record, experiment_id, core_data, metadata)
-        prepared_records.append(variant_data)
+        core_data, _ = extract_metadata_func(record)
+        gen_nums_needed.add(safe_int(core_data.get("generation")) or 0)
 
-    # Get indices we need to check
-    indices_to_check = [
-        r['variant_index'] for r in prepared_records
-        if r['variant_index'] is not None
-    ]
+    for gn in gen_nums_needed:
+        gen_cache[gn] = get_or_create_generation(session, experiment_id, gn)
+    session.flush()
 
-    # Fetch existing variants in one query
-    existing_variants = get_existing_variants_map(
-        session, experiment_id, indices_to_check
-    )
+    # Process variants + metrics inside no_autoflush to avoid
+    # mid-loop flushes that can fail on flaky connections.
+    with session.no_autoflush:
+        pending_new: list = []
 
-    # Separate into inserts and updates
-    to_insert = []
+        for i, record in enumerate(records):
+            core_data, metadata = extract_metadata_func(record)
 
-    for variant_data in prepared_records:
-        v_index = variant_data['variant_index']
+            gen_num = safe_int(core_data.get("generation")) or 0
+            variant_index = str(safe_int(core_data.get("variant_index")) or "0")
+            dna_seq = core_data.get("assembled_dna_sequence")
+            dna_yield = safe_float(core_data.get("dna_yield"))
+            protein_yield = safe_float(core_data.get("protein_yield"))
 
-        if v_index in existing_variants:
-            # Update existing record
-            existing = existing_variants[v_index]
-            existing.generation = variant_data['generation']
-            existing.parent_variant_index = variant_data['parent_variant_index']
-            existing.assembled_dna_sequence = variant_data['assembled_dna_sequence']
-            existing.dna_yield = variant_data['dna_yield']
-            existing.protein_yield = variant_data['protein_yield']
-            existing.additional_metadata = variant_data['additional_metadata']
-            updated_count += 1
-        else:
-            # New record to insert
-            to_insert.append(variant_data)
+            gen = gen_cache[gen_num]
 
-    # Bulk insert new records
-    if to_insert:
-        # Use bulk_insert_mappings for better performance
-        session.bulk_insert_mappings(Variant, to_insert)
-        inserted_count = len(to_insert)
+            existing = session.query(Variant).filter_by(
+                generation_id=gen.generation_id,
+                plasmid_variant_index=variant_index,
+            ).first()
+
+            if existing:
+                existing.assembled_dna_sequence = dna_seq
+                existing.extra_metadata = metadata or None
+                session.query(Metric).filter_by(variant_id=existing.variant_id).delete()
+                _create_metrics_for_variant(
+                    session, gen.generation_id, existing.variant_id,
+                    dna_yield, protein_yield,
+                )
+                updated_count += 1
+            else:
+                v = Variant(
+                    generation_id=gen.generation_id,
+                    plasmid_variant_index=variant_index,
+                    assembled_dna_sequence=dna_seq,
+                    extra_metadata=metadata or None,
+                )
+                session.add(v)
+                pending_new.append((v, gen.generation_id, dna_yield, protein_yield))
+                inserted_count += 1
+
+            if (i + 1) % BATCH_SIZE == 0:
+                session.flush()
+                for v_obj, gid, dy, py_ in pending_new:
+                    _create_metrics_for_variant(session, gid, v_obj.variant_id, dy, py_)
+                pending_new.clear()
+                session.flush()
+
+        # Final flush for remaining records
+        session.flush()
+        for v_obj, gid, dy, py_ in pending_new:
+            _create_metrics_for_variant(session, gid, v_obj.variant_id, dy, py_)
+        pending_new.clear()
+        session.flush()
 
     logger.info(
-        "Batch upsert complete: %s inserted, %s updated for experiment %s",
-        inserted_count,
-        updated_count,
-        experiment_id,
+        f"Batch upsert complete: {inserted_count} inserted, {updated_count} updated "
+        f"for experiment {experiment_id}"
     )
-
     return inserted_count, updated_count
 
 
@@ -175,37 +194,10 @@ def batch_insert_variants(
     session: Session,
     records: List[Dict[str, Any]],
     experiment_id: int,
-    extract_metadata_func: callable
+    extract_metadata_func: callable,
 ) -> int:
-    """
-    Batch insert variant records (no update, fails on duplicates).
-
-    Use this when you know all records are new. More efficient than
-    upsert as it skips the existence check.
-
-    Args:
-        session: SQLAlchemy session
-        records: List of parsed record dictionaries
-        experiment_id: Experiment ID for all records
-        extract_metadata_func: Function to extract core_data and metadata
-
-    Returns:
-        Number of records inserted
-
-    Raises:
-        IntegrityError: If duplicate variant_index exists
-    """
-    if not records:
-        return 0
-
-    to_insert = []
-    for record in records:
-        core_data, metadata = extract_metadata_func(record)
-        variant_data = prepare_variant_data(record, experiment_id, core_data, metadata)
-        to_insert.append(variant_data)
-
-    session.bulk_insert_mappings(Variant, to_insert)
-
-    logger.info("Batch insert complete: %s records for experiment %s", len(to_insert), experiment_id)
-
-    return len(to_insert)
+    """Insert-only variant of batch_upsert_variants."""
+    inserted, _ = batch_upsert_variants(
+        session, records, experiment_id, extract_metadata_func,
+    )
+    return inserted

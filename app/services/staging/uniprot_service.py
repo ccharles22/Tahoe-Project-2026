@@ -21,10 +21,12 @@ class UniprotService:
             raise UniprotServiceError("Empty accession")
         
         url = f'{UniprotService.BASE_URL}{accession}.json'
-        r = requests.get(url, timeout=15)
+        r = requests.get(url, timeout=15, headers={"Accept": "application/json"})
 
         if r.status_code == 404:
             raise UniprotServiceError(f"Accession {accession} not found in UniProt")
+        if r.status_code == 400:
+            raise UniprotServiceError(f"Invalid accession format: {accession}. Please check the accession ID.")
         if not r.ok:
             raise UniprotServiceError(f"UniProt request failed with status {r.status_code}")
         

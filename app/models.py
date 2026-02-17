@@ -6,115 +6,147 @@ from flask_login import UserMixin
 from .extensions import db
 
 
-def _user_table_args():
-    db_url = os.getenv("DATABASE_URL", "")
-    if db_url.startswith("sqlite"):
-        return {"extend_existing": True}
-    return {"schema": "public", "extend_existing": True}
+# ---------------------------------------------------------------------------
+# Models mapped to the EXISTING Postgres tables in bio727p_group_project.
+# Column names and types match the remote schema exactly.
+# ---------------------------------------------------------------------------
 
 class User(db.Model, UserMixin):
     __tablename__ = "users"
-    __table_args__ = _user_table_args()
+    __table_args__ = {"schema": "public", "extend_existing": True}
 
     user_id = db.Column(db.BigInteger, primary_key=True)
     username = db.Column(db.String(255), unique=True, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(64), nullable=False)  # matches your DB CHAR(64)
+    password_hash = db.Column(db.Text, nullable=False)
 
-    created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
-    updated_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
+    created_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
+    updated_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
 
     def get_id(self) -> str:
-        # Flask-Login expects a string
         return str(self.user_id)
-    
+
+
+class WildtypeProtein(db.Model):
+    __tablename__ = "wild_type_proteins"
+    __table_args__ = {"extend_existing": True}
+
+    wt_id = db.Column(db.BigInteger, primary_key=True)
+    user_id = db.Column(db.BigInteger, db.ForeignKey("public.users.user_id"), nullable=False)
+    uniprot_id = db.Column(db.String(32), unique=True, nullable=False)
+    protein_name = db.Column(db.String, nullable=True)
+    organism = db.Column(db.String, nullable=True)
+    amino_acid_sequence = db.Column(db.Text, nullable=False)
+    sequence_length = db.Column(db.Integer, nullable=False)
+    plasmid_name = db.Column(db.String, nullable=True)
+    plasmid_sequence = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
+
+    experiments = db.relationship("Experiment", backref="wt", lazy=True)
+    features = db.relationship("ProteinFeature", backref="wt_protein", lazy=True, cascade="all, delete-orphan")
+
+
+class ProteinFeature(db.Model):
+    __tablename__ = "protein_features"
+    __table_args__ = {"extend_existing": True}
+
+    feature_id = db.Column(db.BigInteger, primary_key=True)
+    wt_id = db.Column(db.BigInteger, db.ForeignKey("wild_type_proteins.wt_id"), nullable=False)
+    feature_type = db.Column(db.String, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    start_position = db.Column(db.Integer, nullable=True)
+    end_position = db.Column(db.Integer, nullable=True)
 
 
 class Experiment(db.Model):
     __tablename__ = "experiments"
-    __table_args__ = _user_table_args()
+    __table_args__ = {"extend_existing": True}
 
-    experiment_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
+    experiment_id = db.Column(db.BigInteger, primary_key=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey("public.users.user_id"), nullable=False)
-    wt_id = db.Column(db.BigInteger, nullable=False)
-    status = db.Column(db.String(32), nullable=True)
-    name = db.Column(db.String(255), nullable=False)
+    wt_id = db.Column(db.BigInteger, db.ForeignKey("wild_type_proteins.wt_id"), nullable=False)
+    name = db.Column(db.String, nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
     updated_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
     extra_metadata = db.Column(db.JSON, nullable=True)
 
-    wt = db.relationship("WildtypeProtein", uselist=False, backref="experiment", cascade="all, delete-orphan")
-    plasmid = db.relationship("Plasmid", uselist=False, backref="experiment", cascade="all, delete-orphan")
-    validation = db.relationship("StagingValidation", uselist=False, backref="experiment", cascade="all, delete-orphan")
+    generations = db.relationship("Generation", backref="experiment", lazy=True, cascade="all, delete-orphan")
 
 
-class WildtypeProtein(db.Model):
-    __tablename__ = "wildtype_protein"
-    experiment_id = db.Column(
-        db.BigInteger,
-        db.ForeignKey("public.experiments.experiment_id"),
-        primary_key=True,
-    )
+class Generation(db.Model):
+    __tablename__ = "generations"
+    __table_args__ = {"extend_existing": True}
 
-    uniprot_accession = db.Column(db.String(32), nullable=False)
-    wt_protein_sequence = db.Column(db.Text, nullable=True)
-    features_json = db.Column(db.Text, nullable=True)
-    protein_length = db.Column(db.Integer, nullable=True)
-    plasmid_length = db.Column(db.Integer, nullable=True)
+    generation_id = db.Column(db.BigInteger, primary_key=True)
+    experiment_id = db.Column(db.BigInteger, db.ForeignKey("experiments.experiment_id"), nullable=False)
+    generation_number = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
 
-
-class Plasmid(db.Model):
-    __tablename__ = "plasmid"
-    experiment_id = db.Column(
-        db.BigInteger,
-        db.ForeignKey("public.experiments.experiment_id"),
-        primary_key=True,
-    )
-    dna_sequence = db.Column(db.Text, nullable=False)
-
-
-class StagingValidation(db.Model):
-    __tablename__ = "staging_validation"
-    experiment_id = db.Column(
-        db.BigInteger,
-        db.ForeignKey("public.experiments.experiment_id"),
-        primary_key=True,
-    )
-
-    is_valid = db.Column(db.Boolean, nullable=False, default=False)
-    identity = db.Column(db.Float, nullable=True)
-    coverage = db.Column(db.Float, nullable=True)
-
-    strand = db.Column(db.String(1), nullable=True)
-    start_nt = db.Column(db.Integer, nullable=True)
-    end_nt = db.Column(db.Integer, nullable=True)
-    wraps = db.Column(db.Boolean, nullable=True)
-
-    message = db.Column(db.Text, nullable=True)
+    variants = db.relationship("Variant", backref="generation", lazy=True, cascade="all, delete-orphan")
 
 
 class Variant(db.Model):
     __tablename__ = "variants"
+    __table_args__ = {"extend_existing": True}
 
-    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    experiment_id = db.Column(db.Integer, nullable=False, index=True)
-    variant_index = db.Column(db.Integer, nullable=False)
-    generation = db.Column(db.Integer, nullable=False)
-    parent_variant_index = db.Column(db.Integer, nullable=True)
-    assembled_dna_sequence = db.Column(db.Text, nullable=False)
-    # Allow yields to be nullable to tolerate upstream missing or malformed values.
-    dna_yield = db.Column(db.Float, nullable=True)
-    protein_yield = db.Column(db.Float, nullable=True)
-    additional_metadata = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    variant_id = db.Column(db.BigInteger, primary_key=True)
+    generation_id = db.Column(db.BigInteger, db.ForeignKey("generations.generation_id"), nullable=False)
+    parent_variant_id = db.Column(db.BigInteger, db.ForeignKey("variants.variant_id"), nullable=True)
+    plasmid_variant_index = db.Column(db.String, nullable=False)
+    assembled_dna_sequence = db.Column(db.Text, nullable=True)
+    protein_sequence = db.Column(db.Text, nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
+    extra_metadata = db.Column(db.JSON, nullable=True)
 
-    __table_args__ = (
-        db.UniqueConstraint("experiment_id", "variant_index", name="uq_experiment_variant"),
-    )
+    metrics = db.relationship("Metric", backref="variant", lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self) -> str:
         return (
-            f"<Variant(id={self.id}, experiment={self.experiment_id}, "
-            f"variant={self.variant_index}, gen={self.generation})>"
+            f"<Variant(variant_id={self.variant_id}, gen_id={self.generation_id}, "
+            f"index={self.plasmid_variant_index})>"
         )
+
+
+class Metric(db.Model):
+    __tablename__ = "metrics"
+    __table_args__ = {"extend_existing": True}
+
+    metric_id = db.Column(db.BigInteger, primary_key=True)
+    generation_id = db.Column(db.BigInteger, db.ForeignKey("generations.generation_id"), nullable=False)
+    variant_id = db.Column(db.BigInteger, db.ForeignKey("variants.variant_id"), nullable=True)
+    wt_control_id = db.Column(db.BigInteger, db.ForeignKey("wild_type_controls.wt_control_id"), nullable=True)
+    metric_definition_id = db.Column(db.BigInteger, db.ForeignKey("metric_definitions.metric_definition_id"), nullable=True)
+    metric_name = db.Column(db.String, nullable=False)
+    metric_type = db.Column(db.String, nullable=False)
+    value = db.Column(db.Float, nullable=False)
+    unit = db.Column(db.String, nullable=True)
+    created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
+
+
+class MetricDefinition(db.Model):
+    __tablename__ = "metric_definitions"
+    __table_args__ = {"extend_existing": True}
+
+    metric_definition_id = db.Column(db.BigInteger, primary_key=True)
+    name = db.Column(db.Text, unique=True, nullable=False)
+    description = db.Column(db.Text, nullable=True)
+    unit = db.Column(db.Text, nullable=True)
+    metric_type = db.Column(db.Text, nullable=False)
+
+
+class WildtypeControl(db.Model):
+    __tablename__ = "wild_type_controls"
+    __table_args__ = {"extend_existing": True}
+
+    wt_control_id = db.Column(db.BigInteger, primary_key=True)
+    generation_id = db.Column(db.BigInteger, db.ForeignKey("generations.generation_id"), nullable=False)
+    wt_id = db.Column(db.BigInteger, db.ForeignKey("wild_type_proteins.wt_id"), nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
+
+
+# ---------------------------------------------------------------------------
+# StagingValidation — in-memory only (no DB table).
+# Your Postgres user doesn't have CREATE TABLE permission, so we store
+# validation results transiently via Flask session.
+# ---------------------------------------------------------------------------

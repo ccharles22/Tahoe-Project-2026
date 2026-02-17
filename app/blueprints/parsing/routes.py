@@ -14,13 +14,11 @@ import json
 import logging
 from typing import Optional, Tuple
 
-from flask import request, jsonify, render_template, redirect, url_for, flash, Response
+from flask import request, jsonify, render_template, redirect, url_for, flash, Response, session as flask_session
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import FileStorage
-from sqlalchemy import distinct
-
 from app.extensions import db
-from app.models import Variant
+from app.models import Experiment
 from app.services.parsing.tsv_parser import TSVParser
 from app.services.parsing.json_parser import JSONParser
 from app.services.parsing.qc import QualityControl
@@ -81,14 +79,11 @@ def get_parser(filepath: str) -> BaseParser:
 
 def get_experiment_ids() -> list[int]:
     """Get list of distinct experiment IDs from database."""
-    session = db.session
     try:
-        result = session.query(distinct(Variant.experiment_id)).order_by(Variant.experiment_id).all()
+        result = db.session.query(Experiment.experiment_id).order_by(Experiment.experiment_id).all()
         return [row[0] for row in result if row[0] is not None]
     except Exception:
         return []
-    finally:
-        db.session.remove()
 
 
 @parsing_bp.route('/health', methods=['GET'])
@@ -112,105 +107,145 @@ def upload_form() -> str:
 @parsing_bp.route('/upload/submit', methods=['POST'])
 def upload_form_submit() -> str:
     """
-    Handle form upload submission - returns HTML results page.
+    Handle form upload submission.
+    If the request came from the staging workflow (has 'from_staging' or
+    referrer contains '/staging'), store results in session and redirect back.
+    Otherwise render the standalone results page.
     """
     temp_filepath: Optional[str] = None
     session = None
-    
+
     # Determine experiment_id from form
     experiment_id = request.form.get('experiment_id', type=int)
     if not experiment_id:
-        # Check for new experiment ID
         experiment_id = request.form.get('new_experiment_id', type=int)
     if not experiment_id:
         experiment_id = 1  # Default
-    
+
+    # Detect if request came from the staging workflow
+    from_staging = bool(request.form.get('from_staging')) or (
+        request.referrer and '/staging' in request.referrer
+    )
+
+    def _save_and_redirect(result_dict):
+        """Store parsing result in session and redirect back to staging."""
+        key = f"parsing_result_{experiment_id}"
+        flask_session[key] = result_dict
+        return redirect(url_for(
+            'staging.create_experiment',
+            experiment_id=experiment_id,
+        ))
+
     try:
         # Check if file is present
         if 'file' not in request.files:
+            if from_staging:
+                flash('No file provided', 'error')
+                return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
             flash('No file provided', 'error')
             return redirect(url_for('parsing.upload_form'))
-        
+
         file = request.files['file']
-        
+
         # Check if filename is empty
         if file.filename == '':
+            if from_staging:
+                flash('No file selected', 'error')
+                return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
             flash('No file selected', 'error')
             return redirect(url_for('parsing.upload_form'))
-        
+
         # Validate file extension
         if not allowed_file(file.filename):
+            if from_staging:
+                flash(f'Invalid file type. Allowed: {", ".join(ALLOWED_EXTENSIONS)}', 'error')
+                return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
             flash(f'Invalid file type. Allowed: {", ".join(ALLOWED_EXTENSIONS)}', 'error')
             return redirect(url_for('parsing.upload_form'))
-        
+
         # Secure filename
         filename = secure_filename(file.filename)
-        
+
         # Save to temporary file
         temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1])
         temp_filepath = temp_file.name
         temp_file.close()
-        
+
         file.save(temp_filepath)
-        
+
         # Check file size
         file_size = os.path.getsize(temp_filepath)
         if file_size > MAX_FILE_SIZE:
+            if from_staging:
+                flash(f'File too large. Maximum size: {MAX_FILE_SIZE / 1024 / 1024:.0f} MB', 'error')
+                return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
             flash(f'File too large. Maximum size: {MAX_FILE_SIZE / 1024 / 1024:.0f} MB', 'error')
             return redirect(url_for('parsing.upload_form'))
-        
+
         # Parse file
         parser = get_parser(temp_filepath)
         parse_success = parser.parse()
-        
+
         if not parse_success:
+            result = {
+                'success': False,
+                'error_message': 'Parsing failed',
+                'errors': parser.errors[:20],
+                'warnings': parser.warnings[:20],
+            }
+            if from_staging:
+                return _save_and_redirect(result)
             return render_template(
                 'parsing/upload_results.html',
-                success=False,
-                error_message='Parsing failed',
-                errors=parser.errors,
-                warnings=parser.warnings,
-                experiment_id=experiment_id
+                experiment_id=experiment_id, **result
             )
-        
+
         # Run QC validation (dataset-adaptive thresholds)
         qc = QualityControl(percentile_mode=True)
         parser.validate_all(qc)
-        
+
         # Check for critical errors
         if parser.errors:
+            result = {
+                'success': False,
+                'error_message': 'Validation failed',
+                'errors': parser.errors[:20],
+                'warnings': parser.warnings[:20],
+            }
+            if from_staging:
+                return _save_and_redirect(result)
             return render_template(
                 'parsing/upload_results.html',
-                success=False,
-                error_message='Validation failed',
-                errors=parser.errors,
-                warnings=parser.warnings,
-                experiment_id=experiment_id
+                experiment_id=experiment_id, **result
             )
-        
+
         # Store in database using batch upsert
         session = db.session
         inserted_count, updated_count = batch_upsert_variants(
             session, parser.records, experiment_id, parser.extract_metadata
         )
         session.commit()
-        
+
         summary = parser.get_summary()
         flash('File uploaded and processed successfully!', 'success')
-        
+
+        result = {
+            'success': True,
+            'total_records': summary['total_records'],
+            'inserted_count': inserted_count,
+            'updated_count': updated_count,
+            'warnings': parser.warnings[:20],
+            'warnings_count': len(parser.warnings),
+            'detected_fields': summary['detected_fields'],
+            'errors': [],
+        }
+        if from_staging:
+            return _save_and_redirect(result)
         return render_template(
             'parsing/upload_results.html',
-            success=True,
-            total_records=summary['total_records'],
-            inserted_count=inserted_count,
-            updated_count=updated_count,
-            warnings=parser.warnings,
-            warnings_count=len(parser.warnings),
-            detected_fields=summary['detected_fields'],
-            experiment_id=experiment_id,
-            errors=[]
+            experiment_id=experiment_id, **result
         )
-        
+
     except Exception as e:
         try:
             if session is not None:
@@ -218,19 +253,23 @@ def upload_form_submit() -> str:
         except Exception:
             pass
 
+        result = {
+            'success': False,
+            'error_message': f'Database error: {str(e)}',
+            'errors': [str(e)],
+            'warnings': [],
+        }
+        if from_staging:
+            return _save_and_redirect(result)
         return render_template(
             'parsing/upload_results.html',
-            success=False,
-            error_message=f'Database error: {str(e)}',
-            errors=[str(e)],
-            warnings=[],
-            experiment_id=experiment_id
+            experiment_id=experiment_id, **result
         )
-        
+
     finally:
         if session:
             db.session.remove()
-        
+
         if temp_filepath and os.path.exists(temp_filepath):
             try:
                 os.unlink(temp_filepath)

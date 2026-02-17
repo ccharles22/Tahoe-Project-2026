@@ -3,282 +3,141 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Dashboard - Direct Evolution Monitoring</title>
-
-  <style>
-    :root {
-      --blue-500:#1E90FF;
-      --blue-700:#2fbff4;
-      --yellow-500:#FFD54F;
-      --pink-500:#FF6FA3;
-      --primary: var(--blue-500);
-      --accent: var(--pink-500);
-      --highlight: var(--yellow-500);
-    }
-
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; }
-
-    body {
-      font-family: 'Segoe UI', Roboto, 'Times New Roman', Times, serif;
-      background: linear-gradient(135deg, #FFD700 0%, #87CEEB 50%, #FF69B4 100%);
-      background-attachment: fixed;
-      color: #03304b;
-      overflow-x: hidden;
-    }
-
-    .header {
-      background: linear-gradient(135deg, var(--primary), var(--blue-700));
-      color: #fff;
-      padding: 1.5rem 1rem;
-      text-align: center;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-      position: relative;
-      overflow: hidden;
-      animation: headerGlow 3s ease-in-out infinite;
-    }
-
-    @keyframes headerGlow {
-      0%, 100% { box-shadow: 0 4px 20px rgba(30, 144, 255, 0.3); }
-      50% { box-shadow: 0 6px 30px rgba(255, 111, 163, 0.4); }
-    }
-
-    .header h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-    }
-
-    .header::before,
-    .header::after {
-      content: '🧬';
-      position: absolute;
-      font-size: 3rem;
-      opacity: 0.1;
-      top: 50%;
-      transform: translateY(-50%);
-      animation: spin 20s linear infinite;
-    }
-
-    .header::before { left: 10%; }
-    .header::after { right: 10%; animation-direction: reverse; }
-
-    @keyframes spin {
-      from { transform: translateY(-50%) rotate(0deg); }
-      to { transform: translateY(-50%) rotate(360deg); }
-    }
-
-    .navbar {
-      background: rgba(255, 255, 255, 0.95);
-      padding: 1rem;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 1rem;
-    }
-
-    .user-info {
-      font-weight: 600;
-      color: var(--primary);
-    }
-
-    .logout-btn {
-      padding: 0.6rem 1.5rem;
-      background: linear-gradient(135deg, var(--accent), #ff4081);
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 3px 10px rgba(255, 111, 163, 0.3);
-    }
-
-    .logout-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(255, 111, 163, 0.4);
-    }
-
-    .start-btn {
-      padding: 0.6rem 1.5rem;
-      background: linear-gradient(135deg, var(--primary), var(--blue-700));
-      color: white;
-      text-decoration: none;
-      border-radius: 8px;
-      font-weight: 600;
-      transition: all 0.3s ease;
-      box-shadow: 0 3px 10px rgba(30, 144, 255, 0.3);
-      margin-right: 0.5rem;
-    }
-
-    .start-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(30, 144, 255, 0.4);
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 2rem auto;
-      padding: 1rem;
-      position: relative;
-      z-index: 10;
-    }
-
-    .welcome-card {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 16px;
-      padding: 2.5rem;
-      box-shadow: 0 10px 30px rgba(3, 48, 75, 0.15);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 215, 0, 0.3);
-      animation: cardEntrance 0.8s ease-out;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-
-    @keyframes cardEntrance {
-      from { opacity: 0; transform: translateY(30px) scale(0.95); }
-      to { opacity: 1; transform: translateY(0) scale(1); }
-    }
-
-    .welcome-card h2 {
-      font-size: 2rem;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 1rem;
-    }
-
-    .welcome-card p {
-      color: #666;
-      font-size: 1.1rem;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1.5rem;
-      margin-top: 2rem;
-    }
-
-    .dashboard-card {
-      background: rgba(255, 255, 255, 0.95);
-      border-radius: 12px;
-      padding: 2rem;
-      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
-      border: 2px solid rgba(255, 215, 0, 0.2);
-      transition: all 0.3s ease;
-      animation: cardEntrance 0.8s ease-out;
-    }
-
-    .dashboard-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
-    }
-
-    .card-icon {
-      font-size: 3rem;
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    .card-title {
-      font-size: 1.4rem;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 0.8rem;
-      text-align: center;
-    }
-
-    .card-description {
-      color: #666;
-      text-align: center;
-      line-height: 1.5;
-    }
-
-    @media (max-width: 768px) {
-      .header h1 { font-size: 1.5rem; }
-      .navbar { justify-content: center; text-align: center; }
-      .dashboard-grid { grid-template-columns: 1fr; }
-      .welcome-card { padding: 1.5rem; }
-      .welcome-card h2 { font-size: 1.5rem; }
-    }
-  </style>
+  <title>Dashboard — Direct Evolution Monitoring</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
 </head>
 
-<body>
-  <header class="header">
-    <h1>🧬 Direct Evolution Monitoring Dashboard 🧬</h1>
-  </header>
+<body class="home-body">
 
-  <nav class="navbar">
-    <div class="user-info">
-      👤 Logged in as: <strong>{{ current_user.username }}</strong>
+  <!-- NAV BAR -->
+  <nav class="home-nav">
+    <div class="home-nav__brand">
+      <span class="home-nav__logo">DE</span>
+      <span class="home-nav__name">DirectEvo</span>
     </div>
-    <div>
-      <a href="{{ url_for('staging.create_experiment') }}" class="start-btn">Start Experiment</a>
-      <a href="{{ url_for('auth.logout') }}" class="logout-btn">🚪 Logout</a>
+    <div class="home-nav__right">
+      <span class="home-nav__user">👤 {{ current_user.username }}</span>
+      <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
     </div>
   </nav>
 
-  <main class="container">
-    <section class="welcome-card">
-      <h2>Welcome back, {{ current_user.username }}! 🎉</h2>
-      <p>You have successfully logged into the Evolution Monitoring Portal</p>
-    </section>
+  <!-- HERO SECTION -->
+  <section class="home-hero">
+    <div class="home-hero__bg"></div>
+    <div class="home-hero__content animate-in">
+      <h1 class="home-hero__title">Welcome back, {{ current_user.username }}</h1>
+      <p class="home-hero__sub">Your directed evolution monitoring dashboard. Track experiments, analyse variants, and optimise proteins.</p>
+      <div class="home-hero__actions">
+        <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
+          ➕ New Experiment
+        </a>
+        {% if latest_exp %}
+        <a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) }}" class="btn btn--hero-outline">
+          Continue #{{ latest_exp.experiment_id }}
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS STRIP -->
+  <section class="home-stats">
+    <div class="home-stat">
+      <div class="home-stat__value">{{ exp_count }}</div>
+      <div class="home-stat__label">Experiments</div>
+    </div>
+    <div class="home-stat">
+      <div class="home-stat__value">{{ wt_count }}</div>
+      <div class="home-stat__label">WT Proteins</div>
+    </div>
+    <div class="home-stat">
+      <div class="home-stat__value">5</div>
+      <div class="home-stat__label">Pipeline Steps</div>
+    </div>
+    <div class="home-stat">
+      <div class="home-stat__value">∞</div>
+      <div class="home-stat__label">Possibilities</div>
+    </div>
+  </section>
+
+  <!-- QUICK-START CTA -->
+  {% if exp_count == 0 %}
+  <section class="home-container">
+    <div class="home-quickstart">
+      <div class="home-quickstart__icon">🚀</div>
+      <div class="home-quickstart__text">
+        <h3>Ready to begin?</h3>
+        <p>Create your first experiment by fetching a wild-type protein from UniProt. The 5-step workflow will guide you through validation, data upload, analysis, and sequence processing.</p>
+      </div>
+      <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--primary btn--lg">Get Started</a>
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- FEATURE CARDS -->
+  <main class="home-container animate-in">
+    <h2 class="home-section-title">Platform Features</h2>
 
     <div class="dashboard-grid">
-      <a href="{{ url_for('staging.create_experiment') }}" style="text-decoration:none; color:inherit;">
-        <div class="dashboard-card">
-          <div class="card-icon">🔬</div>
-          <h3 class="card-title">Data Staging: Protein Selection &amp; Plasmid Validation</h3>
-          <p class="card-description">
-            Initialize a new experiment using a known wild-type protein by accepting a UniProt Accession ID, retrieving the protein's amino acid sequence and annotated functional domains via the UniProt API, and storing this information in the system.
-          </p>
-        </div>
+      <!-- Full Workflow — active -->
+      <a href="{{ url_for('staging.create_experiment') }}" class="dashboard-card dashboard-card--featured">
+        <div class="dashboard-card__accent"></div>
+        <div class="dashboard-card__icon">🔬</div>
+        <h3 class="dashboard-card__title">Experiment Workflow</h3>
+        <p class="dashboard-card__desc">
+          Full 5-step directed evolution pipeline: fetch a wild-type protein,
+          validate your plasmid, upload variant data, run analysis, and
+          process sequences.
+        </p>
+        <span class="dashboard-card__cta">Open Workflow →</span>
       </a>
 
-      <div class="dashboard-card">
-        <div class="card-icon">📊</div>
-        <h3 class="card-title">Experimental Data Parsing &amp; QC</h3>
-        <p class="card-description">
-          Enable upload and parsing of directed evolution experimental datasets by allowing users to submit data files in either TSV or JSON format and correctly ingesting the contents into the system.
+      <!-- Analysis -->
+      <div class="dashboard-card dashboard-card--soon">
+        <span class="dashboard-card__badge">Coming Soon</span>
+        <div class="dashboard-card__icon">🧬</div>
+        <h3 class="dashboard-card__title">Data Analysis &amp; Metrics</h3>
+        <p class="dashboard-card__desc">
+          Advanced sequence processing (DNA→Protein) and unified activity metric calculations across generations.
         </p>
       </div>
 
-      <div class="dashboard-card">
-        <div class="card-icon">🧬</div>
-        <h3 class="card-title">Data Analysis &amp; Metrics</h3>
-        <p class="card-description">
-          Perform Sequence Processing (DNA to Protein) and Unifying Activity Metric Calculations.
+      <!-- Library -->
+      <div class="dashboard-card dashboard-card--soon">
+        <span class="dashboard-card__badge">Coming Soon</span>
+        <div class="dashboard-card__icon">📚</div>
+        <h3 class="dashboard-card__title">Research Library</h3>
+        <p class="dashboard-card__desc">
+          Browse publications, protocols, and shared research resources from your team.
         </p>
       </div>
 
-      <div class="dashboard-card">
-        <div class="card-icon">📚</div>
-        <h3 class="card-title">Research Library</h3>
-        <p class="card-description">
-          Browse publications, protocols, and shared research resources
+      <!-- Visualisation -->
+      <div class="dashboard-card dashboard-card--soon">
+        <span class="dashboard-card__badge">Coming Soon</span>
+        <div class="dashboard-card__icon">📈</div>
+        <h3 class="dashboard-card__title">Data Visualisation</h3>
+        <p class="dashboard-card__desc">
+          Interactive charts and graphs to identify trends, compare generations, and track variant fitness.
         </p>
       </div>
 
-      <div class="dashboard-card">
-        <div class="card-icon">👥</div>
-        <h3 class="card-title">Data Visualisation</h3>
-        <p class="card-description">
-          Visualise experimental results with interactive charts and graphs to identify trends and insights.
-        </p>
-      </div>
-
-      <div class="dashboard-card">
-        <div class="card-icon">⚙️</div>
-        <h3 class="card-title">Settings</h3>
-        <p class="card-description">
-          Manage your account, preferences, and notification settings
+      <!-- Settings -->
+      <div class="dashboard-card dashboard-card--soon">
+        <span class="dashboard-card__badge">Coming Soon</span>
+        <div class="dashboard-card__icon">⚙️</div>
+        <h3 class="dashboard-card__title">Settings</h3>
+        <p class="dashboard-card__desc">
+          Manage your account, preferences, notification settings, and team access.
         </p>
       </div>
     </div>
   </main>
+
+  <!-- FOOTER -->
+  <footer class="home-footer">
+    <p>Direct Evolution Monitoring Platform &middot; MSc Bioinformatics Group Project &middot; 2026</p>
+  </footer>
+
 </body>
 </html>
