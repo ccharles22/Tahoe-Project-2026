@@ -1,16 +1,7 @@
-"""
-PostgreSQL repository service module.
-This module is where the raw SQL and database access occur
-
-Design principles:
-- no biological logic here; (handled in app/services/sequence_service) 
-- no Flask-specific code here
-- Deterministic, idempotent database writes
-
-"""
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Iterable, Optional, Tuple, List
+import json
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -20,181 +11,450 @@ from app.config import settings
 if TYPE_CHECKING:
     from app.services.sequence_service import WTMapping, VariantSeqResult, MutationRecord, MutationCounts
 
-# Engine/connection handling
-def get_engine() -> Engine:
-    """
-    Constructs and returns a SQLAlchemy engine that's bound to postgreSQL.
 
-    pool_pre_ping is enabled to help with dropped connections so that long
-    running processes don't fail due to connection timeouts.
-    """
+# =============================================================================
+# Engine
+# =============================================================================
+
+def get_engine() -> Engine:
+    """Creates an SQLAlchemy engine for PostgreSQL."""
     return create_engine(
         settings.DATABASE_URL,
         pool_pre_ping=True,
         future=True,
     )
 
-# UniProt WT protein staging
-def save_staged_wt_protein(
-        engine: Engine,
-        experiment_id: int,
-        uniprot_accession: str,
-        wt_protein_sequence: str,
-) -> None:
-    """
-    Persist the UniProt-derived WT protein sequence for an experiment.
 
-    This function is triggered only during the staging step.
-    Capturing the data conserves the downstream analysis to be deterministic and 
-    independent of external UniProt availability.
-    """
-    with engine.begin() as conn:
-        conn.execute(
-            text("""
-                 INSERT INTO staged_proteins (
-                 experiment_id,
-                 uniprot_accession,
-                 wt_protein_sequence,
-                 retrieved_at
-                 )
-                VALUES (
-                 :eid,
-                 :acc,
-                 :seq,
-                 CURRENT_TIMESTAMP()
-                 )
-                ON CONFLICT (experiment_id) DO UPDATE SET
-                 uniprot_accession = EXCLUDED.uniprot_accession,
-                 wt_protein_sequence = EXCLUDED.wt_protein_sequence,
-                 retrieved_at = EXCLUDED.retrieved_at
-            """),
-            {"eid": experiment_id, "acc": uniprot_accession, "seq": wt_protein_sequence},
-        )
+# =============================================================================
+# Experiment + WT reference
+# =============================================================================
 
-         
-def get_staged_wt_protein(
-        engine: Engine,
-        experiment_id: int,
-) -> Tuple[str, str]:
-    """
-    Obtains the staged UniProt accession and WT protein sequence.
-
-    Utilised for validation or inspection prior to analysis execution.
-    """
+def get_experiment_user_and_wt(engine: Engine, experiment_id: int) -> Tuple[int, int]:
+    """Acquires the user_id and wt_id for an experiment."""
     with engine.connect() as conn:
         row = conn.execute(
             text("""
-                 SELECT uniprot_accession, wt_protein_sequence
-                 FROM  staged_proteins
-                 WHERE experiment_id = :eid
-                 """),
+                SELECT user_id, wt_id
+                FROM experiments
+                WHERE experiment_id = :eid
+            """),
             {"eid": experiment_id},
         ).fetchone()
 
     if not row:
-        raise ValueError(
-            f"No staged WT protein found for experiment_id={experiment_id}"
-        )
-    return str(row[0]), str(row[1])
+        raise ValueError(f"Experiment not found: experiment_id={experiment_id}")
 
-# Analysis reference loading
+    return int(row[0]), int(row[1])
+
+
 def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     """
-    Load the WT protein (from staged Uniprot retrieval) and WT plasmid DNA for 
-    sequence analysis.
-    """
-    with engine.connect() as conn:
-        wt_protein = conn.execute(
-            text("""
-                 SELECT wt_protein_sequence
-                 FROM staged_proteins 
-                 WHERE experiment_id = :eid
-            """),
-            {"eid": experiment_id},
-        ).scalar_one()
-        
-        wt_plasmid_dna = conn.execute(
-            text("""
-                SELECT wt_plasmid_dna
-                FROM plasmids 
-                WHERE experiment_id = :eid
-            """),
-            {"eid": experiment_id},
-        ).scalar_one()
-
-    return str(wt_protein), str(wt_plasmid_dna)
-
-def load_wt_mapping(engine: Engine, experiment_id: int) -> Optional[WTMapping]:
-    """
-    Load a previously computed WT gene mapping.
+    Load WT protein and plasmid DNA required for sequence analysis.
 
     Returns:
-        WTMapping if present, otherwise None
+        (wt_protein_aa, wt_plasmid_dna)
     """
     with engine.connect() as conn:
         row = conn.execute(
             text("""
-                SELECT 
-                    mapping_strand,
-                    mapping_frame,
-                    cds_start_0based,
-                    cds_end_0based_excl,
-                    wt_cds_dna,
-                    wt_translated_protein,
-                    mapping_identity= :identity,
-                    validation_status = 'VALID',
-                    mapping_alignment_score = :score,
-                FROM plasmids
-                WHERE experiment_id = :eid
+                SELECT w.amino_acid_sequence, w.plasmid_sequence
+                FROM experiments e
+                JOIN wild_type_proteins w ON w.wt_id = e.wt_id
+                WHERE e.experiment_id = :eid
             """),
             {"eid": experiment_id},
-        ).mapping().first()
+        ).fetchone()
 
-    # No record or mapping not yet computed
-    if not row or row["mapping_strand"] is None:
-        return None
+    if not row:
+        raise ValueError(f"WT reference not found for experiment_id={experiment_id}")
 
-    return WTMapping(
-        strand=row["mapping_strand"],
-        frame=int(row["mapping_frame"]),
-        cds_start_0based=int(row["cds_start_0based"]),
-        cds_end_0based_excl=int(row["cds_end_0based_excl"]),
-        wt_cds_dna=row["wt_cds_dna"],
-        wt_protein_aa=row["wt_translated_protein"],
-        match_identity_pct=float(row["mapping_identity"]),
-        alignment_score=float(row["mapping_alignment_score"]),
-    )
+    return str(row[0]), str(row[1])
 
-def list_variants(engine: Engine, experiment_id: int) -> List[Tuple[int, str]]:
+
+def get_experiment_uniprot_from_wt(engine: Engine, experiment_id: int) -> Optional[str]:
+    """Returns UniProt accession stored on wild_type_proteins for an experiment (or None)."""
+    with engine.connect() as conn:
+        acc = conn.execute(
+            text("""
+                SELECT w.uniprot_id
+                FROM experiments e
+                JOIN wild_type_proteins w ON w.wt_id = e.wt_id
+                WHERE e.experiment_id = :eid
+            """),
+            {"eid": experiment_id},
+        ).scalar_one_or_none()
+    return str(acc) if acc else None
+
+
+# =============================================================================
+# Variant loading
+# =============================================================================
+
+def list_variants_by_experiment(engine: Engine, experiment_id: int) -> List[Tuple[int, str]]:
     """
-    Retrieve all variant plasmid sequences for an experiment.
+    Obtains all the variant plasmid sequences for a given experiment.
 
-    Returns only: 
-        List of (variant_id, assembled_dna_sequence)
+    Returns:
+        List[(variant_id, assembled_dna_sequence)]
     """
     with engine.connect() as conn:
         rows = conn.execute(
             text("""
-                SELECT variant_id, assembled_dna
-                FROM variants
-                WHERE experiment_id = :eid
+                SELECT v.variant_id, v.assembled_dna_sequence
+                FROM variants v
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                ORDER BY v.variant_id
             """),
             {"eid": experiment_id},
         ).fetchall()
 
     return [(int(r[0]), str(r[1])) for r in rows]
 
-# Write operations
+
+# =============================================================================
+# UniProt staging (experiment_uniprot_staging)
+# =============================================================================
+
+def upsert_uniprot_staging(
+    engine: Engine,
+    experiment_id: int,
+    user_id: int,
+    accession: str,
+    protein_sequence: str,
+) -> None:
+    """
+    Stores UniProt fetch results per (experiment_id, user_id).
+
+    Uses UPSERT to avoid overwriting other users and to keep the latest values for this user.
+    """
+    with engine.begin() as conn:
+        conn.execute(
+            text("""
+                INSERT INTO experiment_uniprot_staging (
+                    experiment_id, user_id, accession, protein_sequence, retrieved_at
+                )
+                VALUES (:eid, :uid, :acc, :protein, CURRENT_TIMESTAMP)
+                ON CONFLICT (experiment_id, user_id)
+                DO UPDATE SET
+                    accession = EXCLUDED.accession,
+                    protein_sequence = EXCLUDED.protein_sequence,
+                    retrieved_at = EXCLUDED.retrieved_at
+            """),
+            {"eid": experiment_id, "uid": user_id, "acc": accession, "protein": protein_sequence},
+        )
+
+
+def load_uniprot_staging(
+    engine: Engine,
+    experiment_id: int,
+    user_id: int,
+) -> Optional[Dict[str, Any]]:
+    """Load UniProt staging row for (experiment_id, user_id)."""
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT accession, protein_sequence, retrieved_at
+                FROM experiment_uniprot_staging
+                WHERE experiment_id = :eid AND user_id = :uid
+            """),
+            {"eid": experiment_id, "uid": user_id},
+        ).fetchone()
+
+    if not row:
+        return None
+
+    return {"accession": row[0], "protein_sequence": row[1], "retrieved_at": row[2]}
+
+
+# =============================================================================
+# WT mapping cache (experiment_wt_mapping)
+# =============================================================================
+
+def upsert_wt_mapping(
+    engine: Engine,
+    experiment_id: int,
+    user_id: int,
+    mapping: "WTMapping",
+) -> None:
+    """
+    Cache WT mapping per (experiment_id, user_id) into experiment_wt_mapping.mapping_json (JSONB).
+    """
+    payload = {
+        "strand": mapping.strand,
+        "frame": mapping.frame,
+        "cds_start_0based": mapping.cds_start_0based,
+        "cds_end_0based_excl": mapping.cds_end_0based_excl,
+        "wt_cds_dna": mapping.wt_cds_dna,
+        "wt_protein_aa": mapping.wt_protein_aa,
+        "match_identity_pct": mapping.match_identity_pct,
+        "alignment_score": mapping.alignment_score,
+        "validation_status": "VALID",
+    }
+
+    with engine.begin() as conn:
+        conn.execute(
+            text("""
+                INSERT INTO experiment_wt_mapping (
+                    experiment_id, user_id, mapping_json, mapped_at
+                )
+                VALUES (:eid, :uid, :js::jsonb, CURRENT_TIMESTAMP)
+                ON CONFLICT (experiment_id, user_id)
+                DO UPDATE SET
+                    mapping_json = EXCLUDED.mapping_json,
+                    mapped_at = EXCLUDED.mapped_at
+            """),
+            {"eid": experiment_id, "uid": user_id, "js": json.dumps(payload, ensure_ascii=False)},
+        )
+
+
+def load_wt_mapping(
+    engine: Engine,
+    experiment_id: int,
+    user_id: int,
+) -> Optional["WTMapping"]:
+    """
+    Loads cached WT mapping for (experiment_id, user_id).
+    Returns WTMapping if present and VALID, else None.
+    """
+    with engine.connect() as conn:
+        mapping_json = conn.execute(
+            text("""
+                SELECT mapping_json
+                FROM experiment_wt_mapping
+                WHERE experiment_id = :eid AND user_id = :uid
+            """),
+            {"eid": experiment_id, "uid": user_id},
+        ).scalar_one_or_none()
+
+    if not mapping_json:
+        return None
+
+    data = mapping_json if isinstance(mapping_json, dict) else json.loads(mapping_json)
+    if data.get("validation_status") != "VALID":
+        return None
+
+    from app.services.sequence_service import WTMapping  # local import to avoid cycles
+
+    return WTMapping(
+        strand=str(data["strand"]),
+        frame=int(data["frame"]),
+        cds_start_0based=int(data["cds_start_0based"]),
+        cds_end_0based_excl=int(data["cds_end_0based_excl"]),
+        wt_cds_dna=str(data["wt_cds_dna"]),
+        wt_protein_aa=str(data["wt_protein_aa"]),
+        match_identity_pct=float(data["match_identity_pct"]),
+        alignment_score=float(data["alignment_score"]),
+    )
+
+
+# =============================================================================
+# Variant analysis history (variant_sequence_analysis + variant_mutations)
+# =============================================================================
+
+def insert_variant_analysis(
+    engine: Engine,
+    *,
+    variant_id: int,
+    experiment_id: int,
+    user_id: int,
+    result: "VariantSeqResult",
+    counts: "MutationCounts",
+    mutations: Optional[Iterable["MutationRecord"]] = None,
+    also_set_variants_protein_sequence: bool = False,
+) -> int:
+    """
+    Inserts a NEW analysis row (history) for (variant_id, user_id).
+    Returns the new analysis_id.
+
+    - analysis_json stored as JSONB
+    - optional mutations stored in variant_mutations linked by analysis_id
+    - optionally sets variants.protein_sequence (off by default to avoid teammate collisions)
+    """
+    analysis_payload: Dict[str, Any] = {
+        "cds_start_0based": result.cds_start_0based,
+        "cds_end_0based_excl": result.cds_end_0based_excl,
+        "strand": result.strand,
+        "frame": result.frame,
+        "cds_dna": result.cds_dna,
+        "protein_aa": result.protein_aa,
+        "qc": {
+            "has_ambiguous_bases": result.qc.has_ambiguous_bases,
+            "has_frameshift": result.qc.has_frameshift,
+            "has_premature_stop": result.qc.has_premature_stop,
+            "notes": result.qc.notes,
+        },
+        "counts": {
+            "synonymous": counts.synonymous,
+            "nonsynonymous": counts.nonsynonymous,
+            "total": counts.total,
+        },
+    }
+
+    analysis_json = json.dumps(analysis_payload, ensure_ascii=False)
+
+    with engine.begin() as conn:
+        # Inserts analysis row and return analysis_id
+        analysis_id = conn.execute(
+            text("""
+                INSERT INTO variant_sequence_analysis (
+                    variant_id, experiment_id, user_id, analysis_json, analysed_at
+                )
+                VALUES (:vid, :eid, :uid, :js::jsonb, CURRENT_TIMESTAMP)
+                RETURNING analysis_id
+            """),
+            {"vid": variant_id, "eid": experiment_id, "uid": user_id, "js": analysis_json},
+        ).scalar_one()
+
+        # Inserts mutations if provided (can be empty or None)
+        if mutations is not None:
+            for m in mutations:
+                conn.execute(
+                    text("""
+                        INSERT INTO variant_mutations (
+                            analysis_id,
+                            mutation_type,
+                            codon_index_1based,
+                            aa_position_1based,
+                            wt_codon,
+                            var_codon,
+                            wt_aa,
+                            var_aa,
+                            notes
+                        )
+                        VALUES (
+                            :aid,
+                            :mtype,
+                            :codon_idx,
+                            :aa_pos,
+                            :wt_codon,
+                            :var_codon,
+                            :wt_aa,
+                            :var_aa,
+                            :notes
+                        )
+                    """),
+                    {
+                        "aid": analysis_id,
+                        "mtype": m.mutation_type,
+                        "codon_idx": m.codon_index_1based,
+                        "aa_pos": m.aa_position_1based,
+                        "wt_codon": m.wt_codon,
+                        "var_codon": m.var_codon,
+                        "wt_aa": m.wt_aa,
+                        "var_aa": m.var_aa,
+                        "notes": m.notes,
+                    },
+                )
+
+        # Optional: write protein_sequence onto variants table (can collide across users)
+        if also_set_variants_protein_sequence:
+            conn.execute(
+                text("""
+                    UPDATE variants
+                    SET protein_sequence = :protein
+                    WHERE variant_id = :vid
+                """),
+                {"protein": result.protein_aa, "vid": variant_id},
+            )
+
+    return int(analysis_id)
+
+
+def load_latest_variant_analysis(
+    engine: Engine,
+    *,
+    variant_id: int,
+    user_id: int,
+    include_mutations: bool = False,
+) -> Optional[Dict[str, Any]]:
+    """
+    Loads the latest analysis for the variant_id and user_id).
+    If include_mutations=True, returns a 'mutations' list too.
+    """
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT analysis_id, experiment_id, analysed_at, analysis_json
+                FROM variant_sequence_analysis
+                WHERE variant_id = :vid AND user_id = :uid
+                ORDER BY analysed_at DESC, analysis_id DESC
+                LIMIT 1
+            """),
+            {"vid": variant_id, "uid": user_id},
+        ).fetchone()
+
+        if not row:
+            return None
+
+        analysis_id = int(row[0])
+        analysis_json = row[3] if isinstance(row[3], dict) else json.loads(row[3])
+
+        out: Dict[str, Any] = {
+            "analysis_id": analysis_id,
+            "variant_id": int(variant_id),
+            "experiment_id": int(row[1]),
+            "user_id": int(user_id),
+            "analysed_at": row[2],
+            "analysis_json": analysis_json,
+        }
+
+        if include_mutations:
+            muts = conn.execute(
+                text("""
+                    SELECT
+                      mutation_id,
+                      mutation_type,
+                      codon_index_1based,
+                      aa_position_1based,
+                      wt_codon,
+                      var_codon,
+                      wt_aa,
+                      var_aa,
+                      notes
+                    FROM variant_mutations
+                    WHERE analysis_id = :aid
+                    ORDER BY mutation_id
+                """),
+                {"aid": analysis_id},
+            ).fetchall()
+
+            out["mutations"] = [
+                {
+                    "mutation_id": int(m[0]),
+                    "mutation_type": m[1],
+                    "codon_index_1based": m[2],
+                    "aa_position_1based": m[3],
+                    "wt_codon": m[4],
+                    "var_codon": m[5],
+                    "wt_aa": m[6],
+                    "var_aa": m[7],
+                    "notes": m[8],
+                }
+                for m in muts
+            ]
+
+    return out
+
+
+def delete_analysis(engine: Engine, analysis_id: int) -> None:
+    """
+    Deletes a single analysis row from variant_sequence_analysis due to
+    foreign key constraints with variant_mutations .
+    """
+    with engine.begin() as conn:
+        conn.execute(
+            text("DELETE FROM variant_sequence_analysis WHERE analysis_id = :aid"),
+            {"aid": analysis_id},
+        )
+
+
+# =============================================================================
+# Status tracking
+# =============================================================================
 
 def update_experiment_status(engine: Engine, experiment_id: int, status: str) -> None:
-    """
-    Update experiment-level analysis status
-
-    Used by the orchestrator to mark: 
-    - analysis start 
-    - successful completion
-    - failure for debugging and UI feedback 
-    """
+    """Updates experiments.analysis_status."""
     with engine.begin() as conn:
         conn.execute(
             text("""
@@ -204,197 +464,3 @@ def update_experiment_status(engine: Engine, experiment_id: int, status: str) ->
             """),
             {"status": status, "eid": experiment_id},
         )
-
-def save_wt_mapping(engine: Engine, experiment_id: int, mapping: WTMapping) -> None:
-    """
-    Stores the WT gene mapping results to avoid recomputation for every variant
-    this includes:
-    - CDS coordinates
-    - strand and reading frame
-    - translated WT wt_protein
-    - identity score.
-    """
-    with engine.begin() as conn:
-        conn.execute(
-            text("""
-                UPDATE plasmids
-                SET 
-                    mapping_strand = :strand,
-                    mapping_frame = :frame,
-                    cds_start_0based = :cds_start,
-                    cds_end_0based_excl = :cds_end,
-                    wt_cds_dna = :wt_cds,
-                    wt_translated_protein = :wt_protein,
-                    mapping_identity = :identity,
-                    validation_status = 'VALID',
-                    mapped_at = CURRENT_TIMESTAMP()
-                WHERE experiment_id = :eid
-            """),
-            {
-                "strand": mapping.strand,
-                "frame": mapping.frame,
-                "cds_start": mapping.cds_start_0based,
-                "cds_end": mapping.cds_end_0based_excl,
-                "wt_cds": mapping.wt_cds_dna,
-                "wt_protein": mapping.wt_protein_aa,
-                "identity": mapping.match_identity_pct,
-                "eid": experiment_id,
-            },
-        )
-
-def save_variant_sequence_analysis(
-    engine: Engine,
-    variant_id: int,
-    result: VariantSeqResult,
-    counts: MutationCounts,
-    ) -> None:
-    """
-    conserves per-variant sequence analysis results.
-
-    This function is idempotent:
-    - can be called multiple times for the same variant_id.
-    - overwrites previous results.
-
-    Stored outputs are essential for downstream analysis and reporting for:
-    - activity scoring
-    - result tables
-    - PCA / t-SNE feature extraction
-    """
-    with engine.begin() as conn:
-        conn.execute(
-            text("""
-                INSERT INTO sequence_analysis (
-                    variant_id,
-                    cds_start_0based,
-                    cds_end_0based_excl,
-                    strand,
-                    frame,
-                    cds_dna,
-                    protein_sequence,
-                    has_frameshift,
-                    has_premature_stop,
-                    has_ambiguous_bases,
-                    qc_notes,
-                    synonymous_count,
-                    nonsynonymous_count,
-                    total_mutation_count,
-                    analysed_at
-                )
-                VALUES (
-                    :variant_id,
-                    :start,
-                    :end_excl,
-                    :strand,
-                    :frame,
-                    :cds_dna,
-                    :protein,
-                    :frameshift,
-                    :prem_stop,
-                    :ambig,
-                    :notes,
-                    :syn,
-                    :nonsyn,
-                    :total,
-                    CURRENT_TIMESTAMP
-                )
-                ON CONFLICT (variant_id) DO UPDATE SET
-                    cds_start_0based = EXCLUDED.cds_start_0based,
-                    cds_end_0based_excl = EXCLUDED.cds_end_0based_excl,
-                    strand = EXCLUDED.strand,
-                    frame = EXCLUDED.frame,
-                    cds_dna = EXCLUDED.cds_dna,
-                    protein_sequence = EXCLUDED.protein_sequence,
-                    has_frameshift = EXCLUDED.has_frameshift,
-                    has_premature_stop = EXCLUDED.has_premature_stop,
-                    has_ambiguous_bases = EXCLUDED.has_ambiguous_bases,
-                    qc_notes = EXCLUDED.qc_notes,
-                    synonymous_count = EXCLUDED.synonymous_count,
-                    nonsynonymous_count = EXCLUDED.nonsynonymous_count,
-                    total_mutation_count = EXCLUDED.total_mutation_count,
-                    analysed_at = EXCLUDED.analysed_at
-            """),
-            {
-                "variant_id": variant_id,
-                "start": result.cds_start_0based,
-                "end_excl": result.cds_end_0based_excl,
-                "strand": result.strand,
-                "frame": result.frame,
-                "cds_dna": result.cds_dna,
-                "protein": result.protein_sequence,
-                "frameshift": result.has_frameshift,
-                "prem_stop": result.has_premature_stop,
-                "ambig": result.has_ambiguous_bases,
-                "notes": result.qc_notes,
-                "syn": counts.synonymous,
-                "nonsyn": counts.nonsynonymous,
-                "total": counts.total,
-            },
-        ) 
-
-def replace_variant_mutations(
-    engine: Engine,
-    variant_id: int,
-    mutations: Iterable[MutationRecord],
-    ) -> None:
-    """
-    Replaces all mutation records for a given variant.
-
-    Existing mutations are erased before incorporating updated records to prevemt duplication
-    after re-analysis.
-    """
-    mutations = list(mutations)
-    if not mutations:
-        return
-
-    with engine.begin() as conn:
-        # Delete existing mutations
-        conn.execute(
-            text("""
-                DELETE FROM mutations
-                WHERE variant_id = :vid
-            """),
-            {"vid": variant_id},
-        )
-
-        # Insert new mutations
-        for m in mutations:
-            conn.execute(
-                text("""
-                    INSERT INTO mutations (
-                        variant_id,
-                        aa_position,
-                        wt_aa,
-                        var_aa,
-                        codon_position,
-                        wt_codon,
-                        var_codon,
-                        mutation_type,
-                        note
-                    )
-                    VALUES (
-                        :vid,
-                        :aa_pos,
-                        :wt_aa,
-                        :var_aa,
-                        :codon_pos,
-                        :wt_codon,
-                        :var_codon,
-                        :mut_type,
-                        :note
-                    )
-                """),
-            [
-                {
-                    "vid": variant_id,
-                    "aa_pos": m.position_1based,
-                    "wt_aa": m.wt_aa,
-                    "var_aa": m.var_aa,
-                    "codon_pos": m.codon_index_1based,
-                    "wt_codon": m.wt_codon,
-                    "var_codon": m.var_codon,
-                    "mut_type": m.mutation_type,
-                    "note": m.note,
-                }
-                for m in mutations
-            ],
-            )
