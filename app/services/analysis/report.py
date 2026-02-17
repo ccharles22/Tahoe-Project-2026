@@ -27,17 +27,20 @@ def main():
 
         # Export QC overview (optional but very useful)
         os.makedirs(OUTPUT_DIR, exist_ok=True)
-        df_with_qc.to_csv(os.path.join(OUTPUT_DIR, "stage4_qc_debug.csv"), index=False)
+        df_with_qc.to_csv(
+            os.path.join(OUTPUT_DIR, f"stage4_qc_debug_exp_{experiment_id}.csv"),
+            index=False,
+        )
 
         # Top-10 table
         df_top10 = fetch_top10(conn, experiment_id)
-        top10_path = os.path.join(OUTPUT_DIR, "top10_variants.csv")
+        top10_path = os.path.join(OUTPUT_DIR, f"top10_variants_exp_{experiment_id}.csv")
         df_top10.to_csv(top10_path, index=False)
         print("Wrote:", top10_path)
 
         # Distribution plot
         df_dist = fetch_distribution(conn, experiment_id)
-        plot_path = os.path.join(OUTPUT_DIR, "activity_distribution.png")
+        plot_path = os.path.join(OUTPUT_DIR, f"activity_distribution_exp_{experiment_id}.png")
         plot_activity_distribution(df_dist, plot_path)
         print("Wrote:", plot_path)
 

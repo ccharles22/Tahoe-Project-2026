@@ -37,7 +37,6 @@ class Experiment(db.Model):
     experiment_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True)
     user_id = db.Column(db.BigInteger, db.ForeignKey("public.users.user_id"), nullable=False)
     wt_id = db.Column(db.BigInteger, nullable=False)
-    status = db.Column(db.String(32), nullable=True)
     name = db.Column(db.String(255), nullable=False)
     description = db.Column(db.Text, nullable=True)
     created_at = db.Column(db.DateTime(timezone=True), server_default=db.text("now()"))
@@ -51,6 +50,7 @@ class Experiment(db.Model):
 
 class WildtypeProtein(db.Model):
     __tablename__ = "wildtype_protein"
+    __table_args__ = _user_table_args()
     experiment_id = db.Column(
         db.BigInteger,
         db.ForeignKey("public.experiments.experiment_id"),
@@ -66,6 +66,7 @@ class WildtypeProtein(db.Model):
 
 class Plasmid(db.Model):
     __tablename__ = "plasmid"
+    __table_args__ = _user_table_args()
     experiment_id = db.Column(
         db.BigInteger,
         db.ForeignKey("public.experiments.experiment_id"),
@@ -76,6 +77,7 @@ class Plasmid(db.Model):
 
 class StagingValidation(db.Model):
     __tablename__ = "staging_validation"
+    __table_args__ = _user_table_args()
     experiment_id = db.Column(
         db.BigInteger,
         db.ForeignKey("public.experiments.experiment_id"),

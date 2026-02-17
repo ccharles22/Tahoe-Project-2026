@@ -22,11 +22,11 @@
       <!-- LEFT TASKBAR -->
       <nav class="taskbar">
         <a href="#experiments" class="taskbar__item" data-section="experiments">
-          <span class="taskbar__icon"></span>
+          <span class="taskbar__icon">🔬</span>
           <span class="taskbar__label">Experiments</span>
         </a>
         <a href="#tools" class="taskbar__item" data-section="tools">
-          <span class="taskbar__icon"></span>
+          <span class="taskbar__icon">🛠️</span>
           <span class="taskbar__label">Tools</span>
         </a>
       </nav>
@@ -46,10 +46,10 @@
             {% endif %}
           </div>
 
-          <!-- STEP A -->
+          <!-- STEP 1 -->
         <div class="task">
           <div class="task__top">
-            <div class="task__name">Step A</div>
+            <div class="task__name">Step 1</div>
             {% if wt %}
               <span class="badge badge--ok">Loaded</span>
             {% else %}
@@ -69,10 +69,10 @@
           {% endif %}
         </div>
 
-        <!-- STEP B -->
+        <!-- STEP 2 -->
         <div class="task {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
-            <div class="task__name">Step B</div>
+            <div class="task__name">Step 2</div>
             {% if validation %}
               {% if validation.is_valid %}
                 <span class="badge badge--ok">PASS</span>
@@ -102,10 +102,10 @@
           {% endif %}
         </div>
 
-        <!-- STEP C (PARSING UPLOAD) -->
+        <!-- STEP 3 (PARSING UPLOAD) -->
         <div class="task task--parsing {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
-            <div class="task__name">Step C</div>
+            <div class="task__name">Step 3</div>
             {% if experiment_id %}
               <span class="badge badge--idle">Ready</span>
             {% else %}
@@ -143,10 +143,10 @@
           {% endif %}
         </div>
 
-        <!-- STEP D (ANALYSIS) -->
+        <!-- STEP 4 (ANALYSIS) -->
         <div class="task task--analysis {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
-            <div class="task__name">Step D</div>
+            <div class="task__name">Step 4</div>
             {% if experiment_id %}
               <span class="badge badge--idle">Ready</span>
             {% else %}
@@ -164,10 +164,10 @@
           {% endif %}
         </div>
 
-        <!-- STEP E (SEQUENCE PROCESSING) -->
+        <!-- STEP 5 (SEQUENCE PROCESSING) -->
         <div class="task task--sequence {% if not experiment_id %}is-disabled{% endif %}">
           <div class="task__top">
-            <div class="task__name">Step E</div>
+            <div class="task__name">Step 5</div>
             {% if experiment_id %}
               <span class="badge badge--idle">Ready</span>
             {% else %}
@@ -199,32 +199,55 @@
           </button>
 
           <div class="experiments-list">
-            <div class="experiment-item">
-              <div class="experiment-item__id">#001</div>
-              <div class="experiment-item__info">
-                <div class="experiment-item__name">Current Experiment</div>
-                <div class="experiment-item__date">Today</div>
+            {% if all_experiments and all_experiments|length > 0 %}
+              {% for exp in all_experiments %}
+                <div
+                  class="experiment-item {% if experiment_id and exp.experiment_id == experiment_id|int %}experiment-item--active{% endif %}"
+                  data-open-url="{{ url_for('staging.create_experiment', experiment_id=exp.experiment_id) }}"
+                >
+                  <div class="experiment-item__id">#{{ '%03d'|format(exp.experiment_id) }}</div>
+                  <div class="experiment-item__info">
+                    <div class="experiment-item__name">{{ exp.name }}</div>
+                    <div class="experiment-item__date">{{ exp.created_at.strftime('%b %d, %Y') if exp.created_at else 'Unknown' }}</div>
+                  </div>
+                  <div class="experiment-item__actions">
+                    <div class="experiment-menu">
+                      <button
+                        class="experiment-menu__toggle"
+                        type="button"
+                        aria-label="More actions"
+                        data-exp-id="{{ exp.experiment_id }}"
+                        data-exp-name="{{ exp.name }}"
+                        data-current-id="{{ experiment_id }}"
+                      >⋯</button>
+                      <div class="experiment-menu__dropdown" role="menu">
+                        <button
+                          class="experiment-menu__item"
+                          type="button"
+                          data-action="rename"
+                          data-exp-id="{{ exp.experiment_id }}"
+                          data-exp-name="{{ exp.name }}"
+                          data-current-id="{{ experiment_id }}"
+                        >Rename</button>
+                        <button
+                          class="experiment-menu__item experiment-menu__item--danger"
+                          type="button"
+                          data-action="delete"
+                          data-exp-id="{{ exp.experiment_id }}"
+                          data-exp-name="{{ exp.name }}"
+                          data-current-id="{{ experiment_id }}"
+                        >Delete</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="empty-experiments">
+                <p class="empty-experiments__text">No experiments yet</p>
+                <p class="empty-experiments__hint">Click "New Experiment" to get started</p>
               </div>
-              <button class="experiment-item__btn">Open</button>
-            </div>
-
-            <div class="experiment-item">
-              <div class="experiment-item__id">#002</div>
-              <div class="experiment-item__info">
-                <div class="experiment-item__name">Previous Run</div>
-                <div class="experiment-item__date">Feb 14</div>
-              </div>
-              <button class="experiment-item__btn">Open</button>
-            </div>
-
-            <div class="experiment-item">
-              <div class="experiment-item__id">#003</div>
-              <div class="experiment-item__info">
-                <div class="experiment-item__name">Archive Test</div>
-                <div class="experiment-item__date">Feb 12</div>
-              </div>
-              <button class="experiment-item__btn">Open</button>
-            </div>
+            {% endif %}
           </div>
         </div>
       </aside>
