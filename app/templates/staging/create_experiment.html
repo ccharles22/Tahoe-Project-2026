@@ -308,10 +308,12 @@
             <div class="sidebar__subtitle">Manage your experiments</div>
           </div>
 
-          <button class="new-experiment-btn" id="newExperimentBtn">
-            <span class="new-experiment-btn__icon">+</span>
-            <span class="new-experiment-btn__text">New Experiment</span>
-          </button>
+          <form action="{{ url_for('staging.create_new_blank_experiment') }}" method="post" style="margin:0">
+            <button class="new-experiment-btn" type="submit">
+              <span class="new-experiment-btn__icon">+</span>
+              <span class="new-experiment-btn__text">New Experiment</span>
+            </button>
+          </form>
 
           <div class="experiments-list">
             {% if experiments %}
@@ -319,12 +321,14 @@
               <div class="experiment-item {% if experiment_id and exp.experiment_id|string == experiment_id|string %}experiment-item--active{% endif %}">
                 <div class="experiment-item__id">#{{ exp.experiment_id }}</div>
                 <div class="experiment-item__info">
-                  <div class="experiment-item__name">{{ exp.name or 'Unnamed' }}</div>
+                  <div class="experiment-item__name" title="Double-click to rename">{{ exp.name or 'Unnamed' }}</div>
                   <div class="experiment-item__date">{{ exp.created_at.strftime('%b %d') if exp.created_at else '' }}</div>
                 </div>
                 <div class="experiment-item__actions">
                   <a class="experiment-item__btn"
                      href="{{ url_for('staging.create_experiment', experiment_id=exp.experiment_id) }}">Open</a>
+                  <button type="button" class="experiment-item__rename" title="Rename"
+                          onclick="this.closest('.experiment-item').querySelector('.experiment-item__rename-form').classList.toggle('is-hidden')">&#9998;</button>
                   <form class="experiment-item__delete-form"
                         action="{{ url_for('staging.delete_experiment', experiment_id=exp.experiment_id) }}"
                         method="post"
@@ -332,6 +336,12 @@
                     <button type="submit" class="experiment-item__delete" title="Delete experiment">&times;</button>
                   </form>
                 </div>
+                <form class="experiment-item__rename-form is-hidden"
+                      action="{{ url_for('staging.rename_experiment') }}" method="post">
+                  <input type="hidden" name="experiment_id" value="{{ exp.experiment_id }}">
+                  <input class="input input--sm" name="name" value="{{ exp.name or '' }}" placeholder="New name" required>
+                  <button class="btn btn--primary btn--xs" type="submit">Save</button>
+                </form>
               </div>
               {% endfor %}
             {% else %}

@@ -100,24 +100,19 @@ if (newExpBtn) {
   newExpBtn.addEventListener('click', function(e) {
     e.preventDefault();
     
-    // Switch to Tools sidebar
-    const toolsItem = document.querySelector('.taskbar__item[data-section="tools"]');
-    if (toolsItem) {
-      toolsItem.click();
-    }
+    // Set the active section to 'tools' so it opens on the Tools section after redirect
+    localStorage.setItem('activeSidebarSection', 'tools');
     
-    // Clear the UniProt accession input field
-    const accessionInput = document.querySelector('input[name="accession"]');
-    if (accessionInput) {
-      accessionInput.value = '';
-      accessionInput.focus();
-    }
+    // Disable button and show loading state
+    newExpBtn.disabled = true;
+    newExpBtn.textContent = 'Creating...';
     
-    // Scroll to top of sidebar
-    const sidebar = document.querySelector('.sidebar');
-    if (sidebar) {
-      sidebar.scrollTop = 0;
-    }
+    // Create a form and submit it to create a new experiment
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/staging/experiment/new';
+    document.body.appendChild(form);
+    form.submit();
   });
 }
 
@@ -299,4 +294,116 @@ if (chatInput) {
     }
   });
 }
+
+// Experiment card menu actions (rename/delete)
+const experimentMenus = document.querySelectorAll('.experiment-menu');
+
+function closeAllExperimentMenus() {
+  experimentMenus.forEach(menu => menu.classList.remove('is-open'));
+}
+
+experimentMenus.forEach(menu => {
+  const toggle = menu.querySelector('.experiment-menu__toggle');
+  if (!toggle) return;
+
+  toggle.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const isOpen = menu.classList.contains('is-open');
+    closeAllExperimentMenus();
+    if (!isOpen) {
+      menu.classList.add('is-open');
+    }
+  });
+});
+
+document.addEventListener('click', function() {
+  closeAllExperimentMenus();
+});
+
+document.querySelectorAll('.experiment-menu__item').forEach(actionBtn => {
+  actionBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const action = this.getAttribute('data-action');
+    const expId = this.getAttribute('data-exp-id');
+    const expName = this.getAttribute('data-exp-name') || '';
+    const currentId = this.getAttribute('data-current-id') || '';
+
+    if (!expId) return;
+
+    if (action === 'rename') {
+      const newName = window.prompt('Rename experiment:', expName);
+      if (!newName) return;
+
+      const trimmedName = newName.trim();
+      if (!trimmedName) return;
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/staging/experiment/rename';
+
+      const expIdInput = document.createElement('input');
+      expIdInput.type = 'hidden';
+      expIdInput.name = 'experiment_id';
+      expIdInput.value = expId;
+      form.appendChild(expIdInput);
+
+      const currentIdInput = document.createElement('input');
+      currentIdInput.type = 'hidden';
+      currentIdInput.name = 'current_experiment_id';
+      currentIdInput.value = currentId;
+      form.appendChild(currentIdInput);
+
+      const nameInput = document.createElement('input');
+      nameInput.type = 'hidden';
+      nameInput.name = 'name';
+      nameInput.value = trimmedName;
+      form.appendChild(nameInput);
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    if (action === 'delete') {
+      const confirmed = window.confirm(`Delete experiment "${expName}"? This cannot be undone.`);
+      if (!confirmed) return;
+
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/staging/experiment/delete';
+
+      const expIdInput = document.createElement('input');
+      expIdInput.type = 'hidden';
+      expIdInput.name = 'experiment_id';
+      expIdInput.value = expId;
+      form.appendChild(expIdInput);
+
+      const currentIdInput = document.createElement('input');
+      currentIdInput.type = 'hidden';
+      currentIdInput.name = 'current_experiment_id';
+      currentIdInput.value = currentId;
+      form.appendChild(currentIdInput);
+
+      document.body.appendChild(form);
+      form.submit();
+    }
+  });
+});
+
+// Click experiment card to open
+document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
+  card.addEventListener('click', function(e) {
+    if (e.target.closest('.experiment-menu')) {
+      return;
+    }
+
+    const openUrl = this.getAttribute('data-open-url');
+    if (openUrl) {
+      window.location.href = openUrl;
+    }
+  });
+});
 

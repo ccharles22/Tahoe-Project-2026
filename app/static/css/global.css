@@ -1117,6 +1117,57 @@ a:hover { text-decoration: underline; }
   border-color: var(--danger);
 }
 
+.experiment-item__rename {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s var(--ease);
+  opacity: 0;
+}
+
+.experiment-item:hover .experiment-item__rename {
+  opacity: 1;
+}
+
+.experiment-item__rename:hover {
+  background: var(--surface-alt);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.experiment-item__rename-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px 4px;
+  border-top: 1px solid var(--border-light);
+  width: 100%;
+}
+
+.experiment-item__rename-form.is-hidden {
+  display: none;
+}
+
+.input--sm {
+  font-size: 12px;
+  padding: 4px 8px;
+  height: 28px;
+}
+
+.btn--xs {
+  font-size: 11px;
+  padding: 4px 10px;
+  height: 28px;
+}
+
 /* ---------- WORKSPACE HEADER ---------- */
 .workspace__header {
   padding-bottom: 12px;

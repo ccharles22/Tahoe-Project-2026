@@ -174,6 +174,60 @@ def delete_experiment(experiment_id):
     return redirect(url_for('staging.create_experiment'))
 
 
+# ---------- Rename experiment ----------
+
+@staging_bp.post('/experiment/rename')
+@login_required
+def rename_experiment():
+    from flask import flash
+    experiment_id = request.form.get('experiment_id', '').strip()
+    new_name = request.form.get('name', '').strip()
+
+    if not experiment_id.isdigit():
+        return redirect(url_for('staging.create_experiment'))
+
+    if not new_name:
+        flash('Experiment name cannot be empty.', 'danger')
+        return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
+
+    exp = Experiment.query.get(int(experiment_id))
+    if not exp or exp.user_id != current_user.user_id:
+        flash('Experiment not found.', 'danger')
+        return redirect(url_for('staging.create_experiment'))
+
+    exp.name = new_name[:255]
+    db.session.commit()
+    flash(f'Renamed to "{exp.name}".', 'success')
+    return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
+
+
+# ---------- Create blank experiment ----------
+
+@staging_bp.post('/experiment/new')
+@login_required
+def create_new_blank_experiment():
+    """Create a blank experiment so user can configure it step by step."""
+    from flask import flash
+    from datetime import datetime
+
+    default_name = f"Experiment {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    exp = Experiment(
+        name=default_name,
+        user_id=current_user.user_id,
+        wt_id=0,  # placeholder — updated when WT is fetched in Step A
+    )
+    db.session.add(exp)
+    try:
+        db.session.commit()
+        flash(f'Created experiment #{exp.experiment_id}.', 'success')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Could not create experiment: {exc}', 'danger')
+        return redirect(url_for('staging.create_experiment'))
+
+    return redirect(url_for('staging.create_experiment', experiment_id=str(exp.experiment_id)))
+
+
 # ---------- Analysis & Sequence routes (from teammate) ----------
 
 @staging_bp.post('/analysis/run')
@@ -257,10 +311,14 @@ def fetch_uniprot():
         wt.amino_acid_sequence = sequence
         wt.sequence_length = protein_length
         wt.plasmid_sequence = placeholder_plasmid
+        wt.protein_name = result.get("protein_name") or wt.protein_name
+        wt.organism = result.get("organism") or wt.organism
     else:
         wt = WildtypeProtein(
             user_id=current_user.user_id,
             uniprot_id=accession,
+            protein_name=result.get("protein_name"),
+            organism=result.get("organism"),
             amino_acid_sequence=sequence,
             sequence_length=protein_length,
             plasmid_sequence=placeholder_plasmid,
@@ -275,11 +333,16 @@ def fetch_uniprot():
             return redirect(url_for('staging.create_experiment',
                                     wt_message='Experiment not found'))
         exp.wt_id = wt.wt_id
+        # Auto-update experiment name with protein info if still default
+        protein_name = result.get("protein_name")
+        if protein_name and (not exp.name or exp.name.startswith("Experiment ")):
+            exp.name = f"{protein_name} ({accession})"
     else:
+        protein_name = result.get("protein_name")
         exp = Experiment(
             user_id=current_user.user_id,
             wt_id=wt.wt_id,
-            name=experiment_name or f"Experiment ({accession})",
+            name=experiment_name or (f"{protein_name} ({accession})" if protein_name else f"Experiment ({accession})"),
         )
         db.session.add(exp)
         db.session.flush()

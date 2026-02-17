@@ -55,5 +55,15 @@ class UniprotService:
         return {
             "sequence": seq,
             "protein_length": len(seq),
-            "features": features_out
+            "features": features_out,
+            "protein_name": (data.get("proteinDescription", {})
+                             .get("recommendedName", {})
+                             .get("fullName", {})
+                             .get("value"))
+                            or (data.get("proteinDescription", {})
+                                .get("submissionNames", [{}])[0]
+                                .get("fullName", {})
+                                .get("value")),
+            "organism": (data.get("organism", {})
+                         .get("scientificName")),
         }
