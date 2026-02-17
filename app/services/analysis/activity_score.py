@@ -88,8 +88,9 @@ def compute_stage4_metrics(
     rows_to_insert: List[dict] = []
     for _, r in df_valid.iterrows():
         vid = int(r["variant_id"])
-        rows_to_insert.append({"variant_id": vid, "metric_name": "dna_yield_norm", "metric_type": "normalized", "value": float(r["dna_yield_norm"]), "unit": "ratio"})
-        rows_to_insert.append({"variant_id": vid, "metric_name": "protein_yield_norm", "metric_type": "normalized", "value": float(r["protein_yield_norm"]), "unit": "ratio"})
-        rows_to_insert.append({"variant_id": vid, "metric_name": "activity_score", "metric_type": "derived", "value": float(r["activity_score"]), "unit": "ratio"})
+        gid = int(r["generation_id"])
+        rows_to_insert.append({"generation_id": gid, "variant_id": vid, "metric_name": "dna_yield_norm", "metric_type": "normalized", "value": float(r["dna_yield_norm"]), "unit": "ratio"})
+        rows_to_insert.append({"generation_id": gid, "variant_id": vid, "metric_name": "protein_yield_norm", "metric_type": "normalized", "value": float(r["protein_yield_norm"]), "unit": "ratio"})
+        rows_to_insert.append({"generation_id": gid, "variant_id": vid, "metric_name": "activity_score", "metric_type": "derived", "value": float(r["activity_score"]), "unit": "ratio"})
 
     return rows_to_insert, df_out

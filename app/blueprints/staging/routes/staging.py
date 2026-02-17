@@ -126,20 +126,32 @@ def create_experiment():
         # Analysis output files — scoped per experiment
         gen_dir = os.path.join(current_app.root_path, "static", "generated", str(experiment_id))
         plot_path = os.path.join(gen_dir, "activity_distribution.png")
-        top10_path = os.path.join(gen_dir, "top10_variants.csv")
+        top10_csv_path = os.path.join(gen_dir, "top10_variants.csv")
+        top10_png_path = os.path.join(gen_dir, "top10_variants.png")
+        lineage_path = os.path.join(gen_dir, "lineage.png")
         qc_path = os.path.join(gen_dir, "stage4_qc_debug.csv")
 
         sub = f"generated/{experiment_id}"
         analysis_outputs = {
             "plot": {
                 "url": url_for("static", filename=f"{sub}/activity_distribution.png"),
-                "label": "Activity distribution plot",
+                "label": "Activity Score Distribution",
                 "exists": os.path.exists(plot_path),
+            },
+            "top10_png": {
+                "url": url_for("static", filename=f"{sub}/top10_variants.png"),
+                "label": "Top 10 Variants",
+                "exists": os.path.exists(top10_png_path),
+            },
+            "lineage": {
+                "url": url_for("static", filename=f"{sub}/lineage.png"),
+                "label": "Variant Lineage",
+                "exists": os.path.exists(lineage_path),
             },
             "top10": {
                 "url": url_for("static", filename=f"{sub}/top10_variants.csv"),
                 "label": "Top 10 variants (CSV)",
-                "exists": os.path.exists(top10_path),
+                "exists": os.path.exists(top10_csv_path),
             },
             "qc": {
                 "url": url_for("static", filename=f"{sub}/stage4_qc_debug.csv"),

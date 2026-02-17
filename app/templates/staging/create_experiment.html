@@ -562,9 +562,43 @@
             <div class="note">{{ analysis_message }}</div>
           {% endif %}
 
-          {% if analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
-            <div class="analysis-block">
-              <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution plot">
+          {# ── Graphs gallery ── #}
+          {% set has_any_graph = (analysis_outputs and (
+              (analysis_outputs.plot and analysis_outputs.plot.exists) or
+              (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
+              (analysis_outputs.lineage and analysis_outputs.lineage.exists)
+          )) %}
+
+          {% if has_any_graph %}
+            <div class="analysis-gallery">
+
+              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
+              <div class="analysis-card">
+                <div class="analysis-card__title">Activity Score Distribution</div>
+                <a href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution (violin)">
+                </a>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+              <div class="analysis-card">
+                <div class="analysis-card__title">Top 10 Performers</div>
+                <a href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.top10_png.url }}" alt="Top 10 variants table">
+                </a>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+              <div class="analysis-card">
+                <div class="analysis-card__title">Variant Lineage</div>
+                <a href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
+                </a>
+              </div>
+              {% endif %}
+
             </div>
           {% else %}
             <div class="empty">
@@ -574,13 +608,14 @@
             </div>
           {% endif %}
 
+          {# ── Download links ── #}
           {% if analysis_outputs %}
             <div class="analysis-links">
               {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Download Top 10 CSV</a>
+                <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">📥 Top 10 CSV</a>
               {% endif %}
               {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC CSV</a>
+                <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">📥 QC Debug CSV</a>
               {% endif %}
             </div>
           {% endif %}
