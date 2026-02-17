@@ -1024,8 +1024,9 @@ a:hover { text-decoration: underline; }
 .experiment-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1147,9 +1148,10 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 8px 4px;
+  padding: 8px 0 2px;
   border-top: 1px solid var(--border-light);
   width: 100%;
+  flex-basis: 100%;
 }
 
 .experiment-item__rename-form.is-hidden {
@@ -1157,15 +1159,30 @@ a:hover { text-decoration: underline; }
 }
 
 .input--sm {
+  flex: 1;
+  min-width: 0;
   font-size: 12px;
-  padding: 4px 8px;
-  height: 28px;
+  padding: 6px 10px;
+  height: 30px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+}
+
+.input--sm:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(232, 67, 147, .15);
 }
 
 .btn--xs {
   font-size: 11px;
-  padding: 4px 10px;
-  height: 28px;
+  padding: 5px 12px;
+  height: 30px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* ---------- WORKSPACE HEADER ---------- */

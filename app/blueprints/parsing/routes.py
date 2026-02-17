@@ -127,10 +127,22 @@ def upload_form_submit() -> str:
         request.referrer and '/staging' in request.referrer
     )
 
+    def _sanitize(obj):
+        """Recursively convert non-native types to JSON-safe Python types."""
+        if isinstance(obj, dict):
+            return {k: _sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_sanitize(i) for i in obj]
+        if isinstance(obj, bool):
+            return obj
+        if hasattr(obj, 'item'):  # numpy scalar
+            return obj.item()
+        return obj
+
     def _save_and_redirect(result_dict):
         """Store parsing result in session and redirect back to staging."""
         key = f"parsing_result_{experiment_id}"
-        flask_session[key] = result_dict
+        flask_session[key] = _sanitize(result_dict)
         return redirect(url_for(
             'staging.create_experiment',
             experiment_id=experiment_id,

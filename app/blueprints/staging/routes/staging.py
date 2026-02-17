@@ -28,14 +28,14 @@ def _save_validation_to_session(experiment_id, result):
     """Store a validation result dict in Flask session."""
     key = f"validation_{experiment_id}"
     flask_session[key] = {
-        "is_valid": result.is_valid,
-        "identity": result.identity,
-        "coverage": result.coverage,
-        "strand": result.strand,
-        "start_nt": result.start_nt,
-        "end_nt": result.end_nt,
-        "wraps": result.wraps,
-        "message": result.message,
+        "is_valid": bool(result.is_valid),
+        "identity": float(result.identity),
+        "coverage": float(result.coverage),
+        "strand": str(result.strand),
+        "start_nt": int(result.start_nt),
+        "end_nt": int(result.end_nt),
+        "wraps": bool(result.wraps),
+        "message": str(result.message),
     }
 
 
@@ -48,10 +48,34 @@ class _ValidationProxy:
 
 # ---------- session-based parsing result helpers ----------
 
+def _sanitize_for_json(obj):
+    """Recursively convert numpy/non-native types to JSON-safe Python types."""
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_for_json(i) for i in obj]
+    # numpy / C-extension bools
+    if hasattr(obj, '__bool__') and type(obj).__name__ in ('bool_', 'numpy.bool_'):
+        return bool(obj)
+    if isinstance(obj, bool):
+        return obj
+    if isinstance(obj, float):
+        return obj
+    if isinstance(obj, int):
+        return obj
+    try:
+        # Catch-all for numpy scalars
+        if hasattr(obj, 'item'):
+            return obj.item()
+    except Exception:
+        pass
+    return obj
+
+
 def _save_parsing_result_to_session(experiment_id, result_dict):
     """Store parsing result dict in Flask session."""
     key = f"parsing_result_{experiment_id}"
-    flask_session[key] = result_dict
+    flask_session[key] = _sanitize_for_json(result_dict)
 
 
 def _get_parsing_result_from_session(experiment_id):

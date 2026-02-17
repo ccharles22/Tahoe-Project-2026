@@ -184,14 +184,14 @@ def validate_plasmid(
         msg = "FAIL. " + msg # failed validation
 
 
-    # Return structured result
+    # Return structured result (cast to native Python types for JSON safety)
     return ValidationResult(
-        is_valid=is_valid,
-        identity=best["identity"],
-        coverage=best["coverage"],
-        strand=best["strand"],
+        is_valid=bool(is_valid),
+        identity=float(best["identity"]),
+        coverage=float(best["coverage"]),
+        strand=str(best["strand"]),
         start_nt=int(start_nt),
         end_nt=int(end_nt),
-        wraps=wraps,
+        wraps=bool(wraps),
         message=msg
     )
