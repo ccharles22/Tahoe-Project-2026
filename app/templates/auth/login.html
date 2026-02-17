@@ -10,6 +10,7 @@
   <!-- Browser tab title -->
   <title>Login - Direct Evolution Monitoring</title>
 
+  <!-- Link to external CSS stylesheet for styling the page -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
 </head>
 
@@ -18,7 +19,7 @@
   <!-- Blue gradient header with animated glow effect -->
   <header class="header">
     <!-- Main title with DNA emojis (animated spinning in CSS) -->
-    <h1>Direct Evolution Monitoring</h1>
+    <h1>🧬 Direct Evolution Monitoring Portal 🧬</h1>
   </header>
 
   <!-- MAIN CONTENT AREA -->
@@ -32,7 +33,7 @@
       <h1 class="page-title">Sign In</h1>
       
       <!-- Gray subtitle text below the title -->
-      <p class="subtitle">Access your experiments</p>
+      <p class="subtitle">Access your research dashboard</p>
 
       <!-- FLASH MESSAGES SECTION -->
       <!-- Flash messages are temporary messages from the server (success, error, info) -->
@@ -126,7 +127,7 @@
         <div class="btn-container">
           <!-- Submit button: sends form data to server when clicked -->
           <button type="submit" class="btn btn-primary">
-            <span>Sign In</span>
+            <span>🧪 Sign In</span>
           </button>
         </div>
       </form>
@@ -138,7 +139,7 @@
         Don't have an account? 
         
         <!-- Link to registration page (blue, underlines on hover) -->
-        <!-- url_for('auth.register') generates the /auth/register URL -->
+        <!-- url_for('auth.register') generates the /register URL -->
         <a href="{{ url_for('auth.register') }}">Create one here</a>
       </p>
     </section>
