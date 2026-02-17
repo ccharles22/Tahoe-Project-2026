@@ -1,0 +1,108 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Results  DEM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__brand">
+        <div class="topbar__brand-icon">DE</div>
+        Direct Evolution Monitoring
+      </div>
+      <nav class="topbar__nav">
+        <a href="{{ url_for('auth.homepage') }}" class="topbar__link">Dashboard</a>
+        <a href="{{ url_for('staging.create_experiment') }}" class="topbar__link">Staging</a>
+        <a href="{{ url_for('parsing.upload_form') }}" class="topbar__link topbar__link--active">Parsing</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn--ghost btn--sm">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Parsing &amp; QC</div>
+        <div class="sidebar__subtitle">Upload results</div>
+        {% if experiment_id %}
+          <div class="pill mt-1">Experiment <strong>#{{ experiment_id }}</strong></div>
+        {% endif %}
+      </div>
+
+      <div class="task">
+        <div class="task__title">Actions</div>
+        <div class="task__form">
+          <a class="btn" href="{{ url_for('staging.create_experiment', experiment_id=experiment_id) }}">Back to Staging</a>
+          <a class="btn" href="{{ url_for('parsing.upload_form', experiment_id=experiment_id) }}">Upload Another File</a>
+        </div>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <h1 class="workspace__title">Upload Results</h1>
+      <p class="workspace__sub mb-2">Data parsing and quality control report.</p>
+
+      <!-- STATUS -->
+      <section class="panel animate-in" style="border-left:3px solid {{ 'var(--success)' if success else 'var(--danger)' }}">
+        <div class="panel__header">
+          {% if success %}
+            <span class="badge badge--ok">Success</span>
+          {% else %}
+            <span class="badge badge--bad">Failed</span>
+          {% endif %}
+          &nbsp;Upload Status
+        </div>
+
+        {% if success %}
+          <div class="grid2">
+            <div class="kv">
+              <div class="kv__row"><span>Total Records</span><strong>{{ total_records }}</strong></div>
+              <div class="kv__row"><span>Inserted</span><strong>{{ inserted_count }}</strong></div>
+              <div class="kv__row"><span>Updated</span><strong>{{ updated_count }}</strong></div>
+              <div class="kv__row"><span>Warnings</span><strong>{{ warnings_count }}</strong></div>
+            </div>
+            {% if detected_fields %}
+              <div class="note"><strong>Detected fields:</strong> {{ detected_fields | join(', ') }}</div>
+            {% endif %}
+          </div>
+        {% else %}
+          <div class="note" style="color:var(--danger)">{{ error_message | default('An error occurred during processing.') }}</div>
+        {% endif %}
+      </section>
+
+      <!-- ERRORS -->
+      {% if errors %}
+        <section class="panel animate-in" style="border-left:3px solid var(--danger)">
+          <div class="panel__header"><span class="badge badge--bad">{{ errors | length }}</span> &nbsp;Errors</div>
+          <details class="details" open>
+            <summary>View error details</summary>
+            <ul class="mono">
+              {% for err in errors %}
+                <li>{{ err }}</li>
+              {% endfor %}
+            </ul>
+          </details>
+        </section>
+      {% endif %}
+
+      <!-- WARNINGS -->
+      {% if warnings %}
+        <section class="panel animate-in" style="border-left:3px solid var(--warning)">
+          <div class="panel__header"><span class="badge badge--warn">{{ warnings | length }}</span> &nbsp;Warnings</div>
+          <details class="details">
+            <summary>View warning details</summary>
+            <ul class="mono">
+              {% for warn in warnings %}
+                <li>{{ warn }}</li>
+              {% endfor %}
+            </ul>
+          </details>
+        </section>
+      {% endif %}
+    </main>
+  </div>
+</body>
+</html>

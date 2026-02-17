@@ -1,91 +1,273 @@
 import json
 import os
-from flask import jsonify, render_template, request, redirect, url_for, Response, current_app
-from uuid import uuid4
-from sqlalchemy.exc import SQLAlchemyError
+from flask import (
+    jsonify, render_template, request, redirect,
+    url_for, Response, current_app,
+    session as flask_session,
+)
+from flask_login import login_required, current_user
 from app.services.staging.parse_fasta import parse_fasta
-from app.models import Experiment, WildtypeProtein, Plasmid, StagingValidation
+from app.models import Experiment, WildtypeProtein, ProteinFeature
 from app.extensions import db
 from app.services.staging.uniprot_service import UniprotService, UniprotServiceError
 from app.services.staging.plasmid_validator import validate_plasmid
 from app.services.staging.backtranslate import backtranslate
-from app.services.analysis import report
-from app.jobs.run_sequence_processing import run_sequence_processing
-from sqlalchemy.exc import SQLAlchemyError
 
 from .. import staging_bp
 
-# Route to create or view an experiment
+
+# ---------- session-based validation helpers ----------
+
+def _get_validation_from_session(experiment_id):
+    """Retrieve validation dict stored in Flask session, or None."""
+    key = f"validation_{experiment_id}"
+    return flask_session.get(key)
+
+
+def _save_validation_to_session(experiment_id, result):
+    """Store a validation result dict in Flask session."""
+    key = f"validation_{experiment_id}"
+    flask_session[key] = {
+        "is_valid": bool(result.is_valid),
+        "identity": float(result.identity),
+        "coverage": float(result.coverage),
+        "strand": str(result.strand),
+        "start_nt": int(result.start_nt),
+        "end_nt": int(result.end_nt),
+        "wraps": bool(result.wraps),
+        "message": str(result.message),
+    }
+
+
+class _ValidationProxy:
+    """Lightweight object so templates can use validation.is_valid etc."""
+    def __init__(self, d):
+        for k, v in d.items():
+            setattr(self, k, v)
+
+
+# ---------- session-based parsing result helpers ----------
+
+def _sanitize_for_json(obj):
+    """Recursively convert numpy/non-native types to JSON-safe Python types."""
+    if isinstance(obj, dict):
+        return {k: _sanitize_for_json(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize_for_json(i) for i in obj]
+    # numpy / C-extension bools
+    if hasattr(obj, '__bool__') and type(obj).__name__ in ('bool_', 'numpy.bool_'):
+        return bool(obj)
+    if isinstance(obj, bool):
+        return obj
+    if isinstance(obj, float):
+        return obj
+    if isinstance(obj, int):
+        return obj
+    try:
+        # Catch-all for numpy scalars
+        if hasattr(obj, 'item'):
+            return obj.item()
+    except Exception:
+        pass
+    return obj
+
+
+def _save_parsing_result_to_session(experiment_id, result_dict):
+    """Store parsing result dict in Flask session."""
+    key = f"parsing_result_{experiment_id}"
+    flask_session[key] = _sanitize_for_json(result_dict)
+
+
+def _get_parsing_result_from_session(experiment_id):
+    """Retrieve parsing result dict from Flask session, or None."""
+    key = f"parsing_result_{experiment_id}"
+    return flask_session.get(key)
+
+
+# ---------- routes ----------
+
 @staging_bp.get('/')
+@login_required
 def create_experiment():
     experiment_id = request.args.get('experiment_id', '').strip()
-    accession = request.args.get('accession', '').strip()
     wt_message = request.args.get('wt_message', '').strip()
     analysis_message = request.args.get('analysis_message', '').strip()
     sequence_message = request.args.get('sequence_message', '').strip()
 
-    analysis_outputs = {}
-
     wt = None
     validation = None
+    parsing_result = None
+    analysis_outputs = {}
 
-    if experiment_id.isdigit():
-        exp_id_int = int(experiment_id)
-        try:
-            wt = WildtypeProtein.query.filter_by(experiment_id=exp_id_int).first()
-            validation = StagingValidation.query.filter_by(experiment_id=exp_id_int).first()
-        except SQLAlchemyError:
-            db.session.rollback()
-            wt = None
-            validation = None
+    # Auto-load the user's latest experiment if none specified
+    if not experiment_id and current_user.is_authenticated:
+        latest = (Experiment.query
+                  .filter_by(user_id=current_user.user_id)
+                  .order_by(Experiment.created_at.desc())
+                  .first())
+        if latest:
+            experiment_id = str(latest.experiment_id)
 
-        gen_dir = os.path.join(current_app.root_path, "static", "generated")
-        plot_filename = f"activity_distribution_exp_{exp_id_int}.png"
-        top10_filename = f"top10_variants_exp_{exp_id_int}.csv"
-        qc_filename = f"stage4_qc_debug_exp_{exp_id_int}.csv"
+    if experiment_id and experiment_id.isdigit():
+        exp = Experiment.query.get(int(experiment_id))
+        if exp and exp.wt_id:
+            wt = WildtypeProtein.query.get(exp.wt_id)
 
-        plot_path = os.path.join(gen_dir, plot_filename)
-        top10_path = os.path.join(gen_dir, top10_filename)
-        qc_path = os.path.join(gen_dir, qc_filename)
+        # Session-based validation (no DB table needed)
+        val_dict = _get_validation_from_session(experiment_id)
+        if val_dict:
+            validation = _ValidationProxy(val_dict)
 
+        # Session-based parsing results
+        parsing_dict = _get_parsing_result_from_session(experiment_id)
+        if parsing_dict:
+            parsing_result = _ValidationProxy(parsing_dict)
+
+        # Analysis output files — scoped per experiment
+        gen_dir = os.path.join(current_app.root_path, "static", "generated", str(experiment_id))
+        plot_path = os.path.join(gen_dir, "activity_distribution.png")
+        top10_csv_path = os.path.join(gen_dir, "top10_variants.csv")
+        top10_png_path = os.path.join(gen_dir, "top10_variants.png")
+        lineage_path = os.path.join(gen_dir, "lineage.png")
+        qc_path = os.path.join(gen_dir, "stage4_qc_debug.csv")
+
+        sub = f"generated/{experiment_id}"
         analysis_outputs = {
             "plot": {
-                "path": plot_path,
-                "url": url_for("static", filename=f"generated/{plot_filename}"),
-                "label": "Activity distribution plot",
+                "url": url_for("static", filename=f"{sub}/activity_distribution.png"),
+                "label": "Activity Score Distribution",
                 "exists": os.path.exists(plot_path),
             },
+            "top10_png": {
+                "url": url_for("static", filename=f"{sub}/top10_variants.png"),
+                "label": "Top 10 Variants",
+                "exists": os.path.exists(top10_png_path),
+            },
+            "lineage": {
+                "url": url_for("static", filename=f"{sub}/lineage.png"),
+                "label": "Variant Lineage",
+                "exists": os.path.exists(lineage_path),
+            },
             "top10": {
-                "path": top10_path,
-                "url": url_for("static", filename=f"generated/{top10_filename}"),
+                "url": url_for("static", filename=f"{sub}/top10_variants.csv"),
                 "label": "Top 10 variants (CSV)",
-                "exists": os.path.exists(top10_path),
+                "exists": os.path.exists(top10_csv_path),
             },
             "qc": {
-                "path": qc_path,
-                "url": url_for("static", filename=f"generated/{qc_filename}"),
+                "url": url_for("static", filename=f"{sub}/stage4_qc_debug.csv"),
                 "label": "Stage 4 QC debug (CSV)",
                 "exists": os.path.exists(qc_path),
             },
         }
 
-    # Fetch all experiments to display in sidebar, ordered by most recent first
-    all_experiments = Experiment.query.order_by(Experiment.created_at.desc()).limit(10).all()
+    # Load user's experiments for the sidebar
+    experiments = []
+    if current_user.is_authenticated:
+        experiments = (Experiment.query
+                       .filter_by(user_id=current_user.user_id)
+                       .order_by(Experiment.created_at.desc())
+                       .all())
 
     return render_template(
         "staging/create_experiment.html",
         experiment_id=experiment_id,
         wt=wt,
         validation=validation,
+        parsing_result=parsing_result,
         wt_message=wt_message,
         analysis_message=analysis_message,
         analysis_outputs=analysis_outputs,
         sequence_message=sequence_message,
-        all_experiments=all_experiments,
+        experiments=experiments,
     )
 
 
+# ---------- Delete experiment ----------
+
+@staging_bp.post('/delete/<int:experiment_id>')
+@login_required
+def delete_experiment(experiment_id):
+    from flask import flash
+    exp = Experiment.query.get(experiment_id)
+    if not exp:
+        flash('Experiment not found.', 'danger')
+        return redirect(url_for('staging.create_experiment'))
+    if exp.user_id != current_user.user_id:
+        flash('You can only delete your own experiments.', 'danger')
+        return redirect(url_for('staging.create_experiment'))
+
+    try:
+        db.session.delete(exp)   # cascade="all, delete-orphan" handles children
+        db.session.commit()
+        # Clear any session caches
+        flask_session.pop(f"validation_{experiment_id}", None)
+        flask_session.pop(f"parsing_result_{experiment_id}", None)
+        flash(f'Experiment #{experiment_id} deleted.', 'success')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Delete failed: {exc}', 'danger')
+
+    return redirect(url_for('staging.create_experiment'))
+
+
+# ---------- Rename experiment ----------
+
+@staging_bp.post('/experiment/rename')
+@login_required
+def rename_experiment():
+    from flask import flash
+    experiment_id = request.form.get('experiment_id', '').strip()
+    new_name = request.form.get('name', '').strip()
+
+    if not experiment_id.isdigit():
+        return redirect(url_for('staging.create_experiment'))
+
+    if not new_name:
+        flash('Experiment name cannot be empty.', 'danger')
+        return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
+
+    exp = Experiment.query.get(int(experiment_id))
+    if not exp or exp.user_id != current_user.user_id:
+        flash('Experiment not found.', 'danger')
+        return redirect(url_for('staging.create_experiment'))
+
+    exp.name = new_name[:255]
+    db.session.commit()
+    flash(f'Renamed to "{exp.name}".', 'success')
+    return redirect(url_for('staging.create_experiment', experiment_id=experiment_id))
+
+
+# ---------- Create blank experiment ----------
+
+@staging_bp.post('/experiment/new')
+@login_required
+def create_new_blank_experiment():
+    """Create a blank experiment so user can configure it step by step."""
+    from flask import flash
+    from datetime import datetime
+
+    default_name = f"Experiment {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    exp = Experiment(
+        name=default_name,
+        user_id=current_user.user_id,
+        wt_id=0,  # placeholder — updated when WT is fetched in Step A
+    )
+    db.session.add(exp)
+    try:
+        db.session.commit()
+        flash(f'Created experiment #{exp.experiment_id}.', 'success')
+    except Exception as exc:
+        db.session.rollback()
+        flash(f'Could not create experiment: {exc}', 'danger')
+        return redirect(url_for('staging.create_experiment'))
+
+    return redirect(url_for('staging.create_experiment', experiment_id=str(exp.experiment_id)))
+
+
+# ---------- Analysis & Sequence routes (from teammate) ----------
+
 @staging_bp.post('/analysis/run')
+@login_required
 def run_analysis():
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
@@ -96,6 +278,7 @@ def run_analysis():
     os.environ["EXPERIMENT_ID"] = str(exp_id_int)
 
     try:
+        from app.services.analysis import report
         report.main()
         message = "Analysis completed. Results are available below."
     except Exception as exc:
@@ -110,12 +293,14 @@ def run_analysis():
 
 
 @staging_bp.post('/sequence/run')
+@login_required
 def run_sequence():
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
 
     try:
+        from app.jobs.run_sequence_processing import run_sequence_processing
         run_sequence_processing(int(experiment_id))
         message = "Sequence processing completed. Outputs are stored in the database."
     except Exception as exc:
@@ -123,176 +308,115 @@ def run_sequence():
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
 
-# Route to create a new blank experiment
-@staging_bp.post('/experiment/new')
-def create_new_experiment():
-    """Create a blank experiment without requiring UniProt accession"""
-    from flask_login import current_user
-    from datetime import datetime
-    
-    # Generate a default name with timestamp
-    default_name = f"Experiment {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-    
-    # Create new experiment with initial status
-    exp = Experiment(
-        name=default_name,
-        user_id=current_user.user_id if current_user.is_authenticated else 1,  # Default to user 1 if not logged in
-        wt_id=0  # Placeholder, will be updated when WT is fetched
-    )
-    db.session.add(exp)
-    db.session.commit()
 
-    # Redirect to the experiment page
-    return redirect(url_for('staging.create_experiment', experiment_id=str(exp.experiment_id)))
+# ---------- UniProt fetch (your stable version) ----------
 
-
-@staging_bp.post('/experiment/rename')
-def rename_experiment():
-    experiment_id = request.form.get('experiment_id', '').strip()
-    current_experiment_id = request.form.get('current_experiment_id', '').strip()
-    new_name = request.form.get('name', '').strip()
-
-    if not experiment_id.isdigit():
-        target = current_experiment_id if current_experiment_id.isdigit() else ''
-        return redirect(url_for('staging.create_experiment', experiment_id=target))
-
-    if not new_name:
-        target = current_experiment_id if current_experiment_id.isdigit() else experiment_id
-        return redirect(url_for('staging.create_experiment', experiment_id=target, wt_message='Experiment name cannot be empty.'))
-
-    exp_id_int = int(experiment_id)
-    exp = Experiment.query.filter_by(experiment_id=exp_id_int).first()
-    if not exp:
-        target = current_experiment_id if current_experiment_id.isdigit() else ''
-        return redirect(url_for('staging.create_experiment', experiment_id=target, wt_message='Experiment not found.'))
-
-    exp.name = new_name[:255]
-    db.session.commit()
-
-    target = current_experiment_id if current_experiment_id.isdigit() else experiment_id
-    return redirect(url_for('staging.create_experiment', experiment_id=target))
-
-
-@staging_bp.post('/experiment/delete')
-def delete_experiment():
-    experiment_id = request.form.get('experiment_id', '').strip()
-    current_experiment_id = request.form.get('current_experiment_id', '').strip()
-
-    def _redirect_to(target_id: str = '', message: str = ''):
-        if target_id and target_id.isdigit():
-            if message:
-                return redirect(url_for('staging.create_experiment', experiment_id=target_id, wt_message=message))
-            return redirect(url_for('staging.create_experiment', experiment_id=target_id))
-        if message:
-            return redirect(url_for('staging.create_experiment', wt_message=message))
-        return redirect(url_for('staging.create_experiment'))
-
-    if not experiment_id.isdigit():
-        target = current_experiment_id if current_experiment_id.isdigit() else ''
-        return _redirect_to(target, 'Invalid experiment id.')
-
-    exp_id_int = int(experiment_id)
-    exp = Experiment.query.filter_by(experiment_id=exp_id_int).first()
-    if not exp:
-        target = current_experiment_id if current_experiment_id.isdigit() else ''
-        return _redirect_to(target, 'Experiment not found.')
-
-    try:
-        StagingValidation.query.filter_by(experiment_id=exp_id_int).delete()
-        Plasmid.query.filter_by(experiment_id=exp_id_int).delete()
-        WildtypeProtein.query.filter_by(experiment_id=exp_id_int).delete()
-        db.session.delete(exp)
-        db.session.commit()
-    except SQLAlchemyError:
-        db.session.rollback()
-        target = current_experiment_id if current_experiment_id.isdigit() else ''
-        return _redirect_to(target, 'Delete failed. Please try again.')
-
-    if current_experiment_id.isdigit() and int(current_experiment_id) == exp_id_int:
-        next_exp = Experiment.query.order_by(Experiment.created_at.desc()).first()
-        next_id = str(next_exp.experiment_id) if next_exp else ''
-        return _redirect_to(next_id, 'Experiment deleted.')
-
-    target = current_experiment_id if current_experiment_id.isdigit() else ''
-    return _redirect_to(target, 'Experiment deleted.')
-
-# Route to handle UniProt accession submission  
 @staging_bp.post('/uniprot')
+@login_required
 def fetch_uniprot():
-    from flask_login import current_user
-    from datetime import datetime
-    
     accession = request.form.get('accession', '').strip()
+    experiment_id = request.form.get('experiment_id', '').strip()
+    experiment_name = request.form.get('experiment_name', '').strip()
+
     if not accession:
         return redirect(url_for('staging.create_experiment', wt_message='Missing accession'))
-
-    # 1) create experiment with default name
-    default_name = f"Experiment {accession} {datetime.now().strftime('%Y-%m-%d %H:%M')}"
-    exp = Experiment(
-        name=default_name,
-        user_id=current_user.user_id if current_user.is_authenticated else 1,
-        wt_id=0  # Placeholder
-    )
-    db.session.add(exp)
-    db.session.commit()  # exp.experiment_id now exists
-
-    # 2) create WT row (stub for now; later fill with UniProtService)
-    wt = WildtypeProtein(
-        experiment_id=exp.experiment_id,
-        uniprot_accession=accession,
-        wt_protein_sequence=None,
-        features_json=None,
-        protein_length=None,
-        plasmid_length=None
-    )
-    db.session.add(wt)
-    try:
-        db.session.commit()
-    except SQLAlchemyError:
-        db.session.rollback()
-        return redirect(url_for(
-            'staging.create_experiment',
-            experiment_id=str(exp.experiment_id),
-            wt_message='WT storage table is missing in the database. Run DB setup/migrations for staging tables.'
-        ))
 
     try:
         result = UniprotService.fetch(accession)
     except UniprotServiceError as e:
-        db.session.commit()
         return redirect(url_for(
-            "staging.create_experiment",
-            experiment_id=str(exp.experiment_id),
-            wt_message=str(e)
+            'staging.create_experiment',
+            experiment_id=experiment_id or '',
+            wt_message=str(e),
         ))
 
-    # save WT results and update experiment name with protein name if available
-    wt.wt_protein_sequence = result["sequence"]
-    wt.protein_length = result["protein_length"]
-    wt.features_json = json.dumps(result["features"])
+    sequence = result["sequence"]
+    protein_length = result["protein_length"]
+    features = result.get("features", [])
 
-    # Update experiment name with protein name if available
-    if result.get("protein_name"):
-        exp.name = f"{result['protein_name']} ({accession})"
+    # Generate a placeholder plasmid via back-translation
+    placeholder_plasmid = backtranslate(sequence)
+
+    # ── Reuse or create a global WT protein ──────────────────────
+    # uniprot_id has a UNIQUE constraint (global, not per-user),
+    # so look up by accession alone.  Any user can share the same
+    # physical protein row.
+    wt = WildtypeProtein.query.filter_by(uniprot_id=accession).first()
+    if wt:
+        # Update the sequence / placeholder plasmid in case UniProt changed
+        wt.amino_acid_sequence = sequence
+        wt.sequence_length = protein_length
+        wt.plasmid_sequence = placeholder_plasmid
+        wt.protein_name = result.get("protein_name") or wt.protein_name
+        wt.organism = result.get("organism") or wt.organism
+    else:
+        wt = WildtypeProtein(
+            user_id=current_user.user_id,
+            uniprot_id=accession,
+            protein_name=result.get("protein_name"),
+            organism=result.get("organism"),
+            amino_acid_sequence=sequence,
+            sequence_length=protein_length,
+            plasmid_sequence=placeholder_plasmid,
+        )
+        db.session.add(wt)
+        db.session.flush()          # get wt.wt_id
+
+    # ── Attach to existing or new experiment ──────────────────────
+    if experiment_id and experiment_id.isdigit():
+        exp = Experiment.query.get(int(experiment_id))
+        if not exp:
+            return redirect(url_for('staging.create_experiment',
+                                    wt_message='Experiment not found'))
+        exp.wt_id = wt.wt_id
+        # Auto-update experiment name with protein info if still default
+        protein_name = result.get("protein_name")
+        if protein_name and (not exp.name or exp.name.startswith("Experiment ")):
+            exp.name = f"{protein_name} ({accession})"
+    else:
+        protein_name = result.get("protein_name")
+        exp = Experiment(
+            user_id=current_user.user_id,
+            wt_id=wt.wt_id,
+            name=experiment_name or (f"{protein_name} ({accession})" if protein_name else f"Experiment ({accession})"),
+        )
+        db.session.add(exp)
+        db.session.flush()
+        experiment_id = str(exp.experiment_id)
+
+    # ── Save protein features ────────────────────────────────────
+    ProteinFeature.query.filter_by(wt_id=wt.wt_id).delete()
+    for feat in features:
+        pf = ProteinFeature(
+            wt_id=wt.wt_id,
+            feature_type=feat.get("type", "unknown"),
+            description=feat.get("description", ""),
+            start_position=feat.get("start") or 0,
+            end_position=feat.get("end") or 0,
+        )
+        db.session.add(pf)
 
     try:
         db.session.commit()
-    except SQLAlchemyError:
+    except Exception as exc:
         db.session.rollback()
         return redirect(url_for(
             'staging.create_experiment',
-            experiment_id=str(exp.experiment_id),
-            wt_message='Failed to save WT results. Verify staging tables exist and are up to date.'
+            experiment_id=experiment_id or '',
+            wt_message=f'Database error: {exc}',
         ))
 
     return redirect(url_for(
         'staging.create_experiment',
-        experiment_id=str(exp.experiment_id),
-        wt_message=f'Fetched WT sequence + features successfully.'
+        experiment_id=experiment_id,
+        wt_message='Fetched WT sequence + features successfully.',
     ))
 
-# Route to handle plasmid FASTA upload and validation
+
+# ---------- Plasmid upload (your stable version) ----------
+
 @staging_bp.post('/plasmid')
+@login_required
 def upload_plasmid():
     experiment_id = request.form.get('experiment_id', '').strip()
     file = request.files.get('plasmid_fasta')
@@ -301,10 +425,13 @@ def upload_plasmid():
         return redirect(url_for('staging.create_experiment', wt_message='Invalid experiment_id'))
 
     exp_id_int = int(experiment_id)
+    exp = Experiment.query.get(exp_id_int)
+    if not exp or not exp.wt_id:
+        return redirect(url_for('staging.create_experiment', wt_message='Fetch WT first.'))
 
-    wt = WildtypeProtein.query.filter_by(experiment_id=exp_id_int).first()
+    wt = WildtypeProtein.query.get(exp.wt_id)
     if not wt:
-        return redirect(url_for('staging.create_experiment', wt_message='Unknown experiment_id. Fetch WT first.'))
+        return redirect(url_for('staging.create_experiment', wt_message='WT protein not found. Fetch WT first.'))
 
     if not file:
         return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, wt_message='No file uploaded'))
@@ -314,62 +441,46 @@ def upload_plasmid():
     except ValueError as e:
         return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, wt_message=str(e)))
 
-    plasmid = Plasmid.query.filter_by(experiment_id=exp_id_int).first()
-    if plasmid:
-        plasmid.dna_sequence = dna
-    else:
-        plasmid = Plasmid(experiment_id=exp_id_int, dna_sequence=dna)
-        db.session.add(plasmid)
+    # Store real plasmid (overwrites the back-translated placeholder)
+    wt.plasmid_sequence = dna
 
-    wt.plasmid_length = len(dna)
-
-    # --- REAL validation (exact match v1) ---
-    if not wt.wt_protein_sequence:
+    if not wt.amino_acid_sequence:
         return redirect(url_for(
             'staging.create_experiment',
             experiment_id=experiment_id,
-            wt_message='WT protein sequence missing. Fetch WT again.'
+            wt_message='WT protein sequence missing. Fetch WT again.',
         ))
 
-    result = validate_plasmid(wt.wt_protein_sequence, dna)
+    result = validate_plasmid(wt.amino_acid_sequence, dna)
 
-    val = StagingValidation.query.filter_by(experiment_id=exp_id_int).first()
-    if not val:
-        val = StagingValidation(experiment_id=exp_id_int)
-        db.session.add(val)
-
-    val.is_valid = result.is_valid
-    val.identity = result.identity
-    val.coverage = result.coverage
-    val.strand = result.strand
-    val.start_nt = result.start_nt
-    val.end_nt = result.end_nt
-    val.wraps = result.wraps
-    val.message = result.message
-    
-    exp = Experiment.query.filter_by(experiment_id=exp_id_int).first()
-
-    # --- end validation ---
+    # Store validation result in Flask session (no DB table needed)
+    _save_validation_to_session(experiment_id, result)
 
     db.session.commit()
 
     return redirect(url_for(
         'staging.create_experiment',
         experiment_id=experiment_id,
-        wt_message='Plasmid validated.' if result.is_valid else 'Plasmid invalid (see details).'
+        wt_message='Plasmid validated.' if result.is_valid else 'Plasmid invalid (see details).',
     ))
 
-# Route to download the backtranslated plasmid FASTA
+
+# ---------- Dev helper ----------
+
 @staging_bp.get('/dev/plasmid_fasta/<int:experiment_id>')
+@login_required
 def dev_plasmid_fasta(experiment_id: int):
-    wt = WildtypeProtein.query.filter_by(experiment_id=experiment_id).first()
-    if not wt or not wt.wt_protein_sequence:
+    exp = Experiment.query.get(experiment_id)
+    if not exp or not exp.wt_id:
+        return Response("Experiment or WT not found.", status=404)
+
+    wt = WildtypeProtein.query.get(exp.wt_id)
+    if not wt or not wt.amino_acid_sequence:
         return Response("WT protein sequence not found for this experiment.", status=404)
-    
-    dna = backtranslate(wt.wt_protein_sequence)
+
+    dna = backtranslate(wt.amino_acid_sequence)
 
     fasta = f">dev_plasmid_experiment_{experiment_id}\n"
-    # wrap fasta lines
     for i in range(0, len(dna), 70):
         fasta += dna[i:i+70] + "\n"
 

@@ -18,9 +18,6 @@ def register():
         try:
             hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
 
-            # DB is CHAR(64). bcrypt is usually 60 chars. Pad to exactly 64.
-            hashed_password = hashed_password.ljust(64)
-
             new_user = User(
                 username=form.username.data,
                 email=form.email.data,
@@ -30,6 +27,7 @@ def register():
             db.session.add(new_user)
             db.session.commit()
 
+            login_user(new_user)
             flash("Account created successfully!", "success")
             return redirect(url_for("auth.homepage"))
 
@@ -51,7 +49,6 @@ def login():
         user = User.query.filter_by(username=form.username.data).first()
 
         if user:
-            # DB stores CHAR(64) padded; strip before checking
             stored_hash = (user.password_hash or "").rstrip()
 
             if bcrypt.check_password_hash(stored_hash, form.password.data):
@@ -77,8 +74,29 @@ def logout():
 @auth_bp.route("/homepage")
 @login_required
 def homepage():
-    # Replace with your real protected landing page
-    return render_template("auth/homepage.html")
+    from app.models import Experiment, Variant, WildtypeProtein
+    from sqlalchemy import func
+
+    uid = current_user.user_id
+
+    try:
+        exp_count = Experiment.query.filter_by(user_id=uid).count()
+        latest_exp = (Experiment.query
+                      .filter_by(user_id=uid)
+                      .order_by(Experiment.created_at.desc())
+                      .first())
+        wt_count = WildtypeProtein.query.filter_by(user_id=uid).count()
+    except Exception:
+        exp_count = 0
+        latest_exp = None
+        wt_count = 0
+
+    return render_template(
+        "auth/HOMEPAGE.html",
+        exp_count=exp_count,
+        latest_exp=latest_exp,
+        wt_count=wt_count,
+    )
 
 
 @auth_bp.route("/")
@@ -87,5 +105,6 @@ def home():
 
 
 @auth_bp.route("/home-main")
+@login_required
 def home_main():
-    return render_template("home_main.html")
+    return redirect(url_for("auth.homepage"))

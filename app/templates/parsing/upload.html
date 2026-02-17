@@ -1,0 +1,88 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Parsing  DEM</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="topbar__brand">
+        <div class="topbar__brand-icon">DE</div>
+        Direct Evolution Monitoring
+      </div>
+      <nav class="topbar__nav">
+        <a href="{{ url_for('auth.homepage') }}" class="topbar__link">Dashboard</a>
+        <a href="{{ url_for('staging.create_experiment') }}" class="topbar__link">Staging</a>
+        <a href="{{ url_for('parsing.upload_form') }}" class="topbar__link topbar__link--active">Parsing</a>
+        <a href="{{ url_for('auth.logout') }}" class="btn btn--ghost btn--sm">Logout</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="sidebar__header">
+        <div class="sidebar__title">Parsing &amp; QC</div>
+        <div class="sidebar__subtitle">Upload experimental data for validation</div>
+      </div>
+
+      <div class="task">
+        <div class="task__title">Upload Data File</div>
+        <form class="task__form" action="{{ url_for('parsing.upload_form_submit') }}" method="post" enctype="multipart/form-data">
+          {% if selected_experiment %}
+            <input type="hidden" name="experiment_id" value="{{ selected_experiment }}">
+            <div class="pill mb-1">Experiment <strong>#{{ selected_experiment }}</strong></div>
+          {% else %}
+            <label class="label">Experiment</label>
+            <select class="input" name="experiment_id">
+              {% for eid in experiment_ids %}
+                <option value="{{ eid }}">Experiment #{{ eid }}</option>
+              {% endfor %}
+            </select>
+          {% endif %}
+
+          <label class="label">Data File (TSV, CSV, JSON)</label>
+          <input class="input" type="file" name="file" accept=".tsv,.csv,.json" required>
+          <button class="btn btn--primary" type="submit">Upload &amp; Validate</button>
+        </form>
+
+        <details class="details mt-1">
+          <summary>Expected data format</summary>
+          <ul class="mono">
+            <li>variant_index (int)</li>
+            <li>generation (int)</li>
+            <li>parent_variant_index (int or empty)</li>
+            <li>assembled_dna_sequence (A/T/G/C)</li>
+            <li>dna_yield (numeric)</li>
+            <li>protein_yield (numeric)</li>
+          </ul>
+        </details>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <h1 class="workspace__title">Parsing &amp; QC</h1>
+      <p class="workspace__sub mb-2">Upload your experimental data file for parsing and quality control validation.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          {% for category, message in messages %}
+            <div class="flash flash--{{ category }} mb-1">{{ message }}</div>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <section class="panel animate-in">
+        <div class="panel__header">Instructions</div>
+        <div class="note">
+          <p>Select an experiment from the sidebar and upload a TSV, CSV, or JSON file containing your directed evolution data.</p>
+          <p class="mt-1">The system will parse the file, run quality control checks, and store valid records in the database.</p>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

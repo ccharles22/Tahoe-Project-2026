@@ -1,8 +1,0 @@
-pytest
-pytest-flask
-
-flake8
-black
-mypy
-isort
-
