@@ -16,3 +16,6 @@ instance/
 data/app.db
 *.db
 *.sqlite
+
+# Generated outputs
+app/static/generated/
