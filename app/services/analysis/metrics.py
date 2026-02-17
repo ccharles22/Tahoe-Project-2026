@@ -1,28 +1,30 @@
 from __future__ import annotations
-from typing import Iterable, Dict, Any, List
-from psycopg2.extras import execute_values
+from typing import Any, Dict, List
 
-UPSERT_SQL = """
-INSERT INTO metrics (variant_id, metric_name, metric_type, value, unit)
-VALUES %s
-ON CONFLICT (variant_id, metric_name, metric_type)
-DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit;
-"""
 
 def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
-    """
-    rows: list of dicts: {variant_id, metric_name, metric_type, value, unit}
-    Returns number of rows attempted.
-    """
     if not rows:
         return 0
 
-    values = [
-        (r["variant_id"], r["metric_name"], r["metric_type"], r["value"], r.get("unit"))
-        for r in rows
-    ]
+    sql = """
+    INSERT INTO metrics (generation_id, variant_id, metric_name, metric_type, value, unit)
+    SELECT
+        v.generation_id,
+        %(variant_id)s,
+        %(metric_name)s,
+        %(metric_type)s,
+        %(value)s,
+        %(unit)s,
+        %(generation_id)s
+    FROM variants v
+    WHERE v.variant_id = %(variant_id)s
+    ON CONFLICT (variant_id, metric_name, metric_type)
+    DO UPDATE SET
+        value         = EXCLUDED.value,
+        unit          = EXCLUDED.unit;
+    """
 
     with conn.cursor() as cur:
-        execute_values(cur, UPSERT_SQL, values, page_size=1000)
-    conn.commit()
+        cur.executemany(sql, rows)
+
     return len(rows)
