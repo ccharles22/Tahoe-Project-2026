@@ -14,3 +14,4 @@ biopython>=1.80
 SQLAlchemy>=2.0
 PyMySQL>=1.1
 requests>=2.31
+psycopg[binary]>=3.1

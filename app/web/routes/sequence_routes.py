@@ -22,11 +22,13 @@ def stage_wt(experiment_id: int):
         return jsonify({"error": "UniProt accession required"}), 400
 
     engine = get_engine()
+    user_id, _ = db_repo.get_experiment_user_and_wt(engine, experiment_id)
     wt_protein = acquire_uniprot_protein_fasta(accession)
 
-    db_repo.save_staged_wt_protein(
+    db_repo.upsert_uniprot_staging(
         engine,
         experiment_id,
+        user_id,
         accession,
         wt_protein,
     )

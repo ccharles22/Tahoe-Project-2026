@@ -55,6 +55,16 @@ def _get_str(name: str, default: str) -> str:
     return default if val is None else val
 
 
+def _default_database_url() -> str:
+    """Build a sensible local PostgreSQL DSN from docker-style environment variables."""
+    user = os.getenv("POSTGRES_USER", "postgres")
+    password = os.getenv("POSTGRES_PASSWORD", "postgres")
+    host = os.getenv("POSTGRES_HOST", "localhost")
+    port = os.getenv("POSTGRES_PORT", "5432")
+    database = os.getenv("POSTGRES_DB", "tahoe_dev")
+    return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
+
+
 @dataclass(frozen=True)
 class Settings:
     """
@@ -70,7 +80,7 @@ class Settings:
     # ========================================================================
     DATABASE_URL: str = _get_str(
         "DATABASE_URL", 
-        "postgresql+psycopg://patriciaosire:blue@100.80.183.102:5432/bio727p_group_project"
+        _default_database_url()
     )  # PostgreSQL connection string (psycopg driver)
     
     # ========================================================================
@@ -85,24 +95,20 @@ class Settings:
     #   "truncate" - stop translation at first stop codon
     #   "keep_stops" - include stop codons (*) in translated sequence
 
-    # ========================================================================
+
     # Quality Control & Acceptance Thresholds
-    # ========================================================================
     MIN_MAPPING_IDENTITY_PCT: float = _get_float("MIN_MAPPING_IDENTITY_PCT", 95.0)
     # Minimum percent identity for accepting sequence alignments
     
     MAX_X_FRACTION: float = _get_float("MAX_X_FRACTION", 0.05)
     # Maximum allowed fraction of unknown/ambiguous residues (default: 5%)
 
-    # ========================================================================
     # Job Logging
-    # ========================================================================
     LOG_EVERY_N: int = _get_int("LOG_EVERY_N", 10)
     # Report progress every N variants processed (for monitoring long jobs)
 
-    # ========================================================================
+
     # WT Mapping Configuration
-    # ========================================================================
     WT_MIN_IDENTITY_PCT: float = 60.0
     # Minimum identity threshold for 6-frame WT gene search
     # Lower than MIN_MAPPING_IDENTITY_PCT to allow for more distant sequences
@@ -110,9 +116,7 @@ class Settings:
     MAX_ALIGNMENT_GAP_PENALTY: float = -10.0
     # Gap opening penalty for protein alignments (negative = penalty)
 
-    # ========================================================================
     # Variant Processing Options
-    # ========================================================================
     FALLBACK_SEARCH: bool = _get_str("FALLBACK_SEARCH", "false").lower() == "true"
     # Enable de novo 6-frame search if variant CDS extraction fails using WT coordinates
     # (Currently placeholder - not fully implemented)
