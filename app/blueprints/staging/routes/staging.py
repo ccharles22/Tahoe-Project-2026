@@ -9,7 +9,10 @@ from flask_login import login_required, current_user
 from app.services.staging.parse_fasta import parse_fasta
 from app.models import Experiment, WildtypeProtein, ProteinFeature
 from app.extensions import db
-from app.services.staging.uniprot_service import UniprotService, UniprotServiceError
+from app.services.uniprot_service import (
+    UniProtRetrievalError,
+    acquire_uniprot_entry_with_features,
+)
 from app.services.staging.plasmid_validator import validate_plasmid
 from app.services.staging.backtranslate import backtranslate
 
@@ -17,6 +20,10 @@ from .. import staging_bp
 
 
 # ---------- session-based validation helpers ----------
+# Notes:
+# - Validation/parsing artifacts are intentionally stored in Flask session
+#   (scoped by experiment id) instead of persisted models.
+# - This keeps staging iteration schema-light while preserving per-experiment UI state.
 
 def _get_validation_from_session(experiment_id):
     """Retrieve validation dict stored in Flask session, or None."""
@@ -89,6 +96,7 @@ def _get_parsing_result_from_session(experiment_id):
 @staging_bp.get('/')
 @login_required
 def create_experiment():
+    """Render staging UI for the selected experiment (or latest experiment)."""
     experiment_id = request.args.get('experiment_id', '').strip()
     wt_message = request.args.get('wt_message', '').strip()
     analysis_message = request.args.get('analysis_message', '').strip()
@@ -269,6 +277,8 @@ def create_new_blank_experiment():
 @staging_bp.post('/analysis/run')
 @login_required
 def run_analysis():
+    # Legacy analysis entrypoint reads EXPERIMENT_ID from process env.
+    # Preserve and restore to avoid leaking request-scoped state.
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
@@ -295,6 +305,7 @@ def run_analysis():
 @staging_bp.post('/sequence/run')
 @login_required
 def run_sequence():
+    """Run sequence processing for the experiment and return status via redirect."""
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
@@ -314,6 +325,7 @@ def run_sequence():
 @staging_bp.post('/uniprot')
 @login_required
 def fetch_uniprot():
+    """Fetch UniProt WT, attach/create experiment, then refresh WT feature rows."""
     accession = request.form.get('accession', '').strip()
     experiment_id = request.form.get('experiment_id', '').strip()
     experiment_name = request.form.get('experiment_name', '').strip()
@@ -322,17 +334,17 @@ def fetch_uniprot():
         return redirect(url_for('staging.create_experiment', wt_message='Missing accession'))
 
     try:
-        result = UniprotService.fetch(accession)
-    except UniprotServiceError as e:
+        entry = acquire_uniprot_entry_with_features(accession)
+    except UniProtRetrievalError as e:
         return redirect(url_for(
             'staging.create_experiment',
             experiment_id=experiment_id or '',
             wt_message=str(e),
         ))
 
-    sequence = result["sequence"]
-    protein_length = result["protein_length"]
-    features = result.get("features", [])
+    sequence = entry.sequence
+    protein_length = entry.length
+    features = entry.features
 
     # Generate a placeholder plasmid via back-translation
     placeholder_plasmid = backtranslate(sequence)
@@ -341,20 +353,21 @@ def fetch_uniprot():
     # uniprot_id has a UNIQUE constraint (global, not per-user),
     # so look up by accession alone.  Any user can share the same
     # physical protein row.
+    # Note: updates below will affect all experiments that reference this WT row.
     wt = WildtypeProtein.query.filter_by(uniprot_id=accession).first()
     if wt:
         # Update the sequence / placeholder plasmid in case UniProt changed
         wt.amino_acid_sequence = sequence
         wt.sequence_length = protein_length
         wt.plasmid_sequence = placeholder_plasmid
-        wt.protein_name = result.get("protein_name") or wt.protein_name
-        wt.organism = result.get("organism") or wt.organism
+        wt.protein_name = entry.protein_name or wt.protein_name
+        wt.organism = entry.organism or wt.organism
     else:
         wt = WildtypeProtein(
             user_id=current_user.user_id,
             uniprot_id=accession,
-            protein_name=result.get("protein_name"),
-            organism=result.get("organism"),
+            protein_name=entry.protein_name,
+            organism=entry.organism,
             amino_acid_sequence=sequence,
             sequence_length=protein_length,
             plasmid_sequence=placeholder_plasmid,
@@ -370,11 +383,11 @@ def fetch_uniprot():
                                     wt_message='Experiment not found'))
         exp.wt_id = wt.wt_id
         # Auto-update experiment name with protein info if still default
-        protein_name = result.get("protein_name")
+        protein_name = entry.protein_name
         if protein_name and (not exp.name or exp.name.startswith("Experiment ")):
             exp.name = f"{protein_name} ({accession})"
     else:
-        protein_name = result.get("protein_name")
+        protein_name = entry.protein_name
         exp = Experiment(
             user_id=current_user.user_id,
             wt_id=wt.wt_id,
@@ -389,10 +402,10 @@ def fetch_uniprot():
     for feat in features:
         pf = ProteinFeature(
             wt_id=wt.wt_id,
-            feature_type=feat.get("type", "unknown"),
-            description=feat.get("description", ""),
-            start_position=feat.get("start") or 0,
-            end_position=feat.get("end") or 0,
+            feature_type=feat.feature_type or "unknown",
+            description=feat.description or "",
+            start_position=feat.begin or 0,
+            end_position=feat.end or 0,
         )
         db.session.add(pf)
 

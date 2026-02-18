@@ -57,7 +57,7 @@
         {% endfor %}
       </div>
       <div class="stepper-bar__progress">
-        <div class="stepper-bar__fill" style="width: {{ (done_count / 5 * 100)|int }}%"></div>
+        <div class="stepper-bar__fill" data-progress="{{ (done_count / 5 * 100)|int }}"></div>
       </div>
     </nav>
     {% endif %}
@@ -308,7 +308,7 @@
             <div class="sidebar__subtitle">Manage your experiments</div>
           </div>
 
-          <form action="{{ url_for('staging.create_new_blank_experiment') }}" method="post" style="margin:0">
+          <form action="{{ url_for('staging.create_new_blank_experiment') }}" method="post" class="form--inline">
             <button class="new-experiment-btn" type="submit">
               <span class="new-experiment-btn__icon">+</span>
               <span class="new-experiment-btn__text">New Experiment</span>
@@ -318,15 +318,14 @@
           <div class="experiments-list">
             {% if experiments %}
               {% for exp in experiments %}
-              <div class="experiment-item {% if experiment_id and exp.experiment_id|string == experiment_id|string %}experiment-item--active{% endif %}">
+              <div class="experiment-item {% if experiment_id and exp.experiment_id|string == experiment_id|string %}experiment-item--active{% endif %}"
+                   data-open-url="{{ url_for('staging.create_experiment', experiment_id=exp.experiment_id) }}">
                 <div class="experiment-item__id">#{{ exp.experiment_id }}</div>
                 <div class="experiment-item__info">
                   <div class="experiment-item__name" title="Double-click to rename">{{ exp.name or 'Unnamed' }}</div>
                   <div class="experiment-item__date">{{ exp.created_at.strftime('%b %d') if exp.created_at else '' }}</div>
                 </div>
                 <div class="experiment-item__actions">
-                  <a class="experiment-item__btn"
-                     href="{{ url_for('staging.create_experiment', experiment_id=exp.experiment_id) }}">Open</a>
                   <button type="button" class="experiment-item__rename" title="Rename"
                           onclick="this.closest('.experiment-item').querySelector('.experiment-item__rename-form').classList.toggle('is-hidden')">&#9998;</button>
                   <form class="experiment-item__delete-form"
@@ -390,7 +389,7 @@
           <div class="panel__header">
             <span class="panel__step">A</span>
             WT (UniProt) Output
-            {% if wt %}<span class="badge badge--ok" style="margin-left:auto">Loaded</span>{% endif %}
+            {% if wt %}<span class="badge badge--ok ml-auto">Loaded</span>{% endif %}
           </div>
 
           {% if wt %}
@@ -422,9 +421,9 @@
             Plasmid Validation
             {% if validation %}
               {% if validation.is_valid %}
-                <span class="badge badge--ok" style="margin-left:auto">PASS</span>
+                <span class="badge badge--ok ml-auto">PASS</span>
               {% else %}
-                <span class="badge badge--bad" style="margin-left:auto">FAIL</span>
+                <span class="badge badge--bad ml-auto">FAIL</span>
               {% endif %}
             {% endif %}
           </div>
@@ -467,9 +466,9 @@
             <span class="panel__step">C</span>
             Parsing Upload Results
             {% if step_c_done %}
-              <span class="badge badge--ok" style="margin-left:auto">Success</span>
+              <span class="badge badge--ok ml-auto">Success</span>
             {% elif step_c_fail %}
-              <span class="badge badge--bad" style="margin-left:auto">Failed</span>
+              <span class="badge badge--bad ml-auto">Failed</span>
             {% endif %}
           </div>
 
@@ -522,7 +521,7 @@
                 <summary>Errors ({{ parsing_result.errors|length }})</summary>
                 <ul class="mono">
                   {% for error in parsing_result.errors %}
-                    <li style="color: var(--danger);">{{ error }}</li>
+                    <li class="text-danger">{{ error }}</li>
                   {% endfor %}
                 </ul>
               </details>
@@ -533,7 +532,7 @@
                 <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
                 <ul class="mono">
                   {% for warning in parsing_result.warnings %}
-                    <li style="color: var(--warning);">{{ warning }}</li>
+                    <li class="text-warning">{{ warning }}</li>
                   {% endfor %}
                 </ul>
               </details>
@@ -555,7 +554,7 @@
           <div class="panel__header">
             <span class="panel__step">D</span>
             Analysis Results
-            {% if step_d_done %}<span class="badge badge--ok" style="margin-left:auto">Done</span>{% endif %}
+            {% if step_d_done %}<span class="badge badge--ok ml-auto">Done</span>{% endif %}
           </div>
 
           {% if analysis_message %}
@@ -628,7 +627,7 @@
           <div class="panel__header">
             <span class="panel__step">E</span>
             Sequence Processing
-            {% if step_e_done %}<span class="badge badge--ok" style="margin-left:auto">Done</span>{% endif %}
+            {% if step_e_done %}<span class="badge badge--ok ml-auto">Done</span>{% endif %}
           </div>
 
           {% if sequence_message %}
@@ -645,53 +644,7 @@
 
         {% endif %}
       </main>
-
-      <!-- RIGHT SIDEBAR: AI Chat Helper -->
-      <aside class="rightbar">
-        <div class="chat-panel">
-          <div class="chat-panel__header">
-            <div class="robot" id="chatRobot" title="Click me!">
-              <div class="robot__head">
-                <div class="robot__antenna"></div>
-                <div class="robot__eyes">
-                  <div class="robot__eye"></div>
-                  <div class="robot__eye"></div>
-                </div>
-                <div class="robot__mouth"></div>
-              </div>
-              <div class="robot__arm robot__arm--left"></div>
-              <div class="robot__body"></div>
-              <div class="robot__arm robot__arm--right"></div>
-            </div>
-            <div class="chat-panel__title">Workflow Assistant</div>
-          </div>
-
-          <div class="chat-panel__messages" id="chatMessages">
-            <div class="chat-message chat-message--bot">
-              <div class="chat-message__content" style="white-space:pre-line">👋 Hi! I can help with:
-• Steps A–E of the pipeline
-• File format requirements
-• Directed evolution concepts
-• Troubleshooting errors
-
-Click the robot or ask a question!</div>
-            </div>
-          </div>
-
-          <div class="chat-panel__input-area">
-            <input
-              type="text"
-              class="chat-panel__input"
-              id="chatInput"
-              placeholder="Ask me anything..."
-              autocomplete="off"
-            >
-            <button class="chat-panel__send-btn" id="chatSendBtn">Send</button>
-          </div>
-        </div>
-      </aside>
-
-    </div>
+</div>
 
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>

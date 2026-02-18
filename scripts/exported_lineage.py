@@ -1,7 +1,7 @@
 import os
 import pandas as pd
 from psycopg2.extras import RealDictCursor
-from src.analysis_MPL.database import get_conn
+from app.services.analysis.database import get_conn
 
 NODES_SQL = """
 SELECT

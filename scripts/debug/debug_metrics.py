@@ -1,4 +1,4 @@
-from src.analysis_MPL.database import get_conn
+from app.services.analysis.database import get_conn
 import pandas as pd
 
 SQL = """

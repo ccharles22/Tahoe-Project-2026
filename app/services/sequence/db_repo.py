@@ -11,7 +11,7 @@ Design principles:
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import Engine
@@ -224,12 +224,15 @@ def upsert_wt_mapping(
 def load_wt_mapping(
     engine: Engine,
     experiment_id: int,
-    user_id: int,
+    user_id: Optional[int] = None,
 ) -> Optional["WTMapping"]:
     """
     Loads cached WT mapping for (experiment_id, user_id).
     Returns WTMapping if present and VALID, else None.
     """
+    if user_id is None:
+        user_id, _ = get_experiment_user_and_wt(engine, experiment_id)
+
     with engine.connect() as conn:
         mapping_json = conn.execute(
             text("""
@@ -247,7 +250,7 @@ def load_wt_mapping(
     if data.get("validation_status") != "VALID":
         return None
 
-    from app.services.sequence_service import WTMapping  # local import to avoid cycles
+    from app.services.sequence.sequence_service import WTMapping  # local import to avoid cycles
 
     return WTMapping(
         strand=str(data["strand"]),
@@ -259,6 +262,21 @@ def load_wt_mapping(
         match_identity_pct=float(data["match_identity_pct"]),
         alignment_score=float(data["alignment_score"]),
     )
+
+
+def save_wt_mapping(engine: Engine, experiment_id: int, mapping: "WTMapping") -> None:
+    """
+    Backward-compatible wrapper for older call sites.
+    """
+    user_id, _ = get_experiment_user_and_wt(engine, experiment_id)
+    upsert_wt_mapping(engine, experiment_id, user_id, mapping)
+
+
+def list_variants(engine: Engine, experiment_id: int) -> List[Tuple[int, str]]:
+    """
+    Backward-compatible wrapper for older call sites.
+    """
+    return list_variants_by_experiment(engine, experiment_id)
 
 
 # =============================================================================
@@ -460,6 +478,135 @@ def delete_analysis(engine: Engine, analysis_id: int) -> None:
             text("DELETE FROM variant_sequence_analysis WHERE analysis_id = :aid"),
             {"aid": analysis_id},
         )
+
+
+def _get_variant_context(engine: Engine, variant_id: int) -> Tuple[int, int]:
+    """
+    Returns (experiment_id, user_id) for a variant_id.
+    """
+    with engine.connect() as conn:
+        row = conn.execute(
+            text(
+                """
+                SELECT g.experiment_id, e.user_id
+                FROM variants v
+                JOIN generations g ON g.generation_id = v.generation_id
+                JOIN experiments e ON e.experiment_id = g.experiment_id
+                WHERE v.variant_id = :vid
+                """
+            ),
+            {"vid": variant_id},
+        ).fetchone()
+
+    if not row:
+        raise ValueError(f"Variant not found: variant_id={variant_id}")
+
+    return int(row[0]), int(row[1])
+
+
+def save_variant_sequence_analysis(
+    engine: Engine,
+    variant_id: int,
+    result: "VariantSeqResult",
+    counts: "MutationCounts",
+) -> int:
+    """
+    Backward-compatible wrapper for older call sites.
+    Inserts a new analysis record and returns analysis_id.
+    """
+    experiment_id, user_id = _get_variant_context(engine, variant_id)
+    return insert_variant_analysis(
+        engine,
+        variant_id=variant_id,
+        experiment_id=experiment_id,
+        user_id=user_id,
+        result=result,
+        counts=counts,
+        mutations=[],
+    )
+
+
+def replace_variant_mutations(
+    engine: Engine,
+    variant_id: int,
+    mutations: Iterable["MutationRecord"],
+) -> None:
+    """
+    Backward-compatible wrapper for older call sites.
+    Replaces mutations on the latest analysis row for the variant.
+    """
+    experiment_id, user_id = _get_variant_context(engine, variant_id)
+    analysis = load_latest_variant_analysis(
+        engine,
+        variant_id=variant_id,
+        user_id=user_id,
+        include_mutations=False,
+    )
+    if not analysis:
+        raise ValueError(
+            f"No analysis row found for variant_id={variant_id}; "
+            "save_variant_sequence_analysis must run first."
+        )
+
+    analysis_id = int(analysis["analysis_id"])
+    with engine.begin() as conn:
+        conn.execute(
+            text("DELETE FROM variant_mutations WHERE analysis_id = :aid"),
+            {"aid": analysis_id},
+        )
+        for m in mutations:
+            conn.execute(
+                text(
+                    """
+                    INSERT INTO variant_mutations (
+                        analysis_id,
+                        mutation_type,
+                        codon_index_1based,
+                        aa_position_1based,
+                        wt_codon,
+                        var_codon,
+                        wt_aa,
+                        var_aa,
+                        notes
+                    )
+                    VALUES (
+                        :aid,
+                        :mtype,
+                        :codon_idx,
+                        :aa_pos,
+                        :wt_codon,
+                        :var_codon,
+                        :wt_aa,
+                        :var_aa,
+                        :notes
+                    )
+                    """
+                ),
+                {
+                    "aid": analysis_id,
+                    "mtype": m.mutation_type,
+                    "codon_idx": m.codon_index_1based,
+                    "aa_pos": m.aa_position_1based,
+                    "wt_codon": m.wt_codon,
+                    "var_codon": m.var_codon,
+                    "wt_aa": m.wt_aa,
+                    "var_aa": m.var_aa,
+                    "notes": m.notes,
+                },
+            )
+
+
+def save_staged_wt_protein(
+    engine: Engine,
+    experiment_id: int,
+    accession: str,
+    protein_sequence: str,
+) -> None:
+    """
+    Backward-compatible wrapper for older call sites.
+    """
+    user_id, _ = get_experiment_user_and_wt(engine, experiment_id)
+    upsert_uniprot_staging(engine, experiment_id, user_id, accession, protein_sequence)
 
 
 # =============================================================================

@@ -10,13 +10,13 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from src.analysis_MPL.activity_score import compute_stage4_metrics
-from src.analysis_MPL.database import get_conn
-from src.analysis_MPL.metrics import upsert_variant_metrics
-from src.analysis_MPL.plots.distribution import plot_activity_distribution
-from src.analysis_MPL.plots.lineage import PlotConfig, plot_layered_lineage  # rename to .lineages if your file is lineages.py
-from src.analysis_MPL.plots.top10 import plot_top10_table
-from src.analysis_MPL.queries import (
+from app.services.analysis.activity_score import compute_stage4_metrics
+from app.services.analysis.database import get_conn
+from app.services.analysis.metrics import upsert_variant_metrics
+from app.services.analysis.plots.distribution import plot_activity_distribution
+from app.services.analysis.plots.lineage import PlotConfig, plot_layered_lineage
+from app.services.analysis.plots.top10 import plot_top10_table
+from app.services.analysis.queries import (
     fetch_distribution,
     fetch_lineage_edges,
     fetch_lineage_nodes,

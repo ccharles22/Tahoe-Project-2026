@@ -184,7 +184,7 @@ def run_sequence_processing(experiment_id: int) -> None:
                 had_variant_errors = True
 
                 # Create QC-only record with error details
-                from app.services.sequence_service import QCFlags, VariantSeqResult 
+                from app.services.sequence.sequence_service import QCFlags, VariantSeqResult 
 
                 qc_only = VariantSeqResult(
                     cds_start_0based=wt_mapping.cds_start_0based,

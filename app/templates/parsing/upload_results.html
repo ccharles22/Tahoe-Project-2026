@@ -46,7 +46,7 @@
       <p class="workspace__sub mb-2">Data parsing and quality control report.</p>
 
       <!-- STATUS -->
-      <section class="panel animate-in" style="border-left:3px solid {{ 'var(--success)' if success else 'var(--danger)' }}">
+      <section class="panel animate-in {{ 'panel--left-success' if success else 'panel--left-danger' }}">
         <div class="panel__header">
           {% if success %}
             <span class="badge badge--ok">Success</span>
@@ -69,13 +69,13 @@
             {% endif %}
           </div>
         {% else %}
-          <div class="note" style="color:var(--danger)">{{ error_message | default('An error occurred during processing.') }}</div>
+          <div class="note note--danger">{{ error_message | default('An error occurred during processing.') }}</div>
         {% endif %}
       </section>
 
       <!-- ERRORS -->
       {% if errors %}
-        <section class="panel animate-in" style="border-left:3px solid var(--danger)">
+        <section class="panel animate-in panel--left-danger">
           <div class="panel__header"><span class="badge badge--bad">{{ errors | length }}</span> &nbsp;Errors</div>
           <details class="details" open>
             <summary>View error details</summary>
@@ -90,7 +90,7 @@
 
       <!-- WARNINGS -->
       {% if warnings %}
-        <section class="panel animate-in" style="border-left:3px solid var(--warning)">
+        <section class="panel animate-in panel--left-warning">
           <div class="panel__header"><span class="badge badge--warn">{{ warnings | length }}</span> &nbsp;Warnings</div>
           <details class="details">
             <summary>View warning details</summary>

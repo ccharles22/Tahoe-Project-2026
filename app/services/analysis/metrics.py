@@ -6,7 +6,17 @@ def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
     if not rows:
         return 0
 
-    sql = """
+    update_sql = """
+    UPDATE metrics AS m
+    SET
+        value = %(value)s,
+        unit = %(unit)s
+    WHERE m.variant_id = %(variant_id)s
+      AND m.metric_name = %(metric_name)s
+      AND m.metric_type = %(metric_type)s;
+    """
+
+    insert_sql = """
     INSERT INTO metrics (generation_id, variant_id, metric_name, metric_type, value, unit)
     SELECT
         v.generation_id,
@@ -14,17 +24,15 @@ def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
         %(metric_name)s,
         %(metric_type)s,
         %(value)s,
-        %(unit)s,
-        %(generation_id)s
+        %(unit)s
     FROM variants v
-    WHERE v.variant_id = %(variant_id)s
-    ON CONFLICT (variant_id, metric_name, metric_type)
-    DO UPDATE SET
-        value         = EXCLUDED.value,
-        unit          = EXCLUDED.unit;
+    WHERE v.variant_id = %(variant_id)s;
     """
 
     with conn.cursor() as cur:
-        cur.executemany(sql, rows)
+        for row in rows:
+            cur.execute(update_sql, row)
+            if cur.rowcount == 0:
+                cur.execute(insert_sql, row)
 
     return len(rows)

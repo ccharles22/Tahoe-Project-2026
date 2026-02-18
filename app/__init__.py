@@ -86,4 +86,7 @@ def create_app():
     from .blueprints.parsing import parsing_bp
     app.register_blueprint(parsing_bp)
 
+    from .blueprints.sequence import sequence_bp
+    app.register_blueprint(sequence_bp)
+
     return app
