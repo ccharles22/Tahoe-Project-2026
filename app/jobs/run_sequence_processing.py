@@ -13,7 +13,7 @@ Pipeline Architecture:
         b. Translates and performs QC checks
         c. Calls mutations against WT (codon-by-codon or alignment-based)
         d. Persists results and mutation records
-    4. Status Tracking: Updates experiment status (ANALYSED, FAILED, etc.)
+    4. Status Tracking: Updates experiment status (i.e. ANALYSED, FAILED)
 
 Error Recovery:
     - Individual variant failures are logged but don't affect processing
@@ -24,13 +24,10 @@ Command-Line Usage:
     python -m app.jobs.run_sequence_processing <experiment_id>
 
 Integration Points:
-    - Called by Flask job queue for web UI workflows
-    - Can be invoked directly for testing or batch processing
+    - Called by the main Flask application's job queue
+    - Can be invoked directly via CLI for testing or batch processing
     - All database writes are atomic (per-variant transactions)
 
-Note:
-    WT mapping is cached after first computation to avoid expensive recomputation
-    for every variant. Cache invalidation requires manual database update.
 """
 
 from __future__ import annotations
@@ -40,9 +37,9 @@ import logging
 from typing import Tuple, List
 
 from app.config import settings
-from app.services import db_repo
-from app.services.db_repo import get_engine
-from app.services.sequence_service import (
+from app.services.sequence import db_repo
+from app.services.sequence.db_repo import get_engine
+from app.services.sequence.sequence_service import (
     map_wt_gene_in_plasmid,
     process_variant_plasmid,
     call_mutations_against_wt,
@@ -70,7 +67,7 @@ def _empty_counts() -> MutationCounts:
 
 def run_sequence_processing(experiment_id: int) -> None:
     """
-    Execute complete sequence processing pipeline for one experiment.
+    Executes the complete sequence processing pipeline for one experiment.
     
     Processes all variants in the experiment sequentially, performing CDS
     extraction, translation, QC checks, and mutation calling. Results are
@@ -100,10 +97,11 @@ def run_sequence_processing(experiment_id: int) -> None:
         Exception: If fatal error occurs during WT reference loading or mapping.
     
     Database Effects:
-        - Updates experiments.analysis_status (ANALYSIS_RUNNING → final state)
-        - Inserts/updates wt_mappings (if not cached)
-        - Inserts/updates sequence_analysis per variant
+        - Updates experiments.extra_metadata → 'analysis_status' (ANALYSIS_RUNNING → final state)
+        - Caches WT mapping in experiment_metadata (field_name='wt_mapping_json')
+        - Stores per-variant analysis in variants.protein_sequence + variants.extra_metadata
         - Replaces mutations per variant (atomic delete + insert)
+        - Writes derived mutation-count metrics to public.metrics
     
     Note:
         Progress is logged every LOG_EVERY_N variants (configurable via settings).
@@ -124,13 +122,11 @@ def run_sequence_processing(experiment_id: int) -> None:
     had_variant_errors = False
 
     try:
-        # Load WT References
         wt_protein_aa, wt_plasmid_dna = db_repo.get_wt_reference(
             engine, experiment_id
         )
         user_id, _ = db_repo.get_experiment_user_and_wt(engine, experiment_id)
 
-        # Compute or Load Cached WT Mapping (expensive operation)
         wt_mapping = db_repo.load_wt_mapping(engine, experiment_id, user_id)
         if wt_mapping is None:
             logger.info("Computing WT gene mapping (6-frame search)...")
@@ -142,7 +138,6 @@ def run_sequence_processing(experiment_id: int) -> None:
                 wt_mapping.frame,
                 wt_mapping.match_identity_pct,
             )
-        # Load All Variants for Processing
         variants: List[Tuple[int, str]] = sorted(
             db_repo.list_variants_by_experiment(engine, experiment_id), 
             key=lambda x: x[0],
@@ -153,7 +148,6 @@ def run_sequence_processing(experiment_id: int) -> None:
 
         log_every_n = max(1, int(getattr(settings, "LOG_EVERY_N", 50)))
 
-        # Process Each Variant
         for idx, (variant_id, variant_plasmid_dna) in enumerate(variants, start=1):
             try:
                 seq_result = process_variant_plasmid(
@@ -189,11 +183,9 @@ def run_sequence_processing(experiment_id: int) -> None:
                     )
 
             except Exception as e:
-                # Catch variant-specific errors, log, and continue processing
                 had_variant_errors = True
 
-                # Create QC-only record with error details
-                from app.services.sequence_service import QCFlags, VariantSeqResult 
+                from app.services.sequence.sequence_service import QCFlags, VariantSeqResult 
 
                 qc_only = VariantSeqResult(
                     cds_start_0based=wt_mapping.cds_start_0based,
@@ -225,7 +217,6 @@ def run_sequence_processing(experiment_id: int) -> None:
                     experiment_id,
                 )
  
-            # Progress logging
             if idx % log_every_n == 0 or idx == total_variants:
                 logger.info(
                     "Processed %d/%d variants (experiment %s)",
@@ -234,9 +225,6 @@ def run_sequence_processing(experiment_id: int) -> None:
                     experiment_id,
                 )
         
-        # ====================================================================
-        # Update Final Status
-        # ====================================================================
         final_status = "ANALYSED_WITH_ERRORS" if had_variant_errors else "ANALYSED"
         db_repo.update_experiment_status(engine, experiment_id, final_status)
 
@@ -247,7 +235,6 @@ def run_sequence_processing(experiment_id: int) -> None:
         )
 
     except Exception:
-        # Fatal error: update status and re-raise
         db_repo.update_experiment_status(engine, experiment_id, "FAILED")
 
         logger.exception(
@@ -277,7 +264,6 @@ if __name__ == "__main__":
     if len(sys.argv) != 2:
         raise SystemExit("Usage: python -m app.jobs.run_sequence_processing <experiment_id>")
     
-    # Configure basic logging for CLI usage
     logging.basicConfig(
         level=logging.INFO,
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'

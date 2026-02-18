@@ -55,16 +55,6 @@ def _get_str(name: str, default: str) -> str:
     return default if val is None else val
 
 
-def _default_database_url() -> str:
-    """Build a sensible local PostgreSQL DSN from docker-style environment variables."""
-    user = os.getenv("POSTGRES_USER", "postgres")
-    password = os.getenv("POSTGRES_PASSWORD", "postgres")
-    host = os.getenv("POSTGRES_HOST", "localhost")
-    port = os.getenv("POSTGRES_PORT", "5432")
-    database = os.getenv("POSTGRES_DB", "tahoe_dev")
-    return f"postgresql+psycopg://{user}:{password}@{host}:{port}/{database}"
-
-
 @dataclass(frozen=True)
 class Settings:
     """
@@ -80,7 +70,7 @@ class Settings:
     # ========================================================================
     DATABASE_URL: str = _get_str(
         "DATABASE_URL", 
-        _default_database_url()
+        "postgresql+psycopg://patriciaosire:blue@100.80.183.102:5432/bio727p_group_project"
     )  # PostgreSQL connection string (psycopg driver)
     
     # ========================================================================

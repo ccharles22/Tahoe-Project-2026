@@ -157,9 +157,9 @@ class MutationCounts:
 
 def _make_protein_aligner() -> PairwiseAligner:
     """
-    Configure a global pairwise aligner with BLOSUM62 and gap penalties.
+    Configures a global pairwise aligner with BLOSUM62 and gap penalties.
     
-    Creates an aligner optimised for protein sequence alignment used in
+    Creates an aligner optimised for protein sequence alignment utilised in
     6-frame translation search and indel detection.
     
     Returns:
@@ -178,9 +178,8 @@ def _make_protein_aligner() -> PairwiseAligner:
 
 def _identity_pct_from_alignment(aln) -> float:
     """
-    Compute percent identity from alignment excluding gaps.
-    
-    Uses Biopython's aligned coordinate blocks to compute identity over
+    Calculates percent identity from a Biopython alignment object.
+    Utilises Biopython's aligned coordinate blocks to compute identity over
     aligned regions, ignoring any gaps in either sequence.
     
     Args:
@@ -240,9 +239,9 @@ def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
 
 def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping:
     """
-    Locate wild-type CDS within circular plasmid using 6-frame protein alignment.
+    Locates the wild-type CDS within circular plasmid using 6-frame protein alignment.
     
-    Performs exhaustive 6-frame translation search (3 frames × 2 strands) on a
+    Performs an exhaustive 6-frame translation search (3 frames x 2 strands) on a
     circularised plasmid sequence, aligning each translated frame against the
     reference protein using BLOSUM62. Returns the best-scoring mapping that
     exceeds the minimum identity threshold.
@@ -250,12 +249,12 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
     Algorithm:
         1. Circularise plasmid by concatenating (handles genes spanning origin)
         2. For each strand (PLUS, MINUS):
-            a. For each frame (0, 1, 2):
+            a. On each frame (0, 1, 2):
                 - Translate to protein
                 - Global align vs reference protein
                 - Calculate percent identity
                 - If identity ≥ WT_MIN_IDENTITY_PCT, validate candidate
-        3. Return candidate with highest identity (ties broken by score)
+        3. Return candidate with the highest identity (ties broken by score)
     
     Validation checks:
         - Identity must meet WT_MIN_IDENTITY_PCT threshold (config)
@@ -296,7 +295,6 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
     best_score = float("-inf")
     best_identity = float("-inf")
 
-    # Search both strands over the same circularise coordinate space.
     strands = {
         "PLUS": circular,
         "MINUS": reverse_complement_dna(circular),
@@ -328,7 +326,6 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
             nt_start = frame + (q0_prot * 3)
             nt_end = nt_start + (len(wt_protein) * 3)
 
-            # Map back to original plasmid coordinates 
             nt_start_mod = nt_start % n
             nt_end_mod = nt_end % n
 
@@ -354,7 +351,6 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
             if not wt_cds_prot:
                 continue
 
-            # Verifies that the translated CDS is at least comparable in length
             if len(wt_cds_prot) < max(1, int(0.8 * len(wt_protein))):
                 continue
 
@@ -391,22 +387,20 @@ def process_variant_plasmid(
         fallback_search: bool,
 ) -> VariantSeqResult:
     """
-    Extract and analyse variant CDS using wild-type mapping coordinates.
-    
     Uses the WT mapping (strand, frame, coordinates) to extract the corresponding
     CDS from the variant plasmid, translate it, and perform quality control checks.
     
     Process:
-        1. Extract CDS using circular_slice (handles wrap-around coordinates)
-        2. Apply strand orientation (reverse complement if MINUS strand)
-        3. Apply reading frame offset (trim 0, 1, or 2 leading bases)
-        4. Translate to protein using configured genetic code
-        5. Perform QC checks (frameshifts, ambiguous bases, premature stops)
+        1. Extracts CDS using circular_slice (handles wrap-around coordinates)
+        2. Applies strand orientation (reverse complement if MINUS strand)
+        3. Applies reading frame offset (trim 0, 1, or 2 leading bases)
+        4. Translates to protein using configured genetic code
+        5. Performs QC checks (frameshifts, ambiguous bases, premature stops)
     
     Args:
         variant_plasmid_dna: Variant plasmid DNA sequence.
         wt_mapping: Wild-type mapping with coordinates and orientation.
-        fallback_search: If True and extraction fails, perform de novo search
+        fallback_search: If True and extraction fails, this performs a de novo search
                         (currently placeholder - not yet implemented).
     
     Returns:
@@ -415,23 +409,20 @@ def process_variant_plasmid(
     
     Note:
         STOP_POLICY configuration controls stop codon handling:
-        - "truncate": Stop at first stop codon, flag if protein shorter than WT
-        - Other: Keep stops in sequence, flag any embedded stop codons
+        - "truncate": Stop at first stop codon, flags if the variant protein is shorter than WT
+        - Other: Keep stops in sequence, flags any embedded stop codons
     """
     plasmid = normalise_dna(variant_plasmid_dna)
 
-    # 1) Slice using WT coordinates (supports circular plasmids)
     cds_dna = circular_slice(
         plasmid,
         wt_mapping.cds_start_0based,
         wt_mapping.cds_end_0based_excl,
     )
     
-    # 2) Apply strand
     if wt_mapping.strand == "MINUS":
         cds_dna = reverse_complement_dna(cds_dna)
 
-    # 3) Apply frame by trimming leading bases
     if wt_mapping.frame in (0,1,2):
         cds_dna = cds_dna[wt_mapping.frame:]
     
@@ -456,7 +447,6 @@ def process_variant_plasmid(
                 notes = "Stop codon(s) present in translated protein."
 
             if settings.STOP_POLICY == "truncate" and protein:
-                # if protein length is shorter than WT, then treat as premature stop signal
                 if len(protein) < len(wt_mapping.wt_protein_aa):
                     prem_stop = True
                     notes = "Protein truncated due to in-frame stop codon."
@@ -493,23 +483,22 @@ def call_indels_via_protein_alignment(
         var_cds_dna: str, 
 ) -> Tuple[List[MutationRecord], MutationCounts]:
     """
-    Detect mutations using protein-level alignment (indel-aware).
+    Detects mutations using protein-level alignment (indel-aware).
     
     Translates both WT and variant CDS to protein, performs global alignment,
     then walks through aligned columns to detect insertions, deletions, and
-    substitutions. This approach handles frameshifts more robustly than 
-    codon-by-codon comparison.
+    substitutions for a more robust approach.
     
     Algorithm:
-        1. Translate both sequences to protein (keep stop codons as *)
-        2. Perform global protein alignment with BLOSUM62 scoring
-        3. Walk through alignment columns:
+        1. Translates both sequences to protein (keep stop codons as *)
+        2. Performs global protein alignment with BLOSUM62 scoring
+        3. Walks through alignment columns:
             - WT gap + variant residue → INSERTION
             - WT residue + variant gap → DELETION
             - Both residues present:
-                a. Check if amino acids match (synonymous vs nonsynonymous)
-                b. Retrieve codons from DNA for classification
-                c. Detect nonsense mutations (stop codon introduced)
+                a. Checks if amino acids match (synonymous vs nonsynonymous)
+                b. Retrieves codons from DNA for classification
+                c. Detects nonsense mutations (stop codon introduced)
     
     Args:
         wt_cds_dna: Wild-type CDS DNA sequence.
@@ -518,11 +507,7 @@ def call_indels_via_protein_alignment(
     Returns:
         Tuple containing:
             - List[MutationRecord]: All detected mutations with coordinates
-            - MutationCounts: Aggregated counts (synonymous, nonsynonymous, total)
-    
-    Note:
-        This function is particularly useful for sequences with suspected indels
-        or frameshifts where direct codon comparison would fail catastrophically.
+            - MutationCounts: Aggregated counts (synonymous, nonsynonymous, total)        
     """
     wt_cds = normalise_dna(wt_cds_dna)
     var_cds = normalise_dna(var_cds_dna)
@@ -589,11 +574,9 @@ def call_indels_via_protein_alignment(
             )
             continue
 
-        # Match
         if wa == va:
             continue
 
-        # Mismatch (subsitution at aligned position)
         total += 1
 
         wt_codon = _safe_codon(wt_cds_dna, wt_pos)
@@ -640,15 +623,18 @@ def call_mutations_against_wt(
     """
     Main mutation calling entry point with adaptive strategy selection.
     
-    Selects the appropriate mutation detection algorithm based on sequence
+    Determines the appropriate mutation detection algorithm based on sequence
     characteristics to optimise accuracy and performance:
     
     Strategy selection:
         1. Frameshift check: If either CDS length not divisible by 3
-           → Return single FRAMESHIFT record (detailed calling impossible)
+           → Returns single FRAMESHIFT record (detailed calling impossible)
         
         2. Length mismatch (but both in-frame): If len(WT) ≠ len(variant)
-           → Use protein alignment approach (handles indels gracefully)
+           → Delegates to protein alignment, which absorbs insertions and
+             deletions into gap characters so surrounding residues stay
+             correctly paired (codon-by-codon would misalign everything
+             downstream of the indel)
         
         3. Equal length sequences
            → Use fast codon-by-codon comparison (most efficient)
@@ -668,15 +654,10 @@ def call_mutations_against_wt(
         Tuple containing:
             - List[MutationRecord]: All detected mutations with full annotations
             - MutationCounts: Summary statistics (synonymous, nonsynonymous, total)
-    
-    Note:
-        This tiered approach balances performance (fast path for equal-length
-        sequences) with robustness (alignment-based approach for indels).
     """
     wt = normalise_dna(wt_cds_dna)
     var = normalise_dna(var_cds_dna)
 
-    # Frameshift / incomplete CDS
     if (len(wt) % 3 != 0) or (len(var) % 3 != 0):
         return (
             [

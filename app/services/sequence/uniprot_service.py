@@ -29,7 +29,7 @@ Data Validation:
     - Sequence: Standard amino acid alphabet + ambiguity codes (X, B, Z, J, U, O) + stop codon (*)
 
 Usage:
-    from app.services.uniprot_service import acquire_uniprot_protein_fasta
+    from app.services.sequence.uniprot_service import acquire_uniprot_protein_fasta
     
     # Fast sequence retrieval
     sequence = acquire_uniprot_protein_fasta("P12345")
@@ -185,10 +185,6 @@ def acquire_uniprot_protein_fasta(
     Raises:
         UniProtRetrievalError: If accession is invalid, not found, or sequence is unparseable.
     
-    Example:
-        >>> seq = acquire_uniprot_protein_fasta("P12345")
-        >>> print(seq[:20])  # First 20 amino acids
-        MTEYKLVVVGAGGVGKSALT
     """
     accession = _clean_accession(accession)
         
@@ -236,12 +232,6 @@ def acquire_uniprot_entry_with_features(
     Raises:
         UniProtRetrievalError: If accession is invalid, not found, or data is unparseable.
     
-    Example:
-        >>> entry = acquire_uniprot_entry_with_features("P12345")
-        >>> print(f"{entry.protein_name} from {entry.organism}")
-        >>> print(f"Found {len(entry.features)} features")
-        GTPase HRas from Homo sapiens
-        Found 42 features
     """
     accession = _clean_accession(accession)
 
@@ -368,7 +358,7 @@ def _http_get_json(
         session: Optional[requests.Session],
 ) -> dict[str, Any]:
     """
-    Retrieve and parse JSON with dual-endpoint fallback.
+    Retrieves and parses JSON with dual-endpoint fallback.
     
     Attempts primary URL first, then falls back to legacy endpoint if needed.
     This handles UniProt API transitions and improves reliability.
@@ -406,7 +396,7 @@ def _http_get_json(
 
 def _raise_for_uniprot_status(resp: requests.Response) -> None:
     """
-    Check HTTP response status and raise user-friendly errors.
+    Checks HTTP response status and raises user-friendly errors.
     
     Translates HTTP status codes into specific error messages with
     actionable guidance for the user.
@@ -432,7 +422,7 @@ def _raise_for_uniprot_status(resp: requests.Response) -> None:
 
 def _is_retryable(exc: Exception) -> bool:
     """
-    Determine if an exception is worth retrying.
+    Determines if an exception is worth retrying.
     
     Retry strategy:
         - Network errors: Yes (timeout, connection issues)
@@ -552,10 +542,6 @@ def _safe_get(obj: Any, path: tuple[Any, ...]) -> Any:
     Returns:
         Any: Value at specified path, or None if path is invalid at any step.
     
-    Example:
-        >>> data = {"a": {"b": [1, 2, {"c": 42}]}}
-        >>> _safe_get(data, ("a", "b", 2, "c"))  # Returns 42
-        >>> _safe_get(data, ("x", "y"))  # Returns None
     """
     current = obj
     for p in path:
