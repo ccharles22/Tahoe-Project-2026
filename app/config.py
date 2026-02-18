@@ -85,24 +85,20 @@ class Settings:
     #   "truncate" - stop translation at first stop codon
     #   "keep_stops" - include stop codons (*) in translated sequence
 
-    # ========================================================================
+
     # Quality Control & Acceptance Thresholds
-    # ========================================================================
     MIN_MAPPING_IDENTITY_PCT: float = _get_float("MIN_MAPPING_IDENTITY_PCT", 95.0)
     # Minimum percent identity for accepting sequence alignments
     
     MAX_X_FRACTION: float = _get_float("MAX_X_FRACTION", 0.05)
     # Maximum allowed fraction of unknown/ambiguous residues (default: 5%)
 
-    # ========================================================================
     # Job Logging
-    # ========================================================================
     LOG_EVERY_N: int = _get_int("LOG_EVERY_N", 10)
     # Report progress every N variants processed (for monitoring long jobs)
 
-    # ========================================================================
+
     # WT Mapping Configuration
-    # ========================================================================
     WT_MIN_IDENTITY_PCT: float = 60.0
     # Minimum identity threshold for 6-frame WT gene search
     # Lower than MIN_MAPPING_IDENTITY_PCT to allow for more distant sequences
@@ -110,9 +106,7 @@ class Settings:
     MAX_ALIGNMENT_GAP_PENALTY: float = -10.0
     # Gap opening penalty for protein alignments (negative = penalty)
 
-    # ========================================================================
     # Variant Processing Options
-    # ========================================================================
     FALLBACK_SEARCH: bool = _get_str("FALLBACK_SEARCH", "false").lower() == "true"
     # Enable de novo 6-frame search if variant CDS extraction fails using WT coordinates
     # (Currently placeholder - not fully implemented)

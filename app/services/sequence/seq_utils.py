@@ -240,7 +240,6 @@ def translate_cds_with_qc(
     if stop_policy not in {"truncate", "keep_stops"}:
         raise ValueError("stop_policy must be 'truncate' or 'keep_stops'")
 
-    # Normalisation ensures all downstream checks are consistent
     dna = normalise_dna(cds_dna)
     notes = []
 
@@ -270,8 +269,7 @@ def translate_cds_with_qc(
             Seq(dna).translate(table=genetic_code_table, to_stop=False)
         )
     except Exception as e:
-        # Translation can fail for badly malformed sequences 
-        qc = TranslationQC(
+            qc = TranslationQC(
             normalised_len=len(dna),
             has_ambiguous_bases=has_ambiguous,
             has_stop_codon=False,
@@ -366,7 +364,6 @@ def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
     end = end_0based_excl % n
 
     if start < end:
-        # Normal linear slice
         return dna[start:end]
     if start > end:
         # Wrap-around: take from start to end of sequence, then from beginning to end

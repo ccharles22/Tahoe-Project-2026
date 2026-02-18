@@ -1,5 +1,5 @@
 Flask
-requests
+requests>=2.31
 python-dotenv
 bipython
 biopython
@@ -16,6 +16,7 @@ Flask-Bcrypt
 WTForms
 email-validator
 psycopg2-binary
+psycopg[binary]>=3.1
 SQLAlchemy>=2.0
 mysql-connector-python==9.5.0
 PyMySQL>=1.1
