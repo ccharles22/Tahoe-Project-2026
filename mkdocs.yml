@@ -29,7 +29,6 @@ theme:
 
 nav:
   - Home: index.md
-  - Architecture: architecture.md
   - User Guide:
     - Getting Started: guide/getting-started.md
     - Uploading Data: guide/uploading-data.md
