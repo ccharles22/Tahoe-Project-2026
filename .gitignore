@@ -1,1 +1,31 @@
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# VS Code / editor files
+.vscode/
+*.code-workspace
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs and runtime artifacts
+*.log
+*.pid
+
+# Environment / secrets
+.env
+.env.*
+
+# Database dumps / local data
+*.sql
+*.sqlite
+*.db
 
