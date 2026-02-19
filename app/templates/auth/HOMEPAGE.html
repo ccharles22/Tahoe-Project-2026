@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Dashboard — Direct Evolution Monitoring</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
 </head>
 
 <body class="home-body">
@@ -92,45 +93,23 @@
         <span class="dashboard-card__cta">Open Workflow →</span>
       </a>
 
-      <!-- Analysis -->
-      <div class="dashboard-card dashboard-card--soon">
-        <span class="dashboard-card__badge">Coming Soon</span>
-        <div class="dashboard-card__icon">🧬</div>
-        <h3 class="dashboard-card__title">Data Analysis &amp; Metrics</h3>
-        <p class="dashboard-card__desc">
-          Advanced sequence processing (DNA→Protein) and unified activity metric calculations across generations.
-        </p>
-      </div>
-
-      <!-- Library -->
-      <div class="dashboard-card dashboard-card--soon">
-        <span class="dashboard-card__badge">Coming Soon</span>
-        <div class="dashboard-card__icon">📚</div>
-        <h3 class="dashboard-card__title">Research Library</h3>
-        <p class="dashboard-card__desc">
-          Browse publications, protocols, and shared research resources from your team.
-        </p>
-      </div>
-
-      <!-- Visualisation -->
-      <div class="dashboard-card dashboard-card--soon">
-        <span class="dashboard-card__badge">Coming Soon</span>
-        <div class="dashboard-card__icon">📈</div>
-        <h3 class="dashboard-card__title">Data Visualisation</h3>
-        <p class="dashboard-card__desc">
-          Interactive charts and graphs to identify trends, compare generations, and track variant fitness.
-        </p>
+      <!-- User Guide card linking to mkdocs (placeholder) -->
+      <div class="dashboard-card dashboard-card--link">
+        <div class="dashboard-card__icon">📘</div>
+        <h3 class="dashboard-card__title">User Guide</h3>
+        <p class="dashboard-card__desc">Open the user guide for this application (mkdocs).</p>
+        <a class="dashboard-card__link" href="/guide/"><span class="dashboard-card__cta">Open User Guide →</span></a>
       </div>
 
       <!-- Settings -->
-      <div class="dashboard-card dashboard-card--soon">
-        <span class="dashboard-card__badge">Coming Soon</span>
+      <a href="{{ url_for('auth.settings') }}" class="dashboard-card">
         <div class="dashboard-card__icon">⚙️</div>
         <h3 class="dashboard-card__title">Settings</h3>
         <p class="dashboard-card__desc">
           Manage your account, preferences, notification settings, and team access.
         </p>
-      </div>
+        <span class="dashboard-card__cta">Open Settings →</span>
+      </a>
     </div>
   </main>
 
