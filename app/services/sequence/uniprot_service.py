@@ -54,7 +54,7 @@ import requests
 # API Configuration
 # ============================================================================
 
-# UniProt REST API endpoints (2024+ format)
+# UniProt REST API endpoints 
 UNIPROT_FASTA_URL: Final[str] = "https://rest.uniprot.org/uniprotkb/{accession}.fasta"
 UNIPROT_JSON_URL: Final[str] = "https://rest.uniprot.org/uniprotkb/{accession}.json"
 
@@ -110,14 +110,13 @@ class UniProtRetrievalError(Exception):
 @dataclass(frozen=True)
 class UniProtFeature:
     """
-    A single protein feature annotation from UniProt.
-    
-    Represents structural or functional annotations such as domains,
+    A single protein feature annotation from UniProt which illustrates
+    the structural or functional annotations of a protein, such as domains,
     binding sites, post-translational modifications, variants, etc.
     
     Attributes:
         feature_type: Feature category (e.g., "Domain", "Active site", "Mutagenesis").
-        description: Human-readable description of the feature (may be None).
+        description: description of the feature (may be None).
         begin: Start position (1-based inclusive, may be None for non-positional features).
         end: End position (1-based inclusive, may be None for point features).
         evidence: Evidence code or source supporting this annotation (optional).
@@ -132,13 +131,12 @@ class UniProtFeature:
 @dataclass(frozen=True)
 class UniProtEntry:
     """
-    Complete UniProt entry with protein sequence and metadata.
-    
-    Contains all information typically needed for bioinformatics analysis:
+    Completes UniProt entry with protein sequence and metadata containing 
+    all information typically needed for bioinformatics analysis:
     sequence data, identifiers, organism information, and feature annotations.
     
     Attributes:
-        accession: UniProt accession number (e.g., "P12345").
+        accession: UniProt accession number (e.g., "O34996").
         sequence: Full amino acid sequence (uppercase, no whitespace).
         length: Sequence length in amino acids.
         protein_name: Recommended or submitted protein name (may be None).
@@ -174,7 +172,7 @@ def acquire_uniprot_protein_fasta(
     Automatically validates accession format and sequence content.
     
     Args:
-        accession: UniProt accession number (e.g., "P12345", case-insensitive).
+        accession: UniProt accession number (e.g., "O34996", case-insensitive).
         timeout: HTTP request timeout in seconds (default: 15).
         retries: Number of retry attempts on transient failures (default: 2).
         session: Optional requests.Session for connection pooling (useful for bulk retrieval).
@@ -214,14 +212,12 @@ def acquire_uniprot_entry_with_features(
         session: Optional[requests.Session] = None
 ) -> UniProtEntry:
     """
-    Retrieve complete UniProt entry with sequence, metadata, and features.
-    
-    Fetches comprehensive protein information from UniProt JSON endpoint,
-    including sequence, organism details, protein/gene names, and all
-    annotated features (domains, sites, PTMs, etc.).
+    Retrieves a complete UniProt entry with sequence, metadata, and features.
+    By fetching from the JSON endpoint, this provides access to rich annotations such as
+    sequence, organism details, protein/gene names, and all annotated features (domains, sites, PTMs, etc.).
     
     Args:
-        accession: UniProt accession number (e.g., "P12345", case-insensitive).
+        accession: UniProt accession number (e.g., "O34996", case-insensitive).
         timeout: HTTP request timeout in seconds (default: 15).
         retries: Number of retry attempts on transient failures (default: 2).
         session: Optional requests.Session for connection pooling.
@@ -283,7 +279,7 @@ def acquire_uniprot_entry_with_features(
 
 def _clean_accession(accession: str) -> str:
     """
-    Validate and normalize UniProt accession.
+    Validates and normalises the UniProt accession.
     
     Args:
         accession: Raw accession string (may have whitespace or mixed case).
@@ -310,9 +306,8 @@ def _http_get_text(
         session: Optional[requests.Session],
 ) -> str:
     """
-    Perform HTTP GET with retry logic for text-based responses.
-    
-    Implements automatic retry with linear backoff for transient failures.
+    Performs HTTP GET with retry logic for text-based responses by implementing
+    an automatic retry with linear backoff for transient failures.
     Retries are triggered by network errors, rate limiting, and server errors.
     
     Args:
@@ -358,10 +353,10 @@ def _http_get_json(
         session: Optional[requests.Session],
 ) -> dict[str, Any]:
     """
-    Retrieves and parses JSON with dual-endpoint fallback.
-    
-    Attempts primary URL first, then falls back to legacy endpoint if needed.
-    This handles UniProt API transitions and improves reliability.
+    Retrieves and parses JSON with dual-endpoint fallback. This involves
+    attempting to fetch from the primary modern UniProt JSON endpoint first, 
+    and if that fails, falling back to the legacy endpoint.This helps to handles 
+    UniProt API transitions and improves reliability.
     
     Args:
         primary_url: Modern UniProt REST API endpoint.
@@ -443,13 +438,9 @@ def _is_retryable(exc: Exception) -> bool:
 
 def _parse_fasta_sequence(fasta_text: str) -> str:
     """
-    Extract sequence from FASTA format text.
-    
-    Handles standard FASTA format:
-        >header line
-        SEQUENCE
-        LINE2
-        ...
+    Extracts sequences from FASTA format text by parsing FASTA text to extract the concatenated sequence, 
+    ensuring it is uppercase and contains no whitespace. Also validates that the FASTA format is correct 
+    (header line starting with '>' followed by sequence lines). Returns an empty string if parsing fails.
     
     Args:
         fasta_text: Raw FASTA string from UniProt.
@@ -469,7 +460,7 @@ def _parse_fasta_sequence(fasta_text: str) -> str:
 
 def _extract_sequence_from_json(data: dict[str, Any]) -> str:
     """
-    Extract protein sequence from UniProt JSON response.
+    Extracts protein sequence from UniProt JSON response.
     
     Navigates JSON structure to find sequence value at standard location:
     {"sequence": {"value": "MTEYKLVVV..."}}
@@ -485,7 +476,7 @@ def _extract_sequence_from_json(data: dict[str, Any]) -> str:
 
 def _extract_features_from_json(features: Iterable[Any]) -> Iterable[UniProtFeature]:
     """
-    Parse feature annotations from UniProt JSON.
+    Parses feature annotations from UniProt JSON.
     
     Extracts feature type, description, location, and evidence from the
     "features" array in UniProt JSON responses. Handles various location
@@ -530,7 +521,7 @@ def _extract_features_from_json(features: Iterable[Any]) -> Iterable[UniProtFeat
 
 def _safe_get(obj: Any, path: tuple[Any, ...]) -> Any:
     """
-    Safely traverse nested dict/list structure.
+    Safely traverse nested dictionary/list structure.
     
     Navigates through nested JSON structures without raising KeyError or
     IndexError. Useful for extracting optional fields from API responses.

@@ -29,3 +29,7 @@ Thumbs.db
 *.sqlite
 *.db
 
+# Temporary / analysis outputs
+output/
+results/
+tmp/

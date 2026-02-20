@@ -7,7 +7,7 @@ workflow, including:
     - Mutation storage (synonymous / nonsynonymous / indel classification)
     - Derived metric persistence (mutation counts)
     - Experiment status tracking and run metadata
-    - WT mapping cache (avoids expensive 6-frame recomputation)
+    - WT mapping cache (avoids 6-frame recomputation)
     - UniProt staging for WT protein accession data
     - Atomic end-to-end variant analysis persistence
 
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # These types always have valid position, original, and mutated values
 # that satisfy the schema's NOT NULL and CHECK constraints.
 # Other types (FRAMESHIFT, INSERTION, DELETION) are persisted only in
-# the variant's ``extra_metadata`` JSONB column.
+# the variant's extra_metadata JSONB column.
 _INSERTABLE_MUTATION_TYPES = {"SYNONYMOUS", "NONSYNONYMOUS", "NONSENSE", "AMBIGUOUS"}
 
 
@@ -149,11 +149,6 @@ def update_experiment_status(
     """
     Records the pipeline analysis status for an experiment.
 
-    The production schema has no dedicated ``analysis_status`` column, so
-    the status is stored inside the ``extra_metadata`` JSONB column using
-    PostgreSQL's ``jsonb_set`` function.  This preserves any other metadata
-    already present in the column.
-
     Status values used by the orchestrator:
         ANALYSIS_RUNNING, ANALYSED, ANALYSED_WITH_ERRORS, FAILED
 
@@ -167,9 +162,9 @@ def update_experiment_status(
             text("""
                 UPDATE public.experiments
                 SET extra_metadata = jsonb_set(
-                      COALESCE(extra_metadata, '{}'::jsonb),
+                      COALESCE(extra_metadata,CAST('{}' AS jsonb)),
                       '{analysis_status}',
-                      to_jsonb(:status::text)
+                      to_jsonb(CAST(:status AS text))
                     )
                 WHERE experiment_id = :eid
             """),
@@ -188,7 +183,6 @@ def list_variants_by_experiment(
 ) -> List[Tuple[int, str]]:
     """
     Obtains all variants for an experiment, ordered by generation then variant_id.
-
     Intentionally skips rows where assembled_dna_sequence is NULL (incomplete uploads).
 
     Args:
@@ -243,7 +237,7 @@ def get_variant_generation_id(engine: Engine, variant_id: int) -> int:
 
 
 # =============================================================================
-# WT Mapping Cache  (uses experiment_metadata — no dedicated table)
+# WT Mapping Cache
 # =============================================================================
 
 def load_wt_mapping(
@@ -254,9 +248,9 @@ def load_wt_mapping(
     """
     Loads a previously cached WT gene mapping from the database.
 
-    The mapping is stored as a JSON string in ``experiment_metadata``
-    (field_name = ``'wt_mapping_json'``).  Returns ``None`` on cache miss
-    so the caller can compute and cache it via :func:`upsert_wt_mapping`.
+    The mapping is stored as a JSON string in experiment_metadata under the key
+    'wt_mapping_json'. This then returns None on a cache miss
+    so the caller can compute and cache it via upsert_wt_mapping.
 
     Args:
         engine: SQLAlchemy engine instance.
@@ -304,7 +298,7 @@ def upsert_wt_mapping(
     Caches a WT gene mapping result in the database.
 
     Serialises the WTMapping dataclass to a JSON string and stores it in
-    ``experiment_metadata`` under field_name ``'wt_mapping_json'``.
+    experiment_metadata under 'wt_mapping_json'.
     Uses an upsert so re-running the pipeline safely overwrites stale data.
 
     Args:
@@ -335,7 +329,7 @@ def upsert_wt_mapping(
 
 
 # =============================================================================
-# UniProt Staging  (uses experiment_metadata — no dedicated table)
+# UniProt Staging
 # =============================================================================
 
 def upsert_uniprot_staging(
@@ -349,14 +343,14 @@ def upsert_uniprot_staging(
     Stages a UniProt protein sequence for an experiment.
 
     Stores the accession, user_id, and retrieved protein as a JSON string
-    in ``experiment_metadata`` (field_name = ``'uniprot_staging'``), so
+    in experiment_metadata under 'uniprot_staging', so
     it can be used for WT mapping without re-fetching from UniProt.
 
     Args:
         engine: SQLAlchemy engine instance.
         experiment_id: Primary key of the experiment.
         user_id: User who triggered the staging.
-        accession: UniProt accession identifier (e.g. ``"P00582"``).
+        accession: UniProt accession identifier (e.g. "P00582").
         protein_sequence: Full amino acid sequence from UniProt.
     """
     payload = json.dumps({
@@ -517,10 +511,8 @@ def replace_variant_mutations(
 ) -> None:
     """
     Replaces all mutations of a given type for a variant (idempotent upsert).
-
-    Deletes existing records scoped by ``(variant_id, mutation_type)`` and
-    inserts fresh rows.  Can operate standalone (creates its own transaction)
-    or participate in a shared transaction when ``conn`` is supplied.
+    Deletes existing records collected by variant_id and mutation_type and
+    inserts fresh rows.
 
     Args:
         engine: SQLAlchemy engine instance.
@@ -547,8 +539,6 @@ def _write_metrics(
     counts: "MutationCounts",
 ) -> None:
     """
-    Internal: writes derived mutation-count metrics on an existing connection.
-
     Persists three metric rows per variant:
         - mutation_synonymous_count
         - mutation_nonsynonymous_count
@@ -601,9 +591,9 @@ def save_variant_counts_as_metrics(
     conn: Optional[Connection] = None,
 ) -> None:
     """
-    Saves mutation summary statistics into public.metrics.
+    Saves mutation summary statistics into the metrics table.
 
-    Looks up the variant's generation_id (required as a FK) then upserts
+    Looks up the variant's generation_id (foreign key) then upserts
     three derived-metric rows.  Supports standalone or shared-transaction use.
 
     Args:
@@ -632,7 +622,7 @@ def _write_run_metadata(
     field_value: str,
 ) -> None:
     """
-    Internal: upsert a single metadata key-value pair on an existing connection.
+    Upserts a single metadata key-value pair on an existing connection.
 
     Args:
         conn: Active SQLAlchemy connection (caller manages transaction).
@@ -666,10 +656,8 @@ def save_run_metadata(
     conn: Optional[Connection] = None,
 ) -> None:
     """
-    Persists run-level metadata into public.experiment_metadata.
-
-    Records traceability information such as pipeline completion timestamps
-    and processing parameters.  Supports standalone or shared-transaction use.
+    Persists run-level metadata into experiment_metadata.By recording traceability information such as pipeline completion timestamps
+    and processing parameters. 
 
     Args:
         engine: SQLAlchemy engine instance.
@@ -698,13 +686,13 @@ def _build_analysis_payload(
     user_id: int,
 ) -> Dict[str, Any]:
     """
-    Builds a JSON-serialisable dict summarising the analysis result.
+    Produces a dictionary using JSON summarising the analysis result.
 
-    This payload is stored in ``variants.extra_metadata`` under the
-    ``'sequence_analysis'`` key.  It captures everything the downstream
+    This information is stored in variants.extra_metadata under the
+    sequence_analysis key.  It captures everything that the downstream
     report and UI need: CDS coordinates, QC flags, mutation details
     (including FRAMESHIFT / INSERTION / DELETION records that cannot be
-    stored in the ``mutations`` table), and aggregated counts.
+    stored in the mutations table), and aggregated counts.
 
     Args:
         result: VariantSeqResult from the sequence processing pipeline.
@@ -713,7 +701,7 @@ def _build_analysis_payload(
         user_id: User who triggered the analysis.
 
     Returns:
-        Dict ready for ``json.dumps`` storage.
+        Dictionary ready for json.dumps storage.
     """
     return {
         "user_id": user_id,
@@ -734,9 +722,6 @@ def _build_analysis_payload(
             "nonsynonymous": counts.nonsynonymous,
             "total": counts.total,
         },
-        # Include ALL mutation records here — the mutations table only
-        # stores SYNONYMOUS / NONSYNONYMOUS / NONSENSE / AMBIGUOUS, so
-        # FRAMESHIFT, INSERTION, and DELETION are preserved here.
         "mutations": [
             {
                 "mutation_type": m.mutation_type,
@@ -766,42 +751,37 @@ def insert_variant_analysis(
     """
     Persists a complete variant analysis result atomically.
 
-    Because the production schema has no ``variant_sequence_analysis`` table,
-    this function uses existing columns/tables instead:
-
-        1. ``variants.protein_sequence`` — translated protein string.
-        2. ``variants.extra_metadata`` — JSONB blob with the full analysis
-           payload (CDS coords, QC flags, mutation details, counts).  The
-           payload is stored under the ``'sequence_analysis'`` key so it
-           does not overwrite other metadata.
-        3. ``public.mutations`` — individual mutation rows (only types that
+    Writes to four locations in a single transaction:
+        1. variants.protein_sequence — translated protein string.
+        2. variants.extra_metadata — JSONB payload under the
+           'sequence_analysis' key (CDS coords, QC flags, mutation
+           details, counts).
+        3. mutations — individual mutation rows (only types that
            satisfy the NOT NULL / CHECK constraints).
-        4. ``public.metrics`` — derived mutation-count metrics.
-
-    All four writes happen in one transaction for atomicity.
+        4. metrics — derived mutation-count metrics.
 
     Args:
         engine: SQLAlchemy engine instance.
-        variant_id: Variant being analysed.
-        experiment_id: Owning experiment.
+        variant_id: Variants being analysed.
+        experiment_id: Experiment currently being processed.
         user_id: User who triggered the analysis.
         result: VariantSeqResult from sequence processing.
-        counts: Aggregated mutation counts.
+        counts: Mutation counts.
         mutations: Individual MutationRecord instances.
     """
     muts_list = list(mutations)
     payload = _build_analysis_payload(result, counts, muts_list, user_id)
 
     with engine.begin() as conn:
-        # 1) Update the variant's protein_sequence and extra_metadata JSONB
+        # 1) Updates the variant's protein_sequence and extra_metadata JSONB
         conn.execute(
             text("""
                 UPDATE public.variants
                 SET protein_sequence = :prot,
                     extra_metadata   = jsonb_set(
-                        COALESCE(extra_metadata, '{}'::jsonb),
+                        COALESCE(extra_metadata, CAST('{}' AS jsonb)),
                         '{sequence_analysis}',
-                        :payload::jsonb
+                        CAST(:payload AS jsonb)
                     )
                 WHERE variant_id = :vid
             """),
@@ -814,7 +794,7 @@ def insert_variant_analysis(
 
         _write_mutations(conn, variant_id, muts_list, mutation_type="protein")
 
-        # 3) Write derived metrics (need generation_id lookup first)
+        # 3) Writes derived metrics (need generation_id lookup first)
         gid = get_variant_generation_id(engine, variant_id)
         _write_metrics(conn, variant_id, gid, counts)
 
@@ -837,17 +817,17 @@ def persist_full_variant_analysis(
     mutations: Iterable["MutationRecord"],
 ) -> None:
     """
-    Persist mutations, metrics, and run metadata in a single atomic transaction.
+    Persists mutations, metrics, and run metadata in a single atomic transaction.
 
-    Opens **one** connection/transaction and passes it to each sub-function,
-    ensuring all writes succeed or fail together (true atomicity).
+    Opens one transaction and passes it to each sub-function,
+    ensuring all the code succeed or fail together.
 
     Args:
         engine: SQLAlchemy engine instance.
         experiment_id: Owning experiment primary key.
         variant_id: Variant being persisted.
         result: VariantSeqResult (currently unused but reserved for future columns).
-        counts: Aggregated MutationCounts.
+        counts: MutationCounts.
         mutations: Individual MutationRecord instances to store.
     """
     muts_list = list(mutations)
