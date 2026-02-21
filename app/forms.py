@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired, Length, ValidationError, Email
+from wtforms import StringField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import InputRequired, Length, ValidationError, Email, Optional
 
 from .models import User
 
@@ -43,3 +43,29 @@ class LoginForm(FlaskForm):
     )
 
     submit = SubmitField("Login")
+
+
+class SettingsForm(FlaskForm):
+    username = StringField(
+        validators=[InputRequired(), Length(min=4, max=255)],
+        render_kw={"placeholder": "Username"},
+    )
+
+    email = StringField(
+        validators=[InputRequired(), Email(), Length(max=255)],
+        render_kw={"placeholder": "Email"},
+    )
+
+    current_password = PasswordField(
+        validators=[Optional()],
+        render_kw={"placeholder": "Current password (required to change password)"},
+    )
+
+    new_password = PasswordField(
+        validators=[Optional(), Length(min=4, max=20)],
+        render_kw={"placeholder": "New password (leave blank to keep current)"},
+    )
+
+    receive_notifications = BooleanField("Receive email notifications", default=True)
+
+    submit = SubmitField("Save settings")

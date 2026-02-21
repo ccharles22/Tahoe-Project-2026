@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, render_template
+from flask import Flask, render_template, send_from_directory, abort
 from dotenv import load_dotenv
 from sqlalchemy.exc import OperationalError, DatabaseError
 
@@ -88,5 +88,20 @@ def create_app():
 
     from .blueprints.sequence import sequence_bp
     app.register_blueprint(sequence_bp)
+
+    # Serve built MkDocs site if present (generated `site/` folder from `mkdocs build`)
+    site_dir = os.path.join(os.path.dirname(__file__), "..", "site")
+    site_dir = os.path.abspath(site_dir)
+    if os.path.isdir(site_dir):
+        @app.route("/docs/")
+        def docs_index():
+            return send_from_directory(site_dir, "index.html")
+
+        @app.route("/docs/<path:filename>")
+        def docs_files(filename):
+            path = os.path.join(site_dir, filename)
+            if os.path.exists(path):
+                return send_from_directory(site_dir, filename)
+            abort(404)
 
     return app

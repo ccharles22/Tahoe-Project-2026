@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Settings — Direct Evolution Monitoring</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
+  </head>
+
+  <body class="settings-body">
+
+    <nav class="home-nav" aria-label="Primary navigation">
+      <div class="home-nav__brand" aria-label="DirectEvo home">
+        <span class="home-nav__logo" aria-hidden="true">DE</span>
+        <span class="home-nav__name">DirectEvo</span>
+      </div>
+      <div class="home-nav__right">
+        <span class="home-nav__user" aria-label="Logged in as {{ current_user.username }}">{{ current_user.username }}</span>
+        <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Log out</a>
+      </div>
+    </nav>
+
+    <main class="home-container" id="main-content">
+
+      <div id="status-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+
+      <section class="settings-page" aria-labelledby="settings-title">
+
+        <div class="settings-card card card--elevated">
+          <header class="settings-header">
+            <div class="profile-meta">
+              <div class="avatar" aria-hidden="true">{{ current_user.username[0]|upper }}</div>
+              <div>
+                <h1 id="settings-title" class="settings-title">Account Settings</h1>
+                <p class="settings-sub">Manage your profile, security, and notification preferences.</p>
+              </div>
+            </div>
+          </header>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              <div class="flash-messages" role="alert" aria-live="assertive" aria-atomic="true" id="flash-region">
+                {% for category, msg in messages %}
+                  <div class="flash flash--{{ category }}">
+                    <svg class="flash__icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      {% if category == 'success' %}
+                        <path d="M20 6L9 17l-5-5"/>
+                      {% else %}
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                      {% endif %}
+                    </svg>
+                    <span>{{ msg }}</span>
+                  </div>
+                {% endfor %}
+              </div>
+            {% endif %}
+          {% endwith %}
+
+          <form method="post" class="settings-form" id="settings-form" novalidate aria-describedby="form-intro">
+            {{ form.hidden_tag() }}
+            <p id="form-intro" class="sr-only">Update your account details below. Fields marked with an asterisk are required.</p>
+
+            <fieldset class="form-section">
+              <legend class="form-section__legend">Profile</legend>
+              <div class="form-grid">
+                <div class="form-group" id="group-username">
+                  {{ form.username.label(class_='label', for=form.username.id) }}
+                  <span class="label__required" aria-hidden="true">*</span>
+                  {{ form.username(class_='input', id='username', autocomplete='username', aria_required='true', aria_describedby='hint-username err-username', aria_invalid=('true' if form.username.errors else 'false')) }}
+                  <span id="hint-username" class="hint">Your public display name.</span>
+                  {% if form.username.errors %}
+                    <ul class="field-errors" id="err-username" role="alert">{% for e in form.username.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                  {% else %}
+                    <span id="err-username" class="sr-only" aria-live="polite"></span>
+                  {% endif %}
+                </div>
+
+                <div class="form-group" id="group-email">
+                  {{ form.email.label(class_='label', for=form.email.id) }}
+                  <span class="label__required" aria-hidden="true">*</span>
+                  {{ form.email(class_='input', id='email', type='email', autocomplete='email', aria_required='true', aria_describedby='hint-email err-email', aria_invalid=('true' if form.email.errors else 'false')) }}
+                  <span id="hint-email" class="hint">Used for notifications and password recovery.</span>
+                  {% if form.email.errors %}
+                    <ul class="field-errors" id="err-email" role="alert">{% for e in form.email.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                  {% else %}
+                    <span id="err-email" class="sr-only" aria-live="polite"></span>
+                  {% endif %}
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section" id="password-section">
+              <legend class="form-section__legend">Change Password</legend>
+              <p class="form-section__desc">Leave both fields blank if you don't want to change your password.</p>
+              <div class="form-grid">
+                <div class="form-group" id="group-current-password">
+                  {{ form.current_password.label(class_='label', for=form.current_password.id) }}
+                  <div class="input-wrapper">
+                    {{ form.current_password(class_='input', id='current_password', autocomplete='current-password', aria_describedby='hint-current-pw err-current-pw', aria_invalid=('true' if form.current_password.errors else 'false')) }}
+                    <button type="button" class="btn-reveal" aria-label="Show current password" data-target="{{ form.current_password.id }}">
+                      <svg class="icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                  <span id="hint-current-pw" class="hint">Required only when setting a new password.</span>
+                  {% if form.current_password.errors %}
+                    <ul class="field-errors" id="err-current-pw" role="alert">{% for e in form.current_password.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                  {% else %}
+                    <span id="err-current-pw" class="sr-only" aria-live="polite"></span>
+                  {% endif %}
+                </div>
+
+                <div class="form-group" id="group-new-password">
+                  {{ form.new_password.label(class_='label', for=form.new_password.id) }}
+                  <div class="input-wrapper">
+                    {{ form.new_password(class_='input', id='new_password', autocomplete='new-password', aria_describedby='hint-new-pw err-new-pw pw-strength', aria_invalid=('true' if form.new_password.errors else 'false')) }}
+                    <button type="button" class="btn-reveal" aria-label="Show new password" data-target="{{ form.new_password.id }}">
+                      <svg class="icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                    </button>
+                  </div>
+                  <div id="pw-strength" class="pw-strength" aria-live="polite" hidden>
+                    <div class="pw-strength__bar" aria-hidden="true"><div class="pw-strength__fill"></div></div>
+                    <span class="pw-strength__label"></span>
+                  </div>
+                  <span id="hint-new-pw" class="hint">Min. 8 characters. Use letters, numbers, and symbols.</span>
+                  {% if form.new_password.errors %}
+                    <ul class="field-errors" id="err-new-pw" role="alert">{% for e in form.new_password.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+                  {% else %}
+                    <span id="err-new-pw" class="sr-only" aria-live="polite"></span>
+                  {% endif %}
+                </div>
+              </div>
+            </fieldset>
+
+            <fieldset class="form-section">
+              <legend class="form-section__legend">Preferences</legend>
+              <div class="form-row form-row--checkbox">
+                {{ form.receive_notifications(id='receive_notifications', class_='checkbox', aria_describedby='hint-notifications') }}
+                <label for="receive_notifications" class="label label--inline">Receive email notifications</label>
+                <span id="hint-notifications" class="hint hint--inline">Get updates about experiments, results, and team activity.</span>
+              </div>
+            </fieldset>
+
+            <div class="form-actions">
+              {{ form.submit(class_='btn btn--primary', id='submit-btn') }}
+              <a href="{{ url_for('auth.homepage') }}" class="btn btn--ghost">← Back to dashboard</a>
+            </div>
+          </form>
+        </div>
+
+        <aside class="settings-side" aria-label="Account information and tips">
+          <div class="card panel">
+            <h2 class="panel__title">Security tips</h2>
+            <ul class="panel__list">
+              <li>Use a strong, unique password — at least 12 characters mixing letters, numbers, and symbols.</li>
+              <li>Change your password periodically and never reuse old passwords.</li>
+              <li>Contact your admin to manage team access or transfer ownership.</li>
+            </ul>
+          </div>
+
+          <div class="card panel">
+            <h2 class="panel__title">Profile info</h2>
+            <dl class="kv">
+              <div class="kv__row"><dt>Member since</dt><dd><time datetime="{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else '' }}">{{ current_user.created_at.strftime('%b %d, %Y') if current_user.created_at else '—' }}</time></dd></div>
+              <div class="kv__row"><dt>User ID</dt><dd><code>{{ current_user.user_id }}</code></dd></div>
+            </dl>
+          </div>
+        </aside>
+      </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='js/settings.js') }}" defer></script>
+  </body>
+</html>

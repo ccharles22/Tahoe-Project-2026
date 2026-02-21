@@ -29,7 +29,6 @@ theme:
 
 nav:
   - Home: index.md
-  - Architecture: architecture.md
   - User Guide:
     - Getting Started: guide/getting-started.md
     - Uploading Data: guide/uploading-data.md
@@ -41,6 +40,13 @@ nav:
   - API Reference:
     - Endpoints: api/endpoints.md
   - Troubleshooting: troubleshooting.md
+  - Project Docs:
+    - Architecture: architecture.md
+    - Database Setup (Tailscale): database_setup_tailscale.md
+    - Git Workflow: git_workflow.md
+    - Methodology: methodology.md
+    - Parsing & QC Manual: parsing_qc_manual.md
+    - Schema Design Notes: schema_design_notes.md
 
 markdown_extensions:
   - pymdownx.highlight:
