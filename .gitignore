@@ -1,21 +1,42 @@
-.env
-__pycache__/
-*.pyc
+# Python virtual environment
 .venv/
 venv/
 
+# Python cache / compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
 # Flask
 instance/
-*.log
 
-# VS Code / OS
+# Logs and runtime artifacts
+*.log
+*.pid
+
+# VS Code / editor files
 .vscode/
+*.code-workspace
+
+# OS-specific files
 .DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
 
 # Database / data
 data/app.db
 *.db
 *.sqlite
+*.sql
 
 # Generated outputs
 app/static/generated/
+
+# Temporary / analysis outputs
+output/
+results/
+tmp/

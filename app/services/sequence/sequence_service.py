@@ -25,11 +25,13 @@ Algorithm Overview:
 """
 from __future__ import annotations
 
+import warnings
 from dataclasses import dataclass
 from typing import List, Tuple, Optional
 
 from Bio.Align import PairwiseAligner
 from Bio.Align import substitution_matrices
+from Bio import BiopythonWarning
 
 from app.config import settings
 from .seq_utils import (
@@ -154,23 +156,18 @@ class MutationCounts:
 # ============================================================================
 # Alignment Utilities
 # ============================================================================
-
-def _make_protein_aligner() -> PairwiseAligner:
+def _make_protein_aligner(mode: str = "global") -> PairwiseAligner:
     """
-    Configures a global pairwise aligner with BLOSUM62 and gap penalties.
+    Configures a pairwise aligner with BLOSUM62 and gap penalties.
     
-    Creates an aligner optimised for protein sequence alignment utilised in
-    6-frame translation search and indel detection.
+    Args:
+        mode: Alignment mode - "global" or "local".
     
     Returns:
-        PairwiseAligner: Configured with:
-            - mode: global alignment
-            - substitution_matrix: BLOSUM62
-            - open_gap_score: -10.0 (penalty to initiate gap)
-            - extend_gap_score: -0.5 (penalty per gap extension)
+        PairwiseAligner: Configured with BLOSUM62 scoring.
     """
     aligner = PairwiseAligner()
-    aligner.mode = "global"
+    aligner.mode = mode
     aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
     aligner.open_gap_score = -10.0
     aligner.extend_gap_score = -0.5
@@ -214,7 +211,7 @@ def _identity_pct_from_alignment(aln) -> float:
 
 def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
     """
-    Extract codon from DNA sequence at specified 1-based position.
+    Extracts codon from DNA sequence at specified 1-based position.
     
     Args:
         dna: DNA sequence string.
@@ -289,7 +286,7 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
     n = len(plasmid) 
     circular = plasmid + plasmid # Supports wrap-around gene locations on circular plasmids.
 
-    aligner = _make_protein_aligner()
+    aligner = _make_protein_aligner(mode="local")
 
     best:Optional[WTMapping] = None
     best_score = float("-inf")
@@ -302,11 +299,13 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
 
     for strand_name, seq in strands.items():
         for frame in (0, 1, 2):
-            translated = translate_dna(
-                seq[frame:],
-                table=settings.GENETIC_CODE_TABLE,
-                to_stop=False,
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", BiopythonWarning)
+                translated = translate_dna(
+                    seq[frame:],
+                    table=settings.GENETIC_CODE_TABLE,
+                    to_stop=False,
+                )
             if not translated:
                 continue
 
@@ -318,22 +317,25 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
                 continue
             
             # First aligned query amino acid position secures nucleotide start 
-            if not aln.aligned[0] or not aln.aligned[0][0]:
+            if aln.aligned[0].size == 0 or aln.aligned[0][0].size == 0:
                 continue
 
             q0_prot = int(aln.aligned[0][0][0])
-
             nt_start = frame + (q0_prot * 3)
             nt_end = nt_start + (len(wt_protein) * 3)
-
             nt_start_mod = nt_start % n
             nt_end_mod = nt_end % n
 
-            wt_cds = circular_slice(
-                plasmid,
-                nt_start_mod,
-                nt_end_mod,
-            )
+            # Edge case: CDS spans the entire plasmid (end wraps to start)
+            if nt_end_mod == nt_start_mod and (nt_end - nt_start) == n:
+                wt_cds = plasmid[nt_start_mod:] + plasmid[:nt_start_mod] if nt_start_mod != 0 else plasmid
+            else:
+                wt_cds = circular_slice(
+                    plasmid,
+                    nt_start_mod,
+                    nt_end_mod,
+                )
+
             # Always returns CDS in coding orientation
             if strand_name == "MINUS":
                 wt_cds = reverse_complement_dna(wt_cds)
@@ -413,12 +415,16 @@ def process_variant_plasmid(
         - Other: Keep stops in sequence, flags any embedded stop codons
     """
     plasmid = normalise_dna(variant_plasmid_dna)
+    n = len(plasmid)
 
-    cds_dna = circular_slice(
-        plasmid,
-        wt_mapping.cds_start_0based,
-        wt_mapping.cds_end_0based_excl,
-    )
+    start = wt_mapping.cds_start_0based
+    end = wt_mapping.cds_end_0based_excl
+
+    # Handle full-circle CDS (start == end means the gene spans the entire plasmid)
+    if start == end and len(wt_mapping.wt_cds_dna) >= n:
+        cds_dna = plasmid[start:] + plasmid[:start] if start != 0 else plasmid
+    else:
+        cds_dna = circular_slice(plasmid, start, end)
     
     if wt_mapping.strand == "MINUS":
         cds_dna = reverse_complement_dna(cds_dna)
@@ -596,22 +602,24 @@ def call_indels_via_protein_alignment(
                 mtype = "NONSYNONYMOUS"
                 nonsyn += 1
         else:
-            # Codon retrieval failed (e.g. near sequence ends), classify as nonsynonymous 
+            # Codon retrieval failed (e.g. near sequence ends), classify as nonsynonymous
+            wt_aa = wa if wa != "-" else None
+            var_aa = va if va != "-" else None
             mtype = "NONSYNONYMOUS"
             nonsyn += 1
 
-            muts.append(
-                MutationRecord(
-                    mutation_type=mtype,
-                    codon_index_1based=wt_pos,
-                    aa_position_1based=wt_pos,
-                    wt_codon=wt_codon,
-                    var_codon=var_codon,
-                    wt_aa=wa if wa != "-" else None,
-                    var_aa=va if va != "-" else None,
-                    notes="Protein-alignment mismatch mapped to nearest codon.",
-                )
+        muts.append(
+            MutationRecord(
+                mutation_type=mtype,
+                codon_index_1based=wt_pos,
+                aa_position_1based=wt_pos,
+                wt_codon=wt_codon,
+                var_codon=var_codon,
+                wt_aa=wt_aa if wt_codon and var_codon else (wa if wa != "-" else None),
+                var_aa=var_aa if wt_codon and var_codon else (va if va != "-" else None),
+                notes="Protein-alignment mismatch mapped to nearest codon." if not (wt_codon and var_codon) else None,
             )
+        )
 
     return muts, MutationCounts(synonymous=syn, nonsynonymous=nonsyn, total=total)
 
