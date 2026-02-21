@@ -209,7 +209,7 @@ def translate_cds_with_qc(
         notes.append("CDS length not divisible by 3.")
 
     # Translates first without truncation to detect internal stop codons consistently.
-    try: 
+    try:
         full_translation = str(
             Seq(dna).translate(table=genetic_code_table, to_stop=False)
         )
@@ -224,7 +224,7 @@ def translate_cds_with_qc(
             notes=f"Translation failed: {type(e).__name__}: {e}"
         )
         return None, qc
-    
+
     stop_index = full_translation.find("*")
     has_stop = (stop_index != -1)
 
@@ -232,8 +232,8 @@ def translate_cds_with_qc(
         protein = full_translation.split("*")[0]
         is_truncated = has_stop
     else:
-       protein = full_translation
-       is_truncated = False
+        protein = full_translation
+        is_truncated = False
 
     qc = TranslationQC(
         normalised_len=len(dna),

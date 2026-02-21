@@ -141,6 +141,14 @@ def upload_form_submit() -> str:
 
     def _save_and_redirect(result_dict):
         """Store parsing result in session and redirect back to staging."""
+        # Ensure staging template always has stable numeric fields.
+        result_dict.setdefault('total_records', 0)
+        result_dict.setdefault('inserted_count', 0)
+        result_dict.setdefault('updated_count', 0)
+        result_dict.setdefault('warnings_count', len(result_dict.get('warnings', []) or []))
+        result_dict.setdefault('detected_fields', [])
+        result_dict.setdefault('errors', [])
+        result_dict.setdefault('warnings', [])
         key = f"parsing_result_{experiment_id}"
         flask_session[key] = _sanitize(result_dict)
         return redirect(url_for(

@@ -14,11 +14,31 @@
   {% set step_b_fail = validation is not none and not validation.is_valid %}
   {% set step_c_done = parsing_result is not none and parsing_result.success %}
   {% set step_c_fail = parsing_result is not none and not parsing_result.success %}
+  {% set analysis_failed = analysis_message and ('analysis failed' in (analysis_message|lower)) %}
+  {% set sequence_failed = (sequence_status and sequence_status.status == 'failed') or (sequence_message and ('sequence processing failed' in (sequence_message|lower))) %}
+  {% set sequence_completed = (sequence_status and sequence_status.status == 'success') or (sequence_message and ('sequence processing completed' in (sequence_message|lower))) %}
+  {% set sequence_technical = sequence_status.technical_details if sequence_status and sequence_status.technical_details else '' %}
+  {% set sequence_failure_reason = sequence_status.summary if sequence_status and sequence_status.summary else (sequence_message|replace('Sequence processing failed: ', '')) %}
   {% set step_d_done = analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
-  {% set step_e_done = sequence_message is not none and sequence_message %}
+  {% set step_e_done = sequence_completed %}
   {% set done_count = [step_a_done, step_b_done, step_c_done, step_d_done, step_e_done]|select|list|length %}
+  {% set total_records = (parsing_result.total_records|default(0, true)) if parsing_result else 0 %}
+  {% set inserted_count = (parsing_result.inserted_count|default(0, true)) if parsing_result else 0 %}
+  {% set updated_count = (parsing_result.updated_count|default(0, true)) if parsing_result else 0 %}
+  {% set warnings_count = (parsing_result.warnings_count|default(0, true)) if parsing_result else 0 %}
+  {% set skipped_count = total_records - inserted_count - updated_count %}
+  {% if skipped_count < 0 %}{% set skipped_count = 0 %}{% endif %}
+  {% set run_summary_status = '' %}
+  {% set display_experiment_name = selected_experiment_name if selected_experiment_name else 'Experiment' %}
+  {% if step_c_done and step_d_done and step_e_done %}
+    {% set run_summary_status = 'success' %}
+  {% elif step_c_fail or (analysis_failed and not step_d_done) or (sequence_failed and not (step_c_done or step_d_done)) %}
+    {% set run_summary_status = 'failed' %}
+  {% elif step_c_done or step_d_done or step_e_done or warnings_count > 0 or analysis_failed or sequence_failed %}
+    {% set run_summary_status = 'partial' %}
+  {% endif %}
 
-  <body>
+  <body class="staging-page">
     <!-- PAGE HEADER -->
     <header class="page-header">
       <a href="{{ url_for('auth.homepage') }}" class="back-btn">
@@ -27,7 +47,7 @@
       </a>
       {% if experiment_id %}
         <div class="page-header__context">
-          <span class="page-header__exp">Experiment #{{ experiment_id }}</span>
+          <span class="page-header__exp">{{ display_experiment_name }} #{{ experiment_id }}</span>
           {% if wt %}
             <span class="page-header__sep">·</span>
             <span class="page-header__protein">{{ wt.uniprot_id }}</span>
@@ -354,7 +374,7 @@
       <main class="workspace">
         <div class="workspace__header">
           {% if experiment_id %}
-            <h1 class="workspace__title">Experiment #{{ experiment_id }}{% if wt %} · {{ wt.uniprot_id }}{% endif %}</h1>
+            <h1 class="workspace__title">{{ display_experiment_name }} #{{ experiment_id }}{% if wt %} · {{ wt.uniprot_id }}{% endif %}</h1>
             <p class="workspace__sub">{{ done_count }}/5 steps complete</p>
           {% else %}
             <h1 class="workspace__title">Getting Started</h1>
@@ -373,6 +393,52 @@
           {% endif %}
         {% endwith %}
 
+        {% if experiment_id and run_summary_status %}
+        <section class="run-summary run-summary--{{ run_summary_status }}">
+          <div class="run-summary__header">
+            <span class="run-summary__badge">
+              Status: {{ 'Success' if run_summary_status == 'success' else ('Partial success' if run_summary_status == 'partial' else 'Failed') }}
+            </span>
+            {% if run_summary_status == 'success' %}
+              <p class="run-summary__headline">
+                Analysis complete - {{ total_records }} records processed ({{ inserted_count }} inserted, {{ updated_count }} updated, {{ skipped_count }} skipped).
+              </p>
+            {% elif run_summary_status == 'partial' %}
+              {% if sequence_failed and step_d_done %}
+                <p class="run-summary__headline">Analysis complete, but sequence processing failed - mutations not computed.</p>
+              {% elif analysis_failed and step_c_done %}
+                <p class="run-summary__headline">Data upload completed, but analysis failed.</p>
+              {% elif warnings_count > 0 and step_c_done %}
+                <p class="run-summary__headline">Analysis complete with warnings - review flagged records.</p>
+              {% else %}
+                <p class="run-summary__headline">Run completed with partial outputs.</p>
+              {% endif %}
+            {% else %}
+              <p class="run-summary__headline">
+                Run failed{% if parsing_result and parsing_result.error_message %} - {{ parsing_result.error_message }}{% elif analysis_failed %} - {{ analysis_message|replace('Analysis failed: ', '') }}{% elif sequence_failed %} - {{ sequence_failure_reason }}{% endif %}.
+              </p>
+            {% endif %}
+          </div>
+
+          <div class="run-summary__grid">
+            <div class="run-summary__item"><span>Experiment</span><strong>{{ display_experiment_name }} #{{ experiment_id }}</strong></div>
+            <div class="run-summary__item"><span>Accession</span><strong>{{ wt.uniprot_id if wt else 'N/A' }}</strong></div>
+            <div class="run-summary__item"><span>Records</span><strong>{{ total_records }} total / {{ inserted_count }} inserted / {{ updated_count }} updated / {{ skipped_count }} skipped</strong></div>
+            <div class="run-summary__item"><span>Warnings</span><strong>{{ warnings_count }}</strong></div>
+            <div class="run-summary__item run-summary__item--wide">
+              <span>Sequence Processing</span>
+              {% if step_e_done %}
+                <strong>Completed{% if sequence_message %} - {{ sequence_message|replace('Sequence processing completed. ', '') }}{% endif %}</strong>
+              {% elif sequence_failed %}
+                <strong>Failed - {{ sequence_failure_reason }}</strong>
+              {% else %}
+                <strong>Not run</strong>
+              {% endif %}
+            </div>
+          </div>
+        </section>
+        {% endif %}
+
         {% if not experiment_id %}
           <!-- NO EXPERIMENT SELECTED -->
           <section class="panel panel--welcome">
@@ -383,6 +449,230 @@
             </div>
           </section>
         {% else %}
+
+        {% if sequence_failed %}
+        <section class="panel sequence-callout panel--left-danger">
+          <div class="panel__header">Sequence Processing Didn&rsquo;t Run</div>
+          <p class="sequence-callout__impact">Mutation counts and mutation classifications may be missing.</p>
+          <div class="sequence-callout__actions">
+            <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
+              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+              <button class="btn btn--primary" type="submit">Try again</button>
+            </form>
+            {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
+              <a class="btn" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download debug CSV</a>
+            {% endif %}
+          </div>
+          <details class="details">
+            <summary>Show technical details</summary>
+            <pre class="mono pre-line">{{ sequence_technical if sequence_technical else sequence_message }}</pre>
+          </details>
+        </section>
+        {% endif %}
+
+        <section class="panel kpi-panel">
+          <div class="panel__header">KPI Snapshot</div>
+          <div class="stats">
+            <div class="stat-card">
+              <div class="value">{{ kpis.total_records if kpis else 0 }}</div>
+              <div class="label">Total variants / records</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ kpis.generations_covered if kpis and kpis.generations_covered else 'N/A' }}</div>
+              <div class="label">Generations covered</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">
+                {% if kpis and (kpis.activity_mean is not none) and (kpis.activity_median is not none) %}
+                  {{ '%.3f'|format(kpis.activity_mean) }} / {{ '%.3f'|format(kpis.activity_median) }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </div>
+              <div class="label">Mean / Median activity</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ '%.3f'|format(kpis.activity_best) if kpis and kpis.activity_best is not none else 'N/A' }}</div>
+              <div class="label">Best activity score</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ ('%.1f%%'|format(kpis.mutated_percent)) if kpis and kpis.mutated_percent is not none else 'N/A' }}</div>
+              <div class="label">% variants with mutations</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ warnings_count }}</div>
+              <div class="label">Warnings</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel insights-panel">
+          <div class="panel__header">Top Results</div>
+          {% if top10_rows %}
+            <div class="top-results__toolbar">
+              <label class="label" for="topResultsGenFilter">Generation range</label>
+              <input id="topResultsGenFilter" class="input input--sm top-results__filter" type="text" placeholder="e.g., 0-4">
+            </div>
+            <div class="top-results__table-wrap">
+              <table class="top-results__table">
+                <thead>
+                  <tr>
+                    <th>Rank</th>
+                    <th>Generation</th>
+                    <th>Variant</th>
+                    <th>Activity Score</th>
+                    <th>Mutations</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in top10_rows %}
+                    <tr class="{% if row.rank <= 3 %}top-results__row--top{{ row.rank }}{% endif %}" data-generation="{{ row.generation_number }}">
+                      <td>#{{ row.rank }}</td>
+                      <td>{{ row.generation_number }}</td>
+                      <td>{{ row.variant_index }}</td>
+                      <td>{{ row.activity_score }}</td>
+                      <td>{{ row.protein_mutations }}</td>
+                      <td>
+                        <button
+                          type="button"
+                          class="btn btn--ghost btn--sm js-view-variant"
+                          {% if not row.variant_id %}disabled{% endif %}
+                          data-variant-id="{{ row.variant_id if row.variant_id else '' }}"
+                          data-rank="{{ row.rank }}"
+                          data-generation="{{ row.generation_number }}"
+                          data-variant="{{ row.variant_index }}"
+                          data-activity="{{ row.activity_score }}"
+                          data-mutations="{{ row.protein_mutations }}"
+                        >
+                          View variant
+                        </button>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon">📋</div>
+              Top results are not available yet.
+              <div class="empty__sub">Run Step D to generate top-10 outputs.</div>
+            </div>
+          {% endif %}
+        </section>
+
+        <div class="variant-modal" id="variantModal" aria-hidden="true">
+          <div class="variant-modal__backdrop js-close-variant-modal"></div>
+          <div class="variant-modal__card" role="dialog" aria-modal="true" aria-labelledby="variantModalTitle">
+            <button type="button" class="variant-modal__close js-close-variant-modal" aria-label="Close">&times;</button>
+            <h3 class="variant-modal__title" id="variantModalTitle">Variant Details</h3>
+            <div class="kv">
+              <div class="kv__row"><span>Rank</span><strong id="modalRank">-</strong></div>
+              <div class="kv__row"><span>Variant ID</span><strong id="modalVariantId">-</strong></div>
+              <div class="kv__row"><span>Generation</span><strong id="modalGeneration">-</strong></div>
+              <div class="kv__row"><span>Parent variant</span><strong id="modalParentVariant">-</strong></div>
+              <div class="kv__row"><span>Variant</span><strong id="modalVariant">-</strong></div>
+              <div class="kv__row"><span>Activity score</span><strong id="modalActivity">-</strong></div>
+            </div>
+            <div class="variant-modal__block">
+              <div class="variant-modal__subtitle">Mutations (WT vs Variant)</div>
+              <div class="variant-modal__mut-wrap">
+                <table class="variant-modal__mut-table">
+                  <thead>
+                    <tr>
+                      <th>Type</th>
+                      <th>AA</th>
+                      <th>NT</th>
+                      <th>Pos</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modalMutationsBody">
+                    <tr><td colspan="4">No mutation data.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="variant-modal__block">
+              <div class="variant-modal__subtitle">Protein snippet around mutation</div>
+              <pre class="variant-modal__snippet" id="modalProteinSnippet">-</pre>
+            </div>
+            <div class="variant-modal__downloads">
+              <a class="btn btn--sm" id="modalDownloadDna" href="#" target="_blank" rel="noopener">FASTA (DNA)</a>
+              <a class="btn btn--sm" id="modalDownloadProtein" href="#" target="_blank" rel="noopener">Protein FASTA</a>
+              <a class="btn btn--sm" id="modalDownloadMutCsv" href="#" target="_blank" rel="noopener">Mutation report (CSV)</a>
+            </div>
+          </div>
+        </div>
+
+        <section class="panel visuals-panel">
+          <div class="panel__header">Visual Insights</div>
+          {% set has_any_graph = (analysis_outputs and (
+              (analysis_outputs.plot and analysis_outputs.plot.exists) or
+              (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
+              (analysis_outputs.lineage and analysis_outputs.lineage.exists)
+          )) %}
+
+          {% if has_any_graph %}
+            <div class="analysis-gallery">
+              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
+              <div class="analysis-card" data-plot="distribution">
+                <div class="analysis-card__title">Activity Score Distribution</div>
+                <a href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution">
+                </a>
+                <p class="analysis-caption">Distribution shows how activity varies across generations.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+              <div class="analysis-card" data-plot="lineage">
+                <div class="analysis-card__title">Variant Lineage</div>
+                <a href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
+                </a>
+                <p class="analysis-caption">Lineage shows parent-child relationships.</p>
+              </div>
+              {% endif %}
+            </div>
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon">📈</div>
+              No analysis visuals yet.
+              <div class="empty__sub">Run Step D to generate plots.</div>
+            </div>
+          {% endif %}
+
+          {% if analysis_outputs %}
+            <div class="downloads-group">
+              <div class="downloads-group__title">Downloads</div>
+              <div class="downloads-group__list">
+                <a class="btn btn--ghost" href="{{ analysis_outputs.results.url }}" target="_blank" rel="noopener">Results CSV (all processed rows)</a>
+
+                {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
+                  <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
+                {% else %}
+                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 CSV</span>
+                {% endif %}
+
+                {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
+                  <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
+                {% else %}
+                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">QC debug CSV</span>
+                {% endif %}
+
+                {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
+                  <a class="btn btn--ghost" href="{{ analysis_outputs.mutation_report.url }}" target="_blank" rel="noopener">Mutation report CSV</a>
+                {% else %}
+                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">Mutation report CSV</span>
+                  <span class="downloads-group__hint">
+                    {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Run sequence processing first.' }}
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
+        </section>
 
         <!-- WT OUTPUT -->
         <section class="panel" data-panel="A">
@@ -528,13 +818,39 @@
             {% endif %}
 
             {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
-              <details class="details" {% if not parsing_result.success %}open{% endif %}>
+              <details class="details warning-insights" {% if not parsing_result.success %}open{% endif %}>
                 <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
-                <ul class="mono">
-                  {% for warning in parsing_result.warnings %}
-                    <li class="text-warning">{{ warning }}</li>
-                  {% endfor %}
-                </ul>
+                <div class="warning-insights__summary" data-warning-summary>
+                  {{ parsing_result.warnings|length }} warnings detected.
+                </div>
+                <div class="warning-insights__filters">
+                  <button type="button" class="btn btn--sm btn--ghost js-warning-filter is-active" data-filter="critical">Show only critical</button>
+                  <button type="button" class="btn btn--sm btn--ghost js-warning-filter" data-filter="all">Show all</button>
+                </div>
+                <div class="warning-insights__table-wrap">
+                  <table class="warning-insights__table">
+                    <thead>
+                      <tr>
+                        <th>Severity</th>
+                        <th>Row</th>
+                        <th>Field</th>
+                        <th>Issue</th>
+                        <th>Fix suggestion</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for warning in parsing_result.warnings %}
+                        <tr class="js-warning-row" data-warning-text="{{ warning|e }}">
+                          <td data-col="severity">-</td>
+                          <td data-col="row">-</td>
+                          <td data-col="field">-</td>
+                          <td data-col="issue">{{ warning }}</td>
+                          <td data-col="fix">Review data and retry.</td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
               </details>
             {% endif %}
 
@@ -547,80 +863,6 @@
           {% endif %}
         </section>
         {% endif %}
-
-        <!-- ANALYSIS RESULTS -->
-        {% if step_d_done or (step_c_done and analysis_message) or step_d_done %}
-        <section class="panel" data-panel="D">
-          <div class="panel__header">
-            <span class="panel__step">D</span>
-            Analysis Results
-            {% if step_d_done %}<span class="badge badge--ok ml-auto">Done</span>{% endif %}
-          </div>
-
-          {% if analysis_message %}
-            <div class="note">{{ analysis_message }}</div>
-          {% endif %}
-
-          {# ── Graphs gallery ── #}
-          {% set has_any_graph = (analysis_outputs and (
-              (analysis_outputs.plot and analysis_outputs.plot.exists) or
-              (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
-              (analysis_outputs.lineage and analysis_outputs.lineage.exists)
-          )) %}
-
-          {% if has_any_graph %}
-            <div class="analysis-gallery">
-
-              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
-              <div class="analysis-card">
-                <div class="analysis-card__title">Activity Score Distribution</div>
-                <a href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">
-                  <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution (violin)">
-                </a>
-              </div>
-              {% endif %}
-
-              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
-              <div class="analysis-card">
-                <div class="analysis-card__title">Top 10 Performers</div>
-                <a href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">
-                  <img class="analysis-img" src="{{ analysis_outputs.top10_png.url }}" alt="Top 10 variants table">
-                </a>
-              </div>
-              {% endif %}
-
-              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
-              <div class="analysis-card">
-                <div class="analysis-card__title">Variant Lineage</div>
-                <a href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">
-                  <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
-                </a>
-              </div>
-              {% endif %}
-
-            </div>
-          {% else %}
-            <div class="empty">
-              <div class="empty__icon">📈</div>
-              No analysis outputs yet.
-              <div class="empty__sub">Run Step D to generate results.</div>
-            </div>
-          {% endif %}
-
-          {# ── Download links ── #}
-          {% if analysis_outputs %}
-            <div class="analysis-links">
-              {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">📥 Top 10 CSV</a>
-              {% endif %}
-              {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">📥 QC Debug CSV</a>
-              {% endif %}
-            </div>
-          {% endif %}
-        </section>
-        {% endif %}
-
         <!-- SEQUENCE PROCESSING RESULTS -->
         {% if step_e_done or (step_c_done and sequence_message) %}
         <section class="panel" data-panel="E">
@@ -649,3 +891,5 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
+
+

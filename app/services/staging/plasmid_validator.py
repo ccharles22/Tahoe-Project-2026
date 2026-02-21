@@ -174,14 +174,16 @@ def validate_plasmid(
     wraps = (s2_start < L) and (s2_end_excl > L)
     is_valid = (best["identity"] >= min_identity) and (best["coverage"] >= min_coverage)
 
-    msg = (
-        f"Best hit: identity={best['identity']:.1f}%, coverage={best['coverage']:.1f}% "
-        f"on strand {best['strand']} frame {best['frame']}." 
-    )
     if is_valid:
-        msg = "PASS. " + msg # successful validation
+        msg = (
+            f"PASS: Exact match to the expected WT CDS "
+            f"({best['identity']:.1f}% identity, {best['coverage']:.1f}% coverage)."
+        )
     else:
-        msg = "FAIL. " + msg # failed validation
+        msg = (
+            f"FAIL. Best hit: identity={best['identity']:.1f}%, coverage={best['coverage']:.1f}% "
+            f"on strand {best['strand']} frame {best['frame']}."
+        )
 
 
     # Return structured result (cast to native Python types for JSON safety)

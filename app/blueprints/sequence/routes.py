@@ -5,7 +5,7 @@ from flask import jsonify, request
 from app.jobs.run_sequence_processing import run_sequence_processing
 from app.services.sequence import db_repo
 from app.services.sequence.db_repo import get_engine
-from app.services.uniprot_service import acquire_uniprot_protein_fasta
+from app.services.sequence.uniprot_service import acquire_uniprot_protein_fasta
 
 from . import sequence_bp
 

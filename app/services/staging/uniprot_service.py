@@ -5,7 +5,7 @@ Canonical UniProt implementation lives in:
     app.services.uniprot_service
 """
 
-from app.services.uniprot_service import (
+from app.services.sequence.uniprot_service import (
     UniProtRetrievalError,
     acquire_uniprot_entry_with_features,
 )
