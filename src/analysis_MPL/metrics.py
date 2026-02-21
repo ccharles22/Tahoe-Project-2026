@@ -8,20 +8,11 @@ def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
 
     sql = """
     INSERT INTO metrics (generation_id, variant_id, metric_name, metric_type, value, unit)
-    SELECT
-        v.generation_id,
-        %(variant_id)s,
-        %(metric_name)s,
-        %(metric_type)s,
-        %(value)s,
-        %(unit)s,
-        %(generation_id)s
-    FROM variants v
-    WHERE v.variant_id = %(variant_id)s
-    ON CONFLICT (variant_id, metric_name, metric_type)
+    VALUES (%(generation_id)s, %(variant_id)s, %(metric_name)s, %(metric_type)s, %(value)s, %(unit)s)
+    ON CONFLICT (generation_id, variant_id, metric_name, metric_type)
     DO UPDATE SET
-        value         = EXCLUDED.value,
-        unit          = EXCLUDED.unit;
+        value = EXCLUDED.value,
+        unit  = EXCLUDED.unit;
     """
 
     with conn.cursor() as cur:

@@ -83,12 +83,68 @@ def ensure_variant(cur, generation_id: int, plasmid_variant_index: int, parent_v
         INSERT INTO variants (generation_id, parent_variant_id, plasmid_variant_index, assembled_dna_sequence)
         VALUES (%s, %s, %s, %s)
         ON CONFLICT (generation_id, plasmid_variant_index) DO UPDATE
-        SET assembled_dna_sequence = COALESCE(EXCLUDED.assembled_dna_sequence, variants.assembled_dna_sequence)
+        SET
+          assembled_dna_sequence = COALESCE(EXCLUDED.assembled_dna_sequence, variants.assembled_dna_sequence)
         RETURNING variant_id;
         """,
         (generation_id, parent_variant_id, str(plasmid_variant_index), dna_seq),
     )
     return int(cur.fetchone()[0])
+
+
+def _norm_index(value) -> str | None:
+    if pd.isna(value):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        as_num = float(text)
+        if as_num.is_integer():
+            return str(int(as_num))
+    except ValueError:
+        pass
+    return text
+
+
+def resolve_parent_variant_id(
+    *,
+    child_generation: int,
+    parent_index: str | None,
+    ids_by_generation_and_index: dict[tuple[int, str], int],
+) -> int | None:
+    if parent_index is None:
+        return None
+
+    # Preferred interpretation: parent index belongs to previous generation.
+    candidate = ids_by_generation_and_index.get((child_generation - 1, parent_index))
+    if candidate is not None:
+        return candidate
+
+    return None
+
+
+def purge_experiment_variants(cur, experiment_id: int) -> tuple[int, int]:
+    cur.execute(
+        """
+        SELECT v.variant_id
+        FROM variants v
+        JOIN generations g ON g.generation_id = v.generation_id
+        WHERE g.experiment_id = %s;
+        """,
+        (experiment_id,),
+    )
+    variant_ids = [int(r[0]) for r in cur.fetchall()]
+    if not variant_ids:
+        return 0, 0
+
+    cur.execute("DELETE FROM metrics WHERE variant_id = ANY(%s);", (variant_ids,))
+    deleted_metrics = cur.rowcount
+
+    cur.execute("DELETE FROM variants WHERE variant_id = ANY(%s);", (variant_ids,))
+    deleted_variants = cur.rowcount
+
+    return deleted_variants, deleted_metrics
 
 
 def upsert_metric_for_variant(cur, variant_id: int, name: str, value: float, unit: str = "") -> None:
@@ -107,6 +163,7 @@ def upsert_metric_for_variant(cur, variant_id: int, name: str, value: float, uni
 def main() -> None:
     dataset_path = os.getenv("DATASET_PATH", "")
     experiment_id = int(os.getenv("EXPERIMENT_ID", "1"))
+    reset_variants = os.getenv("RESET_EXPERIMENT_VARIANTS", "0").strip().lower() in {"1", "true", "yes"}
 
     if not dataset_path:
         raise RuntimeError("Set DATASET_PATH to the .tsv or .json file you want to load.")
@@ -121,6 +178,10 @@ def main() -> None:
 
     with get_conn() as conn:
         with conn.cursor() as cur:
+            if reset_variants:
+                deleted_variants, deleted_metrics = purge_experiment_variants(cur, experiment_id)
+                print(f"[Reset] Deleted {deleted_variants} variants and {deleted_metrics} variant metrics for experiment {experiment_id}.")
+
             wt_id = get_experiment_wt_id(cur, experiment_id)
 
             # 1) Ensure generations exist
@@ -152,17 +213,35 @@ def main() -> None:
             # 3) Insert variants + their raw metrics (Control==False)
             var_df = df[df[CONTROL_COL] == False].copy()
 
+            # Keep order deterministic (helps parent resolution on repeated loads)
+            var_df["_gen_num"] = pd.to_numeric(var_df[GEN_COL], errors="coerce")
+            if IDX_COL in var_df.columns:
+                var_df["_idx_num"] = pd.to_numeric(var_df[IDX_COL], errors="coerce")
+            else:
+                var_df["_idx_num"] = pd.NA
+            var_df = var_df.sort_values(["_gen_num", "_idx_num"], kind="mergesort")
+
+            # Single pass: resolve parent from previous generation, then insert.
+            ids_by_generation_and_index: dict[tuple[int, str], int] = {}
+
             for _, r in var_df.iterrows():
                 gen_num = int(r[GEN_COL])
                 gen_id = gen_map[gen_num]
 
-                plasmid_idx = int(r[IDX_COL])
-                parent_idx = int(r[PARENT_COL]) if PARENT_COL in df.columns and pd.notna(r.get(PARENT_COL)) else None
-                dna_seq = r.get(SEQ_COL) if SEQ_COL in df.columns else None
+                plasmid_idx = _norm_index(r[IDX_COL])
+                if plasmid_idx is None:
+                    continue
 
-                # Optional: parent_variant_id linking requires mapping parent index -> actual variant_id
-                # For now we store parent_variant_id as NULL (safe) unless you build that mapping.
-                variant_id = ensure_variant(cur, gen_id, plasmid_idx, None, dna_seq)
+                parent_idx = _norm_index(r.get(PARENT_COL)) if PARENT_COL in df.columns else None
+                dna_seq = r.get(SEQ_COL) if SEQ_COL in df.columns else None
+                parent_variant_id = resolve_parent_variant_id(
+                    child_generation=gen_num,
+                    parent_index=parent_idx,
+                    ids_by_generation_and_index=ids_by_generation_and_index,
+                )
+
+                variant_id = ensure_variant(cur, gen_id, plasmid_idx, parent_variant_id, dna_seq)
+                ids_by_generation_and_index[(gen_num, plasmid_idx)] = variant_id
 
                 upsert_metric_for_variant(cur, variant_id, "dna_yield_raw", float(r[DNA_COL]), "fg")
                 upsert_metric_for_variant(cur, variant_id, "protein_yield_raw", float(r[PROT_COL]), "pg")

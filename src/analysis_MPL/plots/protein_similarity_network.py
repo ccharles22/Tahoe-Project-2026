@@ -1,0 +1,362 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
+from os import PathLike
+from pathlib import Path
+from typing import Iterable, Literal
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.colors import Normalize
+
+# Optional dependency (recommended)
+try:
+	import networkx as nx
+except Exception:  # pragma: no cover
+	nx = None
+
+
+LabelMode = Literal["none", "top10", "all"]
+
+
+@dataclass(frozen=True)
+class ProteinNetConfig:
+	# plotting
+	figsize: tuple[float, float] = (14, 8)
+	dpi: int = 200
+	title: str = "Protein Similarity Network"
+	label_mode: LabelMode = "top10"
+	label_fontsize: int = 8
+
+	# node styling
+	node_size: float = 40.0
+	top10_size_boost: float = 120.0
+	non_top_alpha: float = 0.35
+	top_alpha: float = 1.0
+	top10_edgecolor: str = "black"
+	top10_lw: float = 2.0
+
+	# edges
+	edge_alpha: float = 0.10
+	edge_lw: float = 0.8
+
+	# graph/layout
+	spring_k: float | None = None         # None lets networkx choose
+	spring_iterations: int = 200
+	layout_seed: int = 7
+
+	# similarity rule
+	distance_threshold: int = 2           # connect if <= this many AA differences
+
+	# selection (keep it small so it looks like a network, not a hairball)
+	top_n_by_activity: int = 250          # global cap; set smaller if slow
+	always_include_top10: bool = True
+	neighbors_per_top10: int = 25         # add close neighbors around top10
+	max_nodes_final: int = 350            # hard cap after neighbor expansion
+
+
+def _require_networkx() -> None:
+	if nx is None:
+		raise ImportError(
+			"This plot requires networkx. Install it with:\n"
+			"  pip install networkx"
+		)
+
+
+def _hamming_distance(a: str, b: str, *, max_dist: int) -> int | None:
+	"""
+	Hamming distance with early stop.
+	Returns None if lengths differ or if distance exceeds max_dist.
+	"""
+	if a is None or b is None:
+		return None
+	if len(a) != len(b):
+		return None
+	d = 0
+	for ca, cb in zip(a, b):
+		if ca != cb:
+			d += 1
+			if d > max_dist:
+				return None
+	return d
+
+
+def _pick_nodes_for_network(
+	nodes: pd.DataFrame,
+	cfg: ProteinNetConfig,
+	*,
+	id_col: str,
+	activity_col: str,
+	top_col: str,
+	seq_col: str,
+) -> pd.DataFrame:
+	"""
+	Choose a manageable subset so the network is readable.
+	Strategy:
+	  - take top_n_by_activity
+	  - ensure top10 included
+	  - then add neighbors around top10 by sequence distance (cheap-ish)
+	"""
+	n = nodes.copy()
+
+	# clean columns
+	n = n.dropna(subset=[id_col, seq_col]).copy()
+	n[activity_col] = pd.to_numeric(n.get(activity_col), errors="coerce")
+	n[top_col] = pd.to_numeric(n.get(top_col, 0), errors="coerce").fillna(0).astype(int)
+
+	# base: top by activity (with NaNs pushed down)
+	n = n.sort_values([activity_col], ascending=False, na_position="last")
+	base = n.head(cfg.top_n_by_activity).copy()
+
+	# ensure top10 are included
+	if cfg.always_include_top10:
+		top10 = n[n[top_col] == 1].copy()
+		base_ids = set(base[id_col].tolist())
+		add_top10 = top10[~top10[id_col].isin(base_ids)]
+		base = pd.concat([base, add_top10], ignore_index=True)
+
+	# expand around top10: pick nearest sequence neighbors within threshold,
+	# capped per top10 to keep size reasonable.
+	if cfg.neighbors_per_top10 > 0 and (base[top_col] == 1).any():
+		pool = n  # full pool (but could also restrict to top_n_by_activity*2 if needed)
+		base_ids = set(base[id_col].tolist())
+
+		top10_rows = base[base[top_col] == 1][[id_col, seq_col]].dropna().copy()
+		to_add: list[int] = []
+
+		# Precompute sequences for pool (as python lists for speed)
+		pool_ids = pool[id_col].tolist()
+		pool_seqs = pool[seq_col].tolist()
+
+		for _, r in top10_rows.iterrows():
+			tseq = r[seq_col]
+			hits: list[tuple[int, int]] = []  # (dist, idx_in_pool)
+			for i, (pid, pseq) in enumerate(zip(pool_ids, pool_seqs)):
+				if pid in base_ids:
+					continue
+				d = _hamming_distance(tseq, pseq, max_dist=cfg.distance_threshold)
+				if d is not None:
+					hits.append((d, i))
+
+			hits.sort(key=lambda x: x[0])
+			for dist, i in hits[: cfg.neighbors_per_top10]:
+				to_add.append(i)
+
+		if to_add:
+			add_df = pool.iloc[sorted(set(to_add))].copy()
+			base = pd.concat([base, add_df], ignore_index=True)
+
+	# hard cap final
+	base = base.drop_duplicates(subset=[id_col]).copy()
+	if len(base) > cfg.max_nodes_final:
+		base = base.sort_values([top_col, activity_col], ascending=[False, False], na_position="last")
+		base = base.head(cfg.max_nodes_final).copy()
+
+	return base
+
+
+def build_protein_similarity_edges(
+	nodes_sub: pd.DataFrame,
+	*,
+	id_col: str,
+	seq_col: str,
+	max_dist: int,
+) -> pd.DataFrame:
+	"""
+	Build undirected edges for pairs with Hamming distance <= max_dist (equal-length sequences).
+	WARNING: O(N^2) - keep nodes_sub small (<= ~400).
+	"""
+	ids = nodes_sub[id_col].tolist()
+	seqs = nodes_sub[seq_col].tolist()
+
+	edges: list[tuple[int, int, int]] = []  # (u, v, dist)
+	n = len(ids)
+
+	for i in range(n):
+		si = seqs[i]
+		for j in range(i + 1, n):
+			d = _hamming_distance(si, seqs[j], max_dist=max_dist)
+			if d is not None:
+				edges.append((ids[i], ids[j], d))
+
+	return pd.DataFrame(edges, columns=["u", "v", "dist"])
+
+
+def plot_protein_similarity_network(
+	nodes: pd.DataFrame,
+	out_path: str | Path | PathLike[str],
+	*,
+	# optional filtering: if you pass experiment_id, nodes should already be filtered upstream,
+	# or include experiment_id in nodes and filter here.
+	config: ProteinNetConfig = ProteinNetConfig(),
+	id_col: str = "variant_id",
+	seq_col: str = "protein_sequence",
+	activity_col: str = "activity_score",
+	top_col: str = "is_top10",
+) -> None:
+	_require_networkx()
+
+	if nodes is None or nodes.empty:
+		raise ValueError("nodes is empty; nothing to plot")
+
+	out_path = Path(out_path)
+	out_path.parent.mkdir(parents=True, exist_ok=True)
+
+	# if top_col missing, create top10 by activity (overall)
+	nodes2 = nodes.copy()
+	if top_col not in nodes2.columns or pd.to_numeric(nodes2[top_col], errors="coerce").fillna(0).sum() == 0:
+		if activity_col in nodes2.columns and nodes2[activity_col].notna().any():
+			act = pd.to_numeric(nodes2[activity_col], errors="coerce")
+			top_idx = act.nlargest(10).index
+			nodes2[top_col] = 0
+			nodes2.loc[top_idx, top_col] = 1
+		else:
+			nodes2[top_col] = 0
+
+	# Choose subset
+	sub = _pick_nodes_for_network(
+		nodes2, config, id_col=id_col, activity_col=activity_col, top_col=top_col, seq_col=seq_col
+	)
+
+	if sub.empty:
+		fig, ax = plt.subplots(figsize=config.figsize)
+		ax.set_title(config.title)
+		ax.text(0.5, 0.5, "No sequences available to build similarity network", ha="center", va="center")
+		ax.set_axis_off()
+		fig.tight_layout()
+		fig.savefig(out_path, dpi=config.dpi)
+		plt.close(fig)
+		return
+
+	# Build edges
+	edges = build_protein_similarity_edges(sub, id_col=id_col, seq_col=seq_col, max_dist=config.distance_threshold)
+
+	# Build graph
+	G = nx.Graph()
+	for r in sub.itertuples(index=False):
+		vid = getattr(r, id_col)
+		G.add_node(vid)
+
+	for u, v, dist in edges.itertuples(index=False):
+		G.add_edge(u, v, weight=(config.distance_threshold - dist + 1))
+
+	# Layout (spring = force-directed)
+	pos = nx.spring_layout(
+		G,
+		seed=config.layout_seed,
+		k=config.spring_k,
+		iterations=config.spring_iterations,
+		weight="weight",
+	)
+
+	# Color by activity
+	act = pd.to_numeric(sub[activity_col], errors="coerce")
+	node_to_act = dict(zip(sub[id_col], act))
+	act_vals = np.array([node_to_act.get(n, np.nan) for n in G.nodes()], dtype=float)
+
+	finite = np.isfinite(act_vals)
+	norm = None
+	if finite.any():
+		norm = Normalize(vmin=float(np.nanmin(act_vals)), vmax=float(np.nanmax(act_vals)))
+
+	# top10 mask
+	topmask = pd.to_numeric(sub[top_col], errors="coerce").fillna(0).astype(int)
+	top_ids = set(sub.loc[topmask == 1, id_col].tolist())
+
+	# Plot
+	fig, ax = plt.subplots(figsize=config.figsize)
+
+	# edges
+	if G.number_of_edges() > 0:
+		nx.draw_networkx_edges(G, pos, ax=ax, alpha=config.edge_alpha, width=config.edge_lw)
+
+	# nodes (split into non-top + top for styling)
+	non_top_nodes = [n for n in G.nodes() if n not in top_ids]
+	top_nodes = [n for n in G.nodes() if n in top_ids]
+
+	def _node_colors(nodes_list: list[int]) -> np.ndarray | None:
+		if norm is None:
+			return None
+		vals = np.array([node_to_act.get(n, np.nan) for n in nodes_list], dtype=float)
+		return vals
+
+	# Non-top
+	nx.draw_networkx_nodes(
+		G,
+		pos,
+		nodelist=non_top_nodes,
+		node_size=config.node_size,
+		node_color=_node_colors(non_top_nodes),
+		cmap="viridis",
+		alpha=config.non_top_alpha,
+		linewidths=0.0,
+		ax=ax,
+		vmin=(norm.vmin if norm else None),
+		vmax=(norm.vmax if norm else None),
+	)
+
+	# Top
+	nx.draw_networkx_nodes(
+		G,
+		pos,
+		nodelist=top_nodes,
+		node_size=config.node_size + config.top10_size_boost,
+		node_color=_node_colors(top_nodes),
+		cmap="viridis",
+		alpha=config.top_alpha,
+		linewidths=config.top10_lw,
+		edgecolors=config.top10_edgecolor,
+		ax=ax,
+		vmin=(norm.vmin if norm else None),
+		vmax=(norm.vmax if norm else None),
+	)
+
+	# Labels
+	if config.label_mode != "none":
+		labels = {}
+		if config.label_mode == "top10":
+			for n in top_nodes:
+				labels[n] = f"★ {n}"
+		else:
+			for n in G.nodes():
+				labels[n] = str(n)
+		nx.draw_networkx_labels(G, pos, labels=labels, font_size=config.label_fontsize, ax=ax)
+
+	ax.set_title(config.title, fontsize=16)
+	ax.set_axis_off()
+
+	# Colorbar
+	if norm is not None and finite.any():
+		sm = plt.cm.ScalarMappable(cmap="viridis", norm=norm)
+		sm.set_array([])
+		fig.colorbar(sm, ax=ax, label="Activity score")
+
+	fig.tight_layout(pad=1.0)
+	fig.savefig(out_path, dpi=config.dpi)
+	plt.close(fig)
+
+
+# -----------------------------------------------------------------------------
+# Optional: helper to fetch nodes from Postgres (drop-in if you want it here)
+# -----------------------------------------------------------------------------
+def fetch_nodes_for_experiment(conn, experiment_id: int) -> pd.DataFrame:
+	"""
+	Returns nodes with variant_id, protein_sequence, activity_score, generation_number, plasmid_variant_index.
+	"""
+	q = """
+	SELECT
+	  v.variant_id,
+	  v.protein_sequence,
+	  g.generation_number,
+	  v.plasmid_variant_index,
+	  m.value AS activity_score
+	FROM variants v
+	JOIN generations g ON g.generation_id = v.generation_id
+	LEFT JOIN metrics m
+	  ON m.variant_id = v.variant_id
+	 AND m.metric_name = 'activity_score'
+	 AND m.metric_type = 'derived'
+	WHERE g.experiment_id = %s;
+	"""
+	return pd.read_sql(q, conn, params=(experiment_id,))
