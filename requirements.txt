@@ -6,6 +6,7 @@ biopython>=1.80
 pandas
 numpy
 matplotlib
+networkx
 pillow
 
 Flask-SQLAlchemy

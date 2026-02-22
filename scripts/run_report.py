@@ -15,11 +15,13 @@ from app.services.analysis.database import get_conn
 from app.services.analysis.metrics import upsert_variant_metrics
 from app.services.analysis.plots.distribution import plot_activity_distribution
 from app.services.analysis.plots.lineage import PlotConfig, plot_layered_lineage
+from app.services.analysis.plots.protein_similarity_network import plot_protein_similarity_network
 from app.services.analysis.plots.top10 import plot_top10_table
 from app.services.analysis.queries import (
     fetch_distribution,
     fetch_lineage_edges,
     fetch_lineage_nodes,
+    fetch_protein_similarity_nodes,
     fetch_top10,
     fetch_variant_raw,
     fetch_wt_baselines,
@@ -153,6 +155,80 @@ def compute_activity_score_fallback(
     return rows, d
 
 
+def _normalize_plasmid_index(value: Any) -> str | None:
+    if pd.isna(value):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        as_num = float(text)
+        if as_num.is_integer():
+            return str(int(as_num))
+    except (TypeError, ValueError):
+        pass
+    return text
+
+
+def _build_placeholder_edges(
+    df_nodes: pd.DataFrame,
+    *,
+    node_id_col: str,
+    generation_col: str,
+    index_col: str,
+    max_distance: float,
+) -> pd.DataFrame:
+    """
+    Create synthetic parent edges when parent_variant_id is missing.
+    Strategy: nearest numeric index in previous generation within max_distance.
+    """
+    required = {node_id_col, generation_col, index_col}
+    if not required.issubset(df_nodes.columns):
+        return pd.DataFrame(columns=["parent_id", "child_id"])
+
+    d = df_nodes[[node_id_col, generation_col, index_col]].copy()
+    d[generation_col] = pd.to_numeric(d[generation_col], errors="coerce")
+    d = d.dropna(subset=[node_id_col, generation_col])
+    if d.empty:
+        return pd.DataFrame(columns=["parent_id", "child_id"])
+
+    d["_idx_str"] = d[index_col].map(_normalize_plasmid_index)
+    d["_idx_num"] = pd.to_numeric(d["_idx_str"], errors="coerce")
+
+    groups = {int(g): sub.copy() for g, sub in d.groupby(generation_col)}
+    if not groups:
+        return pd.DataFrame(columns=["parent_id", "child_id"])
+
+    min_gen = min(groups.keys())
+    edges: list[tuple[int, int]] = []
+
+    for gen, sub in groups.items():
+        if gen <= min_gen:
+            continue
+        prev = groups.get(gen - 1)
+        if prev is None or prev.empty:
+            continue
+
+        prev_num = prev.dropna(subset=["_idx_num"])[["_idx_num", node_id_col]].to_numpy()
+
+        for _, row in sub.iterrows():
+            child_id = row[node_id_col]
+            idx_str = row["_idx_str"]
+            idx_num = row["_idx_num"]
+
+            parent_id = None
+            if pd.notna(idx_num) and len(prev_num) > 0:
+                diffs = np.abs(prev_num[:, 0].astype(float) - float(idx_num))
+                min_idx = int(diffs.argmin())
+                if float(diffs[min_idx]) <= max_distance:
+                    parent_id = int(prev_num[min_idx, 1])
+
+            if parent_id is not None:
+                edges.append((int(parent_id), int(child_id)))
+
+    return pd.DataFrame(edges, columns=["parent_id", "child_id"])
+
+
 def main() -> None:
     experiment_id = int(os.getenv("EXPERIMENT_ID", "0"))
     if experiment_id <= 0:
@@ -164,6 +240,7 @@ def main() -> None:
     top10_path = OUTPUT_DIR / f"exp_{experiment_id}_top10_variants.csv"
     plot_path = OUTPUT_DIR / f"exp_{experiment_id}_activity_distribution.png"
     lineage_path = OUTPUT_DIR / f"exp_{experiment_id}_lineage.png"
+    protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity.png"
 
     with get_conn() as conn:
         # 1) Raw variant metrics (needed for BOTH WT-based + fallback)
@@ -239,23 +316,69 @@ def main() -> None:
         df_nodes = fetch_lineage_nodes(conn, experiment_id)
         df_edges = fetch_lineage_edges(conn, experiment_id)
 
+        df_nodes = df_nodes.copy()
+        df_edges = df_edges.copy()
+
+        df_nodes["variant_id"] = pd.to_numeric(df_nodes["variant_id"], errors="coerce").astype("Int64")
+        df_edges["parent_id"] = pd.to_numeric(df_edges["parent_id"], errors="coerce").astype("Int64")
+        df_edges["child_id"] = pd.to_numeric(df_edges["child_id"], errors="coerce").astype("Int64")
+        df_edges = df_edges.dropna(subset=["parent_id", "child_id"])
+
+        print("nodes:", len(df_nodes))
+        print("edges:", len(df_edges))
+
+        if df_edges.empty:
+            df_edges = _build_placeholder_edges(
+                df_nodes,
+                node_id_col="variant_id",
+                generation_col="generation_number",
+                index_col="plasmid_variant_index",
+                max_distance=3.0,
+            )
+            print("[Lineage] Using placeholder edges:", len(df_edges))
+
+        node_ids = set(df_nodes["variant_id"])
+        matching = (
+            df_edges["parent_id"].isin(node_ids) &
+            df_edges["child_id"].isin(node_ids)
+        ).sum()
+
+        print("edges matching nodes:", matching)
+
         if df_nodes.empty:
             print("[Lineage] No lineage nodes returned; skipping lineage plot.")
-        else:
-            plot_layered_lineage(
-                df_nodes,
-                df_edges,
-                lineage_path,
-                config=PlotConfig(
-                    label_mode="top10",        # <-- not "all"
-                    layout_mode="pack",
-                    pack_generation_height=6.0,
-                    generation_band_gap=0.6,
-                    label_fontsize=8,
-                ),
-            )
+            return
 
-            print("[File] Wrote:", lineage_path)
+        plot_layered_lineage(
+            df_nodes,
+            df_edges,
+            lineage_path,
+            node_id_col="variant_id",
+            generation_col="generation_number",
+            parent_col="parent_id",
+            child_col="child_id",
+        )
+        print("[File] Wrote:", lineage_path)
+
+        # 8) Protein similarity network
+        df_protein = fetch_protein_similarity_nodes(conn, experiment_id)
+        if df_protein.empty:
+            print("[ProteinNet] No nodes returned; skipping protein similarity plot.")
+            return
+
+        if df_protein["protein_sequence"].dropna().empty:
+            print("[ProteinNet] No protein sequences available; skipping protein similarity plot.")
+            return
+
+        plot_protein_similarity_network(
+            df_protein,
+            protein_net_path,
+            id_col="variant_id",
+            seq_col="protein_sequence",
+            activity_col="activity_score",
+            top_col="is_top10",
+        )
+        print("[File] Wrote:", protein_net_path)
 
 
 if __name__ == "__main__":

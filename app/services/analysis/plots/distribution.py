@@ -64,11 +64,14 @@ def plot_activity_distribution(df_dist: pd.DataFrame, out_path: Union[str, Path]
     ax.set_xlabel("Generation", fontsize=14)
     ax.set_ylabel("Activity Score", fontsize=14)
 
+    ax.axhline(1.0, color="red", linewidth=1.4, alpha=0.8, label="baseline = 1.0")
+
     ax.set_xticks(xs)
     ax.set_xticklabels([str(g) for g in generations], fontsize=12)
     ax.tick_params(axis="y", labelsize=12)
 
     ax.grid(True, axis="both", linewidth=1.6, alpha=0.6)
+    ax.legend(frameon=False, fontsize=11, loc="upper right")
 
     for spine in ax.spines.values():
         spine.set_color("0.8")
