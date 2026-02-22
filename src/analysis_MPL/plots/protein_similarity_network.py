@@ -47,7 +47,10 @@ class ProteinNetConfig:
 	layout_seed: int = 7
 
 	# similarity rule
-	distance_threshold: int = 2           # connect if <= this many AA differences
+	identity_threshold: float = 0.95      # connect if identity > this threshold
+
+	# diagnostics
+	debug: bool = False
 
 	# selection (keep it small so it looks like a network, not a hairball)
 	top_n_by_activity: int = 250          # global cap; set smaller if slow
@@ -161,10 +164,10 @@ def build_protein_similarity_edges(
 	*,
 	id_col: str,
 	seq_col: str,
-	max_dist: int,
+	identity_threshold: float,
 ) -> pd.DataFrame:
 	"""
-	Build undirected edges for pairs with Hamming distance <= max_dist (equal-length sequences).
+	Build undirected edges for pairs with identity > identity_threshold (equal-length sequences).
 	WARNING: O(N^2) - keep nodes_sub small (<= ~400).
 	"""
 	ids = nodes_sub[id_col].tolist()
@@ -176,11 +179,18 @@ def build_protein_similarity_edges(
 	for i in range(n):
 		si = seqs[i]
 		for j in range(i + 1, n):
-			d = _hamming_distance(si, seqs[j], max_dist=max_dist)
-			if d is not None:
-				edges.append((ids[i], ids[j], d))
+			sj = seqs[j]
+			if len(si) != len(sj):
+				continue
+			max_dist = int(np.floor((1.0 - identity_threshold) * len(si)))
+			d = _hamming_distance(si, sj, max_dist=max_dist)
+			if d is None:
+				continue
+			identity = 1.0 - (d / len(si))
+			if identity > identity_threshold:
+				edges.append((ids[i], ids[j], identity))
 
-	return pd.DataFrame(edges, columns=["u", "v", "dist"])
+	return pd.DataFrame(edges, columns=["u", "v", "identity"])
 
 
 def plot_protein_similarity_network(
@@ -229,8 +239,30 @@ def plot_protein_similarity_network(
 		plt.close(fig)
 		return
 
+	if config.debug:
+		lengths = sub[seq_col].astype(str).str.len()
+		print("Unique lengths:", lengths.nunique())
+
+		# mutation spread (approx)
+		def hd(a: str, b: str) -> int:
+			return sum(x != y for x, y in zip(a, b))
+
+		seqs = sub[seq_col].tolist()
+		dists: list[int] = []
+		for i in range(min(50, len(seqs))):
+			for j in range(i + 1, min(50, len(seqs))):
+				if len(seqs[i]) == len(seqs[j]):
+					dists.append(hd(seqs[i], seqs[j]))
+
+		print("Median pairwise dist:", np.median(dists))
+
 	# Build edges
-	edges = build_protein_similarity_edges(sub, id_col=id_col, seq_col=seq_col, max_dist=config.distance_threshold)
+	edges = build_protein_similarity_edges(
+		sub,
+		id_col=id_col,
+		seq_col=seq_col,
+		identity_threshold=config.identity_threshold,
+	)
 
 	# Build graph
 	G = nx.Graph()
@@ -238,8 +270,8 @@ def plot_protein_similarity_network(
 		vid = getattr(r, id_col)
 		G.add_node(vid)
 
-	for u, v, dist in edges.itertuples(index=False):
-		G.add_edge(u, v, weight=(config.distance_threshold - dist + 1))
+	for u, v, identity in edges.itertuples(index=False):
+		G.add_edge(u, v, weight=identity)
 
 	# Layout (spring = force-directed)
 	pos = nx.spring_layout(

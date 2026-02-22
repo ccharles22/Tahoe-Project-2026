@@ -1,27 +1,66 @@
-WORK PLAN
+# PostgreSQL Repository and Data Visualization (MPL)
 
-0 Github creation
-1 Designed full relational schema (users → experiments → generations → variants)
-2 Added mutation tracking (DNA + protein, synonymous vs non-synonymous)
-3 Designed metrics table (raw / normalised / derived)
-4 Added JSONB metadata for flexible TSV/JSON ingestion
-5 Added cascade delete rules to prevent orphan data
-6 Set up shared PostgreSQL using Tailscale
-7 Created per-user database roles for teammates
-8 Defined metric strategy (what counts as yield, activity score, normalisation)
-9 Implement yield calculations (DNA yield, protein yield, etc.)
-10 Implement activity score calculation per variant
-11 Implement WT baseline normalisation
-12 Store raw, normalised, and derived metrics in DB
-13 Export final schema to schema.sql
-14 Create Flask app skeleton
-15 Connect Flask to PostgreSQL
-16 Implement user registration
-17 Implement user login (Flask-Login)
-18 Restrict users to their own experiments
-19 Create TSV/JSON upload route (metrics-related fields)
-20 Validate and parse metric-relevant data
-21 Insert calculated metrics into database
-22 Query top-10 variants by activity score
-23 Plot per-generation activity distribution
-24 Compare WT vs variants across generations
+End-to-end pipeline for storing directed evolution experiment data in PostgreSQL
+and generating summary visualizations (top variants, activity distributions,
+lineage networks, and protein similarity networks).
+
+## Features
+- Relational schema for users, experiments, generations, variants, mutations, and metrics
+- Derived metrics (DNA/protein normalization + activity score)
+- Lineage closure and lineage views for network plots
+- Static plot generation and simple Flask endpoints for viewing results
+
+## Project Structure
+- schema/schema.sql: database schema and triggers
+- src/analysis_MPL: core logic (queries, metrics, plots)
+- scripts/run_report.py: generate plots and CSV outputs
+- app: HTML templates and generated static outputs
+
+## Requirements
+- Python 3.10+
+- PostgreSQL (tested with 18.x)
+- A database named bio727p_group_project
+
+Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Setup
+1. Create a .env file with:
+```
+DATABASE_URL=postgresql://<user>:<password>@<host>:5432/bio727p_group_project
+```
+
+2. Apply schema:
+```bash
+psql "$DATABASE_URL" -f schema/schema.sql
+```
+
+## Generate Reports
+The report script writes outputs to app/static/generated.
+
+```bash
+export EXPERIMENT_ID=41
+python -m scripts.run_report
+```
+
+## Generated Graphs
+For each experiment, the report produces four plots in app/static/generated:
+- Top-10 variants table: exp_<experiment_id>_top10_variants.png
+- Activity distribution by generation: exp_<experiment_id>_activity_distribution.png
+- Lineage network: exp_<experiment_id>_lineage.png
+- Protein similarity network: exp_<experiment_id>_protein_similarity.png
+
+## Flask App (optional)
+```bash
+python -m src.analysis_MPL.app
+```
+Then open:
+- /top10/<experiment_id>
+- /distribution/<experiment_id>
+- /lineage/<experiment_id>
+
+## Notes
+- The schema includes triggers for activity metrics and lineage maintenance.
+- If you already hash passwords in the app, disable the password hashing trigger.
