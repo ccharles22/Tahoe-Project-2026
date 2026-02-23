@@ -141,9 +141,8 @@ create table mutations (
     foreign key (variant_id) references variants(variant_id) on delete cascade
 );
 
-create index idx_mut_variant on mutations (variant_id);
 create index idx_mut_type on mutations (mutation_type);
-create index idx_mut_position on mutations (position);
+-- Stores top-N variants per generation for fast selection in UI.
 
 create unique index uq_mut
 on mutations (variant_id, mutation_type, position, original, mutated); -- avoids duplicate mutation entries for the same variant
@@ -160,7 +159,7 @@ foreign key (wt_id) references wild_type_proteins(wt_id) on delete cascade,
     unique (generation_id, wt_id)
 );
 
-create index idx_wt_control_generation on wild_type_controls (generation_id);
+-- Stores the first generation where each mutation appears for a target variant.
 
 DO $$
 BEGIN
@@ -178,7 +177,7 @@ create table metrics (
 metric_id bigserial primary key,
 -- your trigger will fill this, but keep it not null if you want
 generation_id bigint not null,
-
+-- Tracks dimensionality reduction runs (PCA, t-SNE, etc.).
 variant_id bigint null,
 wt_control_id bigint null,
 
@@ -192,6 +191,7 @@ foreign key (generation_id) references generations(generation_id) on delete casc
 foreign key (variant_id) references variants(variant_id) on delete cascade,
 foreign key (wt_control_id) references wild_type_controls(wt_control_id) on delete cascade,
 
+-- Stores 2D coordinates per variant for a given embedding run.
 check (
     (variant_id is not null and wt_control_id is null)
     or
@@ -206,7 +206,7 @@ returns trigger as $$
 begin
 if (new.variant_id is null and new.wt_control_id is null) or
 (new.variant_id is not null and new.wt_control_id is not null) then
-raise exception 'exactly one of variant_id or wt_control_id must be set';
+-- Denormalized view for 3D activity landscape (x/y embedding + activity_score z).
 end if;
 
 if new.variant_id is not null then
@@ -237,6 +237,7 @@ drop trigger if exists trg_metrics_set_generation on metrics;
 
 create trigger trg_metrics_set_generation
 before insert or update on metrics
+-- Aggregated protein mutation density per domain/feature for fingerprinting.
 for each row
 execute function metrics_set_generation_id();
 
@@ -261,7 +262,7 @@ create table experiment_metadata (
     metadata_id bigserial primary key,
     experiment_id bigint not null,
     field_name varchar(255) not null,
-    field_value text,
+-- Use after loading new embeddings or mutation data.
     foreign key (experiment_id) references experiments(experiment_id) on delete cascade,
 unique (experiment_id, field_name)
 );
@@ -482,3 +483,156 @@ left join (
     group by mutations.variant_id
 ) pm on pm.variant_id = v.variant_id;
 
+
+-- -----------------------------------------------------------------
+
+
+-- Bonus visualization tables
+
+-- 12. Per-generation rankings for top-performing variants
+-- Stores top-N variants per generation for fast selection in UI.
+create table if not exists variant_performance_rankings (
+    ranking_id bigserial primary key,
+    generation_id bigint not null references generations(generation_id) on delete cascade,
+    variant_id bigint not null references variants(variant_id) on delete cascade,
+    metric_name varchar(255) not null,
+    metric_type varchar(20) not null check (metric_type in ('raw','normalized','derived')),
+    rank int not null check (rank > 0),
+    score double precision not null,
+    created_at timestamptz default now(),
+    unique (generation_id, metric_name, metric_type, variant_id),
+    unique (generation_id, metric_name, metric_type, rank)
+);
+
+create index if not exists idx_vpr_generation on variant_performance_rankings (generation_id);
+create index if not exists idx_vpr_variant on variant_performance_rankings (variant_id);
+
+
+-- 13. Mutation introduction events along a selected variant lineage
+-- Stores the first generation where each mutation appears for a target variant.
+create table if not exists mutation_introduction_events (
+    event_id bigserial primary key,
+    target_variant_id bigint not null references variants(variant_id) on delete cascade,
+    introduced_variant_id bigint not null references variants(variant_id) on delete cascade,
+    introduced_generation_id bigint not null references generations(generation_id) on delete cascade,
+    mutation_type varchar(10) not null check (mutation_type in ('dna','protein')),
+    position int not null check (position > 0),
+    original char(1) not null,
+    mutated char(1) not null,
+    mutation_id bigint null references mutations(mutation_id) on delete set null,
+    created_at timestamptz default now(),
+    unique (target_variant_id, mutation_type, position, original, mutated)
+);
+
+create index if not exists idx_mie_target_variant on mutation_introduction_events (target_variant_id);
+create index if not exists idx_mie_intro_generation on mutation_introduction_events (introduced_generation_id);
+
+
+-- 14. 2D embedding runs for 3D activity landscape plotting
+-- Tracks dimensionality reduction runs (PCA, t-SNE, etc.).
+create table if not exists embedding_runs (
+    embedding_run_id bigserial primary key,
+    experiment_id bigint not null references experiments(experiment_id) on delete cascade,
+    method varchar(50) not null,
+    metric_name varchar(255) not null default 'activity_score',
+    metric_type varchar(20) not null default 'derived' check (metric_type in ('raw','normalized','derived')),
+    params jsonb,
+    created_at timestamptz default now()
+);
+
+create index if not exists idx_embedding_runs_experiment on embedding_runs (experiment_id);
+create index if not exists idx_embedding_runs_method on embedding_runs (method);
+
+-- Stores 2D coordinates per variant for a given embedding run.
+create table if not exists embedding_points (
+    embedding_point_id bigserial primary key,
+    embedding_run_id bigint not null references embedding_runs(embedding_run_id) on delete cascade,
+    variant_id bigint not null references variants(variant_id) on delete cascade,
+    x double precision not null,
+    y double precision not null,
+    z double precision,
+    created_at timestamptz default now(),
+    unique (embedding_run_id, variant_id)
+);
+
+create index if not exists idx_embedding_points_run on embedding_points (embedding_run_id);
+create index if not exists idx_embedding_points_variant on embedding_points (variant_id);
+
+
+-- -----------------------------------------------------------------
+
+
+-- Materialized views for fast visualization reads
+
+-- Denormalized view for 3D activity landscape (x/y embedding + activity_score z).
+create materialized view if not exists mv_activity_landscape as
+with prot_mut as (
+        select variant_id, count(*) as protein_mutations
+        from mutations
+        where mutation_type = 'protein' and is_synonymous is false
+        group by variant_id
+)
+select
+        er.embedding_run_id,
+        er.experiment_id,
+        er.method,
+        v.variant_id,
+        v.generation_id,
+        v.plasmid_variant_index,
+        ep.x,
+        ep.y,
+        coalesce(ep.z, m.value) as activity_score,
+        coalesce(pm.protein_mutations, 0) as protein_mutations
+from embedding_runs er
+join embedding_points ep on ep.embedding_run_id = er.embedding_run_id
+join variants v on v.variant_id = ep.variant_id
+left join metrics m
+    on m.variant_id = v.variant_id
+ and m.metric_name = er.metric_name
+ and m.metric_type = er.metric_type
+left join prot_mut pm on pm.variant_id = v.variant_id;
+
+create index if not exists idx_mv_activity_landscape_run on mv_activity_landscape (embedding_run_id);
+create index if not exists idx_mv_activity_landscape_variant on mv_activity_landscape (variant_id);
+create unique index if not exists uq_mv_activity_landscape on mv_activity_landscape (embedding_run_id, variant_id);
+
+
+-- Aggregated protein mutation density per domain/feature for fingerprinting.
+create materialized view if not exists mv_domain_mutation_enrichment as
+select
+    v.generation_id,
+    pf.wt_id,
+    pf.feature_type,
+    coalesce(pf.description, pf.feature_type) as domain_label,
+    pf.start_position,
+    pf.end_position,
+    count(*) filter (where m.is_synonymous is false) as nonsyn_count,
+    count(*) filter (where m.is_synonymous is true) as syn_count,
+    count(*) as total_protein_mutations,
+    (pf.end_position - pf.start_position + 1) as domain_length,
+    count(*) filter (where m.is_synonymous is false)::float
+        / nullif((pf.end_position - pf.start_position + 1), 0) as nonsyn_per_residue
+from variants v
+join mutations m
+    on m.variant_id = v.variant_id
+ and m.mutation_type = 'protein'
+join protein_features pf
+    on m.position between pf.start_position and pf.end_position
+group by
+    v.generation_id, pf.wt_id, pf.feature_type, domain_label, pf.start_position, pf.end_position;
+
+create index if not exists idx_mv_domain_mutation_enrichment_gen on mv_domain_mutation_enrichment (generation_id);
+create index if not exists idx_mv_domain_mutation_enrichment_wt on mv_domain_mutation_enrichment (wt_id);
+create unique index if not exists uq_mv_domain_mutation_enrichment
+    on mv_domain_mutation_enrichment (generation_id, wt_id, feature_type, start_position, end_position);
+
+
+-- Refresh helper for bonus materialized views
+-- Use after loading new embeddings or mutation data.
+create or replace function refresh_bonus_materialized_views()
+returns void as $$
+begin
+    refresh materialized view mv_activity_landscape;
+    refresh materialized view mv_domain_mutation_enrichment;
+end;
+$$ language plpgsql;
