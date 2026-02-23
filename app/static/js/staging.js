@@ -1,4 +1,18 @@
+/**
+ * staging.js
+ * Client-side interaction handlers for the staging workspace.
+ *
+ * Scope:
+ * - Sidebar/task navigation and persisted UI state
+ * - Step/task affordances (collapse, current-step focus, loading state)
+ * - Experiment list actions (open, rename, delete, create)
+ * - Result exploration UI (filters, variant detail modal, warning insights)
+ *
+ * Note: Server-side validation and authorization remain the source of truth.
+ */
+
 // Initialize sidebar on page load
+// Restore the last active sidebar section between page loads.
 function initializeSidebar() {
   // Get saved section from localStorage, default to 'tools'
   const savedSection = localStorage.getItem('activeSidebarSection') || 'tools';
@@ -55,7 +69,7 @@ window.addEventListener('load', () => {
   }
 });
 
-/* ─── STEP COLLAPSING & CURRENT-STEP HIGHLIGHT ─── */
+/* STEP COLLAPSING & CURRENT-STEP HIGHLIGHT */
 (function() {
   const tasks = document.querySelectorAll('.task[data-step]');
   let currentFound = false;
@@ -94,7 +108,7 @@ window.addEventListener('load', () => {
   });
 })();
 
-/* ─── LOADING SPINNER ON FORM SUBMIT ─── */
+/* LOADING SPINNER ON FORM SUBMIT */
 document.querySelectorAll('.btn--submit').forEach(btn => {
   const form = btn.closest('form');
   if (form) {
@@ -129,6 +143,7 @@ if (newExpBtn) {
 // Experiment card menu actions (rename/delete)
 const experimentMenus = document.querySelectorAll('.experiment-menu');
 
+// Enforce a single open menu to avoid overlapping popovers.
 function closeAllExperimentMenus() {
   experimentMenus.forEach(menu => menu.classList.remove('is-open'));
 }
@@ -238,27 +253,7 @@ document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
   });
 });
 
-// Top results generation filter (format: "min-max")
-const genFilterInput = document.getElementById('topResultsGenFilter');
-if (genFilterInput) {
-  genFilterInput.addEventListener('input', () => {
-    const raw = genFilterInput.value.trim();
-    const match = raw.match(/^(\d+)\s*-\s*(\d+)$/);
-    const rows = document.querySelectorAll('.top-results__table tbody tr[data-generation]');
-    rows.forEach((row) => {
-      const gen = Number(row.getAttribute('data-generation'));
-      let visible = true;
-      if (raw.length > 0 && match) {
-        const min = Number(match[1]);
-        const max = Number(match[2]);
-        visible = gen >= min && gen <= max;
-      }
-      row.style.display = visible ? '' : 'none';
-    });
-  });
-}
-
-// Variant detail modal
+// Variant detail drawer
 const variantModal = document.getElementById('variantModal');
 const modalEls = {
   rank: document.getElementById('modalRank'),
@@ -267,19 +262,25 @@ const modalEls = {
   parentVariant: document.getElementById('modalParentVariant'),
   variant: document.getElementById('modalVariant'),
   activity: document.getElementById('modalActivity'),
+  dnaYield: document.getElementById('modalDnaYield'),
+  proteinYield: document.getElementById('modalProteinYield'),
+  qcNote: document.getElementById('modalQcNote'),
   mutationsBody: document.getElementById('modalMutationsBody'),
   proteinSnippet: document.getElementById('modalProteinSnippet'),
   dnaLink: document.getElementById('modalDownloadDna'),
   proteinLink: document.getElementById('modalDownloadProtein'),
   mutCsvLink: document.getElementById('modalDownloadMutCsv'),
+  fullVariantPage: document.getElementById('modalFullVariantPage'),
 };
 
+// Close the variant details modal and reset its accessibility state.
 function closeVariantModal() {
   if (!variantModal) return;
   variantModal.classList.remove('is-open');
   variantModal.setAttribute('aria-hidden', 'true');
 }
 
+// Render mutation rows into the modal table with fallback values for missing fields.
 function renderMutationRows(mutations) {
   if (!modalEls.mutationsBody) return;
   if (!mutations || mutations.length === 0) {
@@ -299,50 +300,137 @@ function renderMutationRows(mutations) {
   }).join('');
 }
 
-if (variantModal) {
-  document.querySelectorAll('.js-view-variant').forEach((btn) => {
-    btn.addEventListener('click', async () => {
-      const variantId = btn.dataset.variantId;
-      if (!variantId) return;
+function fmtNum(value) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return '-';
+  return n.toFixed(3);
+}
 
-      if (modalEls.rank) modalEls.rank.textContent = `#${btn.dataset.rank || '-'}`;
-      if (modalEls.variantId) modalEls.variantId.textContent = String(variantId);
-      if (modalEls.generation) modalEls.generation.textContent = btn.dataset.generation || '-';
-      if (modalEls.parentVariant) modalEls.parentVariant.textContent = '-';
-      if (modalEls.variant) modalEls.variant.textContent = btn.dataset.variant || '-';
-      if (modalEls.activity) modalEls.activity.textContent = btn.dataset.activity || '-';
-      renderMutationRows([]);
-      if (modalEls.proteinSnippet) modalEls.proteinSnippet.textContent = '-';
-      if (modalEls.dnaLink) modalEls.dnaLink.href = '#';
-      if (modalEls.proteinLink) modalEls.proteinLink.href = '#';
-      if (modalEls.mutCsvLink) modalEls.mutCsvLink.href = '#';
+async function openVariantDrawer(row) {
+  if (!row || !variantModal) return;
+  const variantId = row.dataset.variantId;
+  if (!variantId) return;
 
-      variantModal.classList.add('is-open');
-      variantModal.setAttribute('aria-hidden', 'false');
+  if (modalEls.rank) modalEls.rank.textContent = `#${row.dataset.rank || '-'}`;
+  if (modalEls.variantId) modalEls.variantId.textContent = String(variantId);
+  if (modalEls.generation) modalEls.generation.textContent = row.dataset.generationValue || '-';
+  if (modalEls.parentVariant) modalEls.parentVariant.textContent = '-';
+  if (modalEls.variant) modalEls.variant.textContent = row.dataset.variant || '-';
+  if (modalEls.activity) modalEls.activity.textContent = row.dataset.activity || '-';
+  if (modalEls.qcNote) modalEls.qcNote.textContent = row.dataset.qcNote || '-';
+  if (modalEls.dnaYield) modalEls.dnaYield.textContent = '-';
+  if (modalEls.proteinYield) modalEls.proteinYield.textContent = '-';
+  renderMutationRows([]);
+  if (modalEls.proteinSnippet) modalEls.proteinSnippet.textContent = '-';
+  if (modalEls.dnaLink) modalEls.dnaLink.href = '#';
+  if (modalEls.proteinLink) modalEls.proteinLink.href = '#';
+  if (modalEls.mutCsvLink) modalEls.mutCsvLink.href = '#';
+  if (modalEls.fullVariantPage) modalEls.fullVariantPage.href = '#';
 
-      try {
-        const resp = await fetch(`/staging/variant/${variantId}/details`, { credentials: 'same-origin' });
-        if (!resp.ok) return;
-        const data = await resp.json();
-        if (modalEls.variantId) modalEls.variantId.textContent = data.variant_id ?? '-';
-        if (modalEls.generation) modalEls.generation.textContent = data.generation_number ?? '-';
-        if (modalEls.parentVariant) modalEls.parentVariant.textContent = data.parent_variant_id ?? 'None';
-        if (modalEls.variant) modalEls.variant.textContent = data.variant_index ?? '-';
-        if (modalEls.activity) modalEls.activity.textContent = data.activity_score ?? '-';
-        if (modalEls.proteinSnippet) modalEls.proteinSnippet.textContent = data.protein_snippet || 'Not available';
-        renderMutationRows(data.mutations || []);
+  variantModal.classList.add('is-open');
+  variantModal.setAttribute('aria-hidden', 'false');
 
-        if (data.download_urls) {
-          if (modalEls.dnaLink) modalEls.dnaLink.href = data.download_urls.dna_fasta || '#';
-          if (modalEls.proteinLink) modalEls.proteinLink.href = data.download_urls.protein_fasta || '#';
-          if (modalEls.mutCsvLink) modalEls.mutCsvLink.href = data.download_urls.mutation_csv || '#';
-        }
-      } catch (err) {
-        // Keep drawer open with fallback values.
+  try {
+    const resp = await fetch(`/staging/variant/${variantId}/details`, { credentials: 'same-origin' });
+    if (!resp.ok) return;
+    const data = await resp.json();
+    if (modalEls.variantId) modalEls.variantId.textContent = data.variant_id ?? '-';
+    if (modalEls.generation) modalEls.generation.textContent = data.generation_number ?? '-';
+    if (modalEls.parentVariant) modalEls.parentVariant.textContent = data.parent_variant_id ?? 'None';
+    if (modalEls.variant) modalEls.variant.textContent = data.variant_index ?? '-';
+    if (modalEls.activity) modalEls.activity.textContent = data.activity_score !== null && data.activity_score !== undefined ? fmtNum(data.activity_score) : '-';
+    if (modalEls.dnaYield) modalEls.dnaYield.textContent = data.dna_yield !== null && data.dna_yield !== undefined ? fmtNum(data.dna_yield) : '-';
+    if (modalEls.proteinYield) modalEls.proteinYield.textContent = data.protein_yield !== null && data.protein_yield !== undefined ? fmtNum(data.protein_yield) : '-';
+    if (modalEls.qcNote) modalEls.qcNote.textContent = data.qc_note || '-';
+    if (modalEls.proteinSnippet) modalEls.proteinSnippet.textContent = data.protein_snippet || 'Not available';
+    renderMutationRows(data.mutations || []);
+
+    if (data.download_urls) {
+      if (modalEls.dnaLink) modalEls.dnaLink.href = data.download_urls.dna_fasta || '#';
+      if (modalEls.proteinLink) modalEls.proteinLink.href = data.download_urls.protein_fasta || '#';
+      if (modalEls.mutCsvLink) modalEls.mutCsvLink.href = data.download_urls.mutation_csv || '#';
+    }
+    if (modalEls.fullVariantPage) {
+      modalEls.fullVariantPage.href = data.full_variant_url || '#';
+    }
+  } catch (err) {
+    // Keep drawer open with fallback values.
+  }
+}
+
+function initTopResultsControls() {
+  const tbody = document.getElementById('topResultsBody');
+  if (!tbody) return;
+  const rows = Array.from(tbody.querySelectorAll('tr[data-generation]'));
+  if (rows.length === 0) return;
+
+  const genFilterInput = document.getElementById('topResultsGenFilter');
+  const sortSelect = document.getElementById('topResultsSort');
+  const mutantsOnly = document.getElementById('topResultsMutantsOnly');
+  const aboveBaseline = document.getElementById('topResultsAboveBaseline');
+  const qcOnly = document.getElementById('topResultsQcFlagged');
+
+  const applyControls = () => {
+    const raw = (genFilterInput?.value || '').trim();
+    const match = raw.match(/^(\d+)\s*-\s*(\d+)$/);
+    const mode = sortSelect?.value || 'activity_desc';
+
+    rows.sort((a, b) => {
+      const activityA = Number(a.dataset.activityValue || '-Infinity');
+      const activityB = Number(b.dataset.activityValue || '-Infinity');
+      const genA = Number(a.dataset.generation || '0');
+      const genB = Number(b.dataset.generation || '0');
+      const mutA = Number(a.dataset.mutationCount || '0');
+      const mutB = Number(b.dataset.mutationCount || '0');
+
+      if (mode === 'generation_asc') return genA - genB || activityB - activityA;
+      if (mode === 'mutations_desc') return mutB - mutA || activityB - activityA;
+      return activityB - activityA;
+    });
+
+    rows.forEach((row) => tbody.appendChild(row));
+
+    rows.forEach((row) => {
+      const gen = Number(row.dataset.generation || '0');
+      const activity = Number(row.dataset.activityValue || 'NaN');
+      const isMutant = row.dataset.isMutant === '1';
+      const isQcFlagged = row.dataset.qcFlagged === '1';
+
+      let visible = true;
+      if (raw.length > 0 && match) {
+        const min = Number(match[1]);
+        const max = Number(match[2]);
+        visible = gen >= min && gen <= max;
+      }
+      if (visible && mutantsOnly?.checked) visible = isMutant;
+      if (visible && aboveBaseline?.checked) visible = !Number.isNaN(activity) && activity > 1.0;
+      if (visible && qcOnly?.checked) visible = isQcFlagged;
+
+      row.style.display = visible ? '' : 'none';
+    });
+  };
+
+  if (genFilterInput) genFilterInput.addEventListener('input', applyControls);
+  if (sortSelect) sortSelect.addEventListener('change', applyControls);
+  if (mutantsOnly) mutantsOnly.addEventListener('change', applyControls);
+  if (aboveBaseline) aboveBaseline.addEventListener('change', applyControls);
+  if (qcOnly) qcOnly.addEventListener('change', applyControls);
+
+  rows.forEach((row) => {
+    if (!row.dataset.variantId) return;
+    row.addEventListener('click', () => openVariantDrawer(row));
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        openVariantDrawer(row);
       }
     });
   });
 
+  applyControls();
+}
+
+if (variantModal) {
   document.querySelectorAll('.js-close-variant-modal').forEach((el) => {
     el.addEventListener('click', closeVariantModal);
   });
@@ -352,7 +440,10 @@ if (variantModal) {
   });
 }
 
+initTopResultsControls();
+
 // Warning drill-down: summary + classification + filters
+// Normalize warning text into structured metadata for summary and filtering.
 function classifyWarning(text) {
   const t = (text || '').toLowerCase();
   const rowMatch = t.match(/row\s+(\d+)/i);
@@ -361,27 +452,33 @@ function classifyWarning(text) {
   let category = 'other';
   let severity = 'advisory';
   let fix = 'Review this record and re-upload.';
+  let why = 'This warning may affect data quality and reproducibility.';
 
   if (t.includes('duplicate') && t.includes('variant')) {
     category = 'duplicate_variant_index';
     severity = 'critical';
     fix = 'Use unique variant_index values for each record.';
+    why = 'Duplicate variant IDs can overwrite lineage relationships and bias downstream ranking.';
   } else if ((t.includes('missing') && t.includes('field')) || t.includes('no generation 0')) {
     category = 'missing_fields';
     severity = 'critical';
     fix = 'Add required fields/controls and re-upload.';
+    why = 'Missing required values break parsing assumptions and can invalidate analysis.';
   } else if (t.includes('invalid') || t.includes('must be') || t.includes('not a')) {
     category = 'invalid_values';
     severity = 'critical';
     fix = 'Correct value type/format for this field.';
+    why = 'Invalid formats prevent reliable metric calculation and comparability.';
   } else if (t.includes('orphan') || t.includes('parent_variant_index')) {
     category = 'lineage_reference';
     severity = 'critical';
     fix = 'Ensure parent_variant_index points to an existing parent variant.';
+    why = 'Broken parent links corrupt lineage reconstruction and mutation tracking.';
   } else if (t.includes('warning')) {
     category = 'quality_warning';
     severity = 'advisory';
     fix = 'Check whether this warning is acceptable for your analysis.';
+    why = 'Advisory issues can shift confidence in conclusions if left unreviewed.';
   }
 
   return {
@@ -391,19 +488,24 @@ function classifyWarning(text) {
     field: fieldMatch ? (fieldMatch[2] || fieldMatch[1]) : '-',
     issue: text || '',
     fix,
+    why,
   };
 }
 
+// Build warning summary metrics and wire critical/all filter controls.
 function initWarningInsights() {
   const rows = Array.from(document.querySelectorAll('.js-warning-row'));
   if (rows.length === 0) return;
 
   const counts = {
+    critical: 0,
+    advisory: 0,
     missing_fields: 0,
     invalid_values: 0,
     duplicate_variant_index: 0,
     other: 0,
   };
+  const byField = {};
 
   rows.forEach((row) => {
     const warningText = row.getAttribute('data-warning-text') || '';
@@ -415,12 +517,30 @@ function initWarningInsights() {
     const rowCell = row.querySelector('[data-col="row"]');
     const fieldCell = row.querySelector('[data-col="field"]');
     const issueCell = row.querySelector('[data-col="issue"]');
+    const whyCell = row.querySelector('[data-col="why"]');
     const fixCell = row.querySelector('[data-col="fix"]');
+    const actionCell = row.querySelector('[data-col="action"]');
     if (sevCell) sevCell.textContent = p.severity;
     if (rowCell) rowCell.textContent = p.row;
     if (fieldCell) fieldCell.textContent = p.field;
     if (issueCell) issueCell.textContent = p.issue;
+    if (whyCell) {
+      whyCell.innerHTML = `<span class="warning-why" title="${p.why.replace(/"/g, '&quot;')}">ⓘ</span> ${p.why}`;
+    }
     if (fixCell) fixCell.textContent = p.fix;
+    if (actionCell) {
+      const goBtn = actionCell.querySelector('.js-go-record');
+      if (goBtn) {
+        goBtn.disabled = true;
+        goBtn.title = 'Record view is not available in this workspace.';
+      }
+    }
+
+    counts[p.severity] += 1;
+    const fieldKey = p.field && p.field !== '-' ? p.field : 'unclassified';
+    if (!byField[fieldKey]) byField[fieldKey] = { total: 0, critical: 0, advisory: 0 };
+    byField[fieldKey].total += 1;
+    byField[fieldKey][p.severity] += 1;
 
     if (p.category === 'missing_fields') counts.missing_fields += 1;
     else if (p.category === 'invalid_values') counts.invalid_values += 1;
@@ -430,20 +550,42 @@ function initWarningInsights() {
 
   const summary = document.querySelector('[data-warning-summary]');
   if (summary) {
-    const total = rows.length;
-    const parts = [];
-    if (counts.missing_fields > 0) parts.push(`${counts.missing_fields} missing fields`);
-    if (counts.invalid_values > 0) parts.push(`${counts.invalid_values} invalid values`);
-    if (counts.duplicate_variant_index > 0) parts.push(`${counts.duplicate_variant_index} duplicate variant index`);
-    if (counts.other > 0) parts.push(`${counts.other} other`);
-    summary.textContent = `${total} warnings: ${parts.join(', ')}`;
+    summary.textContent = `${counts.advisory} advisory warnings (${counts.critical} critical)`;
+  }
+
+  const groupContainer = document.getElementById('warningGroups');
+  const groupToggle = document.getElementById('warningGroupByField');
+  const tableWrap = document.querySelector('.warning-insights__table-wrap');
+  if (groupContainer) {
+    const rowsHtml = Object.entries(byField)
+      .sort((a, b) => b[1].total - a[1].total)
+      .map(([field, c]) => (
+        `<tr>
+          <td>${field}</td>
+          <td>${c.critical}</td>
+          <td>${c.advisory}</td>
+          <td>${c.total}</td>
+        </tr>`
+      ))
+      .join('');
+    groupContainer.innerHTML = `
+      <table class="warning-insights__group-table">
+        <thead><tr><th>Field</th><th>Critical</th><th>Advisory</th><th>Total</th></tr></thead>
+        <tbody>${rowsHtml || '<tr><td colspan="4">No grouped warnings.</td></tr>'}</tbody>
+      </table>
+    `;
   }
 
   const filterButtons = Array.from(document.querySelectorAll('.js-warning-filter'));
   const applyFilter = (mode) => {
     rows.forEach((row) => {
       const critical = row.dataset.severity === 'critical';
-      row.style.display = (mode === 'all' || critical) ? '' : 'none';
+      const advisory = row.dataset.severity === 'advisory';
+      row.style.display = (
+        mode === 'all' ||
+        (mode === 'critical' && critical) ||
+        (mode === 'advisory' && advisory)
+      ) ? '' : 'none';
     });
     filterButtons.forEach((btn) => {
       btn.classList.toggle('is-active', btn.getAttribute('data-filter') === mode);
@@ -456,7 +598,15 @@ function initWarningInsights() {
     });
   });
 
-  applyFilter('critical');
+  if (groupToggle && groupContainer && tableWrap) {
+    groupToggle.addEventListener('change', () => {
+      const grouped = groupToggle.checked;
+      groupContainer.classList.toggle('is-hidden', !grouped);
+      tableWrap.classList.toggle('is-hidden', grouped);
+    });
+  }
+
+  applyFilter(counts.critical > 0 ? 'critical' : 'advisory');
 }
 
 initWarningInsights();

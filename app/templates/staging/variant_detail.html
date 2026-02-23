@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Variant {{ variant.variant_id }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css') }}">
+  </head>
+  <body class="staging-page">
+    <main class="workspace" style="max-width: 980px; margin: 24px auto;">
+      <section class="panel panel--primary">
+        <div class="panel__header">Variant Details</div>
+        <div class="kv">
+          <div class="kv__row"><span>Variant ID</span><strong>{{ variant.variant_id }}</strong></div>
+          <div class="kv__row"><span>Parent ID</span><strong>{{ variant.parent_variant_id if variant.parent_variant_id is not none else 'None' }}</strong></div>
+          <div class="kv__row"><span>Generation</span><strong>{{ variant.generation_number if variant.generation_number is not none else '-' }}</strong></div>
+          <div class="kv__row"><span>Variant Index</span><strong>{{ variant.variant_index }}</strong></div>
+          <div class="kv__row"><span>Activity</span><strong>{{ '%.3f'|format(variant.activity_score) if variant.activity_score is not none else 'N/A' }}</strong></div>
+          <div class="kv__row"><span>DNA Yield</span><strong>{{ '%.3f'|format(variant.dna_yield) if variant.dna_yield is not none else 'N/A' }}</strong></div>
+          <div class="kv__row"><span>Protein Yield</span><strong>{{ '%.3f'|format(variant.protein_yield) if variant.protein_yield is not none else 'N/A' }}</strong></div>
+          <div class="kv__row"><span>QC Note</span><strong>{{ variant.qc_note }}</strong></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">Mutations</div>
+        {% if variant.mutations %}
+          <div class="variant-modal__mut-wrap">
+            <table class="variant-modal__mut-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>AA</th>
+                  <th>NT</th>
+                  <th>Pos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for m in variant.mutations %}
+                <tr>
+                  <td>{{ m.mutation_type or '-' }}</td>
+                  <td>{{ (m.wt_aa or '-') ~ ' -> ' ~ (m.var_aa or '-') }}</td>
+                  <td>{{ (m.wt_codon or '-') ~ ' -> ' ~ (m.var_codon or '-') }}</td>
+                  <td>{{ m.aa_position if m.aa_position is not none else (m.codon_index if m.codon_index is not none else '-') }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="empty">
+            <div class="empty__sub">No mutation data available.</div>
+          </div>
+        {% endif %}
+      </section>
+
+      <section class="panel">
+        <a class="btn" href="{{ url_for('staging.create_experiment') }}">Back to workspace</a>
+      </section>
+    </main>
+  </body>
+</html>

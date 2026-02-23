@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 from pathlib import Path
 from flask import Flask, render_template
@@ -28,7 +28,7 @@ def top10(experiment_id: int):
     plot_top10_table(df, out_path)
 
     return render_template(
-        "top10.html",
+        "analysis/top10.html",
         experiment_id=experiment_id,
         top10_png=f"plots/top10_exp{experiment_id}.png",
     )
@@ -43,7 +43,7 @@ def distribution(experiment_id: int):
     plot_activity_distribution(df, out_path)
 
     return render_template(
-        "distribution.html",
+        "analysis/distribution.html",
         experiment_id=experiment_id,
         dist_png=f"plots/dist_exp{experiment_id}.png",
     )
@@ -59,7 +59,8 @@ def lineage(experiment_id: int):
     plot_layered_lineage(nodes, edges, out_path)
 
     return render_template(
-        "lineage.html",
+        "analysis/lineage.html",
         experiment_id=experiment_id,
         lineage_png=f"plots/lineage_exp{experiment_id}.png",
     )
+

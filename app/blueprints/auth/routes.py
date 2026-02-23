@@ -1,4 +1,4 @@
-from flask import render_template, url_for, redirect, flash, request
+﻿from flask import render_template, url_for, redirect, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
@@ -105,7 +105,7 @@ def homepage():
         wt_count = 0
 
     return render_template(
-        "auth/HOMEPAGE.html",
+        "auth/homepage.html",
         exp_count=exp_count,
         latest_exp=latest_exp,
         wt_count=wt_count,
@@ -215,3 +215,4 @@ def _debug_create_test_user():
     except Exception as e:
         db.session.rollback()
         return (f"error: {e}", 500)
+

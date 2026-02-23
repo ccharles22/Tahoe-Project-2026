@@ -1,121 +1,69 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
 <head>
-  <!-- Character encoding for proper text display (emojis, special characters) -->
   <meta charset="utf-8">
-  
-  <!-- Makes site responsive on mobile devices -->
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  
-  <!-- Browser tab title -->
   <title>Register - Direct Evolution Monitoring</title>
-
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/auth.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
-
 </head>
 
 <body class="auth-page auth-page--register">
-  <!-- MAIN CONTENT AREA -->
+  <!-- Authentication layout -->
   <main class="auth-body auth-body--login-split">
     <section class="auth-card">
-      <!-- PAGE TITLE AND SUBTITLE -->
-      <!-- Gradient text effect using CSS: blue to pink -->
       <h1 class="auth-card__title">Sign up</h1>
-      
-      <!-- Gray subtitle text below the title -->
       <p class="auth-card__subtitle">Join the research community</p>
 
-      <!-- FLASH MESSAGES SECTION -->
-      <!-- Flash messages are temporary notifications from the server -->
-      <!-- Examples: "Account created successfully!", "Username already exists" -->
-      
-      <!-- Start Jinja2 context block to capture flash messages -->
+      <!-- Server flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
-        
-        <!-- Check if there are any flash messages to display -->
         {% if messages %}
-          
-          <!-- Create an unordered list to hold all messages -->
           <ul class="flashes">
-          
-          <!-- Loop through each message -->
-          <!-- category = 'success' or 'error' (determines background color) -->
-          <!-- message = the actual notification text -->
           {% for category, message in messages %}
-            
-            <!-- Create list item with CSS class based on category -->
-            <!-- class="success" → green gradient background, dark green text -->
-            <!-- class="error" → red gradient background, dark red text -->
             <li class="{{ category }}">{{ message }}</li>
-            
           {% endfor %}
           </ul>
-          
         {% endif %}
       {% endwith %}
 
-      <!-- Registration Form: Submits to /register route via POST method -->
+      <!-- Registration form -->
       <form action="{{ url_for('auth.register') }}" method="post" novalidate>
-        
-        <!-- CSRF Protection Token: Required by Flask-WTF for security -->
-        <!-- Prevents Cross-Site Request Forgery attacks -->
+        <!-- CSRF token -->
         {{ form.hidden_tag() }}
-        
+
+        <!-- Username -->
         <div class="form-group">
           {% if form.username.errors %}
-            
-            <!-- Render username input WITH error styling (red border, pink background) -->
-            <!-- class="is-invalid" applies CSS for error state -->
             {{ form.username(class="is-invalid", id="username") }}
-            
             <span class="field-feedback hint">4-255 characters</span>
-            
           {% else %}
-            <!-- No errors: render normal username input field -->
             {{ form.username(id="username") }}
-            
-            <!-- Helper text: tells user the character requirements -->
             <span class="field-feedback hint">4-255 characters</span>
           {% endif %}
         </div>
 
+        <!-- Email -->
         <div class="form-group">
           {% if form.email.errors %}
-            
-            <!-- Render email input WITH error styling -->
-            <!-- type="email" enables browser email validation (@ symbol check) -->
             {{ form.email(class="is-invalid", id="email", type="email") }}
-            
             <span class="field-feedback"></span>
-            
           {% else %}
-            <!-- No errors: render normal email input field -->
-            <!-- type="email" shows @ symbol on mobile keyboards -->
             {{ form.email(id="email", type="email") }}
             <span class="field-feedback"></span>
           {% endif %}
         </div>
 
+        <!-- Password -->
         <div class="form-group">
           {% if form.password.errors %}
-            
-            <!-- Render password input WITH error styling -->
-            <!-- type="password" automatically hides characters as bullets/asterisks -->
             {{ form.password(class="is-invalid", id="password") }}
-            
             <span class="field-feedback hint">Minimum 4 characters</span>
-            
           {% else %}
-            <!-- No errors: render normal password input field -->
             {{ form.password(id="password") }}
-            
-            <!-- Helper text: tells user minimum password length -->
             <span class="field-feedback hint">Minimum 4 characters</span>
           {% endif %}
         </div>
 
-        <!-- SUBMIT BUTTON -->
         <div class="btn-container">
           <button type="submit" class="btn-primary">
             <span>Create your account</span>
@@ -123,14 +71,9 @@
         </div>
       </form>
 
-      <!-- FOOTER LINK TO LOGIN -->
-      <!-- Border on top, centered text -->
+      <!-- Login link -->
       <p class="text-link">
-        <!-- Regular text -->
-        Already have an account? 
-        
-        <!-- Link to login page (blue, underlines on hover) -->
-        <!-- url_for('auth.login') generates the /login URL -->
+        Already have an account?
         <a href="{{ url_for('auth.login') }}">Sign in here</a>
       </p>
     </section>
@@ -151,4 +94,6 @@
   </main>
 </body>
 </html>
+
+
 

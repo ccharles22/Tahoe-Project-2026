@@ -13,7 +13,7 @@ PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from src.analysis_MPL.database import get_conn, get_cursor
+from app.services.analysis.database import get_conn, get_cursor
 
 
 def fetch_experiment_ids(conn) -> List[int]:

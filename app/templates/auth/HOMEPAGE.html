@@ -3,26 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Dashboard — Direct Evolution Monitoring</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+  <title>Dashboard &mdash; Direct Evolution Monitoring</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
 </head>
 
 <body class="home-body">
 
-  <!-- NAV BAR -->
+  <!-- Top navigation -->
   <nav class="home-nav">
     <div class="home-nav__brand">
       <span class="home-nav__logo">DE</span>
       <span class="home-nav__name">DirectEvo</span>
     </div>
     <div class="home-nav__right">
-      <span class="home-nav__user">👤 {{ current_user.username }}</span>
+      <span class="home-nav__user">&#x1F464; {{ current_user.username }}</span>
       <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
     </div>
   </nav>
 
-  <!-- HERO SECTION -->
+  <!-- Hero -->
   <section class="home-hero">
     <div class="home-hero__bg"></div>
     <div class="home-hero__content animate-in">
@@ -30,7 +30,7 @@
       <p class="home-hero__sub">Your directed evolution monitoring dashboard. Track experiments, analyse variants, and optimise proteins.</p>
       <div class="home-hero__actions">
         <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
-          ➕ New Experiment
+          &#x2795; New Experiment
         </a>
         {% if latest_exp %}
         <a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) }}" class="btn btn--hero-outline">
@@ -41,7 +41,7 @@
     </div>
   </section>
 
-  <!-- STATS STRIP -->
+  <!-- Key metrics -->
   <section class="home-stats">
     <div class="home-stat">
       <div class="home-stat__value">{{ exp_count }}</div>
@@ -56,16 +56,16 @@
       <div class="home-stat__label">Pipeline Steps</div>
     </div>
     <div class="home-stat">
-      <div class="home-stat__value">∞</div>
+      <div class="home-stat__value">&infin;</div>
       <div class="home-stat__label">Possibilities</div>
     </div>
   </section>
 
-  <!-- QUICK-START CTA -->
+  <!-- New-user onboarding callout -->
   {% if exp_count == 0 %}
   <section class="home-container">
     <div class="home-quickstart">
-      <div class="home-quickstart__icon">🚀</div>
+      <div class="home-quickstart__icon">&#x1F680;</div>
       <div class="home-quickstart__text">
         <h3>Ready to begin?</h3>
         <p>Create your first experiment by fetching a wild-type protein from UniProt. The 5-step workflow will guide you through validation, data upload, analysis, and sequence processing.</p>
@@ -75,48 +75,51 @@
   </section>
   {% endif %}
 
-  <!-- FEATURE CARDS -->
+  <!-- Primary feature links -->
   <main class="home-container animate-in">
     <h2 class="home-section-title">Platform Features</h2>
 
     <div class="dashboard-grid">
-      <!-- Full Workflow — active -->
+      <!-- Experiment workflow -->
       <a href="{{ url_for('staging.create_experiment') }}" class="dashboard-card dashboard-card--featured">
         <div class="dashboard-card__accent"></div>
-        <div class="dashboard-card__icon">🔬</div>
+        <div class="dashboard-card__icon">&#x1F52C;</div>
         <h3 class="dashboard-card__title">Experiment Workflow</h3>
         <p class="dashboard-card__desc">
           Full 5-step directed evolution pipeline: fetch a wild-type protein,
           validate your plasmid, upload variant data, run analysis, and
           process sequences.
         </p>
-        <span class="dashboard-card__cta">Open Workflow →</span>
+        <span class="dashboard-card__cta">Open Workflow &rarr;</span>
       </a>
 
-      <!-- User Guide card linking to mkdocs (placeholder) -->
+      <!-- Documentation -->
       <div class="dashboard-card dashboard-card--link">
-        <div class="dashboard-card__icon">📘</div>
+        <div class="dashboard-card__icon">&#x1F4D8;</div>
         <h3 class="dashboard-card__title">User Guide</h3>
         <p class="dashboard-card__desc">Open the user guide for this application (mkdocs).</p>
-        <a class="dashboard-card__link" href="/docs/"><span class="dashboard-card__cta">Open User Guide →</span></a>
+        <a class="dashboard-card__link" href="/docs/"><span class="dashboard-card__cta">Open User Guide &rarr;</span></a>
       </div>
 
-      <!-- Settings -->
+      <!-- Account settings -->
       <a href="{{ url_for('auth.settings') }}" class="dashboard-card">
-        <div class="dashboard-card__icon">⚙️</div>
+        <div class="dashboard-card__icon">&#x2699;&#xFE0F;</div>
         <h3 class="dashboard-card__title">Settings</h3>
         <p class="dashboard-card__desc">
           Manage your account, preferences, notification settings, and team access.
         </p>
-        <span class="dashboard-card__cta">Open Settings →</span>
+        <span class="dashboard-card__cta">Open Settings &rarr;</span>
       </a>
     </div>
   </main>
 
-  <!-- FOOTER -->
+  <!-- Footer -->
   <footer class="home-footer">
     <p>Direct Evolution Monitoring Platform &middot; MSc Bioinformatics Group Project &middot; 2026</p>
   </footer>
 
 </body>
 </html>
+
+
+

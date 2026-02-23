@@ -1,15 +1,15 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Experiment Workflow</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
   </head>
 
-  {# ── compute step statuses for reuse ── #}
+  {# -- compute step statuses for reuse -- #}
   {% set step_a_done = wt is not none %}
   {% set step_b_done = validation is not none and validation.is_valid %}
   {% set step_b_fail = validation is not none and not validation.is_valid %}
@@ -27,6 +27,24 @@
   {% set inserted_count = (parsing_result.inserted_count|default(0, true)) if parsing_result else 0 %}
   {% set updated_count = (parsing_result.updated_count|default(0, true)) if parsing_result else 0 %}
   {% set warnings_count = (parsing_result.warnings_count|default(0, true)) if parsing_result else 0 %}
+  {% set warning_meta = namespace(critical=0, advisory=0) %}
+  {% if parsing_result and parsing_result.warnings %}
+    {% for w in parsing_result.warnings %}
+      {% set wl = (w|string)|lower %}
+      {% if ('duplicate' in wl and 'variant' in wl)
+            or ('missing' in wl and 'field' in wl)
+            or ('no generation 0' in wl)
+            or ('invalid' in wl)
+            or ('must be' in wl)
+            or ('not a' in wl)
+            or ('orphan' in wl)
+            or ('parent_variant_index' in wl) %}
+        {% set warning_meta.critical = warning_meta.critical + 1 %}
+      {% else %}
+        {% set warning_meta.advisory = warning_meta.advisory + 1 %}
+      {% endif %}
+    {% endfor %}
+  {% endif %}
   {% set skipped_count = total_records - inserted_count - updated_count %}
   {% if skipped_count < 0 %}{% set skipped_count = 0 %}{% endif %}
   {% set run_summary_status = '' %}
@@ -43,7 +61,7 @@
     <!-- PAGE HEADER -->
     <header class="page-header">
       <a href="{{ url_for('auth.homepage') }}" class="back-btn">
-        <span class="back-btn__icon">←</span>
+        <span class="back-btn__icon">?</span>
         <span class="back-btn__text">Back to Homepage</span>
       </a>
       {% if experiment_id %}
@@ -88,11 +106,11 @@
       <!-- LEFT TASKBAR -->
       <nav class="taskbar">
         <a href="#experiments" class="taskbar__item" data-section="experiments">
-          <span class="taskbar__icon">🧬</span>
+          <span class="taskbar__icon">??</span>
           <span class="taskbar__label">Experiments</span>
         </a>
         <a href="#tools" class="taskbar__item" data-section="tools">
-          <span class="taskbar__icon">⚙️</span>
+          <span class="taskbar__icon">??</span>
           <span class="taskbar__label">Tools</span>
         </a>
       </nav>
@@ -111,7 +129,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--a">1</div>
             <div class="task__title">Fetch WT (UniProt)</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
             {% if wt %}
               <span class="badge badge--ok">Complete</span>
             {% else %}
@@ -131,7 +149,7 @@
               <input class="input" name="experiment_name" placeholder="e.g., BsuPol Round 1"
                      {% if experiment_id %}disabled{% endif %}>
               <button class="btn btn--primary btn--submit" type="submit">
-                <span class="btn__text">{{ 'Re‑fetch WT' if wt else 'Fetch WT' }}</span>
+                <span class="btn__text">{{ 'Re-fetch WT' if wt else 'Fetch WT' }}</span>
                 <span class="btn__spinner"></span>
               </button>
             </form>
@@ -154,7 +172,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--b">2</div>
             <div class="task__title">Validate Plasmid</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
             {% if validation %}
               {% if validation.is_valid %}
                 <span class="badge badge--ok">Complete</span>
@@ -202,9 +220,13 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--c">3</div>
             <div class="task__title">Upload Parsing Data</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
             {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
-              <span class="badge badge--warn">Needs attention</span>
+              {% if warning_meta.critical > 0 %}
+                <span class="badge badge--warn">{{ warning_meta.advisory }} advisory warnings ({{ warning_meta.critical }} critical)</span>
+              {% else %}
+                <span class="badge badge--neutral">{{ warning_meta.advisory }} advisory warnings (0 critical)</span>
+              {% endif %}
             {% elif parsing_result and parsing_result.success %}
               <span class="badge badge--ok">Complete</span>
             {% elif parsing_result and not parsing_result.success %}
@@ -265,7 +287,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--d">4</div>
             <div class="task__title">Run Analysis</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
             {% if step_d_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
@@ -297,7 +319,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--e">5</div>
             <div class="task__title">Process Sequences</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
             {% if step_e_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
@@ -318,7 +340,7 @@
                   <span class="btn__spinner"></span>
                 </button>
               </form>
-              <p class="task__hint">Translates DNA→protein and computes alignment against the WT.</p>
+              <p class="task__hint">Translates DNA?protein and computes alignment against the WT.</p>
             {% endif %}
           </div>
         </div>
@@ -379,6 +401,19 @@
           {% if experiment_id %}
             <h1 class="workspace__title">{{ display_experiment_name }} #{{ experiment_id }}{% if wt %} · {{ wt.uniprot_id }}{% endif %}</h1>
             <p class="workspace__sub">{{ done_count }}/5 steps complete</p>
+            <p class="methods-strip">
+              WT: <strong>{{ methods_panel.wt_accession }}</strong>
+              <span class="methods-strip__sep" aria-hidden="true">&bull;</span>
+              Records: <strong>{{ methods_panel.records }}</strong>
+              <span class="methods-strip__sep" aria-hidden="true">&bull;</span>
+              Generations: <strong>{{ methods_panel.generation_range }}</strong>
+              <span class="methods-strip__sep" aria-hidden="true">&bull;</span>
+              Baseline: <strong>{{ methods_panel.baseline_used }}</strong>
+              <span class="methods-strip__sep" aria-hidden="true">&bull;</span>
+              Scoring: <strong>{{ methods_panel.scoring_method }}</strong>
+              <span class="methods-strip__sep" aria-hidden="true">&bull;</span>
+              Mutation calling: <strong>{{ methods_panel.mutation_calling }}</strong>
+            </p>
           {% else %}
             <h1 class="workspace__title">Getting Started</h1>
             <p class="workspace__sub">Create or open an experiment from the sidebar to begin.</p>
@@ -413,7 +448,8 @@
               {% elif analysis_failed and step_c_done %}
                 <p class="run-summary__headline">Data upload completed, but analysis failed.</p>
               {% elif actionable_partial %}
-                <p class="run-summary__headline">Analysis complete &bull; Sequence processing not run</p>
+                <p class="run-summary__headline">Analysis complete</p>
+                <p class="run-summary__headline">Mutations not computed</p>
               {% elif warnings_count > 0 and step_c_done %}
                 <p class="run-summary__headline">Analysis complete with warnings - review flagged records.</p>
               {% else %}
@@ -430,8 +466,9 @@
             <div class="run-summary__actions">
               <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
                 <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
-                <button class="btn btn--primary" type="submit">Run sequence processing</button>
+                <button class="btn btn--primary" type="submit">Compute mutations (DNA&#8594;Protein)</button>
               </form>
+              <p class="run-summary__note">Required for mutation counts in Top Variants + mutation report.</p>
             </div>
           {% else %}
             <div class="run-summary__grid">
@@ -458,7 +495,7 @@
           <!-- NO EXPERIMENT SELECTED -->
           <section class="panel panel--welcome">
             <div class="empty-hero">
-              <div class="empty-hero__icon">🧬</div>
+              <div class="empty-hero__icon">??</div>
               <h2 class="empty-hero__title">No experiment selected</h2>
               <p class="empty-hero__text">Use <strong>Step A</strong> in the sidebar to fetch a wild-type protein and create an experiment, or open an existing one from the <strong>Experiments</strong> tab.</p>
             </div>
@@ -467,12 +504,12 @@
 
         {% if sequence_failed %}
         <section class="panel sequence-callout panel--left-danger">
-          <div class="panel__header">Sequence Processing Didn&rsquo;t Run</div>
-          <p class="sequence-callout__impact">Mutation counts and mutation classifications may be missing.</p>
+          <div class="panel__header">Mutations Not Computed</div>
+          <p class="sequence-callout__impact">Mutation calling is pending. Run now to generate mutation annotations.</p>
           <div class="sequence-callout__actions">
             <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
               <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
-              <button class="btn btn--primary" type="submit">Try again</button>
+              <button class="btn btn--primary" type="submit">Run now</button>
             </form>
             {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
               <a class="btn" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download debug CSV</a>
@@ -486,11 +523,29 @@
         {% endif %}
 
         <section class="panel insights-panel panel--primary">
-          <div class="panel__header">Top Results</div>
+          <div class="panel__header">Top Variants</div>
           {% if top10_rows %}
             <div class="top-results__toolbar">
               <label class="label" for="topResultsGenFilter">Generation range</label>
               <input id="topResultsGenFilter" class="input input--sm top-results__filter" type="text" placeholder="e.g., 0-4">
+              <label class="label" for="topResultsSort">Sort by</label>
+              <select id="topResultsSort" class="input input--sm top-results__filter">
+                <option value="activity_desc">Activity (high to low)</option>
+                <option value="generation_asc">Generation (low to high)</option>
+                <option value="mutations_desc">Mutations (high to low)</option>
+              </select>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="topResultsMutantsOnly">
+                Show only mutants
+              </label>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="topResultsAboveBaseline">
+                Show only above baseline
+              </label>
+              <label class="checkbox-inline">
+                <input type="checkbox" id="topResultsQcFlagged">
+                Show only flagged QC rows
+              </label>
             </div>
             <div class="top-results__table-wrap">
               <table class="top-results__table">
@@ -501,32 +556,33 @@
                     <th>Variant</th>
                     <th>Activity Score</th>
                     <th>Mutations</th>
-                    <th>Action</th>
+                    <th>QC</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="topResultsBody">
                   {% for row in top10_rows %}
-                    <tr class="{% if row.rank <= 3 %}top-results__row--top{{ row.rank }}{% endif %}" data-generation="{{ row.generation_number }}">
+                    <tr
+                      class="js-variant-row {% if row.rank <= 3 %}top-results__row--top{{ row.rank }}{% endif %}"
+                      data-generation="{{ row.generation_number }}"
+                      data-activity-value="{{ row.activity_score_value if row.activity_score_value is not none else '' }}"
+                      data-mutation-count="{{ row.protein_mutations }}"
+                      data-is-mutant="{{ '1' if row.is_mutant else '0' }}"
+                      data-qc-flagged="{{ '1' if row.qc_flagged else '0' }}"
+                      data-qc-note="{{ row.qc_note if row.qc_note is defined else '' }}"
+                      data-variant-id="{{ row.variant_id if row.variant_id else '' }}"
+                      data-rank="{{ row.rank }}"
+                      data-generation-value="{{ row.generation_number }}"
+                      data-variant="{{ row.variant_index }}"
+                      data-activity="{{ row.activity_score }}"
+                      data-mutations="{{ row.protein_mutations }}"
+                      {% if row.variant_id %}tabindex="0" role="button"{% endif %}
+                    >
                       <td>#{{ row.rank }}</td>
                       <td>{{ row.generation_number }}</td>
                       <td>{{ row.variant_index }}</td>
                       <td>{{ row.activity_score }}</td>
                       <td>{{ row.protein_mutations }}</td>
-                      <td>
-                        <button
-                          type="button"
-                          class="btn btn--ghost btn--sm js-view-variant"
-                          {% if not row.variant_id %}disabled{% endif %}
-                          data-variant-id="{{ row.variant_id if row.variant_id else '' }}"
-                          data-rank="{{ row.rank }}"
-                          data-generation="{{ row.generation_number }}"
-                          data-variant="{{ row.variant_index }}"
-                          data-activity="{{ row.activity_score }}"
-                          data-mutations="{{ row.protein_mutations }}"
-                        >
-                          View variant
-                        </button>
-                      </td>
+                      <td>{% if row.qc_flagged %}<span class="text-warning">flagged</span>{% else %}<span>ok</span>{% endif %}</td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -534,16 +590,16 @@
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">📋</div>
+              <div class="empty__icon">??</div>
               Top results are not available yet.
               <div class="empty__sub">Run Step D to generate top-10 outputs.</div>
             </div>
           {% endif %}
         </section>
 
-        <div class="variant-modal" id="variantModal" aria-hidden="true">
+        <div class="variant-modal variant-drawer" id="variantModal" aria-hidden="true">
           <div class="variant-modal__backdrop js-close-variant-modal"></div>
-          <div class="variant-modal__card" role="dialog" aria-modal="true" aria-labelledby="variantModalTitle">
+          <div class="variant-modal__card variant-drawer__card" role="dialog" aria-modal="true" aria-labelledby="variantModalTitle">
             <button type="button" class="variant-modal__close js-close-variant-modal" aria-label="Close">&times;</button>
             <h3 class="variant-modal__title" id="variantModalTitle">Variant Details</h3>
             <div class="kv">
@@ -553,6 +609,9 @@
               <div class="kv__row"><span>Parent variant</span><strong id="modalParentVariant">-</strong></div>
               <div class="kv__row"><span>Variant</span><strong id="modalVariant">-</strong></div>
               <div class="kv__row"><span>Activity score</span><strong id="modalActivity">-</strong></div>
+              <div class="kv__row"><span>DNA yield</span><strong id="modalDnaYield">-</strong></div>
+              <div class="kv__row"><span>Protein yield</span><strong id="modalProteinYield">-</strong></div>
+              <div class="kv__row"><span>QC notes</span><strong id="modalQcNote">-</strong></div>
             </div>
             <div class="variant-modal__block">
               <div class="variant-modal__subtitle">Mutations (WT vs Variant)</div>
@@ -580,12 +639,13 @@
               <a class="btn btn--sm" id="modalDownloadDna" href="#" target="_blank" rel="noopener">FASTA (DNA)</a>
               <a class="btn btn--sm" id="modalDownloadProtein" href="#" target="_blank" rel="noopener">Protein FASTA</a>
               <a class="btn btn--sm" id="modalDownloadMutCsv" href="#" target="_blank" rel="noopener">Mutation report (CSV)</a>
+              <a class="btn btn--sm" id="modalFullVariantPage" href="#" target="_blank" rel="noopener">Full variant page</a>
             </div>
           </div>
         </div>
 
         <section class="panel visuals-panel panel--primary">
-          <div class="panel__header">Visual Insights</div>
+          <div class="panel__header">Results Visualisation</div>
           {% set has_any_graph = (analysis_outputs and (
               (analysis_outputs.plot and analysis_outputs.plot.exists) or
               (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
@@ -627,45 +687,46 @@
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">📈</div>
+              <div class="empty__icon">??</div>
               No analysis visuals yet.
               <div class="empty__sub">Run Step D to generate plots.</div>
             </div>
           {% endif %}
 
-          {% if analysis_outputs %}
-            <div class="downloads-group">
-              <div class="downloads-group__title">Downloads</div>
-              <div class="downloads-group__list">
-                <a class="btn btn--ghost" href="{{ analysis_outputs.results.url }}" target="_blank" rel="noopener">Results CSV (all processed rows)</a>
-
-                {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
-                {% else %}
-                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 CSV</span>
-                {% endif %}
-
-                {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
-                {% else %}
-                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">QC debug CSV</span>
-                {% endif %}
-
-                {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.mutation_report.url }}" target="_blank" rel="noopener">Mutation report CSV</a>
-                {% else %}
-                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">Mutation report CSV</span>
-                  <span class="downloads-group__hint">
-                    {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Run sequence processing first.' }}
-                  </span>
-                {% endif %}
-              </div>
-            </div>
-          {% endif %}
         </section>
 
+        {% if analysis_outputs %}
+        <section class="panel panel--primary">
+          <div class="panel__header">Downloads</div>
+          <div class="downloads-group__list">
+            <a class="btn btn--ghost" href="{{ analysis_outputs.results.url }}" target="_blank" rel="noopener">Results CSV (all processed rows)</a>
+
+            {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
+            {% else %}
+              <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 CSV</span>
+            {% endif %}
+
+            {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
+            {% else %}
+              <span class="btn btn--ghost btn--disabled" aria-disabled="true">QC debug CSV</span>
+            {% endif %}
+
+            {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.mutation_report.url }}" target="_blank" rel="noopener">Mutation report CSV</a>
+            {% else %}
+              <span class="btn btn--ghost btn--disabled" aria-disabled="true">Mutation report CSV</span>
+              <span class="downloads-group__hint">
+                {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Compute mutations (DNA&#8594;Protein) first.' }}
+              </span>
+            {% endif %}
+          </div>
+        </section>
+        {% endif %}
+
         <section class="panel kpi-panel panel--quiet">
-          <div class="panel__header">KPI Snapshot</div>
+          <div class="panel__header">Experiment Summary</div>
           <div class="stats">
             <div class="stat-card">
               <div class="value">{{ kpis.total_records if kpis else 0 }}</div>
@@ -692,6 +753,14 @@
             <div class="stat-card">
               <div class="value">{{ ('%.1f%%'|format(kpis.mutated_percent)) if kpis and kpis.mutated_percent is not none else 'N/A' }}</div>
               <div class="label">% variants with mutations</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ kpis.most_common_mutations if kpis and kpis.most_common_mutations else 'N/A' }}</div>
+              <div class="label">Most common mutations</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ kpis.syn_non_syn_ratio if kpis and kpis.syn_non_syn_ratio else 'N/A' }}</div>
+              <div class="label">Synonymous vs non-synonymous ratio</div>
             </div>
             <div class="stat-card">
               <div class="value">{{ warnings_count }}</div>
@@ -722,7 +791,7 @@
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">🔍</div>
+              <div class="empty__icon">??</div>
               Waiting for WT fetch…
               <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
             </div>
@@ -767,7 +836,7 @@
             </details>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">📋</div>
+              <div class="empty__icon">??</div>
               No validation run yet.
               <div class="empty__sub">Upload a plasmid FASTA in Step B. (Optional — you can skip to Step C.)</div>
             </div>
@@ -775,20 +844,24 @@
         </section>
         {% endif %}
 
-        <!-- PARSING UPLOAD RESULTS -->
+        <!-- Data QC (Upload & Validation) -->
         {% if parsing_result or step_a_done %}
-        <section class="panel" data-panel="C">
-          <div class="panel__header">
+        <details class="panel panel--quiet panel--collapsible" data-panel="C" {% if parsing_result and ((parsing_result.errors and parsing_result.errors|length > 0) or (parsing_result.warnings and parsing_result.warnings|length > 0)) %}open{% endif %}>
+          <summary class="panel__header panel__header--summary">
             <span class="panel__step">3</span>
-            Parsing Upload Results
+            Data QC (Upload & Validation)
             {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
-              <span class="badge badge--warn ml-auto">Needs attention</span>
+              {% if warning_meta.critical > 0 %}
+                <span class="badge badge--warn ml-auto">{{ warning_meta.advisory }} advisory warnings ({{ warning_meta.critical }} critical)</span>
+              {% else %}
+                <span class="badge badge--neutral ml-auto">{{ warning_meta.advisory }} advisory warnings (0 critical)</span>
+              {% endif %}
             {% elif step_c_done %}
               <span class="badge badge--ok ml-auto">Complete</span>
             {% elif step_c_fail %}
               <span class="badge badge--bad ml-auto">Error</span>
             {% endif %}
-          </div>
+          </summary>
 
           {% if parsing_result %}
             {% if parsing_result.success %}
@@ -848,13 +921,26 @@
             {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
               <details class="details warning-insights" {% if not parsing_result.success %}open{% endif %}>
                 <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
+                <div class="warning-insights__actions">
+                  {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
+                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC report</a>
+                  {% else %}
+                    <span class="btn btn--sm btn--ghost btn--disabled" aria-disabled="true">Download QC report</span>
+                  {% endif %}
+                </div>
                 <div class="warning-insights__summary" data-warning-summary>
                   {{ parsing_result.warnings|length }} warnings detected.
                 </div>
                 <div class="warning-insights__filters">
-                  <button type="button" class="btn btn--sm btn--ghost js-warning-filter is-active" data-filter="critical">Show only critical</button>
-                  <button type="button" class="btn btn--sm btn--ghost js-warning-filter" data-filter="all">Show all</button>
+                  <button type="button" class="warning-chip js-warning-filter is-active" data-filter="critical">Critical</button>
+                  <button type="button" class="warning-chip js-warning-filter" data-filter="advisory">Advisory</button>
+                  <button type="button" class="warning-chip js-warning-filter" data-filter="all">All</button>
+                  <label class="checkbox-inline warning-insights__group-toggle">
+                    <input type="checkbox" id="warningGroupByField">
+                    Group by field
+                  </label>
                 </div>
+                <div class="warning-insights__groups is-hidden" id="warningGroups"></div>
                 <div class="warning-insights__table-wrap">
                   <table class="warning-insights__table">
                     <thead>
@@ -863,7 +949,9 @@
                         <th>Row</th>
                         <th>Field</th>
                         <th>Issue</th>
+                        <th>Why this matters</th>
                         <th>Fix suggestion</th>
+                        <th>Action</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -873,7 +961,9 @@
                           <td data-col="row">-</td>
                           <td data-col="field">-</td>
                           <td data-col="issue">{{ warning }}</td>
+                          <td data-col="why">-</td>
                           <td data-col="fix">Review data and retry.</td>
+                          <td data-col="action"><button type="button" class="btn btn--sm btn--ghost js-go-record" disabled title="Record view is not available in this workspace.">Go to record</button></td>
                         </tr>
                       {% endfor %}
                     </tbody>
@@ -884,12 +974,12 @@
 
           {% else %}
             <div class="empty">
-              <div class="empty__icon">📊</div>
+              <div class="empty__icon">??</div>
               No data uploaded yet.
               <div class="empty__sub">Upload a TSV, CSV, or JSON file in Step C.</div>
             </div>
           {% endif %}
-        </section>
+        </details>
         {% endif %}
         <!-- SEQUENCE PROCESSING RESULTS -->
         {% if step_e_done or (step_c_done and sequence_message) %}
@@ -904,7 +994,7 @@
             <div class="note">{{ sequence_message }}</div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">🧬</div>
+              <div class="empty__icon">??</div>
               No sequence processing run yet.
               <div class="empty__sub">Use Step E on the left.</div>
             </div>
@@ -919,3 +1009,7 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
+
+
+
+

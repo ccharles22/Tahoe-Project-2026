@@ -1,5 +1,5 @@
 /**
- * settings.js  —  Direct Evolution Monitoring
+ * settings.js  -  Direct Evolution Monitoring
  * Vanilla ES6+. No auth logic, no secrets. Progressive enhancement only.
  * All server-side validation is the source of truth; this file improves UX.
  */
@@ -7,7 +7,8 @@
 (function () {
   "use strict";
 
-  /* ── Helpers ────────────────────────────────────────────────────────── */
+  /* Helpers */
+  // Query helpers to reduce repeated DOM boilerplate.
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -20,7 +21,8 @@
     requestAnimationFrame(() => (el.textContent = msg));
   }
 
-  /* ── 1. Reveal / hide password toggle ──────────────────────────────── */
+  /* 1. Reveal / hide password toggle */
+  // 1) Password reveal/hide toggles for each password input.
   $$(".btn-reveal").forEach((btn) => {
     const targetId = btn.dataset.target;
     const input = targetId ? document.getElementById(targetId) : null;
@@ -68,7 +70,8 @@
     });
   });
 
-  /* ── 2. Password strength meter ─────────────────────────────────────── */
+  /* 2. Password strength meter */
+  // 2) Lightweight client-side strength indicator (server policy still authoritative).
   const newPwInput = document.getElementById("new_password");
   const strengthEl = document.getElementById("pw-strength");
 
@@ -104,7 +107,7 @@
       }
       strengthEl.hidden = false;
       const score = scorePassword(pw); // 0-4
-      const lvlIdx = Math.max(0, score - 1); // map 1-4 → 0-3
+      const lvlIdx = Math.max(0, score - 1); // map 1-4 -> 0-3
       fill.setAttribute("data-level", score);
       label.textContent = score === 0 ? "Too short" : levels[lvlIdx].label;
       // Announce when level changes for screen readers
@@ -112,7 +115,8 @@
     });
   }
 
-  /* ── 3. Inline client-side validation ───────────────────────────────── */
+  /* 3. Inline client-side validation */
+  // 3) Inline validation for fast feedback without replacing server validation.
   /**
    * Shows an error under a field without replacing server-rendered errors.
    * Only runs on blur to avoid premature red-state while typing.
@@ -163,11 +167,12 @@
     });
   }
 
-  /* ── 4. Password-change guardrail ───────────────────────────────────── */
+  /* 4. Password-change guardrail */
   /**
    * If user types in new_password but leaves current_password blank,
    * show an inline warning (server will also reject, but this saves a round-trip).
    */
+  // 4) Guardrail: require current password when new password is provided.
   const currentPwInput = document.getElementById("current_password");
 
   if (newPwInput && currentPwInput) {
@@ -192,7 +197,8 @@
     });
   }
 
-  /* ── 5. Submit guard: prevent double-submit, indicate loading ─────── */
+  /* 5. Submit guard: prevent double-submit, indicate loading */
+  // 5) Submit guard: prevent duplicate submissions and surface busy state.
   const form = document.getElementById("settings-form");
   const submitBtn = document.getElementById("submit-btn");
 
@@ -210,16 +216,17 @@
 
       // Disable button + show loading state
       submitBtn.setAttribute("aria-busy", "true");
-      submitBtn.textContent = "Saving…";
+      submitBtn.textContent = "Saving...";
       submitBtn.disabled = true;
     });
   }
 
-  /* ── 6. Focus management after server-side success ─────────────────── */
+  /* 6. Focus management after server-side success */
   /**
    * If a success flash is present (server redirected back), move focus to it
    * so screen reader users are immediately informed of the outcome.
    */
+  // 6) Accessibility: move focus to success feedback after redirect.
   const flashRegion = document.getElementById("flash-region");
   if (flashRegion && flashRegion.querySelector(".flash--success")) {
     // Brief delay to let the page fully render

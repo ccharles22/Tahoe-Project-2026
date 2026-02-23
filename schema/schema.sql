@@ -262,7 +262,7 @@ create table experiment_metadata (
     metadata_id bigserial primary key,
     experiment_id bigint not null,
     field_name varchar(255) not null,
--- Use after loading new embeddings or mutation data.
+    field_value text,
     foreign key (experiment_id) references experiments(experiment_id) on delete cascade,
 unique (experiment_id, field_name)
 );

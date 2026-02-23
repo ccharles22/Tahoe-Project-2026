@@ -1,4 +1,4 @@
-import os
+﻿import os
 import logging
 from flask import Flask, render_template, send_from_directory, abort
 from dotenv import load_dotenv
@@ -112,7 +112,7 @@ def create_app():
     @app.errorhandler(OperationalError)
     def handle_db_error(error):
         log.error("Database connection error: %s", error)
-        return render_template("db_error.html"), 503
+        return render_template("errors/db_error.html"), 503
 
     # register blueprints
     from .blueprints.auth import auth_bp
@@ -146,3 +146,4 @@ def create_app():
             abort(404)
 
     return app
+

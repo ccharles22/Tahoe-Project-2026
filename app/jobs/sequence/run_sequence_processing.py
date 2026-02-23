@@ -21,7 +21,7 @@ Error Recovery:
     - Final status reflects whether any variants failed (ANALYSED_WITH_ERRORS)
 
 Command-Line Usage:
-    python -m app.jobs.run_sequence_processing <experiment_id>
+    python -m app.jobs.sequence.run_sequence_processing <experiment_id>
 
 Integration Points:
     - Called by Flask job queue for web UI workflows
@@ -101,7 +101,7 @@ def run_sequence_processing(experiment_id: int) -> None:
         Exception: If fatal error occurs during WT reference loading or mapping.
     
     Database Effects:
-        - Updates experiments.analysis_status (ANALYSIS_RUNNING → final state)
+        - Updates experiments.analysis_status (ANALYSIS_RUNNING ??? final state)
         - Inserts/updates wt_mappings (if not cached)
         - Inserts/updates sequence_analysis per variant
         - Replaces mutations per variant (atomic delete + insert)
@@ -284,16 +284,16 @@ if __name__ == "__main__":
     CLI entry point for direct execution.
     
     Usage:
-        python -m app.jobs.run_sequence_processing <experiment_id>
+        python -m app.jobs.sequence.run_sequence_processing <experiment_id>
     
     This enables testing and batch processing outside the Flask web application
     or job queue (e.g., Celery, RQ).
     
     Example:
-        python -m app.jobs.run_sequence_processing 42
+        python -m app.jobs.sequence.run_sequence_processing 42
     """
     if len(sys.argv) != 2:
-        raise SystemExit("Usage: python -m app.jobs.run_sequence_processing <experiment_id>")
+        raise SystemExit("Usage: python -m app.jobs.sequence.run_sequence_processing <experiment_id>")
     
     # Configure basic logging for CLI usage
     logging.basicConfig(
