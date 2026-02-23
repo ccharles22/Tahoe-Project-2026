@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from os import PathLike
 from pathlib import Path
 from typing import Iterable, Literal
@@ -18,6 +18,7 @@ except Exception:  # pragma: no cover
 
 
 LabelMode = Literal["none", "top10", "all"]
+NetworkMode = Literal["identity", "cooccurrence"]
 
 
 @dataclass(frozen=True)
@@ -48,6 +49,12 @@ class ProteinNetConfig:
 
 	# similarity rule
 	identity_threshold: float = 0.95      # connect if identity > this threshold
+	mode: NetworkMode = "identity"         # identity = sequence; cooccurrence = shared mutations
+
+	# co-occurrence rule (variant-variant edges from shared protein mutations)
+	cooccur_min_shared_mutations: int = 2
+	cooccur_jaccard_threshold: float | None = None
+	cooccur_weight: Literal["shared", "jaccard"] = "shared"
 
 	# diagnostics
 	debug: bool = False
@@ -93,6 +100,7 @@ def _pick_nodes_for_network(
 	activity_col: str,
 	top_col: str,
 	seq_col: str,
+	require_seq: bool = True,
 ) -> pd.DataFrame:
 	"""
 	Choose a manageable subset so the network is readable.
@@ -104,7 +112,10 @@ def _pick_nodes_for_network(
 	n = nodes.copy()
 
 	# clean columns
-	n = n.dropna(subset=[id_col, seq_col]).copy()
+	if require_seq:
+		n = n.dropna(subset=[id_col, seq_col]).copy()
+	else:
+		n = n.dropna(subset=[id_col]).copy()
 	n[activity_col] = pd.to_numeric(n.get(activity_col), errors="coerce")
 	n[top_col] = pd.to_numeric(n.get(top_col, 0), errors="coerce").fillna(0).astype(int)
 
@@ -134,11 +145,14 @@ def _pick_nodes_for_network(
 
 		for _, r in top10_rows.iterrows():
 			tseq = r[seq_col]
+			if not isinstance(tseq, str) or not tseq:
+				continue
+			max_dist = int(np.floor((1.0 - cfg.identity_threshold) * len(tseq)))
 			hits: list[tuple[int, int]] = []  # (dist, idx_in_pool)
 			for i, (pid, pseq) in enumerate(zip(pool_ids, pool_seqs)):
 				if pid in base_ids:
 					continue
-				d = _hamming_distance(tseq, pseq, max_dist=cfg.distance_threshold)
+				d = _hamming_distance(tseq, pseq, max_dist=max_dist)
 				if d is not None:
 					hits.append((d, i))
 
@@ -193,6 +207,80 @@ def build_protein_similarity_edges(
 	return pd.DataFrame(edges, columns=["u", "v", "identity"])
 
 
+def _build_mutation_sets(
+	mutations: pd.DataFrame,
+	*,
+	variant_col: str,
+	position_col: str,
+	original_col: str,
+	mutated_col: str,
+) -> dict[int, set[str]]:
+	sets: dict[int, set[str]] = {}
+	if mutations is None or mutations.empty:
+		return sets
+
+	needed = {variant_col, position_col, original_col, mutated_col}
+	if not needed.issubset(mutations.columns):
+		return sets
+
+	for r in mutations.itertuples(index=False):
+		vid = getattr(r, variant_col)
+		pos = getattr(r, position_col)
+		orig = getattr(r, original_col)
+		mut = getattr(r, mutated_col)
+		if pd.isna(vid) or pd.isna(pos) or pd.isna(orig) or pd.isna(mut):
+			continue
+		label = f"{orig}{int(pos)}{mut}"
+		sets.setdefault(int(vid), set()).add(label)
+
+	return sets
+
+
+def build_protein_cooccurrence_edges(
+	nodes_sub: pd.DataFrame,
+	mutations: pd.DataFrame,
+	*,
+	id_col: str,
+	variant_col: str,
+	position_col: str,
+	original_col: str,
+	mutated_col: str,
+	min_shared: int,
+	jaccard_threshold: float | None,
+) -> pd.DataFrame:
+	"""
+	Build undirected edges when variants share protein mutations.
+	Weights are both shared mutation count and Jaccard similarity.
+	"""
+	mut_sets = _build_mutation_sets(
+		mutations,
+		variant_col=variant_col,
+		position_col=position_col,
+		original_col=original_col,
+		mutated_col=mutated_col,
+	)
+
+	ids = nodes_sub[id_col].tolist()
+	edges: list[tuple[int, int, int, float]] = []
+	for i in range(len(ids)):
+		set_i = mut_sets.get(int(ids[i]), set())
+		for j in range(i + 1, len(ids)):
+			set_j = mut_sets.get(int(ids[j]), set())
+			if not set_i or not set_j:
+				continue
+			shared = set_i & set_j
+			shared_n = len(shared)
+			if shared_n < min_shared:
+				continue
+			union = set_i | set_j
+			jaccard = (shared_n / len(union)) if union else 0.0
+			if jaccard_threshold is not None and jaccard < jaccard_threshold:
+				continue
+			edges.append((int(ids[i]), int(ids[j]), shared_n, float(jaccard)))
+
+	return pd.DataFrame(edges, columns=["u", "v", "shared", "jaccard"])
+
+
 def plot_protein_similarity_network(
 	nodes: pd.DataFrame,
 	out_path: str | Path | PathLike[str],
@@ -200,6 +288,8 @@ def plot_protein_similarity_network(
 	# optional filtering: if you pass experiment_id, nodes should already be filtered upstream,
 	# or include experiment_id in nodes and filter here.
 	config: ProteinNetConfig = ProteinNetConfig(),
+	mutations: pd.DataFrame | None = None,
+	mode: NetworkMode | None = None,
 	id_col: str = "variant_id",
 	seq_col: str = "protein_sequence",
 	activity_col: str = "activity_score",
@@ -209,6 +299,12 @@ def plot_protein_similarity_network(
 
 	if nodes is None or nodes.empty:
 		raise ValueError("nodes is empty; nothing to plot")
+
+	if mode is not None and mode != config.mode:
+		config = replace(config, mode=mode)
+
+	if config.mode == "cooccurrence":
+		config = replace(config, neighbors_per_top10=0)
 
 	out_path = Path(out_path)
 	out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -226,7 +322,13 @@ def plot_protein_similarity_network(
 
 	# Choose subset
 	sub = _pick_nodes_for_network(
-		nodes2, config, id_col=id_col, activity_col=activity_col, top_col=top_col, seq_col=seq_col
+		nodes2,
+		config,
+		id_col=id_col,
+		activity_col=activity_col,
+		top_col=top_col,
+		seq_col=seq_col,
+		require_seq=(config.mode == "identity"),
 	)
 
 	if sub.empty:
@@ -257,12 +359,40 @@ def plot_protein_similarity_network(
 		print("Median pairwise dist:", np.median(dists))
 
 	# Build edges
-	edges = build_protein_similarity_edges(
-		sub,
-		id_col=id_col,
-		seq_col=seq_col,
-		identity_threshold=config.identity_threshold,
-	)
+	if config.mode == "cooccurrence":
+		edges = build_protein_cooccurrence_edges(
+			sub,
+			mutations,
+			id_col=id_col,
+			variant_col="variant_id",
+			position_col="position",
+			original_col="original",
+			mutated_col="mutated",
+			min_shared=config.cooccur_min_shared_mutations,
+			jaccard_threshold=config.cooccur_jaccard_threshold,
+		)
+		if edges.empty:
+			fig, ax = plt.subplots(figsize=config.figsize)
+			ax.set_title(config.title)
+			ax.text(
+				0.5,
+				0.5,
+				"No shared protein mutations to build a co-occurrence network",
+				ha="center",
+				va="center",
+			)
+			ax.set_axis_off()
+			fig.tight_layout()
+			fig.savefig(out_path, dpi=config.dpi)
+			plt.close(fig)
+			return
+	else:
+		edges = build_protein_similarity_edges(
+			sub,
+			id_col=id_col,
+			seq_col=seq_col,
+			identity_threshold=config.identity_threshold,
+		)
 
 	# Build graph
 	G = nx.Graph()
@@ -270,8 +400,13 @@ def plot_protein_similarity_network(
 		vid = getattr(r, id_col)
 		G.add_node(vid)
 
-	for u, v, identity in edges.itertuples(index=False):
-		G.add_edge(u, v, weight=identity)
+	if config.mode == "cooccurrence":
+		for u, v, shared, jaccard in edges.itertuples(index=False):
+			weight = shared if config.cooccur_weight == "shared" else jaccard
+			G.add_edge(u, v, weight=weight)
+	else:
+		for u, v, identity in edges.itertuples(index=False):
+			G.add_edge(u, v, weight=identity)
 
 	# Layout (spring = force-directed)
 	pos = nx.spring_layout(
