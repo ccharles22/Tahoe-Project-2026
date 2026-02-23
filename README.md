@@ -42,3 +42,22 @@ Flask application for directed-evolution experiment staging, parsing, sequence p
 ```bash
 python run.py
 ```
+
+## PostgreSQL + Visualization Pipeline
+
+This repo also includes an end-to-end PostgreSQL analysis/visualization flow for experiment metrics and reporting.
+
+### Features
+- Relational schema for users, experiments, generations, variants, mutations, and metrics
+- Derived metrics (DNA/protein normalization plus activity score)
+- Lineage closure/views for network plots
+- Static plot generation and simple Flask endpoints for viewing results
+
+### Setup
+1. Install dependencies: `pip install -r requirements.txt`
+2. Create a `.env` entry for `DATABASE_URL`
+3. Apply schema: `psql "$DATABASE_URL" -f schema/schema.sql`
+
+### Reports
+- Generate: `python -m scripts.run_report`
+- Outputs are written under `app/static/generated/`
