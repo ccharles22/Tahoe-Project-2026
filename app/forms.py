@@ -6,17 +6,27 @@ from .models import User
 
 class RegisterForm(FlaskForm):
     username = StringField(
-        validators=[InputRequired(), Length(min=4, max=255)],
+        validators=[
+            InputRequired(message="Username is required."),
+            Length(min=4, max=255, message="Username must be between 4 and 255 characters."),
+        ],
         render_kw={"placeholder": "Username"},
     )
 
     email = StringField(
-        validators=[InputRequired(), Email(), Length(max=255)],
+        validators=[
+            InputRequired(message="Email is required."),
+            Email(message="Enter a valid email address."),
+            Length(max=255, message="Email must be 255 characters or fewer."),
+        ],
         render_kw={"placeholder": "Email"},
     )
 
     password = PasswordField(
-        validators=[InputRequired(), Length(min=4, max=20)],
+        validators=[
+            InputRequired(message="Password is required."),
+            Length(min=4, max=20, message="Password must be between 4 and 20 characters."),
+        ],
         render_kw={"placeholder": "Password"},
     )
 
@@ -33,12 +43,18 @@ class RegisterForm(FlaskForm):
 
 class LoginForm(FlaskForm):
     username = StringField(
-        validators=[InputRequired(), Length(min=4, max=255)],
+        validators=[
+            InputRequired(message="Username is required."),
+            Length(min=4, max=255, message="Username must be between 4 and 255 characters."),
+        ],
         render_kw={"placeholder": "Username"},
     )
 
     password = PasswordField(
-        validators=[InputRequired(), Length(min=4, max=20)],
+        validators=[
+            InputRequired(message="Password is required."),
+            Length(min=4, max=20, message="Password must be between 4 and 20 characters."),
+        ],
         render_kw={"placeholder": "Password"},
     )
 

@@ -15,26 +15,16 @@
 
 </head>
 
-<body>
-  <!-- HEADER SECTION -->
-  <!-- Blue gradient header with animated glow effect -->
-  <header class="header">
-    <!-- Main title with DNA emojis (animated spinning in CSS) -->
-    <h1>🧬 Direct Evolution Monitoring Portal 🧬</h1>
-  </header>
-
+<body class="auth-page auth-page--register">
   <!-- MAIN CONTENT AREA -->
-  <main class="container">
-    
-    <!-- WHITE CARD CONTAINING THE REGISTRATION FORM -->
-    <!-- Semi-transparent white background with golden border -->
-    <section class="card">
+  <main class="auth-body auth-body--login-split">
+    <section class="auth-card">
       <!-- PAGE TITLE AND SUBTITLE -->
       <!-- Gradient text effect using CSS: blue to pink -->
-      <h1 class="page-title">Create Account</h1>
+      <h1 class="auth-card__title">Sign up</h1>
       
       <!-- Gray subtitle text below the title -->
-      <p class="subtitle">Join the research community</p>
+      <p class="auth-card__subtitle">Join the research community</p>
 
       <!-- FLASH MESSAGES SECTION -->
       <!-- Flash messages are temporary notifications from the server -->
@@ -66,111 +56,70 @@
       {% endwith %}
 
       <!-- Registration Form: Submits to /register route via POST method -->
-      <form action="{{ url_for('auth.register') }}" method="post">
+      <form action="{{ url_for('auth.register') }}" method="post" novalidate>
         
         <!-- CSRF Protection Token: Required by Flask-WTF for security -->
         <!-- Prevents Cross-Site Request Forgery attacks -->
         {{ form.hidden_tag() }}
         
-        <!-- USERNAME FIELD -->
         <div class="form-group">
-          <!-- Label for the username input field -->
-          <label for="username">Username</label>
-          
-          <!-- Check if username field has any validation errors -->
           {% if form.username.errors %}
             
             <!-- Render username input WITH error styling (red border, pink background) -->
             <!-- class="is-invalid" applies CSS for error state -->
             {{ form.username(class="is-invalid", id="username") }}
             
-            <!-- Loop through all errors for username field -->
-            <!-- Possible errors: "This field is required", "Username already exists", -->
-            <!-- "Field must be between 4 and 255 characters" -->
-            {% for error in form.username.errors %}
-              <!-- Display each error message in red text below input -->
-              <span class="error-message">{{ error }}</span>
-            {% endfor %}
+            <span class="field-feedback hint">4-255 characters</span>
             
           {% else %}
             <!-- No errors: render normal username input field -->
             {{ form.username(id="username") }}
             
             <!-- Helper text: tells user the character requirements -->
-            <span class="hint">4-255 characters</span>
+            <span class="field-feedback hint">4-255 characters</span>
           {% endif %}
         </div>
 
-        <!-- EMAIL FIELD -->
         <div class="form-group">
-          <!-- Label for the email input field -->
-          <label for="email">Email Address</label>
-          
-          <!-- Check if email field has any validation errors -->
           {% if form.email.errors %}
             
             <!-- Render email input WITH error styling -->
             <!-- type="email" enables browser email validation (@ symbol check) -->
             {{ form.email(class="is-invalid", id="email", type="email") }}
             
-            <!-- Loop through all errors for email field -->
-            <!-- Possible errors: "This field is required", "Invalid email address", -->
-            <!-- "Email already registered" -->
-            {% for error in form.email.errors %}
-              <!-- Display each error message in red text below input -->
-              <span class="error-message">{{ error }}</span>
-            {% endfor %}
+            <span class="field-feedback"></span>
             
           {% else %}
             <!-- No errors: render normal email input field -->
             <!-- type="email" shows @ symbol on mobile keyboards -->
             {{ form.email(id="email", type="email") }}
+            <span class="field-feedback"></span>
           {% endif %}
         </div>
 
-        <!-- PASSWORD FIELD -->
         <div class="form-group">
-          <!-- Label for the password input field -->
-          <label for="password">Password</label>
-          
-          <!-- Check if password field has any validation errors -->
           {% if form.password.errors %}
             
             <!-- Render password input WITH error styling -->
             <!-- type="password" automatically hides characters as bullets/asterisks -->
             {{ form.password(class="is-invalid", id="password") }}
             
-            <!-- Loop through all errors for password field -->
-            <!-- Possible errors: "This field is required", -->
-            <!-- "Field must be at least 4 characters long" -->
-            {% for error in form.password.errors %}
-              <!-- Display each error message in red text below input -->
-              <span class="error-message">{{ error }}</span>
-            {% endfor %}
+            <span class="field-feedback hint">Minimum 4 characters</span>
             
           {% else %}
             <!-- No errors: render normal password input field -->
             {{ form.password(id="password") }}
             
             <!-- Helper text: tells user minimum password length -->
-            <span class="hint">Minimum 4 characters</span>
+            <span class="field-feedback hint">Minimum 4 characters</span>
           {% endif %}
         </div>
 
-        <!-- SUBMIT BUTTONS -->
+        <!-- SUBMIT BUTTON -->
         <div class="btn-container">
-          
-          <!-- Primary button: submits the registration form -->
-          <button type="submit" class="btn btn-primary">
-            <span>🔬 Register</span>
+          <button type="submit" class="btn-primary">
+            <span>Create your account</span>
           </button>
-          
-          <!-- Secondary button: link to login page -->
-          <!-- For users who already have an account -->
-          <a href="{{ url_for('auth.login') }}" class="btn btn-accent">
-            <span>🧪 Sign In</span>
-          </a>
-          
         </div>
       </form>
 
@@ -185,6 +134,21 @@
         <a href="{{ url_for('auth.login') }}">Sign in here</a>
       </p>
     </section>
+
+    <aside class="auth-visual" aria-label="Direct Evolution Monitoring overview">
+      <p class="auth-visual__eyebrow">Research Platform</p>
+      <h2 class="auth-visual__title">Direct Evolution Monitoring</h2>
+      <div class="auth-visual__workflow" aria-hidden="true">
+        <ol class="auth-pipeline">
+          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Fetch WT</span></li>
+          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Validate</span></li>
+          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Upload</span></li>
+          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Analyse</span></li>
+          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Sequence</span></li>
+        </ol>
+      </div>
+    </aside>
   </main>
 </body>
 </html>
+

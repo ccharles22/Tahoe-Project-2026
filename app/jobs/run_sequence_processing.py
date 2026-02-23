@@ -130,93 +130,127 @@ def run_sequence_processing(experiment_id: int) -> None:
             engine, experiment_id
         )
 
-        # Compute or Load Cached WT Mapping (expensive operation)
-        wt_mapping = db_repo.load_wt_mapping(engine, experiment_id)
+        # Compute or load cached WT mapping (requires owning user_id in metadata API).
+        user_id, _ = db_repo.get_experiment_user_and_wt(engine, experiment_id)
+        wt_mapping = db_repo.load_wt_mapping(engine, experiment_id, user_id)
         if wt_mapping is None:
             logger.info("Computing WT gene mapping (6-frame search)...")
             wt_mapping = map_wt_gene_in_plasmid(wt_protein_aa, wt_plasmid_dna)
-            db_repo.save_wt_mapping(engine, experiment_id, wt_mapping)
+            db_repo.upsert_wt_mapping(engine, experiment_id, user_id, wt_mapping)
             logger.info(
                 "WT mapping cached: strand=%s, frame=%d, identity=%.2f%%",
                 wt_mapping.strand,
                 wt_mapping.frame,
                 wt_mapping.match_identity_pct,
             )
-        # Load All Variants for Processing
-        variants: List[Tuple[int, str]] = sorted(
-            db_repo.list_variants(engine, experiment_id), 
-            key=lambda x: x[0],
+        # Load all variants (with generation_id) for chunked processing/writes.
+        variants: List[Tuple[int, int, str]] = db_repo.list_variants_with_generation_by_experiment(
+            engine, experiment_id
         )
         
         total_variants = len(variants)
         logger.info("Processing %d variants for experiment %s", total_variants, experiment_id)
 
         log_every_n = max(1, int(getattr(settings, "LOG_EVERY_N", 50)))
+        batch_size = max(1, int(getattr(settings, "SEQUENCE_DB_BATCH_SIZE", 50)))
 
-        # Process Each Variant
-        for idx, (variant_id, variant_plasmid_dna) in enumerate(variants, start=1):
-            try:
-                seq_result = process_variant_plasmid(
-                    variant_plasmid_dna, 
-                    wt_mapping,
-                    fallback_search=settings.FALLBACK_SEARCH,
-                )
-                
-                if not seq_result.cds_dna:
-                    db_repo.save_variant_sequence_analysis(
-                        engine,
-                        variant_id,
-                        seq_result,
-                        counts=_empty_counts()
-                    )
-                    db_repo.replace_variant_mutations(engine, variant_id, [])
-                else:
-                    mutations, counts = call_mutations_against_wt(
-                        wt_mapping.wt_cds_dna,
-                        seq_result.cds_dna,
-                    )
+        # Process variants in DB batches. Each variant uses a savepoint so one
+        # failure does not abort the full chunk transaction.
+        for chunk_start in range(0, total_variants, batch_size):
+            chunk = variants[chunk_start:chunk_start + batch_size]
+            with engine.begin() as conn:
+                for offset, (variant_id, generation_id, variant_plasmid_dna) in enumerate(chunk, start=1):
+                    idx = chunk_start + offset
+                    try:
+                        seq_result = process_variant_plasmid(
+                            variant_plasmid_dna,
+                            wt_mapping,
+                            fallback_search=settings.FALLBACK_SEARCH,
+                        )
 
-                    db_repo.save_variant_sequence_analysis(engine, variant_id, seq_result, counts)
-                    db_repo.replace_variant_mutations(engine, variant_id, mutations)
+                        if not seq_result.cds_dna:
+                            with conn.begin_nested():
+                                db_repo.insert_variant_analysis_on_conn(
+                                    conn,
+                                    variant_id=variant_id,
+                                    generation_id=generation_id,
+                                    experiment_id=experiment_id,
+                                    user_id=user_id,
+                                    result=seq_result,
+                                    counts=_empty_counts(),
+                                    mutations=[],
+                                )
+                        else:
+                            mutations, counts = call_mutations_against_wt(
+                                wt_mapping.wt_cds_dna,
+                                seq_result.cds_dna,
+                            )
+                            with conn.begin_nested():
+                                db_repo.insert_variant_analysis_on_conn(
+                                    conn,
+                                    variant_id=variant_id,
+                                    generation_id=generation_id,
+                                    experiment_id=experiment_id,
+                                    user_id=user_id,
+                                    result=seq_result,
+                                    counts=counts,
+                                    mutations=mutations,
+                                )
 
-            except Exception as e:
-                # Catch variant-specific errors, log, and continue processing
-                had_variant_errors = True
+                    except Exception as e:
+                        # Catch variant-specific errors, log, and continue processing
+                        had_variant_errors = True
 
-                # Create QC-only record with error details
-                from app.services.sequence.sequence_service import QCFlags, VariantSeqResult 
+                        # Create QC-only record with error details
+                        from app.services.sequence.sequence_service import QCFlags, VariantSeqResult
 
-                qc_only = VariantSeqResult(
-                    cds_start_0based=wt_mapping.cds_start_0based,
-                    cds_end_0based_excl=wt_mapping.cds_end_0based_excl,
-                    strand=wt_mapping.strand,
-                    frame=wt_mapping.frame,
-                    cds_dna=None,
-                    protein_aa=None,
-                    qc=QCFlags(
-                        has_frameshift=False,
-                        has_premature_stop=False,
-                        has_ambiguous_bases=False,
-                        notes=f"Variant processing failed: {type(e).__name__}: {e}"
-                    ),
-                )   
-                db_repo.save_variant_sequence_analysis(engine, variant_id, qc_only, counts=_empty_counts())
-                db_repo.replace_variant_mutations(engine, variant_id, [])
+                        qc_only = VariantSeqResult(
+                            cds_start_0based=wt_mapping.cds_start_0based,
+                            cds_end_0based_excl=wt_mapping.cds_end_0based_excl,
+                            strand=wt_mapping.strand,
+                            frame=wt_mapping.frame,
+                            cds_dna=None,
+                            protein_aa=None,
+                            qc=QCFlags(
+                                has_frameshift=False,
+                                has_premature_stop=False,
+                                has_ambiguous_bases=False,
+                                notes=f"Variant processing failed: {type(e).__name__}: {e}",
+                            ),
+                        )
+                        try:
+                            with conn.begin_nested():
+                                db_repo.insert_variant_analysis_on_conn(
+                                    conn,
+                                    variant_id=variant_id,
+                                    generation_id=generation_id,
+                                    experiment_id=experiment_id,
+                                    user_id=user_id,
+                                    result=qc_only,
+                                    counts=_empty_counts(),
+                                    mutations=[],
+                                )
+                        except Exception:
+                            logger.exception(
+                                "Failed to persist QC-only result for variant %d in experiment %s.",
+                                variant_id,
+                                experiment_id,
+                            )
 
-                logger.exception(
-                    "Error processing variant %d in experiment %s. Recorded QC-only result.",
-                    variant_id,
-                    experiment_id,
-                )
- 
-            # Progress logging
-            if idx % log_every_n == 0 or idx == total_variants:
-                logger.info(
-                    "Processed %d/%d variants (experiment %s)",
-                    idx, 
-                    total_variants,
-                    experiment_id,
-                )
+                        logger.exception(
+                            "Error processing variant %d in experiment %s. Recorded QC-only result.",
+                            variant_id,
+                            experiment_id,
+                        )
+
+                    # Progress logging
+                    if idx % log_every_n == 0 or idx == total_variants:
+                        logger.info(
+                            "Processed %d/%d variants (experiment %s)",
+                            idx,
+                            total_variants,
+                            experiment_id,
+                        )
         
         # ====================================================================
         # Update Final Status

@@ -23,6 +23,7 @@ Environment Variables:
     - MIN_MAPPING_IDENTITY_PCT: Minimum percent identity for WT mapping (default: 95.0)
     - MAX_X_FRACTION: Maximum allowed unknown residues fraction (default: 0.05)
     - LOG_EVERY_N: Log progress for every N variants (default: 10)
+    - SEQUENCE_DB_BATCH_SIZE: Variants per DB transaction chunk (default: 50)
     - FALLBACK_SEARCH: Enables de novo search on variant extraction failure (default: false)
 
 Usage:
@@ -81,6 +82,7 @@ class Settings:
     MIN_MAPPING_IDENTITY_PCT: float = _get_float("MIN_MAPPING_IDENTITY_PCT", 95.0)
     MAX_X_FRACTION: float = _get_float("MAX_X_FRACTION", 0.05)
     LOG_EVERY_N: int = _get_int("LOG_EVERY_N", 10)
+    SEQUENCE_DB_BATCH_SIZE: int = _get_int("SEQUENCE_DB_BATCH_SIZE", 50)
 
     WT_MIN_IDENTITY_PCT: float = 60.0
     MAX_ALIGNMENT_GAP_PENALTY: float = -10.0

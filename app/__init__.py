@@ -4,12 +4,24 @@ from flask import Flask, render_template, send_from_directory, abort
 from dotenv import load_dotenv
 from sqlalchemy.exc import OperationalError, DatabaseError
 
-from .extensions import db, login_manager, bcrypt
+from .extensions import db, login_manager, bcrypt, compress
 from .models import User
 
 log = logging.getLogger(__name__)
 
 load_dotenv()
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    try:
+        return int(value)
+    except ValueError:
+        log.warning("Invalid integer for %s=%r; using default=%d", name, value, default)
+        return default
+
 
 def create_app():
     app = Flask(__name__)
@@ -34,20 +46,45 @@ def create_app():
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    # Connection stability for remote Postgres (Tailscale / VPN)
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 280,
+    # Response compression for text assets (HTML/CSS/JS/JSON).
+    app.config["COMPRESS_REGISTER"] = True
+    app.config["COMPRESS_LEVEL"] = _env_int("COMPRESS_LEVEL", 6)
+    app.config["COMPRESS_MIN_SIZE"] = _env_int("COMPRESS_MIN_SIZE", 500)
+    app.config["COMPRESS_MIMETYPES"] = [
+        "text/html",
+        "text/css",
+        "text/xml",
+        "text/plain",
+        "application/javascript",
+        "application/json",
+        "application/xml",
+        "image/svg+xml",
+    ]
+
+    # DB engine settings are environment-driven so local/dev can fail fast.
+    db_connect_timeout = _env_int("DB_CONNECT_TIMEOUT", 3)
+    db_pool_recycle = _env_int("DB_POOL_RECYCLE", 280)
+    db_pool_size = _env_int("DB_POOL_SIZE", 5)
+    db_max_overflow = _env_int("DB_MAX_OVERFLOW", 10)
+    db_keepalives_idle = _env_int("DB_KEEPALIVES_IDLE", 30)
+    db_keepalives_interval = _env_int("DB_KEEPALIVES_INTERVAL", 10)
+    db_keepalives_count = _env_int("DB_KEEPALIVES_COUNT", 5)
+
+    engine_options = {
+        "pool_recycle": db_pool_recycle,
         "pool_pre_ping": True,
-        "pool_size": 5,
-        "max_overflow": 10,
-        "connect_args": {
-            "connect_timeout": 10,
-            "keepalives": 1,
-            "keepalives_idle": 30,
-            "keepalives_interval": 10,
-            "keepalives_count": 5,
-        },
+        "pool_size": db_pool_size,
+        "max_overflow": db_max_overflow,
     }
+    if not (db_url or "").startswith("sqlite:"):
+        engine_options["connect_args"] = {
+            "connect_timeout": db_connect_timeout,
+            "keepalives": 1,
+            "keepalives_idle": db_keepalives_idle,
+            "keepalives_interval": db_keepalives_interval,
+            "keepalives_count": db_keepalives_count,
+        }
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = engine_options
 
     if not app.config["SQLALCHEMY_DATABASE_URI"]:
         raise RuntimeError("DATABASE_URL is not set. Create a .env file with DATABASE_URL=...")
@@ -55,6 +92,10 @@ def create_app():
     # init extensions
     db.init_app(app)
     bcrypt.init_app(app)
+    if compress is not None:
+        compress.init_app(app)
+    else:
+        log.warning("Flask-Compress not installed; response compression is disabled.")
 
     login_manager.init_app(app)
     login_manager.login_view = "auth.login"

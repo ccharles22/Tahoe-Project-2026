@@ -13,6 +13,7 @@ Flask-SQLAlchemy
 Flask-Login
 Flask-WTF
 Flask-Bcrypt
+Flask-Compress
 WTForms
 email-validator
 psycopg2-binary

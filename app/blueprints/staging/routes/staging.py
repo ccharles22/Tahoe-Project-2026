@@ -2,6 +2,10 @@ import csv
 import io
 import json
 import os
+import sys
+import logging
+import threading
+import subprocess
 import traceback
 from flask import (
     jsonify, render_template, request, redirect,
@@ -22,6 +26,7 @@ from app.services.staging.backtranslate import backtranslate
 
 from .. import staging_bp
 
+logger = logging.getLogger(__name__)
 
 # ---------- session-based validation helpers ----------
 # Notes:
@@ -110,6 +115,47 @@ def _normalize_parsing_result(result_dict):
     return out
 
 
+def _recover_parsing_result_from_db(experiment_id: int):
+    """
+    Rebuild a minimal parsing result from persisted DB rows.
+
+    Parsing UI state is session-backed; this fallback prevents false
+    "No data uploaded" messages when session data has expired.
+    """
+    try:
+        total_records = db.session.execute(
+            text(
+                """
+                SELECT COUNT(*)
+                FROM variants v
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                """
+            ),
+            {"eid": int(experiment_id)},
+        ).scalar()
+    except Exception:
+        db.session.rollback()
+        return None
+
+    total = int(total_records or 0)
+    if total <= 0:
+        return None
+
+    return {
+        "success": True,
+        "total_records": total,
+        # Insert/update split cannot be reconstructed reliably from current state.
+        "inserted_count": 0,
+        "updated_count": 0,
+        "warnings": [],
+        "warnings_count": 0,
+        "detected_fields": [],
+        "errors": [],
+        "counts_estimated": True,
+    }
+
+
 def _save_sequence_status_to_session(experiment_id, status_dict):
     """Store sequence run status and technical details in Flask session."""
     key = f"sequence_status_{experiment_id}"
@@ -120,6 +166,40 @@ def _get_sequence_status_from_session(experiment_id):
     """Retrieve sequence run status from Flask session, or None."""
     key = f"sequence_status_{experiment_id}"
     return flask_session.get(key)
+
+
+def _generate_protein_network_plot(experiment_id: int) -> tuple[bool, str]:
+    """Generate protein similarity network PNG for one experiment."""
+    try:
+        from app.services.analysis.database import get_conn
+        from app.services.analysis.queries import fetch_protein_similarity_nodes
+        from app.services.analysis.plots.protein_similarity_network import plot_protein_similarity_network
+    except Exception as exc:
+        return False, f"Protein network setup failed: {exc}"
+
+    out_dir = os.path.join(current_app.root_path, "static", "generated", str(experiment_id))
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "protein_similarity.png")
+
+    try:
+        with get_conn() as conn:
+            df_protein = fetch_protein_similarity_nodes(conn, experiment_id)
+        if df_protein.empty:
+            return False, "Protein network skipped: no variants available."
+        if df_protein["protein_sequence"].dropna().empty:
+            return False, "Protein network skipped: no protein sequences available."
+
+        plot_protein_similarity_network(
+            df_protein,
+            out_path,
+            id_col="variant_id",
+            seq_col="protein_sequence",
+            activity_col="activity_score",
+            top_col="is_top10",
+        )
+        return True, "Protein network generated."
+    except Exception as exc:
+        return False, f"Protein network failed: {exc}"
 
 
 def _load_top10_rows(csv_path, experiment_id):
@@ -147,31 +227,100 @@ def _load_top10_rows(csv_path, experiment_id):
     except Exception:
         return []
 
+    keys = []
     for r in rows:
         try:
             gen_num = int(str(r["generation_number"]).strip())
             var_idx = str(r["variant_index"]).strip()
-            variant_id = db.session.execute(
-                text(
-                    """
-                    SELECT v.variant_id
-                    FROM variants v
-                    JOIN generations g ON g.generation_id = v.generation_id
-                    WHERE g.experiment_id = :eid
-                      AND g.generation_number = :gen
-                      AND v.plasmid_variant_index = :vidx
-                    ORDER BY v.variant_id DESC
-                    LIMIT 1
-                    """
-                ),
-                {"eid": experiment_id, "gen": gen_num, "vidx": var_idx},
-            ).scalar()
-            r["variant_id"] = int(variant_id) if variant_id is not None else None
+            keys.append((gen_num, var_idx))
         except Exception:
-            db.session.rollback()
+            continue
+
+    if not keys:
+        return rows
+
+    clauses = []
+    params = {"eid": experiment_id}
+    for i, (gen_num, var_idx) in enumerate(keys):
+        clauses.append(f"(g.generation_number = :g{i} AND v.plasmid_variant_index = :v{i})")
+        params[f"g{i}"] = gen_num
+        params[f"v{i}"] = var_idx
+
+    try:
+        sql = f"""
+            SELECT
+              g.generation_number,
+              v.plasmid_variant_index,
+              MAX(v.variant_id) AS variant_id
+            FROM variants v
+            JOIN generations g ON g.generation_id = v.generation_id
+            WHERE g.experiment_id = :eid
+              AND ({' OR '.join(clauses)})
+            GROUP BY g.generation_number, v.plasmid_variant_index
+        """
+        found = db.session.execute(text(sql), params).mappings().all()
+        id_map = {
+            (int(row["generation_number"]), str(row["plasmid_variant_index"])): int(row["variant_id"])
+            for row in found
+        }
+        for r in rows:
+            try:
+                key = (int(str(r["generation_number"]).strip()), str(r["variant_index"]).strip())
+                r["variant_id"] = id_map.get(key)
+            except Exception:
+                r["variant_id"] = None
+    except Exception:
+        db.session.rollback()
+        for r in rows:
             r["variant_id"] = None
 
     return rows
+
+
+def _run_analysis_background(experiment_id: int, app_obj) -> None:
+    """Run analysis in a background thread to avoid blocking web requests."""
+    repo_root = os.path.dirname(app_obj.root_path)
+    env = os.environ.copy()
+    env["EXPERIMENT_ID"] = str(experiment_id)
+    try:
+        proc = subprocess.run(
+            [sys.executable, "-m", "app.services.analysis.report"],
+            cwd=repo_root,
+            env=env,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if proc.returncode != 0:
+            logger.error(
+                "Background analysis failed for experiment %s (code=%s): %s",
+                experiment_id,
+                proc.returncode,
+                proc.stderr[-2000:] if proc.stderr else "no stderr",
+            )
+            return
+
+        with app_obj.app_context():
+            generated, protein_msg = _generate_protein_network_plot(experiment_id)
+            logger.info(
+                "Background analysis complete for experiment %s: %s",
+                experiment_id,
+                "Protein network generated." if generated else protein_msg,
+            )
+    except Exception:
+        logger.exception("Background analysis crashed for experiment %s", experiment_id)
+
+
+def _run_sequence_background(experiment_id: int, app_obj) -> None:
+    """Run sequence processing in a background thread."""
+    with app_obj.app_context():
+        try:
+            from app.jobs.run_sequence_processing import run_sequence_processing
+            run_sequence_processing(experiment_id)
+            summary = "Sequence processing completed. Outputs are stored in the database."
+            logger.info("Background sequence complete for experiment %s: %s", experiment_id, summary)
+        except Exception:
+            logger.exception("Background sequence failed for experiment %s", experiment_id)
 
 
 def _load_kpis(experiment_id):
@@ -335,6 +484,11 @@ def create_experiment():
             # Persist normalized shape to prevent repeated legacy-key failures.
             _save_parsing_result_to_session(experiment_id, parsing_dict)
             parsing_result = _ValidationProxy(parsing_dict)
+        else:
+            recovered = _recover_parsing_result_from_db(int(experiment_id))
+            if recovered:
+                _save_parsing_result_to_session(experiment_id, recovered)
+                parsing_result = _ValidationProxy(recovered)
         sequence_status = _get_sequence_status_from_session(experiment_id)
         sequence_status_code = str(sequence_status.get("status", "")).lower() if sequence_status else ""
         sequence_summary = (sequence_status.get("summary") or "").strip() if sequence_status else ""
@@ -369,6 +523,7 @@ def create_experiment():
         top10_csv_path = os.path.join(gen_dir, "top10_variants.csv")
         top10_png_path = os.path.join(gen_dir, "top10_variants.png")
         lineage_path = os.path.join(gen_dir, "lineage.png")
+        protein_network_path = os.path.join(gen_dir, "protein_similarity.png")
         qc_path = os.path.join(gen_dir, "stage4_qc_debug.csv")
 
         sub = f"generated/{experiment_id}"
@@ -387,6 +542,11 @@ def create_experiment():
                 "url": url_for("static", filename=f"{sub}/lineage.png"),
                 "label": "Variant Lineage",
                 "exists": os.path.exists(lineage_path),
+            },
+            "protein_network": {
+                "url": url_for("static", filename=f"{sub}/protein_similarity.png"),
+                "label": "Protein Similarity Network",
+                "exists": os.path.exists(protein_network_path),
             },
             "top10": {
                 "url": url_for("static", filename=f"{sub}/top10_variants.csv"),
@@ -423,6 +583,23 @@ def create_experiment():
                            .filter_by(user_id=current_user.user_id)
                            .order_by(Experiment.created_at.desc())
                            .all())
+            preview_candidates = [
+                ("lineage.png", "Variant lineage"),
+                ("protein_similarity.png", "Protein similarity network"),
+                ("activity_distribution.png", "Activity score distribution"),
+                ("top10_variants.png", "Top 10 variants"),
+            ]
+            for exp in experiments:
+                exp.preview_url = None
+                exp.preview_label = None
+                exp_id = str(exp.experiment_id)
+                exp_gen_dir = os.path.join(current_app.root_path, "static", "generated", exp_id)
+                for filename, label in preview_candidates:
+                    abs_path = os.path.join(exp_gen_dir, filename)
+                    if os.path.exists(abs_path):
+                        exp.preview_url = url_for("static", filename=f"generated/{exp_id}/{filename}")
+                        exp.preview_label = label
+                        break
         except Exception:
             db.session.rollback()
             experiments = []
@@ -533,29 +710,28 @@ def create_new_blank_experiment():
 @staging_bp.post('/analysis/run')
 @login_required
 def run_analysis():
-    # Legacy analysis entrypoint reads EXPERIMENT_ID from process env.
-    # Preserve and restore to avoid leaking request-scoped state.
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
-    prev_env = os.getenv("EXPERIMENT_ID")
-    os.environ["EXPERIMENT_ID"] = str(exp_id_int)
+    app_obj = current_app._get_current_object()
+    t = threading.Thread(
+        target=_run_analysis_background,
+        args=(exp_id_int, app_obj),
+        daemon=True,
+        name=f"analysis-exp-{exp_id_int}",
+    )
+    t.start()
+    analysis_message = "Analysis started in background. Refresh in a moment to see outputs."
 
-    try:
-        from app.services.analysis import report
-        report.main()
-        message = "Analysis completed. Results are available below."
-    except Exception as exc:
-        message = f"Analysis failed: {exc}"
-    finally:
-        if prev_env is None:
-            os.environ.pop("EXPERIMENT_ID", None)
-        else:
-            os.environ["EXPERIMENT_ID"] = prev_env
-
-    return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, analysis_message=message))
+    return redirect(
+        url_for(
+            'staging.create_experiment',
+            experiment_id=experiment_id,
+            analysis_message=analysis_message,
+        )
+    )
 
 
 @staging_bp.post('/sequence/run')

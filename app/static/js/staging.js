@@ -85,7 +85,7 @@ window.addEventListener('load', () => {
   document.querySelectorAll('.task__top').forEach(top => {
     top.addEventListener('click', (e) => {
       // Don't toggle if user is clicking a badge or the form within
-      if (e.target.closest('.badge') || e.target.closest('form')) return;
+      if (e.target.closest('.badge') || e.target.closest('.task__state') || e.target.closest('form')) return;
       const task = top.closest('.task');
       if (task && !task.classList.contains('is-locked')) {
         task.classList.toggle('task--collapsed');

@@ -1,5 +1,6 @@
 from flask import render_template, url_for, redirect, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
+from sqlalchemy.exc import IntegrityError
 
 from . import auth_bp
 from app.extensions import db, bcrypt
@@ -34,9 +35,18 @@ def register():
             flash("Account created successfully!", "success")
             return redirect(url_for("auth.homepage"))
 
-        except Exception as e:
+        except IntegrityError as e:
             db.session.rollback()
-            flash(f"Error creating account: {str(e)}", "error")
+            err = str(getattr(e, "orig", e)).lower()
+            if "email" in err:
+                form.email.errors.append("That email is already registered. Please use a different one.")
+            elif "username" in err:
+                form.username.errors.append("That username already exists. Please choose a different one.")
+            else:
+                form.username.errors.append("Could not create account. Please try again.")
+        except Exception:
+            db.session.rollback()
+            form.username.errors.append("Could not create account. Please try again.")
 
     return render_template("auth/register.html", form=form)
 
@@ -61,7 +71,7 @@ def login():
                 next_page = request.args.get("next")
                 return redirect(next_page) if next_page else redirect(url_for("auth.homepage"))
 
-        flash("Invalid username or password", "error")
+        form.password.errors.append("Invalid username or password.")
 
     return render_template("auth/login.html", form=form)
 

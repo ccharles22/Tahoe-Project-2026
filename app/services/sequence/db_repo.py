@@ -210,6 +210,44 @@ def list_variants_by_experiment(
     return results
 
 
+def list_variants_with_generation_by_experiment(
+    engine: Engine,
+    experiment_id: int,
+) -> List[Tuple[int, int, str]]:
+    """
+    Loads variants with generation_id for chunked sequence processing writes.
+
+    Returns:
+        List of (variant_id, generation_id, assembled_dna_sequence) tuples.
+    """
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text(
+                """
+                SELECT v.variant_id, v.generation_id, v.assembled_dna_sequence
+                FROM public.variants v
+                JOIN public.generations g
+                  ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                ORDER BY g.generation_number, v.variant_id
+                """
+            ),
+            {"eid": experiment_id},
+        ).fetchall()
+
+    results = [
+        (int(r[0]), int(r[1]), str(r[2]))
+        for r in rows
+        if r[2] is not None
+    ]
+    logger.debug(
+        "Loaded %d variants (with generation_id) for experiment %s",
+        len(results),
+        experiment_id,
+    )
+    return results
+
+
 def get_variant_generation_id(engine: Engine, variant_id: int) -> int:
     """
     Looks up the generation_id that owns a variant.
@@ -801,6 +839,57 @@ def insert_variant_analysis(
     logger.debug(
         "Persisted analysis for variant %s (experiment %s, %d mutations)",
         variant_id, experiment_id, len(muts_list),
+    )
+
+
+def insert_variant_analysis_on_conn(
+    conn: Connection,
+    *,
+    variant_id: int,
+    generation_id: int,
+    experiment_id: int,
+    user_id: int,
+    result: "VariantSeqResult",
+    counts: "MutationCounts",
+    mutations: Iterable["MutationRecord"],
+) -> None:
+    """
+    Persists variant analysis using an existing DB connection/transaction.
+
+    This is used by chunked processing to avoid opening one transaction per
+    variant and to avoid per-variant generation_id lookup queries.
+    """
+    muts_list = list(mutations)
+    payload = _build_analysis_payload(result, counts, muts_list, user_id)
+
+    conn.execute(
+        text(
+            """
+            UPDATE public.variants
+            SET protein_sequence = :prot,
+                extra_metadata   = jsonb_set(
+                    COALESCE(extra_metadata, CAST('{}' AS jsonb)),
+                    '{sequence_analysis}',
+                    CAST(:payload AS jsonb)
+                )
+            WHERE variant_id = :vid
+            """
+        ),
+        {
+            "vid": variant_id,
+            "prot": result.protein_aa,
+            "payload": json.dumps(payload),
+        },
+    )
+
+    _write_mutations(conn, variant_id, muts_list, mutation_type="protein")
+    _write_metrics(conn, variant_id, generation_id, counts)
+
+    logger.debug(
+        "Persisted analysis (shared tx) for variant %s (experiment %s, %d mutations)",
+        variant_id,
+        experiment_id,
+        len(muts_list),
     )
 
 

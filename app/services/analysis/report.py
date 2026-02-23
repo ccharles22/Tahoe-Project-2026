@@ -87,8 +87,97 @@ def compute_activity_score_fallback(
     return rows, d
 
 
+def _normalize_plasmid_index(value: Any) -> str | None:
+    if pd.isna(value):
+        return None
+    text = str(value).strip()
+    if not text:
+        return None
+    try:
+        as_num = float(text)
+        if as_num.is_integer():
+            return str(int(as_num))
+    except (TypeError, ValueError):
+        pass
+    return text
+
+
+def _build_placeholder_edges(
+    df_nodes: pd.DataFrame,
+    *,
+    node_id_col: str,
+    generation_col: str,
+    index_col: str,
+    max_distance: float,
+) -> pd.DataFrame:
+    """
+    Create synthetic parent edges when parent_variant_id is missing.
+    Strategy: nearest numeric index in previous generation within max_distance.
+    """
+    required = {node_id_col, generation_col, index_col}
+    if not required.issubset(df_nodes.columns):
+        return pd.DataFrame(columns=["parent_id", "child_id"])
+
+    d = df_nodes[[node_id_col, generation_col, index_col]].copy()
+    d[generation_col] = pd.to_numeric(d[generation_col], errors="coerce")
+    d = d.dropna(subset=[node_id_col, generation_col])
+    if d.empty:
+        return pd.DataFrame(columns=["parent_id", "child_id"])
+
+    d["_idx_str"] = d[index_col].map(_normalize_plasmid_index)
+    d["_idx_num"] = pd.to_numeric(d["_idx_str"], errors="coerce")
+
+    groups = {int(g): sub.copy() for g, sub in d.groupby(generation_col)}
+    if not groups:
+        return pd.DataFrame(columns=["parent_id", "child_id"])
+
+    min_gen = min(groups.keys())
+    edges: list[tuple[int, int]] = []
+
+    for gen, sub in groups.items():
+        if gen <= min_gen:
+            continue
+        prev = groups.get(gen - 1)
+        if prev is None or prev.empty:
+            continue
+
+        prev_num = prev.dropna(subset=["_idx_num"])[["_idx_num", node_id_col]].to_numpy()
+
+        for _, row in sub.iterrows():
+            child_id = row[node_id_col]
+            idx_num = row["_idx_num"]
+
+            parent_id = None
+            if pd.notna(idx_num) and len(prev_num) > 0:
+                diffs = np.abs(prev_num[:, 0].astype(float) - float(idx_num))
+                min_idx = int(diffs.argmin())
+                if float(diffs[min_idx]) <= max_distance:
+                    parent_id = int(prev_num[min_idx, 1])
+
+            if parent_id is not None:
+                edges.append((int(parent_id), int(child_id)))
+
+    return pd.DataFrame(edges, columns=["parent_id", "child_id"])
+
+
 def main():
-    experiment_id = int(os.getenv("EXPERIMENT_ID", "1"))
+    exp_env = os.getenv("EXPERIMENT_ID")
+    if exp_env is None or not str(exp_env).strip():
+        raise RuntimeError(
+            "EXPERIMENT_ID is required. "
+            "Set it explicitly before running analysis "
+            "(for example: $env:EXPERIMENT_ID='74')."
+        )
+    try:
+        experiment_id = int(str(exp_env).strip())
+    except ValueError as exc:
+        raise RuntimeError(
+            f"Invalid EXPERIMENT_ID '{exp_env}'. It must be an integer."
+        ) from exc
+    if experiment_id <= 0:
+        raise RuntimeError(
+            f"Invalid EXPERIMENT_ID '{experiment_id}'. It must be a positive integer."
+        )
     exp_output_dir = os.path.join(OUTPUT_DIR, str(experiment_id))
     os.makedirs(exp_output_dir, exist_ok=True)
 
@@ -155,15 +244,26 @@ def main():
         lineage_png = os.path.join(exp_output_dir, "lineage.png")
         if not df_nodes.empty:
             try:
+                if df_edges.empty:
+                    df_edges = _build_placeholder_edges(
+                        df_nodes,
+                        node_id_col="variant_id",
+                        generation_col="generation_number",
+                        index_col="plasmid_variant_index",
+                        max_distance=3.0,
+                    )
+                    print(f"[Lineage] Using placeholder edges: {len(df_edges)}")
+
                 plot_layered_lineage(
                     df_nodes,
                     df_edges,
                     lineage_png,
                     config=PlotConfig(
-                        label_mode="top10",
+                        label_mode="topk",
+                        label_id_source="variant_id",
+                        label_top_k_per_generation=1,
                         layout_mode="pack",
                         pack_generation_height=6.0,
-                        generation_band_gap=0.6,
                         label_fontsize=8,
                     ),
                 )

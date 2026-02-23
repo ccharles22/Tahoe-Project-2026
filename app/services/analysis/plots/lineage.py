@@ -16,6 +16,7 @@ LayoutMode = Literal["stack", "pack"]
 YMode = Literal["rank", "activity"]
 SubgraphMode = Literal["all", "top10_ancestors"]
 ColorMode = Literal["lineage", "mutations", "activity", "none"]
+LabelIdSource = Literal["plasmid_variant_index", "variant_id"]
 
 
 # -----------------------------
@@ -67,6 +68,7 @@ class PlotConfig:
     max_labels_per_generation: int | None = None
     label_offset_frac_of_yrange: float = 0.02
     label_offset_rank_units: float = 0.18
+    label_id_source: LabelIdSource = "plasmid_variant_index"
 
     # highlighting
     highlight_top_k_per_generation: int = 1 # highlight best per gen + ancestors
@@ -352,14 +354,21 @@ def _build_pos(df: pd.DataFrame, *, node_id_col: str) -> Mapping[Hashable, tuple
     return {k: (float(v["x"]), float(v["y"])) for k, v in tmp.to_dict("index").items()}
 
 
-def _node_label(row: pd.Series, *, generation_col: str, node_id_col: str) -> str:
+def _node_label(
+    row: pd.Series,
+    *,
+    generation_col: str,
+    node_id_col: str,
+    label_id_source: LabelIdSource,
+) -> str:
     gen = int(row[generation_col])
-    if "plasmid_variant_index" in row and pd.notna(row["plasmid_variant_index"]):
-        raw = row["plasmid_variant_index"]
-        maybe_num = pd.to_numeric(pd.Series([raw]), errors="coerce").iloc[0]
-        if pd.notna(maybe_num) and float(maybe_num).is_integer():
-            return f"G{gen}:{int(maybe_num)}"
-        return f"G{gen}:{raw}"
+    if label_id_source == "plasmid_variant_index":
+        if "plasmid_variant_index" in row and pd.notna(row["plasmid_variant_index"]):
+            raw = row["plasmid_variant_index"]
+            maybe_num = pd.to_numeric(pd.Series([raw]), errors="coerce").iloc[0]
+            if pd.notna(maybe_num) and float(maybe_num).is_integer():
+                return f"G{gen}:{int(maybe_num)}"
+            return f"G{gen}:{raw}"
     if pd.notna(row.get(node_id_col)):
         return f"G{gen}:{row[node_id_col]}"
     return f"G{gen}"
@@ -702,7 +711,10 @@ def plot_layered_lineage(
     if config.label_mode != "none":
         if config.label_mode == "topk":
             if config.label_top_k_per_generation > 0 and activity_col in df.columns:
-                tmp = df[[node_id_col, generation_col, activity_col, top_col, "x", "y"]].copy()
+                label_cols = [node_id_col, generation_col, activity_col, top_col, "x", "y"]
+                if "plasmid_variant_index" in df.columns:
+                    label_cols.append("plasmid_variant_index")
+                tmp = df[label_cols].copy()
                 tmp[activity_col] = pd.to_numeric(tmp[activity_col], errors="coerce")
                 tmp = tmp.dropna(subset=[activity_col])
                 if not tmp.empty:
@@ -712,9 +724,15 @@ def plot_layered_lineage(
                         .head(config.label_top_k_per_generation)
                     )
                 else:
-                    df_for_labels = df.loc[mask_top, [node_id_col, generation_col, top_col, "x", "y"]]
+                    label_cols = [node_id_col, generation_col, top_col, "x", "y"]
+                    if "plasmid_variant_index" in df.columns:
+                        label_cols.append("plasmid_variant_index")
+                    df_for_labels = df.loc[mask_top, label_cols]
             else:
-                df_for_labels = df.loc[mask_top, [node_id_col, generation_col, top_col, "x", "y"]]
+                label_cols = [node_id_col, generation_col, top_col, "x", "y"]
+                if "plasmid_variant_index" in df.columns:
+                    label_cols.append("plasmid_variant_index")
+                df_for_labels = df.loc[mask_top, label_cols]
         else:  # "all"
             if config.max_labels_per_generation is not None:
                 df_for_labels = (
@@ -727,7 +745,12 @@ def plot_layered_lineage(
 
         for _, row in df_for_labels.iterrows():
             top = int(pd.to_numeric(row.get(top_col, 0), errors="coerce") or 0) == 1
-            base = _node_label(row, generation_col=generation_col, node_id_col=node_id_col)
+            base = _node_label(
+                row,
+                generation_col=generation_col,
+                node_id_col=node_id_col,
+                label_id_source=config.label_id_source,
+            )
             label = f"★ {base}" if top else base
             ax.text(float(row["x"]), float(row["y"]) + float(label_offset),
                     label, ha="center", va="bottom",

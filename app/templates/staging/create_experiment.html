@@ -69,7 +69,7 @@
           ('E', 'Process Sequences', step_e_done)
         ] %}
           <div class="stepper__step {% if done %}stepper__step--done{% endif %}" title="Step {{ letter }}: {{ label }}">
-            <div class="stepper__circle">{% if done %}✓{% else %}{{ letter }}{% endif %}</div>
+            <div class="stepper__circle">{{ loop.index }}</div>
             <div class="stepper__label">{{ label }}</div>
           </div>
           {% if not loop.last %}
@@ -109,13 +109,13 @@
           <!-- STEP A -->
         <div class="task" data-step="A" data-status="{{ 'done' if step_a_done else 'pending' }}">
           <div class="task__top">
-            <div class="task__step-badge task__step-badge--a">A</div>
+            <div class="task__step-badge task__step-badge--a">1</div>
             <div class="task__title">Fetch WT (UniProt)</div>
             <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
             {% if wt %}
-              <span class="badge badge--ok">Loaded</span>
+              <span class="badge badge--ok">Complete</span>
             {% else %}
-              <span class="badge badge--neutral">Waiting</span>
+              <span class="badge badge--neutral">Pending</span>
             {% endif %}
           </div>
 
@@ -142,7 +142,7 @@
 
             {% if wt %}
               <div class="task__done-summary">
-                Loaded <strong>{{ wt.uniprot_id }}</strong> · {{ wt.sequence_length or '?' }} aa
+                Complete: <strong>{{ wt.uniprot_id }}</strong> · {{ wt.sequence_length or '?' }} aa
               </div>
             {% endif %}
           </div>
@@ -152,17 +152,17 @@
         <div class="task {% if not step_a_done %}is-locked{% endif %}" data-step="B"
              data-status="{{ 'done' if step_b_done else ('fail' if step_b_fail else 'pending') }}">
           <div class="task__top">
-            <div class="task__step-badge task__step-badge--b">B</div>
+            <div class="task__step-badge task__step-badge--b">2</div>
             <div class="task__title">Validate Plasmid</div>
             <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
             {% if validation %}
               {% if validation.is_valid %}
-                <span class="badge badge--ok">PASS</span>
+                <span class="badge badge--ok">Complete</span>
               {% else %}
-                <span class="badge badge--bad">FAIL</span>
+                <span class="badge badge--bad">Error</span>
               {% endif %}
             {% else %}
-              <span class="badge badge--neutral">{{ 'Ready' if step_a_done else 'Locked' }}</span>
+              <span class="badge badge--neutral">Pending</span>
             {% endif %}
           </div>
 
@@ -185,7 +185,7 @@
 
               {% if step_b_done %}
                 <div class="task__done-summary task__done-summary--ok">
-                  Plasmid validated — PASS
+                  Plasmid validated — Complete
                 </div>
               {% elif step_b_fail %}
                 <div class="task__done-summary task__done-summary--bad">
@@ -200,17 +200,19 @@
         <div class="task {% if not step_a_done %}is-locked{% endif %}" data-step="C"
              data-status="{{ 'done' if step_c_done else ('fail' if step_c_fail else 'pending') }}">
           <div class="task__top">
-            <div class="task__step-badge task__step-badge--c">C</div>
+            <div class="task__step-badge task__step-badge--c">3</div>
             <div class="task__title">Upload Parsing Data</div>
             <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
-            {% if parsing_result and parsing_result.success %}
-              <span class="badge badge--ok">Done</span>
+            {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
+              <span class="badge badge--warn">Needs attention</span>
+            {% elif parsing_result and parsing_result.success %}
+              <span class="badge badge--ok">Complete</span>
             {% elif parsing_result and not parsing_result.success %}
-              <span class="badge badge--bad">Failed</span>
+              <span class="badge badge--bad">Error</span>
             {% elif step_a_done %}
-              <span class="badge badge--neutral">Ready</span>
+              <span class="badge badge--neutral">Pending</span>
             {% else %}
-              <span class="badge badge--neutral">Locked</span>
+              <span class="badge badge--neutral">Pending</span>
             {% endif %}
           </div>
 
@@ -261,15 +263,15 @@
         <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="D"
              data-status="{{ 'done' if step_d_done else 'pending' }}">
           <div class="task__top">
-            <div class="task__step-badge task__step-badge--d">D</div>
+            <div class="task__step-badge task__step-badge--d">4</div>
             <div class="task__title">Run Analysis</div>
             <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
             {% if step_d_done %}
-              <span class="badge badge--ok">Done</span>
+              <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
-              <span class="badge badge--neutral">Ready</span>
+              <span class="badge badge--neutral">Pending</span>
             {% else %}
-              <span class="badge badge--neutral">Locked</span>
+              <span class="badge badge--neutral">Pending</span>
             {% endif %}
           </div>
 
@@ -284,7 +286,7 @@
                   <span class="btn__spinner"></span>
                 </button>
               </form>
-              <p class="task__hint">Calculates activity metrics, top-10 variants, and generates plots.</p>
+              <p class="task__hint">Calculates activity metrics, top-10 variants, and generates lineage/protein network plots.</p>
             {% endif %}
           </div>
         </div>
@@ -293,15 +295,15 @@
         <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="E"
              data-status="{{ 'done' if step_e_done else 'pending' }}">
           <div class="task__top">
-            <div class="task__step-badge task__step-badge--e">E</div>
+            <div class="task__step-badge task__step-badge--e">5</div>
             <div class="task__title">Process Sequences</div>
             <button class="task__toggle" type="button" aria-label="Toggle step">▾</button>
             {% if step_e_done %}
-              <span class="badge badge--ok">Done</span>
+              <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
-              <span class="badge badge--neutral">Ready</span>
+              <span class="badge badge--neutral">Pending</span>
             {% else %}
-              <span class="badge badge--neutral">Locked</span>
+              <span class="badge badge--neutral">Pending</span>
             {% endif %}
           </div>
 
@@ -395,10 +397,11 @@
         {% endwith %}
 
         {% if experiment_id and run_summary_status %}
-        <section class="run-summary run-summary--{{ run_summary_status }}">
+        {% set actionable_partial = (run_summary_status == 'partial' and step_d_done and not step_e_done and not sequence_failed and not analysis_failed) %}
+        <section class="run-summary run-summary--{{ 'success' if actionable_partial else run_summary_status }} run-summary--primary">
           <div class="run-summary__header">
             <span class="run-summary__badge">
-              Status: {{ 'Success' if run_summary_status == 'success' else ('Partial success' if run_summary_status == 'partial' else 'Failed') }}
+              Status: {{ 'Analysis complete' if actionable_partial else ('Success' if run_summary_status == 'success' else ('Partial success' if run_summary_status == 'partial' else 'Failed')) }}
             </span>
             {% if run_summary_status == 'success' %}
               <p class="run-summary__headline">
@@ -409,6 +412,8 @@
                 <p class="run-summary__headline">Analysis complete, but sequence processing failed - mutations not computed.</p>
               {% elif analysis_failed and step_c_done %}
                 <p class="run-summary__headline">Data upload completed, but analysis failed.</p>
+              {% elif actionable_partial %}
+                <p class="run-summary__headline">Analysis complete &bull; Sequence processing not run</p>
               {% elif warnings_count > 0 and step_c_done %}
                 <p class="run-summary__headline">Analysis complete with warnings - review flagged records.</p>
               {% else %}
@@ -421,22 +426,31 @@
             {% endif %}
           </div>
 
-          <div class="run-summary__grid">
-            <div class="run-summary__item"><span>Experiment</span><strong>{{ display_experiment_name }} #{{ experiment_id }}</strong></div>
-            <div class="run-summary__item"><span>Accession</span><strong>{{ wt.uniprot_id if wt else 'N/A' }}</strong></div>
-            <div class="run-summary__item"><span>Records</span><strong>{{ total_records }} total / {{ inserted_count }} inserted / {{ updated_count }} updated / {{ skipped_count }} skipped</strong></div>
-            <div class="run-summary__item"><span>Warnings</span><strong>{{ warnings_count }}</strong></div>
-            <div class="run-summary__item run-summary__item--wide">
-              <span>Sequence Processing</span>
-              {% if step_e_done %}
-                <strong>Completed{% if sequence_message %} - {{ sequence_message|replace('Sequence processing completed. ', '') }}{% endif %}</strong>
-              {% elif sequence_failed %}
-                <strong>Failed - {{ sequence_failure_reason }}</strong>
-              {% else %}
-                <strong>Not run</strong>
-              {% endif %}
+          {% if actionable_partial %}
+            <div class="run-summary__actions">
+              <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
+                <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+                <button class="btn btn--primary" type="submit">Run sequence processing</button>
+              </form>
             </div>
-          </div>
+          {% else %}
+            <div class="run-summary__grid">
+              <div class="run-summary__item"><span>Experiment</span><strong>{{ display_experiment_name }} #{{ experiment_id }}</strong></div>
+              <div class="run-summary__item"><span>Accession</span><strong>{{ wt.uniprot_id if wt else 'N/A' }}</strong></div>
+              <div class="run-summary__item"><span>Records</span><strong>{{ total_records }} total / {{ inserted_count }} inserted / {{ updated_count }} updated / {{ skipped_count }} skipped</strong></div>
+              <div class="run-summary__item"><span>Warnings</span><strong>{{ warnings_count }}</strong></div>
+              <div class="run-summary__item run-summary__item--wide">
+                <span>Sequence Processing</span>
+                {% if step_e_done %}
+                  <strong>Completed{% if sequence_message %} - {{ sequence_message|replace('Sequence processing completed. ', '') }}{% endif %}</strong>
+                {% elif sequence_failed %}
+                  <strong>Failed - {{ sequence_failure_reason }}</strong>
+                {% else %}
+                  <strong>Not run</strong>
+                {% endif %}
+              </div>
+            </div>
+          {% endif %}
         </section>
         {% endif %}
 
@@ -471,43 +485,7 @@
         </section>
         {% endif %}
 
-        <section class="panel kpi-panel">
-          <div class="panel__header">KPI Snapshot</div>
-          <div class="stats">
-            <div class="stat-card">
-              <div class="value">{{ kpis.total_records if kpis else 0 }}</div>
-              <div class="label">Total variants / records</div>
-            </div>
-            <div class="stat-card">
-              <div class="value">{{ kpis.generations_covered if kpis and kpis.generations_covered else 'N/A' }}</div>
-              <div class="label">Generations covered</div>
-            </div>
-            <div class="stat-card">
-              <div class="value">
-                {% if kpis and (kpis.activity_mean is not none) and (kpis.activity_median is not none) %}
-                  {{ '%.3f'|format(kpis.activity_mean) }} / {{ '%.3f'|format(kpis.activity_median) }}
-                {% else %}
-                  N/A
-                {% endif %}
-              </div>
-              <div class="label">Mean / Median activity</div>
-            </div>
-            <div class="stat-card">
-              <div class="value">{{ '%.3f'|format(kpis.activity_best) if kpis and kpis.activity_best is not none else 'N/A' }}</div>
-              <div class="label">Best activity score</div>
-            </div>
-            <div class="stat-card">
-              <div class="value">{{ ('%.1f%%'|format(kpis.mutated_percent)) if kpis and kpis.mutated_percent is not none else 'N/A' }}</div>
-              <div class="label">% variants with mutations</div>
-            </div>
-            <div class="stat-card">
-              <div class="value">{{ warnings_count }}</div>
-              <div class="label">Warnings</div>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel insights-panel">
+        <section class="panel insights-panel panel--primary">
           <div class="panel__header">Top Results</div>
           {% if top10_rows %}
             <div class="top-results__toolbar">
@@ -606,12 +584,13 @@
           </div>
         </div>
 
-        <section class="panel visuals-panel">
+        <section class="panel visuals-panel panel--primary">
           <div class="panel__header">Visual Insights</div>
           {% set has_any_graph = (analysis_outputs and (
               (analysis_outputs.plot and analysis_outputs.plot.exists) or
               (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
-              (analysis_outputs.lineage and analysis_outputs.lineage.exists)
+              (analysis_outputs.lineage and analysis_outputs.lineage.exists) or
+              (analysis_outputs.protein_network and analysis_outputs.protein_network.exists)
           )) %}
 
           {% if has_any_graph %}
@@ -633,6 +612,16 @@
                   <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
                 </a>
                 <p class="analysis-caption">Lineage shows parent-child relationships.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
+              <div class="analysis-card" data-plot="protein-network">
+                <div class="analysis-card__title">Protein Similarity Network</div>
+                <a href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.protein_network.url }}" alt="Protein similarity network">
+                </a>
+                <p class="analysis-caption">Protein network groups close variants by sequence similarity.</p>
               </div>
               {% endif %}
             </div>
@@ -675,12 +664,48 @@
           {% endif %}
         </section>
 
+        <section class="panel kpi-panel panel--quiet">
+          <div class="panel__header">KPI Snapshot</div>
+          <div class="stats">
+            <div class="stat-card">
+              <div class="value">{{ kpis.total_records if kpis else 0 }}</div>
+              <div class="label">Total variants / records</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ kpis.generations_covered if kpis and kpis.generations_covered else 'N/A' }}</div>
+              <div class="label">Generations covered</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">
+                {% if kpis and (kpis.activity_mean is not none) and (kpis.activity_median is not none) %}
+                  {{ '%.3f'|format(kpis.activity_mean) }} / {{ '%.3f'|format(kpis.activity_median) }}
+                {% else %}
+                  N/A
+                {% endif %}
+              </div>
+              <div class="label">Mean / Median activity</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ '%.3f'|format(kpis.activity_best) if kpis and kpis.activity_best is not none else 'N/A' }}</div>
+              <div class="label">Best activity score</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ ('%.1f%%'|format(kpis.mutated_percent)) if kpis and kpis.mutated_percent is not none else 'N/A' }}</div>
+              <div class="label">% variants with mutations</div>
+            </div>
+            <div class="stat-card">
+              <div class="value">{{ warnings_count }}</div>
+              <div class="label">Warnings</div>
+            </div>
+          </div>
+        </section>
+
         <!-- WT OUTPUT -->
         <section class="panel" data-panel="A">
           <div class="panel__header">
-            <span class="panel__step">A</span>
+            <span class="panel__step">1</span>
             WT (UniProt) Output
-            {% if wt %}<span class="badge badge--ok ml-auto">Loaded</span>{% endif %}
+            {% if wt %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
           </div>
 
           {% if wt %}
@@ -708,13 +733,13 @@
         {% if validation or step_a_done %}
         <section class="panel" data-panel="B">
           <div class="panel__header">
-            <span class="panel__step">B</span>
+            <span class="panel__step">2</span>
             Plasmid Validation
             {% if validation %}
               {% if validation.is_valid %}
-                <span class="badge badge--ok ml-auto">PASS</span>
+                <span class="badge badge--ok ml-auto">Complete</span>
               {% else %}
-                <span class="badge badge--bad ml-auto">FAIL</span>
+                <span class="badge badge--bad ml-auto">Error</span>
               {% endif %}
             {% endif %}
           </div>
@@ -722,9 +747,9 @@
           {% if validation %}
             <div class="statusline">
               {% if validation.is_valid %}
-                <span class="badge badge--ok">PASS</span>
+                <span class="badge badge--ok">Complete</span>
               {% else %}
-                <span class="badge badge--bad">FAIL</span>
+                <span class="badge badge--bad">Error</span>
               {% endif %}
               <span>{{ validation.message }}</span>
             </div>
@@ -754,12 +779,14 @@
         {% if parsing_result or step_a_done %}
         <section class="panel" data-panel="C">
           <div class="panel__header">
-            <span class="panel__step">C</span>
+            <span class="panel__step">3</span>
             Parsing Upload Results
-            {% if step_c_done %}
-              <span class="badge badge--ok ml-auto">Success</span>
+            {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
+              <span class="badge badge--warn ml-auto">Needs attention</span>
+            {% elif step_c_done %}
+              <span class="badge badge--ok ml-auto">Complete</span>
             {% elif step_c_fail %}
-              <span class="badge badge--bad ml-auto">Failed</span>
+              <span class="badge badge--bad ml-auto">Error</span>
             {% endif %}
           </div>
 
@@ -868,9 +895,9 @@
         {% if step_e_done or (step_c_done and sequence_message) %}
         <section class="panel" data-panel="E">
           <div class="panel__header">
-            <span class="panel__step">E</span>
+            <span class="panel__step">5</span>
             Sequence Processing
-            {% if step_e_done %}<span class="badge badge--ok ml-auto">Done</span>{% endif %}
+            {% if step_e_done %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
           </div>
 
           {% if sequence_message %}
@@ -892,5 +919,3 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
-
-
