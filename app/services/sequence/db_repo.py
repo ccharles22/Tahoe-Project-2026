@@ -37,7 +37,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-# Mutation types that can be stored in the ``mutations`` table.
+# Mutation types that can be stored in the mutations table.
 # These types always have valid position, original, and mutated values
 # that satisfy the schema's NOT NULL and CHECK constraints.
 # Other types (FRAMESHIFT, INSERTION, DELETION) are persisted only in
@@ -161,11 +161,7 @@ def update_experiment_status(
         conn.execute(
             text("""
                 UPDATE public.experiments
-                SET extra_metadata = jsonb_set(
-                      COALESCE(extra_metadata,CAST('{}' AS jsonb)),
-                      '{analysis_status}',
-                      to_jsonb(CAST(:status AS text))
-                    )
+                SET analysis_status = :status
                 WHERE experiment_id = :eid
             """),
             {"eid": experiment_id, "status": status},
@@ -222,16 +218,14 @@ def list_variants_with_generation_by_experiment(
     """
     with engine.connect() as conn:
         rows = conn.execute(
-            text(
-                """
+            text("""
                 SELECT v.variant_id, v.generation_id, v.assembled_dna_sequence
                 FROM public.variants v
                 JOIN public.generations g
                   ON g.generation_id = v.generation_id
                 WHERE g.experiment_id = :eid
                 ORDER BY g.generation_number, v.variant_id
-                """
-            ),
+            """),
             {"eid": experiment_id},
         ).fetchall()
 
@@ -246,6 +240,31 @@ def list_variants_with_generation_by_experiment(
         experiment_id,
     )
     return results
+
+
+def list_processed_variant_ids(
+    engine: Engine,
+    experiment_id: int,
+) -> set:
+    """
+    Returns the set of variant_ids that already have a protein_sequence
+    recorded, indicating they were previously processed.
+
+    Used by the orchestrator to skip re-processing unchanged variants.
+    """
+    with engine.connect() as conn:
+        rows = conn.execute(
+            text("""
+                SELECT v.variant_id
+                FROM public.variants v
+                JOIN public.generations g
+                  ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                  AND v.protein_sequence IS NOT NULL
+            """),
+            {"eid": experiment_id},
+        ).fetchall()
+    return {int(r[0]) for r in rows}
 
 
 def get_variant_generation_id(engine: Engine, variant_id: int) -> int:
@@ -427,31 +446,32 @@ def _write_mutations(
     variant_id: int,
     mutations: Iterable["MutationRecord"],
     mutation_type: str = "protein",
+    vsa_id: Optional[int] = None,
 ) -> int:
     """
     Writes mutations on an existing connection (no transaction management).
 
     Performs a scoped delete-then-insert for idempotent replacement of all
-    mutation records of the given ``mutation_type`` for one variant.
+    mutation records of the given mutation_type for one variant.
 
-    Schema constraints on ``public.mutations``:
-        - ``position integer NOT NULL``, CHECK ``position > 0``
-        - ``original char(1) NOT NULL``, CHECK valid amino acid / base
-        - ``mutated  char(1) NOT NULL``, CHECK valid amino acid / base
+    Schema constraints on public.mutations:
+        - position integer NOT NULL, CHECK position > 0
+        - original char(1) NOT NULL, CHECK valid amino acid / base
+        - mutated  char(1) NOT NULL, CHECK valid amino acid / base
 
     Mutations of types that cannot satisfy these constraints (FRAMESHIFT,
-    INSERTION, DELETION) are **skipped** here.  They are still persisted in
-    the variant's ``extra_metadata`` JSONB by :func:`insert_variant_analysis`.
+    INSERTION, DELETION) are skipped here.  They are preserved in the
+    VSA row's qc_flags JSONB.
 
     Args:
         conn: Active SQLAlchemy connection (caller manages transaction).
         variant_id: Target variant primary key.
         mutations: Iterable of MutationRecord dataclass instances.
         mutation_type: Scope of mutations — ``'protein'`` or ``'dna'``.
+        vsa_id: Optional FK to variant_sequence_analysis for traceability.
 
     Returns:
-        int: Number of mutations actually written to the ``mutations`` table
-             (excludes skipped types).
+        Number of mutations written (excludes skipped types).
     """
     muts = list(mutations)
 
@@ -465,16 +485,13 @@ def _write_mutations(
         {"vid": variant_id, "mt": mutation_type},
     )
 
-    written = 0
+    # Pre-filter and build parameter dicts for batch insert
+    batch_params = []
     skipped = 0
 
     for m in muts:
         if m.mutation_type not in _INSERTABLE_MUTATION_TYPES:
             skipped += 1
-            logger.debug(
-                "Skipping %s mutation for variant %s (not insertable into mutations table)",
-                m.mutation_type, variant_id,
-            )
             continue
 
         if m.aa_position_1based is None or m.wt_aa is None or m.var_aa is None:
@@ -485,50 +502,47 @@ def _write_mutations(
             )
             continue
 
-        pos = int(m.aa_position_1based)
-        orig = str(m.wt_aa)
-        mut = str(m.var_aa)
-
-        # Map mutation classification → boolean is_synonymous flag for the DB:
-        #   SYNONYMOUS        → True  (silent mutation, amino acid unchanged)
-        #   NONSYNONYMOUS     → False (amino acid changed)
-        #   NONSENSE          → False (premature stop codon introduced)
-        #   AMBIGUOUS         → None  (cannot determine due to ambiguous bases)
         is_syn: Optional[bool] = None
         if m.mutation_type == "SYNONYMOUS":
             is_syn = True
         elif m.mutation_type in {"NONSYNONYMOUS", "NONSENSE"}:
             is_syn = False
 
+        batch_params.append({
+            "vid": variant_id,
+            "mt": mutation_type,
+            "pos": int(m.aa_position_1based),
+            "orig": str(m.wt_aa),
+            "mut": str(m.var_aa),
+            "syn": is_syn,
+            "ann": m.notes,
+            "vsa": vsa_id,
+        })
+
+    written = len(batch_params)
+
+    if batch_params:
         conn.execute(
             text("""
                 INSERT INTO public.mutations
                   (variant_id, mutation_type, position,
-                   original, mutated, is_synonymous, annotation)
+                   original, mutated, is_synonymous, annotation, vsa_id)
                 VALUES
                   (:vid, :mt, :pos,
-                   :orig, :mut, :syn, :ann)
+                   :orig, :mut, :syn, :ann, :vsa)
                 ON CONFLICT (variant_id, mutation_type, position, original, mutated)
                 DO UPDATE SET
                   is_synonymous = EXCLUDED.is_synonymous,
-                  annotation    = EXCLUDED.annotation
+                  annotation    = EXCLUDED.annotation,
+                  vsa_id        = EXCLUDED.vsa_id
             """),
-            {
-                "vid": variant_id,
-                "mt": mutation_type,
-                "pos": pos,
-                "orig": orig,
-                "mut": mut,
-                "syn": is_syn,
-                "ann": m.notes,
-            },
+            batch_params,
         )
-        written += 1
 
     if skipped:
         logger.info(
             "Variant %s: wrote %d mutations, skipped %d (FRAMESHIFT/INSERTION/DELETION "
-            "stored in extra_metadata only)",
+            "stored in VSA qc_flags only)",
             variant_id, written, skipped,
         )
     else:
@@ -594,29 +608,31 @@ def _write_metrics(
         "mutation_total_count": counts.total,
     }
 
-    for name, value in metrics.items():
-        conn.execute(
-            text("""
-                INSERT INTO public.metrics
-                  (generation_id, variant_id,
-                   metric_name, metric_type,
-                   value, unit)
-                VALUES
-                  (:gid, :vid,
-                   :name, 'derived',
-                   :val, 'count')
-                ON CONFLICT (variant_id, metric_name, metric_type)
-                DO UPDATE SET
-                  value         = EXCLUDED.value,
-                  generation_id = EXCLUDED.generation_id
-            """),
+    conn.execute(
+        text("""
+            INSERT INTO public.metrics
+              (generation_id, variant_id,
+               metric_name, metric_type,
+               value, unit)
+            VALUES
+              (:gid, :vid,
+               :name, 'derived',
+               :val, 'count')
+            ON CONFLICT (generation_id, variant_id, metric_name, metric_type)
+              WHERE variant_id IS NOT NULL
+            DO UPDATE SET
+              value = EXCLUDED.value
+        """),
+        [
             {
                 "gid": generation_id,
                 "vid": variant_id,
                 "name": name,
                 "val": float(value),
-            },
-        )
+            }
+            for name, value in metrics.items()
+        ],
+    )
 
     logger.debug("Wrote metrics for variant %s (total=%d)", variant_id, counts.total)
 
@@ -714,7 +730,117 @@ def save_run_metadata(
 
 
 # =============================================================================
-# Variant Analysis Results  (uses variants.extra_metadata + protein_sequence)
+# Variant Sequence Analysis (public.variant_sequence_analysis)
+# =============================================================================
+
+def _strand_to_smallint(strand: Optional[str]) -> Optional[int]:
+    """Converts 'PLUS'/'MINUS' to +1/-1 for the VSA strand column."""
+    if strand is None:
+        return None
+    return 1 if strand.upper() == "PLUS" else -1
+
+
+def _write_variant_sequence_analysis(
+    conn: Connection,
+    variant_id: int,
+    result: "VariantSeqResult",
+    counts: "MutationCounts",
+    mutations: List["MutationRecord"],
+    user_id: int,
+    analysis_version: str = "v1",
+) -> int:
+    """
+    Upserts a row in variant_sequence_analysis and returns its vsa_id.
+
+    Maps VariantSeqResult fields to dedicated columns where possible;
+    remaining detail (frame, cds_dna, per-mutation breakdown for
+    non-insertable types) goes into qc_flags JSONB.
+    """
+    qc_flags: Dict[str, Any] = {
+        "has_ambiguous_bases": result.qc.has_ambiguous_bases,
+        "has_frameshift": result.qc.has_frameshift,
+        "notes": result.qc.notes,
+        "frame": result.frame,
+        "cds_dna": result.cds_dna,
+        "user_id": user_id,
+        "mutation_counts": {
+            "synonymous": counts.synonymous,
+            "nonsynonymous": counts.nonsynonymous,
+            "total": counts.total,
+        },
+        # Preserve non-insertable mutations (FRAMESHIFT/INSERTION/DELETION)
+        # that cannot satisfy the mutations table constraints.
+        "non_insertable_mutations": [
+            {
+                "mutation_type": m.mutation_type,
+                "codon_index_1based": m.codon_index_1based,
+                "aa_position_1based": m.aa_position_1based,
+                "wt_codon": m.wt_codon,
+                "var_codon": m.var_codon,
+                "wt_aa": m.wt_aa,
+                "var_aa": m.var_aa,
+                "notes": m.notes,
+            }
+            for m in mutations
+            if m.mutation_type not in _INSERTABLE_MUTATION_TYPES
+        ],
+    }
+
+    is_circular = (
+        result.cds_start_0based is not None
+        and result.cds_end_0based_excl is not None
+        and result.cds_end_0based_excl < result.cds_start_0based
+    )
+
+    has_error = result.protein_aa is None
+    status = "failed" if has_error else "success"
+    error_msg = result.qc.notes if has_error else None
+
+    row = conn.execute(
+        text("""
+            INSERT INTO public.variant_sequence_analysis
+              (variant_id, analysis_version, status, error_message,
+               orf_start, orf_end, is_circular_wrap, strand,
+               translated_protein_sequence, has_internal_stop, qc_flags)
+            VALUES
+              (:vid, :ver, :status, :err,
+               :orf_start, :orf_end, :circ, :strand,
+               :prot, :stop, CAST(:qc AS jsonb))
+            ON CONFLICT (variant_id, analysis_version)
+            DO UPDATE SET
+              status                      = EXCLUDED.status,
+              error_message               = EXCLUDED.error_message,
+              orf_start                   = EXCLUDED.orf_start,
+              orf_end                     = EXCLUDED.orf_end,
+              is_circular_wrap            = EXCLUDED.is_circular_wrap,
+              strand                      = EXCLUDED.strand,
+              translated_protein_sequence = EXCLUDED.translated_protein_sequence,
+              has_internal_stop           = EXCLUDED.has_internal_stop,
+              qc_flags                    = EXCLUDED.qc_flags,
+              updated_at                  = now()
+            RETURNING vsa_id
+        """),
+        {
+            "vid": variant_id,
+            "ver": analysis_version,
+            "status": status,
+            "err": error_msg,
+            "orf_start": result.cds_start_0based,
+            "orf_end": result.cds_end_0based_excl,
+            "circ": is_circular,
+            "strand": _strand_to_smallint(result.strand),
+            "prot": result.protein_aa,
+            "stop": result.qc.has_premature_stop,
+            "qc": json.dumps(qc_flags),
+        },
+    ).scalar_one()
+
+    logger.debug("Wrote VSA row vsa_id=%d for variant %s", row, variant_id)
+    return int(row)
+
+
+# =============================================================================
+# Variant Analysis Results
 # =============================================================================
 
 def _build_analysis_payload(
@@ -724,22 +850,10 @@ def _build_analysis_payload(
     user_id: int,
 ) -> Dict[str, Any]:
     """
-    Produces a dictionary using JSON summarising the analysis result.
+    Produces a legacy JSONB summary stored in variants.extra_metadata.
 
-    This information is stored in variants.extra_metadata under the
-    sequence_analysis key.  It captures everything that the downstream
-    report and UI need: CDS coordinates, QC flags, mutation details
-    (including FRAMESHIFT / INSERTION / DELETION records that cannot be
-    stored in the mutations table), and aggregated counts.
-
-    Args:
-        result: VariantSeqResult from the sequence processing pipeline.
-        counts: Aggregated MutationCounts.
-        mutations: Full list of MutationRecord instances (all types).
-        user_id: User who triggered the analysis.
-
-    Returns:
-        Dictionary ready for json.dumps storage.
+    Most queryable data now lives in variant_sequence_analysis; this payload
+    retains a denormalised snapshot for backward-compatible reads.
     """
     return {
         "user_id": user_id,
@@ -789,30 +903,24 @@ def insert_variant_analysis(
     """
     Persists a complete variant analysis result atomically.
 
-    Writes to four locations in a single transaction:
-        1. variants.protein_sequence — translated protein string.
-        2. variants.extra_metadata — JSONB payload under the
-           'sequence_analysis' key (CDS coords, QC flags, mutation
-           details, counts).
-        3. mutations — individual mutation rows (only types that
-           satisfy the NOT NULL / CHECK constraints).
-        4. metrics — derived mutation-count metrics.
-
-    Args:
-        engine: SQLAlchemy engine instance.
-        variant_id: Variants being analysed.
-        experiment_id: Experiment currently being processed.
-        user_id: User who triggered the analysis.
-        result: VariantSeqResult from sequence processing.
-        counts: Mutation counts.
-        mutations: Individual MutationRecord instances.
+    Writes to five locations in a single transaction:
+        1. variant_sequence_analysis — structured analysis row.
+        2. variants.protein_sequence — translated protein string.
+        3. variants.extra_metadata — legacy JSONB snapshot.
+        4. mutations — individual rows (linked to VSA via vsa_id).
+        5. metrics — derived mutation-count metrics.
     """
     muts_list = list(mutations)
     payload = _build_analysis_payload(result, counts, muts_list, user_id)
 
     with engine.begin() as conn:
-        # 1) Updates the variant's protein_sequence and extra_metadata JSONB
-        conn.execute(
+        # Structured analysis row (returns vsa_id for linking mutations)
+        vsa_id = _write_variant_sequence_analysis(
+            conn, variant_id, result, counts, muts_list, user_id,
+        )
+
+        # Update variant's protein_sequence, fetch generation_id, and keep legacy JSONB snapshot
+        row = conn.execute(
             text("""
                 UPDATE public.variants
                 SET protein_sequence = :prot,
@@ -822,23 +930,22 @@ def insert_variant_analysis(
                         CAST(:payload AS jsonb)
                     )
                 WHERE variant_id = :vid
+                RETURNING generation_id
             """),
             {
                 "vid": variant_id,
                 "prot": result.protein_aa,
                 "payload": json.dumps(payload),
             },
-        )
+        ).scalar_one()
+        gid = int(row)
 
-        _write_mutations(conn, variant_id, muts_list, mutation_type="protein")
-
-        # 3) Writes derived metrics (need generation_id lookup first)
-        gid = get_variant_generation_id(engine, variant_id)
+        _write_mutations(conn, variant_id, muts_list, mutation_type="protein", vsa_id=vsa_id)
         _write_metrics(conn, variant_id, gid, counts)
 
     logger.debug(
-        "Persisted analysis for variant %s (experiment %s, %d mutations)",
-        variant_id, experiment_id, len(muts_list),
+        "Persisted analysis for variant %s (experiment %s, vsa_id=%d, %d mutations)",
+        variant_id, experiment_id, vsa_id, len(muts_list),
     )
 
 
@@ -894,7 +1001,7 @@ def insert_variant_analysis_on_conn(
 
 
 # =============================================================================
-# End-to-End Persistence (standalone, kept for backward compatibility)
+# End-to-End Persistence 
 # =============================================================================
 
 def persist_full_variant_analysis(
@@ -906,24 +1013,34 @@ def persist_full_variant_analysis(
     mutations: Iterable["MutationRecord"],
 ) -> None:
     """
-    Persists mutations, metrics, and run metadata in a single atomic transaction.
-
-    Opens one transaction and passes it to each sub-function,
-    ensuring all the code succeed or fail together.
+    Persists mutations, VSA row, metrics, and run metadata atomically.
 
     Args:
         engine: SQLAlchemy engine instance.
         experiment_id: Owning experiment primary key.
         variant_id: Variant being persisted.
-        result: VariantSeqResult (currently unused but reserved for future columns).
+        result: VariantSeqResult from sequence processing.
         counts: MutationCounts.
         mutations: Individual MutationRecord instances to store.
     """
     muts_list = list(mutations)
 
     with engine.begin() as conn:
+        vsa_id = _write_variant_sequence_analysis(
+            conn, variant_id, result, counts, muts_list,
+            user_id=0,  # unknown at this call site
+        )
         replace_variant_mutations(
             engine, variant_id, muts_list, conn=conn,
+        )
+        # Back-fill vsa_id on the mutation rows just written
+        conn.execute(
+            text("""
+                UPDATE public.mutations
+                SET vsa_id = :vsa
+                WHERE variant_id = :vid AND mutation_type = 'protein'
+            """),
+            {"vsa": vsa_id, "vid": variant_id},
         )
         save_variant_counts_as_metrics(
             engine, variant_id, counts, conn=conn,
@@ -937,6 +1054,89 @@ def persist_full_variant_analysis(
         )
 
     logger.info(
-        "Persisted full analysis for variant %s (experiment %s)",
-        variant_id, experiment_id,
+        "Persisted full analysis for variant %s (experiment %s, vsa_id=%d)",
+        variant_id, experiment_id, vsa_id,
+    )
+
+
+# =============================================================================
+# Batch Persistence (multiple variants in one transaction)
+# =============================================================================
+
+@dataclasses.dataclass
+class VariantAnalysisItem:
+    """A single variant's analysis results, ready for batch persistence."""
+    variant_id: int
+    result: "VariantSeqResult"
+    counts: "MutationCounts"
+    mutations: List["MutationRecord"]
+
+
+def insert_variant_analyses_batch(
+    engine: Engine,
+    *,
+    experiment_id: int,
+    user_id: int,
+    items: List[VariantAnalysisItem],
+) -> None:
+    """
+    Persists analysis results for multiple variants in a single transaction.
+
+    Compared to calling insert_variant_analysis() in a loop, this:
+      - Opens one DB connection/transaction instead of N
+      - Pre-fetches all generation_ids in a single query
+      - Reduces total round-trips from ~6N to ~3N+2
+    """
+    if not items:
+        return
+
+    variant_ids = [it.variant_id for it in items]
+
+    with engine.begin() as conn:
+        # Bulk-fetch generation_ids for all variants in one query
+        rows = conn.execute(
+            text("""
+                SELECT variant_id, generation_id
+                FROM public.variants
+                WHERE variant_id = ANY(:vids)
+            """),
+            {"vids": variant_ids},
+        ).fetchall()
+        gid_map = {int(r[0]): int(r[1]) for r in rows}
+
+        for it in items:
+            muts_list = list(it.mutations)
+            payload = _build_analysis_payload(it.result, it.counts, muts_list, user_id)
+
+            vsa_id = _write_variant_sequence_analysis(
+                conn, it.variant_id, it.result, it.counts, muts_list, user_id,
+            )
+
+            conn.execute(
+                text("""
+                    UPDATE public.variants
+                    SET protein_sequence = :prot,
+                        extra_metadata   = jsonb_set(
+                            COALESCE(extra_metadata, CAST('{}' AS jsonb)),
+                            '{sequence_analysis}',
+                            CAST(:payload AS jsonb)
+                        )
+                    WHERE variant_id = :vid
+                """),
+                {
+                    "vid": it.variant_id,
+                    "prot": it.result.protein_aa,
+                    "payload": json.dumps(payload),
+                },
+            )
+
+            _write_mutations(conn, it.variant_id, muts_list, mutation_type="protein", vsa_id=vsa_id)
+
+            gid = gid_map.get(it.variant_id)
+            if gid is not None:
+                _write_metrics(conn, it.variant_id, gid, it.counts)
+
+    logger.info(
+        "Batch-persisted %d variant analyses for experiment %s",
+        len(items), experiment_id,
     )
