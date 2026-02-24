@@ -34,11 +34,12 @@ from __future__ import annotations
 
 import sys
 import logging
+import threading
 from typing import Tuple, List
 
 from app.config import settings
 from app.services.sequence import db_repo
-from app.services.sequence.db_repo import get_engine
+from app.services.sequence.db_repo import get_engine, VariantAnalysisItem
 from app.services.sequence.sequence_service import (
     map_wt_gene_in_plasmid,
     process_variant_plasmid,
@@ -65,7 +66,7 @@ def _empty_counts() -> MutationCounts:
     return MutationCounts(synonymous=0, nonsynonymous=0, total=0)
 
 
-def run_sequence_processing(experiment_id: int) -> None:
+def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False) -> None:
     """
     Executes the complete sequence processing pipeline for one experiment.
     
@@ -77,7 +78,7 @@ def run_sequence_processing(experiment_id: int) -> None:
         1. Update status to "ANALYSIS_RUNNING"
         2. Load WT protein and plasmid DNA references
         3. Compute or load cached WT gene mapping (6-frame search)
-        4. For each variant:
+        4. For each variant (skips already-processed unless force_reprocess=True):
             - Extracts the variant CDS using WT coordinates
             - Translates to protein
             - Runs QC checks (frameshifts, stop codons, ambiguous bases)
@@ -91,6 +92,8 @@ def run_sequence_processing(experiment_id: int) -> None:
     
     Args:
         experiment_id: Unique experiment identifier (must be positive integer).
+        force_reprocess: If True, re-process all variants even if they already
+            have results. Default False (skip already-processed variants).
     
     Raises:
         ValueError: If experiment_id <= 0.
@@ -142,11 +145,37 @@ def run_sequence_processing(experiment_id: int) -> None:
             db_repo.list_variants_by_experiment(engine, experiment_id), 
             key=lambda x: x[0],
         )
+
+        # Skip already-processed variants unless forced
+        if not force_reprocess:
+            already_done = db_repo.list_processed_variant_ids(engine, experiment_id)
+            if already_done:
+                before = len(variants)
+                variants = [(vid, dna) for vid, dna in variants if vid not in already_done]
+                skipped = before - len(variants)
+                logger.info(
+                    "Skipping %d already-processed variants (use force_reprocess=True to override)",
+                    skipped,
+                )
         
         total_variants = len(variants)
         logger.info("Processing %d variants for experiment %s", total_variants, experiment_id)
 
         log_every_n = max(1, int(getattr(settings, "LOG_EVERY_N", 50)))
+        batch_size = max(1, int(getattr(settings, "DB_BATCH_SIZE", 25)))
+        pending: List[VariantAnalysisItem] = []
+
+        def _flush_batch() -> None:
+            """Persist accumulated items in one transaction."""
+            if not pending:
+                return
+            db_repo.insert_variant_analyses_batch(
+                engine,
+                experiment_id=experiment_id,
+                user_id=user_id,
+                items=list(pending),
+            )
+            pending.clear()
 
         for idx, (variant_id, variant_plasmid_dna) in enumerate(variants, start=1):
             try:
@@ -157,30 +186,24 @@ def run_sequence_processing(experiment_id: int) -> None:
                 )
                 
                 if not seq_result.cds_dna:
-                    db_repo.insert_variant_analysis(
-                        engine,
+                    pending.append(VariantAnalysisItem(
                         variant_id=variant_id,
-                        experiment_id=experiment_id,
-                        user_id=user_id,
                         result=seq_result,
                         counts=_empty_counts(),
                         mutations=[],
-                    )
+                    ))
                 else:
                     mutations, counts = call_mutations_against_wt(
                         wt_mapping.wt_cds_dna,
                         seq_result.cds_dna,
                     )
 
-                    db_repo.insert_variant_analysis(
-                        engine,
+                    pending.append(VariantAnalysisItem(
                         variant_id=variant_id,
-                        experiment_id=experiment_id,
-                        user_id=user_id,
                         result=seq_result,
                         counts=counts,
-                        mutations=mutations,
-                    )
+                        mutations=list(mutations),
+                    ))
 
             except Exception as e:
                 had_variant_errors = True
@@ -201,22 +224,23 @@ def run_sequence_processing(experiment_id: int) -> None:
                         notes=f"Variant processing failed: {type(e).__name__}: {e}"
                     ),
                 )   
-                db_repo.insert_variant_analysis(
-                    engine,
+                pending.append(VariantAnalysisItem(
                     variant_id=variant_id,
-                    experiment_id=experiment_id,
-                    user_id=user_id,
                     result=qc_only,
                     counts=_empty_counts(),
                     mutations=[],
-                )
+                ))
 
                 logger.exception(
                     "Error processing variant %d in experiment %s. Recorded QC-only result.",
                     variant_id,
                     experiment_id,
                 )
- 
+
+            # Flush batch when it reaches the configured size
+            if len(pending) >= batch_size:
+                _flush_batch()
+
             if idx % log_every_n == 0 or idx == total_variants:
                 logger.info(
                     "Processed %d/%d variants (experiment %s)",
@@ -224,6 +248,9 @@ def run_sequence_processing(experiment_id: int) -> None:
                     total_variants,
                     experiment_id,
                 )
+
+        # Flush any remaining items
+        _flush_batch()
         
         final_status = "ANALYSED_WITH_ERRORS" if had_variant_errors else "ANALYSED"
         db_repo.update_experiment_status(engine, experiment_id, final_status)
@@ -235,13 +262,48 @@ def run_sequence_processing(experiment_id: int) -> None:
         )
 
     except Exception:
-        db_repo.update_experiment_status(engine, experiment_id, "FAILED")
-
         logger.exception(
             "Sequence processing failed for experiment %s",
             experiment_id,
         )
+        try:
+            db_repo.update_experiment_status(engine, experiment_id, "FAILED")
+        except Exception:
+            logger.exception(
+                "Could not update status to FAILED for experiment %s",
+                experiment_id,
+            )
         raise
+
+
+def submit_sequence_processing(
+    experiment_id: int, *, force_reprocess: bool = False
+) -> threading.Thread:
+    """
+    Launches run_sequence_processing in a background daemon thread.
+
+    Call this from a Flask route instead of run_sequence_processing()
+    so the HTTP response returns immediately while the pipeline runs
+    in the background.  The experiment's analysis_status column tracks
+    progress (ANALYSIS_RUNNING → ANALYSED / FAILED).
+
+    Args:
+        experiment_id: Experiment to process.
+        force_reprocess: If True, re-process all variants even if
+            they already have results.
+
+    Returns the Thread object for optional monitoring.
+    """
+    t = threading.Thread(
+        target=run_sequence_processing,
+        args=(experiment_id,),
+        kwargs={"force_reprocess": force_reprocess},
+        name=f"seq-processing-{experiment_id}",
+        daemon=True,
+    )
+    t.start()
+    logger.info("Submitted experiment %s for background processing (thread=%s)", experiment_id, t.name)
+    return t
 
 
 # ============================================================================
