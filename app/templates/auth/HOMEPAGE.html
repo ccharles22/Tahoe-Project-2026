@@ -17,7 +17,17 @@
       <span class="home-nav__name">DirectEvo</span>
     </div>
     <div class="home-nav__right">
-      <span class="home-nav__user">&#x1F464; {{ current_user.username }}</span>
+      <a href="/docs/" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
+        &#x1F4D8;
+      </a>
+      <div class="home-nav__iconpair" aria-label="Account controls">
+        <a href="{{ url_for('auth.settings') }}" class="home-nav__iconlink home-nav__iconlink--bare" aria-label="Account" title="{{ current_user.username }}">
+          &#x1F464;
+        </a>
+        <a href="{{ url_for('auth.settings') }}" class="home-nav__iconlink home-nav__iconlink--bare" aria-label="Settings" title="Settings">
+          &#x2699;&#xFE0F;
+        </a>
+      </div>
       <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
     </div>
   </nav>
@@ -25,39 +35,73 @@
   <!-- Hero -->
   <section class="home-hero">
     <div class="home-hero__bg"></div>
-    <div class="home-hero__content animate-in">
-      <h1 class="home-hero__title">Welcome back, {{ current_user.username }}</h1>
-      <p class="home-hero__sub">Your directed evolution monitoring dashboard. Track experiments, analyse variants, and optimise proteins.</p>
-      <div class="home-hero__actions">
-        <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
-          &#x2795; New Experiment
-        </a>
-        {% if latest_exp %}
-        <a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) }}" class="btn btn--hero-outline">
-          Continue #{{ latest_exp.experiment_id }}
-        </a>
-        {% endif %}
+    <div class="home-hero__content home-hero__content--stages animate-in">
+      <div class="home-hero__copy">
+        <p class="home-hero__eyebrow">Direct Evolution Monitoring</p>
+        <h1 class="home-hero__title">Welcome back, {{ current_user.username }}</h1>
+        <div class="home-hero__actions">
+          <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
+            &#x2795; New Experiment
+          </a>
+          {% if latest_exp %}
+          <a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) }}" class="btn btn--hero-outline">
+            Continue #{{ latest_exp.experiment_id }}
+          </a>
+          {% endif %}
+        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- Key metrics -->
-  <section class="home-stats">
-    <div class="home-stat">
-      <div class="home-stat__value">{{ exp_count }}</div>
-      <div class="home-stat__label">Experiments</div>
-    </div>
-    <div class="home-stat">
-      <div class="home-stat__value">{{ wt_count }}</div>
-      <div class="home-stat__label">WT Proteins</div>
-    </div>
-    <div class="home-stat">
-      <div class="home-stat__value">5</div>
-      <div class="home-stat__label">Pipeline Steps</div>
-    </div>
-    <div class="home-stat">
-      <div class="home-stat__value">&infin;</div>
-      <div class="home-stat__label">Possibilities</div>
+      <section class="home-stage" aria-label="Workflow stage descriptions">
+        <div class="home-stage__viewport" id="home-stage-viewport">
+          <article class="home-stage__card is-active" id="stage-fetch-wt" data-stage="fetch-wt">
+            <p class="home-stage__eyebrow">Stage 01</p>
+            <h2 class="home-stage__title">Stage Experiment</h2>
+            <p class="home-stage__description">
+              Create a new experiment linked to your account and set a WT reference.
+            </p>
+          </article>
+          <article class="home-stage__card" id="stage-validate" data-stage="validate">
+            <p class="home-stage__eyebrow">Stage 02</p>
+            <h2 class="home-stage__title">Protein &amp; Plasmid Validation</h2>
+            <p class="home-stage__description">
+              Fetch WT sequence + domains from UniProt, then validate the uploaded plasmid FASTA.
+            </p>
+          </article>
+          <article class="home-stage__card" id="stage-upload" data-stage="upload">
+            <p class="home-stage__eyebrow">Stage 03</p>
+            <h2 class="home-stage__title">Data Upload &amp; QC</h2>
+            <p class="home-stage__description">
+              Upload TSV/JSON experiment data, accept extra metadata columns, and reject missing essentials.
+            </p>
+          </article>
+          <article class="home-stage__card" id="stage-analyse" data-stage="analyse">
+            <p class="home-stage__eyebrow">Stage 04</p>
+            <h2 class="home-stage__title">Analysis &amp; Reporting</h2>
+            <p class="home-stage__description">
+              Generate the Activity Score, top performers table, and activity-by-generation plot.
+            </p>
+          </article>
+          <article class="home-stage__card" id="stage-sequence" data-stage="sequence">
+            <p class="home-stage__eyebrow">Stage 05</p>
+            <h2 class="home-stage__title">Sequence Processing</h2>
+            <p class="home-stage__description">
+              Find the gene, translate DNA to protein, call synonymous/non-synonymous mutations, store results.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <aside class="home-pipeline" aria-label="Pipeline workflow titles">
+        <div class="home-pipeline__viewport">
+          <ul class="home-pipeline__list" id="home-stage-list">
+            <li class="home-pipeline__item is-active" data-stage="fetch-wt">Stage Experiment</li>
+            <li class="home-pipeline__item" data-stage="validate">Protein &amp; Plasmid Validation</li>
+            <li class="home-pipeline__item" data-stage="upload">Data Upload &amp; QC</li>
+            <li class="home-pipeline__item" data-stage="analyse">Analysis &amp; Reporting</li>
+            <li class="home-pipeline__item" data-stage="sequence">Sequence Processing</li>
+          </ul>
+        </div>
+      </aside>
     </div>
   </section>
 
@@ -75,51 +119,12 @@
   </section>
   {% endif %}
 
-  <!-- Primary feature links -->
-  <main class="home-container animate-in">
-    <h2 class="home-section-title">Platform Features</h2>
-
-    <div class="dashboard-grid">
-      <!-- Experiment workflow -->
-      <a href="{{ url_for('staging.create_experiment') }}" class="dashboard-card dashboard-card--featured">
-        <div class="dashboard-card__accent"></div>
-        <div class="dashboard-card__icon">&#x1F52C;</div>
-        <h3 class="dashboard-card__title">Experiment Workflow</h3>
-        <p class="dashboard-card__desc">
-          Full 5-step directed evolution pipeline: fetch a wild-type protein,
-          validate your plasmid, upload variant data, run analysis, and
-          process sequences.
-        </p>
-        <span class="dashboard-card__cta">Open Workflow &rarr;</span>
-      </a>
-
-      <!-- Documentation -->
-      <div class="dashboard-card dashboard-card--link">
-        <div class="dashboard-card__icon">&#x1F4D8;</div>
-        <h3 class="dashboard-card__title">User Guide</h3>
-        <p class="dashboard-card__desc">Open the user guide for this application (mkdocs).</p>
-        <a class="dashboard-card__link" href="/docs/"><span class="dashboard-card__cta">Open User Guide &rarr;</span></a>
-      </div>
-
-      <!-- Account settings -->
-      <a href="{{ url_for('auth.settings') }}" class="dashboard-card">
-        <div class="dashboard-card__icon">&#x2699;&#xFE0F;</div>
-        <h3 class="dashboard-card__title">Settings</h3>
-        <p class="dashboard-card__desc">
-          Manage your account, preferences, notification settings, and team access.
-        </p>
-        <span class="dashboard-card__cta">Open Settings &rarr;</span>
-      </a>
-    </div>
-  </main>
-
-  <!-- Footer -->
-  <footer class="home-footer">
-    <p>Direct Evolution Monitoring Platform &middot; MSc Bioinformatics Group Project &middot; 2026</p>
-  </footer>
-
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+  <script src="{{ url_for('static', filename='js/homepage.js') }}"></script>
 </body>
 </html>
+
 
 
 

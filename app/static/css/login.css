@@ -211,7 +211,7 @@ a:hover {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  order: 2;
+  order: 1;
   border-radius: 0;
   box-shadow: none;
 }
@@ -231,9 +231,8 @@ a:hover {
   position: relative;
   overflow: hidden;
   color: #ffffff;
-  order: 1;
+  order: 2;
   min-height: 100vh;
-  animation: auth-gradient-drift 24s ease-in-out infinite;
 }
 
 .auth-page--login .auth-card > *,
@@ -304,72 +303,42 @@ a:hover {
   max-width: 13ch;
 }
 
-.auth-page--login .auth-visual__workflow,
-.auth-page--register .auth-visual__workflow {
-  position: relative;
-  z-index: 1;
-  width: min(680px, 96%);
-  padding: 8px 0 2px;
-}
-
-.auth-pipeline {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: relative;
-  gap: 12px;
-}
-
-.auth-pipeline__step {
-  flex: 1;
-  min-width: 0;
+.auth-page--login .auth-visual__title--stacked span,
+.auth-page--register .auth-visual__title--stacked span {
+  display: block;
+  width: 9.4ch;
   text-align: center;
-  position: relative;
-  z-index: 1;
-}
-
-.auth-pipeline__node {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  display: block;
-  margin: 0 auto 10px;
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.24);
-  opacity: 0.4;
-  animation: auth-node-pulse 5s ease-in-out infinite;
-}
-
-.auth-pipeline__step:nth-child(1) .auth-pipeline__node { animation-delay: 0s; }
-.auth-pipeline__step:nth-child(2) .auth-pipeline__node { animation-delay: 0.9s; }
-.auth-pipeline__step:nth-child(3) .auth-pipeline__node { animation-delay: 1.8s; }
-.auth-pipeline__step:nth-child(4) .auth-pipeline__node { animation-delay: 2.7s; }
-.auth-pipeline__step:nth-child(5) .auth-pipeline__node { animation-delay: 3.6s; }
-
-.auth-pipeline__label {
-  display: block;
-  font-size: 11px;
-  line-height: 1.15;
-  letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.9);
-  white-space: nowrap;
+  transform-origin: center;
 }
 
-@keyframes auth-gradient-drift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+.auth-page--login .auth-visual__title--stacked,
+.auth-page--register .auth-visual__title--stacked {
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: clamp(56px, 9vw, 180px);
+  line-height: 0.86;
+  letter-spacing: -0.03em;
 }
 
-@keyframes auth-node-pulse {
-  0% { opacity: 0.35; transform: scale(1); }
-  20% { opacity: 0.9; transform: scale(1.18); }
-  40% { opacity: 0.5; transform: scale(1); }
-  100% { opacity: 0.35; transform: scale(1); }
+.auth-page--login .auth-visual__title--stacked span:nth-child(1),
+.auth-page--register .auth-visual__title--stacked span:nth-child(1) {
+  transform: scaleX(1.22);
+}
+
+.auth-page--login .auth-visual__title--stacked span:nth-child(2),
+.auth-page--register .auth-visual__title--stacked span:nth-child(2) {
+  transform: scaleX(1);
+}
+
+.auth-page--login .auth-visual__title--stacked span:nth-child(3),
+.auth-page--register .auth-visual__title--stacked span:nth-child(3) {
+  transform: scaleX(0.93);
 }
 
 @media (max-width: 980px) {
@@ -385,14 +354,14 @@ a:hover {
     max-width: 100%;
     min-height: auto;
     padding: 16px 12px;
-    order: 2;
+    order: 1;
   }
 
   .auth-page--login .auth-visual,
   .auth-page--register .auth-visual {
     min-height: 23vh;
     padding: 16px 12px;
-    order: 1;
+    order: 2;
   }
 
   .auth-page--login .auth-visual__title,
@@ -400,13 +369,10 @@ a:hover {
     font-size: clamp(18px, 5vw, 31px);
   }
 
-  .auth-page--login .auth-visual__workflow,
-  .auth-page--register .auth-visual__workflow {
-    width: min(520px, 100%);
-  }
-
-  .auth-pipeline__label {
-    font-size: 10px;
+  .auth-page--login .auth-visual__title--stacked,
+  .auth-page--register .auth-visual__title--stacked {
+    font-size: clamp(44px, 11vw, 120px);
+    line-height: 0.9;
   }
 
   .auth-page--login .auth-card__title,
@@ -431,13 +397,5 @@ a:hover {
 
   .auth-card .text-link {
     font-size: 11px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .auth-page--login .auth-visual,
-  .auth-page--register .auth-visual,
-  .auth-pipeline__node {
-    animation: none;
   }
 }

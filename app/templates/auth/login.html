@@ -13,7 +13,7 @@
   <main class="auth-body auth-body--login-split">
     <section class="auth-card">
       <h1 class="auth-card__title">Sign in</h1>
-      <p class="auth-card__subtitle">Access your research dashboard</p>
+      <p class="auth-card__subtitle">Access your dashboard</p>
 
       <!-- Server flash messages -->
       {% with messages = get_flashed_messages(with_categories=true) %}
@@ -67,19 +67,7 @@
       </p>
     </section>
 
-    <aside class="auth-visual" aria-label="Direct Evolution Monitoring overview">
-      <p class="auth-visual__eyebrow">Research Platform</p>
-      <h2 class="auth-visual__title">Direct Evolution Monitoring</h2>
-      <div class="auth-visual__workflow" aria-hidden="true">
-        <ol class="auth-pipeline">
-          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Fetch WT</span></li>
-          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Validate</span></li>
-          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Upload</span></li>
-          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Analyse</span></li>
-          <li class="auth-pipeline__step"><span class="auth-pipeline__node"></span><span class="auth-pipeline__label">Sequence</span></li>
-        </ol>
-      </div>
-    </aside>
+    <aside class="auth-visual" aria-hidden="true"></aside>
   </main>
 </body>
 </html>
