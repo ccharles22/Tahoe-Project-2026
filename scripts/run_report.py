@@ -22,6 +22,7 @@ from app.services.analysis.queries import (
     fetch_lineage_edges,
     fetch_lineage_nodes,
     fetch_protein_similarity_nodes,
+    fetch_protein_mutations,
     fetch_top10,
     fetch_variant_raw,
     fetch_wt_baselines,
@@ -240,7 +241,12 @@ def main() -> None:
     top10_path = OUTPUT_DIR / f"exp_{experiment_id}_top10_variants.csv"
     plot_path = OUTPUT_DIR / f"exp_{experiment_id}_activity_distribution.png"
     lineage_path = OUTPUT_DIR / f"exp_{experiment_id}_lineage.png"
-    protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity.png"
+    protein_mode = os.getenv("PROTEIN_NET_MODE", "identity").strip().lower()
+    if protein_mode not in {"identity", "cooccurrence"}:
+        protein_mode = "identity"
+
+    protein_suffix = "" if protein_mode == "identity" else f"_{protein_mode}"
+    protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity{protein_suffix}.png"
 
     with get_conn() as conn:
         # 1) Raw variant metrics (needed for BOTH WT-based + fallback)
@@ -366,9 +372,13 @@ def main() -> None:
             print("[ProteinNet] No nodes returned; skipping protein similarity plot.")
             return
 
-        if df_protein["protein_sequence"].dropna().empty:
+        if protein_mode == "identity" and df_protein["protein_sequence"].dropna().empty:
             print("[ProteinNet] No protein sequences available; skipping protein similarity plot.")
             return
+
+        protein_mutations = None
+        if protein_mode == "cooccurrence":
+            protein_mutations = fetch_protein_mutations(conn, experiment_id)
 
         plot_protein_similarity_network(
             df_protein,
@@ -377,6 +387,8 @@ def main() -> None:
             seq_col="protein_sequence",
             activity_col="activity_score",
             top_col="is_top10",
+            mutations=protein_mutations,
+            mode=protein_mode,
         )
         print("[File] Wrote:", protein_net_path)
 

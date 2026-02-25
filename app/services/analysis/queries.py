@@ -116,6 +116,19 @@ LEFT JOIN ranked r ON r.variant_id = v.variant_id
 WHERE g.experiment_id = %s;
 """
 
+PROTEIN_MUTATIONS_SQL = """
+SELECT
+  v.variant_id,
+  m.position,
+  m.original,
+  m.mutated
+FROM variants v
+JOIN generations g ON g.generation_id = v.generation_id
+JOIN mutations m ON m.variant_id = v.variant_id
+WHERE g.experiment_id = %s
+  AND m.mutation_type = 'protein';
+"""
+
 LINEAGE_NODES_SQL = """
 WITH scores AS (
   SELECT
@@ -212,6 +225,9 @@ def fetch_distribution(conn, experiment_id: int) -> pd.DataFrame:
 
 def fetch_protein_similarity_nodes(conn, experiment_id: int) -> pd.DataFrame:
   return pd.read_sql(PROTEIN_SIMILARITY_NODES_SQL, conn, params=(experiment_id, experiment_id))
+
+def fetch_protein_mutations(conn, experiment_id: int) -> pd.DataFrame:
+    return pd.read_sql(PROTEIN_MUTATIONS_SQL, conn, params=(experiment_id,))
 
 def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
     q = """

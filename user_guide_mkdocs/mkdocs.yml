@@ -1,0 +1,28 @@
+site_name: PostgreSQL Repository and Data Visualization
+site_url: http://localhost:8000
+exclude_docs: |
+  README.md
+theme:
+  name: material
+  features:
+    - navigation.instant
+    - navigation.tracking
+    - navigation.sections
+    - content.code.copy
+nav:
+  - Home: index.md
+  - Database:
+      - Overview: database.md
+      - Schema notes: schema_design_notes.md
+  - Plots:
+      - Overview: plots.md
+      - Lineage: plots_lineage.md
+      - Distribution: plots_distribution.md
+      - Top 10: plots_top10.md
+      - Protein network: plots_protein_network.md
+  - Pipelines: pipeline.md
+  - User guide: user_guide.md
+  - Ops:
+      - Database setup (Tailscale): database_setup_tailscale.md
+      - PostgreSQL Tailscale methodology: postgresql_tailscale_methodology.md
+      - Git workflow: git_workflow.md
