@@ -1,0 +1,1817 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="http://localhost:8000/user_guide/">
+      
+      
+        <link rel="prev" href="../pipeline/">
+      
+      
+        <link rel="next" href="../database_setup_tailscale/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
+    
+    
+      
+        <title>User guide - PostgreSQL Repository and Data Visualization</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="PostgreSQL Repository and Data Visualization" class="md-header__button md-logo" aria-label="PostgreSQL Repository and Data Visualization" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            PostgreSQL Repository and Data Visualization
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="PostgreSQL Repository and Data Visualization" class="md-nav__button md-logo" aria-label="PostgreSQL Repository and Data Visualization" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    PostgreSQL Repository and Data Visualization
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Database
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema_design_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plots
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plots
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_lineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_top10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top 10
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_protein_network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protein network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#who-this-is-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who this is for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daily-operations-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily operations checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-report-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate report artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-flask-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start Flask app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serve-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serve documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plot-usage-viewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot usage (viewers)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plot usage (viewers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network quick start
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#biology-background-why-these-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Biology background (why these plots)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Biology background (why these plots)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mutation-fingerprinting-by-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutation fingerprinting by generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-activity-landscape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D activity landscape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domain-mutation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain mutation enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-availability-for-co-occurrence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data availability for co-occurrence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameter-tuning-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameter tuning tips
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#note-on-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Note on normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-data-sources-analysts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common data sources (analysts)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#refresh-workflow-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refresh workflow (developers)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-checks-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick checks (SQL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting and recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting and recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-database_url-not-set-or-connection-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) DATABASE_URL not set or connection failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-empty-top-10-or-distribution-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Empty Top 10 or distribution output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-lineage-plot-has-nodes-but-no-edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Lineage plot has nodes but no edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-co-occurrence-protein-network-is-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Co-occurrence protein network is empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-landscape-or-domain-views-are-stale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Landscape or domain views are stale
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incident-checklist-fast-triage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incident checklist (fast triage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glossary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ops
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ops
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_setup_tailscale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database setup (Tailscale)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../postgresql_tailscale_methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PostgreSQL Tailscale methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git_workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#who-this-is-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who this is for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daily-operations-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily operations checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-report-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate report artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-flask-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start Flask app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serve-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serve documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plot-usage-viewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot usage (viewers)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plot usage (viewers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network quick start
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#biology-background-why-these-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Biology background (why these plots)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Biology background (why these plots)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mutation-fingerprinting-by-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutation fingerprinting by generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-activity-landscape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D activity landscape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domain-mutation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain mutation enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-availability-for-co-occurrence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data availability for co-occurrence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameter-tuning-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameter tuning tips
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#note-on-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Note on normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-data-sources-analysts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common data sources (analysts)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#refresh-workflow-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refresh workflow (developers)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-checks-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick checks (SQL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting and recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting and recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-database_url-not-set-or-connection-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) DATABASE_URL not set or connection failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-empty-top-10-or-distribution-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Empty Top 10 or distribution output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-lineage-plot-has-nodes-but-no-edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Lineage plot has nodes but no edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-co-occurrence-protein-network-is-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Co-occurrence protein network is empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-landscape-or-domain-views-are-stale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Landscape or domain views are stale
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incident-checklist-fast-triage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incident checklist (fast triage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glossary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="user-guide">User guide</h1>
+<p>This guide is the operational runbook for running the project, verifying results, and recovering from common failures.</p>
+<h2 id="who-this-is-for">Who this is for</h2>
+<ul>
+<li>Viewers: open the plots and understand what they show</li>
+<li>Analysts: pull data for ad hoc checks</li>
+<li>Developers: refresh pipelines and materialized views</li>
+</ul>
+<h2 id="prerequisites">Prerequisites</h2>
+<ul>
+<li>Python environment with dependencies installed (<code>requirements.txt</code>)</li>
+<li>PostgreSQL reachable through <code>DATABASE_URL</code></li>
+<li>Schema applied from <code>schema/schema.sql</code></li>
+</ul>
+<h2 id="environment-variables">Environment variables</h2>
+<p>Set these before running scripts:</p>
+<pre><code class="language-bash">export DATABASE_URL=&quot;postgresql://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;:5432/bio727p_group_project&quot;
+export EXPERIMENT_ID=41
+</code></pre>
+<p>Optional:
+- <code>PROTEIN_NET_MODE=identity</code> or <code>PROTEIN_NET_MODE=cooccurrence</code> for <code>scripts.run_report</code></p>
+<h2 id="daily-operations-checklist">Daily operations checklist</h2>
+<ol>
+<li>Confirm DB connectivity:
+   <code>python -m scripts.test_connection</code></li>
+<li>Generate metrics + core plots:
+   <code>python -m scripts.run_report</code></li>
+<li>If mutation embeddings changed:
+   <code>python -m scripts.generate_pca_embeddings</code></li>
+<li>Refresh bonus materialized views:
+   <code>select refresh_bonus_materialized_views();</code></li>
+<li>Open Flask endpoints and verify images render:</li>
+<li><code>/top10/&lt;experiment_id&gt;</code></li>
+<li><code>/distribution/&lt;experiment_id&gt;</code></li>
+<li><code>/lineage/&lt;experiment_id&gt;</code></li>
+<li><code>/protein_similarity/&lt;experiment_id&gt;</code></li>
+</ol>
+<h2 id="runtime-commands">Runtime commands</h2>
+<h3 id="generate-report-artifacts">Generate report artifacts</h3>
+<pre><code class="language-bash">python -m scripts.run_report
+</code></pre>
+<p>Expected outputs in <code>app/static/generated</code>:
+- <code>exp_&lt;id&gt;_stage4_qc_debug.csv</code>
+- <code>exp_&lt;id&gt;_top10_variants.csv</code>
+- <code>exp_&lt;id&gt;_activity_distribution.png</code>
+- <code>exp_&lt;id&gt;_lineage.png</code>
+- <code>exp_&lt;id&gt;_protein_similarity*.png</code></p>
+<h3 id="start-flask-app">Start Flask app</h3>
+<pre><code class="language-bash">python -m src.analysis_MPL.app
+</code></pre>
+<h3 id="serve-documentation">Serve documentation</h3>
+<pre><code class="language-bash">cd user_guide_mkdocs
+mkdocs serve -a 127.0.0.1:8000
+</code></pre>
+<h2 id="plot-usage-viewers">Plot usage (viewers)</h2>
+<ul>
+<li>Lineage: parent-child structure across generations</li>
+<li>Distribution: activity score spread by generation</li>
+<li>Top10: highest activity variants in experiment</li>
+<li>Protein network: identity or co-occurrence relationships</li>
+</ul>
+<h3 id="protein-network-quick-start">Protein network quick start</h3>
+<ul>
+<li>Identity:
+  <code>/protein_similarity/41?mode=identity&amp;identity_threshold=0.95</code></li>
+<li>Co-occurrence:
+  <code>/protein_similarity/41?mode=cooccurrence&amp;min_shared=2&amp;jaccard_threshold=0.1</code></li>
+</ul>
+<h2 id="biology-background-why-these-plots">Biology background (why these plots)</h2>
+<h3 id="mutation-fingerprinting-by-generation">Mutation fingerprinting by generation</h3>
+<p>Directed evolution introduces mutations across generations. Tracking the first
+appearance of each amino acid change along a lineage highlights when sequence
+diversity emerges and which substitutions persist as the variant improves.
+This supports interpretation of adaptive trajectories and helps connect
+sequence changes to functional gains.
+(Selles Vidal et al., 2023: https://doi.org/10.1039/D2CB00231K)</p>
+<h3 id="3d-activity-landscape">3D activity landscape</h3>
+<p>Protein sequences can be represented in a high-dimensional sequence space, where
+distance reflects sequence dissimilarity. Dimensionality reduction (e.g., PCA)
+projects this space into two coordinates for visualization while preserving
+overall similarity structure. Plotting activity score on the third axis produces
+an intuitive fitness landscape, where peaks represent high-activity variants.
+This mirrors established approaches to visualize sequence space and identify
+central or representative sequences.
+(Mead et al., 2019: https://doi.org/10.1016/j.jmgm.2019.07.014)</p>
+<h3 id="domain-mutation-enrichment">Domain mutation enrichment</h3>
+<p>Protein features (domains, motifs) often constrain or amplify the effects of
+mutations. Aggregating nonsynonymous mutations by annotated feature highlights
+regions under selection pressure, and mutation density per residue normalizes
+for domain length. This helps distinguish true hotspots from long regions that
+accumulate mutations by chance.</p>
+<h3 id="protein-network-modes">Protein network modes</h3>
+<p>Sequence identity networks connect variants with high amino acid similarity, while
+co-occurrence networks connect variants that share specific protein mutations. The
+co-occurrence view emphasizes shared evolutionary steps and can be filtered with a
+minimum shared-mutation count or an optional Jaccard threshold.</p>
+<h3 id="data-availability-for-co-occurrence">Data availability for co-occurrence</h3>
+<p>Co-occurrence networks require protein mutations in the <code>mutations</code> table. If no
+protein mutations were loaded or called, the co-occurrence network will be empty.</p>
+<h3 id="parameter-tuning-tips">Parameter tuning tips</h3>
+<ul>
+<li>Higher identity thresholds make identity networks sparser and more conservative.</li>
+<li>Higher minimum shared mutation counts reduce co-occurrence density.</li>
+<li>Higher Jaccard thresholds favor pairs with more similar mutation sets.</li>
+</ul>
+<h3 id="note-on-normalization">Note on normalization</h3>
+<p>When comparing quantitative protein measurements across runs or batches,
+normalization helps reduce technical variation before interpreting biological
+effects.
+(O'Rourke et al., 2019: https://doi.org/10.3390/proteomes7030029)
+(Mule et al., 2022: https://doi.org/10.1038/s41467-022-29356-8)</p>
+<h2 id="common-data-sources-analysts">Common data sources (analysts)</h2>
+<ul>
+<li>Raw and derived scoring: <code>metrics</code>, <code>variants</code>, <code>generations</code></li>
+<li>Mutation context: <code>mutations</code></li>
+<li>Optional bonus views: <code>mv_activity_landscape</code>, <code>mv_domain_mutation_enrichment</code></li>
+</ul>
+<h2 id="refresh-workflow-developers">Refresh workflow (developers)</h2>
+<ol>
+<li>Load new metrics and mutations.</li>
+<li>Recompute derived metrics and plots.</li>
+<li>Regenerate embeddings if needed.</li>
+<li>Refresh materialized views.</li>
+</ol>
+<pre><code class="language-sql">select refresh_bonus_materialized_views();
+</code></pre>
+<h2 id="quick-checks-sql">Quick checks (SQL)</h2>
+<pre><code class="language-sql">-- Derived metric presence
+select count(*) as n_activity_scores
+from metrics
+where metric_name='activity_score'
+  and metric_type='derived';
+
+-- Derived metric coverage for one experiment
+select count(*) as n_exp_scores
+from metrics m
+join variants v on v.variant_id = m.variant_id
+join generations g on g.generation_id = v.generation_id
+where m.metric_name='activity_score'
+  and m.metric_type='derived'
+  and g.experiment_id = 41;
+
+-- Optional bonus view row counts
+select count(*) from mv_activity_landscape;
+select count(*) from mv_domain_mutation_enrichment;
+</code></pre>
+<h2 id="troubleshooting-and-recovery">Troubleshooting and recovery</h2>
+<h3 id="1-database_url-not-set-or-connection-failure">1) <code>DATABASE_URL not set</code> or connection failure</h3>
+<p>Symptoms:
+- script exits before querying data
+- psycopg2 connection errors</p>
+<p>Recovery:
+1. export a valid <code>DATABASE_URL</code>
+2. run <code>python -m scripts.test_connection</code>
+3. rerun report</p>
+<h3 id="2-empty-top-10-or-distribution-output">2) Empty Top 10 or distribution output</h3>
+<p>Symptoms:
+- blank/empty CSV for top10
+- distribution plot not generated</p>
+<p>Likely cause:
+- missing derived <code>activity_score</code></p>
+<p>Recovery:
+1. run <code>python -m scripts.run_report</code>
+2. check QC CSV in <code>app/static/generated</code>
+3. run SQL quick checks for derived metrics</p>
+<h3 id="3-lineage-plot-has-nodes-but-no-edges">3) Lineage plot has nodes but no edges</h3>
+<p>Symptoms:
+- scattered points with no connecting lines</p>
+<p>Likely causes:
+- <code>parent_variant_id</code> missing in loaded variants
+- upstream data did not preserve parent links</p>
+<p>Recovery:
+1. verify parent IDs in DB
+2. reload variants with parent mapping
+3. rerun report</p>
+<h3 id="4-co-occurrence-protein-network-is-empty">4) Co-occurrence protein network is empty</h3>
+<p>Symptoms:
+- message indicating no shared protein mutations</p>
+<p>Likely causes:
+- no <code>mutation_type='protein'</code> rows
+- thresholds too strict</p>
+<p>Recovery:
+1. verify mutation rows exist
+2. try <code>preset=medium</code> or <code>preset=dense</code>
+3. lower <code>min_shared</code> and remove Jaccard threshold</p>
+<h3 id="5-landscape-or-domain-views-are-stale">5) Landscape or domain views are stale</h3>
+<p>Symptoms:
+- old values despite new pipeline runs</p>
+<p>Recovery:
+1. run <code>select refresh_bonus_materialized_views();</code>
+2. rerun row-count checks
+3. reload UI or query again</p>
+<h2 id="incident-checklist-fast-triage">Incident checklist (fast triage)</h2>
+<ol>
+<li>Confirm DB connectivity.</li>
+<li>Confirm derived metric presence.</li>
+<li>Confirm experiment-specific row counts.</li>
+<li>Regenerate report outputs.</li>
+<li>Refresh materialized views.</li>
+<li>Re-open endpoints and inspect generated files.</li>
+</ol>
+<h2 id="glossary">Glossary</h2>
+<ul>
+<li>Variant: engineered sequence derived from a wild-type protein</li>
+<li>Generation: evolution round within an experiment</li>
+<li>Activity score: derived metric used for ranking</li>
+<li>Embedding: 2D coordinates used for the landscape plot</li>
+</ul>
+<h2 id="reference">Reference</h2>
+<ul>
+<li>Mead DJT, Lunagomez S, Gatherer D. Visualization of protein sequence space
+    with force-directed graphs, and their application to the choice of
+    target-template pairs for homology modelling. J Mol Graph Model. 2019;92:180-191.
+    https://doi.org/10.1016/j.jmgm.2019.07.014</li>
+<li>Selles Vidal L, Isalan M, Heap JT, Ledesma-Amaro R. A primer to directed evolution:
+    current methodologies and future directions. RSC Chem Biol. 2023;4:271-291.
+    https://doi.org/10.1039/D2CB00231K</li>
+<li>Geard N, Wiles J. Directed Evolution of an Artificial Cell Lineage. In: Randall M,
+    Abbass HA, Wiles J (eds) Progress in Artificial Life. ACAL 2007. LNCS 4828.
+    Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-540-76931-6_13</li>
+<li>Mule MP, Martins AJ, Tsang JS. Normalizing and denoising protein expression data
+    from droplet-based single cell profiling. Nat Commun. 2022;13:2099.
+    https://doi.org/10.1038/s41467-022-29356-8</li>
+<li>O'Rourke MB, Town SEL, Dalla PV, Bicknell F, Koh Belic N, Violi JP, Steele JR,
+    Padula MP. What is Normalization? The Strategies Employed in Top-Down and
+    Bottom-Up Proteome Analysis Workflows. Proteomes. 2019;7(3):29.
+    https://doi.org/10.3390/proteomes7030029</li>
+<li>Mirzaei G. Constructing gene similarity networks using co-occurrence
+    probabilities. BMC Genomics. 2023;24:697.
+    https://doi.org/10.1186/s12864-023-09780-w</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.instant", "navigation.tracking", "navigation.sections", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,5 +1,7 @@
 site_name: PostgreSQL Repository and Data Visualization
 site_url: http://localhost:8000
+exclude_docs: |
+  README.md
 theme:
   name: material
   features:
