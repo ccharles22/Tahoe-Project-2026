@@ -1,5 +1,37 @@
 # Pipelines
 
+This page describes the compute order used by this repository.
+
+## Stage 1: Load raw data
+Use your loader to insert:
+- generations
+- variants
+- raw metrics (`dna_yield_raw`, `protein_yield_raw`)
+- WT controls (when available)
+
+In this repo, example loader:
+
+```bash
+export DATASET_PATH=/path/to/data.tsv
+export EXPERIMENT_ID=41
+python -m scripts.load_example_data
+```
+
+## Stage 2: Compute activity metrics + generate plots
+Run:
+
+```bash
+export EXPERIMENT_ID=41
+python -m scripts.run_report
+```
+
+What this does:
+- fetches variant raw metrics
+- tries WT-based normalization first
+- falls back to generation-median normalization if WT baselines are missing
+- upserts `dna_yield_norm`, `protein_yield_norm`, `activity_score`
+- writes CSV + PNG outputs in `app/static/generated`
+
 ## Rankings and mutation introductions
 - Compute top-10 variants per generation by activity score.
 - Trace lineage to record the first appearance of each mutation.
@@ -12,6 +44,12 @@
 - Build feature vectors from protein mutation positions per variant.
 - Run PCA for 2D coordinates.
 - Store results in `embedding_runs` and `embedding_points`.
+
+Example:
+
+```bash
+python -m scripts.generate_pca_embeddings
+```
 
 ### Inputs
 - Variants with `activity_score`
@@ -27,3 +65,15 @@ select refresh_bonus_materialized_views();
 ## Validation checks
 - `embedding_points` row count should match variants with `activity_score`
 - `mv_activity_landscape` row count should match `embedding_points`
+
+## Recommended execution order
+1. Load raw data.
+2. Run report (`scripts.run_report`) for derived metrics and base plots.
+3. Run embeddings (`scripts.generate_pca_embeddings`) when mutation data exists.
+4. Refresh materialized views.
+5. Re-open plot endpoints and verify output files.
+
+## Common failures
+- No distribution/top10 data: check `metrics` contains derived `activity_score`.
+- Empty co-occurrence network: check protein mutations exist in `mutations`.
+- Empty lineage edges: parent links may be missing in loaded variants.

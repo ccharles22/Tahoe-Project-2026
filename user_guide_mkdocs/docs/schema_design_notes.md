@@ -32,7 +32,7 @@ Additional tables and materialized views were introduced to serve plot-ready dat
 - Make biological meaning explicit (mutations, metrics, domains).
 - Keep analysis outputs reproducible and query-friendly.
 
-For full DDL details, see [schema/schema.sql](../../schema/schema.sql).
+For full DDL details, see `schema/schema.sql` in the repository root.
 
 ## Materialized views and refresh workflow
 

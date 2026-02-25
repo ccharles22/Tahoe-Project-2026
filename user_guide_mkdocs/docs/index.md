@@ -1,23 +1,51 @@
 # Project documentation
 
-This site documents the PostgreSQL schema, data pipelines, and visualization outputs for the project.
+This site documents how the repository is used end-to-end:
+- PostgreSQL schema and constraints
+- Metrics computation and plotting scripts
+- Flask endpoints for generated visualizations
+- Bonus pipelines and materialized views
 
-## What to start with
-- Database: high-level schema overview and key tables.
-- Plots: where each visualization pulls its data from.
-- Pipelines: how rankings, mutation events, and embeddings are generated.
+## Start here
+1. Read **Database** for table relationships and refresh rules.
+2. Read **Pipelines** for compute order and validation checks.
+3. Read **Plots** for data sources and parameter tuning.
+4. Read **User guide** for day-to-day usage.
 
-## Quick start
-1. Install docs dependencies with `pip install mkdocs mkdocs-material`.
-2. Run `mkdocs serve` from the `user_guide_mkdocs` folder.
-3. Open http://localhost:8000.
+## Quick start (docs)
+From the repository root:
 
-## What is in scope
-- PostgreSQL schema and bonus visualization tables
-- Data processing pipelines (rankings, mutation events, embeddings)
-- Plot inputs and refresh steps
+```bash
+cd user_guide_mkdocs
+mkdocs serve -a 127.0.0.1:8000
+```
 
-## How to contribute
-- Keep changes small and focused per page
-- Prefer short sections with clear headings
-- Update both the database and the docs when schemas change
+Open: `http://127.0.0.1:8000`
+
+## Quick start (project runtime)
+From the repository root:
+
+```bash
+export DATABASE_URL="postgresql://<user>:<password>@<host>:5432/bio727p_group_project"
+export EXPERIMENT_ID=41
+python -m scripts.run_report
+python -m src.analysis_MPL.app
+```
+
+Then open:
+- `/top10/41`
+- `/distribution/41`
+- `/lineage/41`
+- `/protein_similarity/41`
+
+## Outputs generated
+Files are written to `app/static/generated` (report) and `app/static/plots` (Flask endpoint rendering), including:
+- top-10 table PNG/CSV
+- activity distribution PNG
+- lineage PNG
+- protein network PNG
+
+## Contribution rules for docs
+- Keep commands executable as written.
+- Prefer explicit paths and SQL snippets over prose.
+- Update docs in the same PR as schema or pipeline changes.

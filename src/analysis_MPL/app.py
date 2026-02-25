@@ -19,9 +19,16 @@ from src.analysis_MPL.plots.protein_similarity_network import (
     plot_protein_similarity_network,
 )
 
-app = Flask(__name__)
+ROOT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = ROOT_DIR / "app"
 
-PLOTS_DIR = Path("static/plots")
+app = Flask(
+    __name__,
+    template_folder=str(APP_DIR / "templates"),
+    static_folder=str(APP_DIR / "static"),
+)
+
+PLOTS_DIR = Path(app.static_folder) / "plots"
 PLOTS_DIR.mkdir(parents=True, exist_ok=True)
 
 
