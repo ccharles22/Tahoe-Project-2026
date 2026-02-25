@@ -17,9 +17,10 @@
       <span class="home-nav__name">DirectEvo</span>
     </div>
     <div class="home-nav__right">
-      <a href="/docs/" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
+      <a href="/docs/guide/getting-started/index.html" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
         &#x1F4D8;
       </a>
+      {% if current_user.is_authenticated %}
       <div class="home-nav__iconpair" aria-label="Account controls">
         <a href="{{ url_for('auth.settings') }}" class="home-nav__iconlink home-nav__iconlink--bare" aria-label="Account" title="{{ current_user.username }}">
           &#x1F464;
@@ -29,6 +30,10 @@
         </a>
       </div>
       <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
+      {% else %}
+      <a href="{{ url_for('auth.login') }}" class="home-nav__logout">Sign in</a>
+      <a href="{{ url_for('auth.register') }}" class="home-nav__signup">Sign up</a>
+      {% endif %}
     </div>
   </nav>
 
@@ -38,14 +43,27 @@
     <div class="home-hero__content home-hero__content--stages animate-in">
       <div class="home-hero__copy">
         <p class="home-hero__eyebrow">Direct Evolution Monitoring</p>
+        {% if current_user.is_authenticated %}
         <h1 class="home-hero__title">Welcome back, {{ current_user.username }}</h1>
+        {% else %}
+        <h1 class="home-hero__title">Run the workflow now</h1>
+        {% endif %}
         <div class="home-hero__actions">
+          {% if current_user.is_authenticated %}
           <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
             &#x2795; New Experiment
           </a>
           {% if latest_exp %}
           <a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) }}" class="btn btn--hero-outline">
             Continue #{{ latest_exp.experiment_id }}
+          </a>
+          {% endif %}
+          {% else %}
+          <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
+            Start Workflow as Guest
+          </a>
+          <a href="{{ url_for('auth.login') }}" class="btn btn--hero-outline">
+            Sign In
           </a>
           {% endif %}
         </div>
@@ -106,15 +124,19 @@
   </section>
 
   <!-- New-user onboarding callout -->
-  {% if exp_count == 0 %}
+  {% if (current_user.is_authenticated and exp_count == 0) or (not current_user.is_authenticated) %}
   <section class="home-container">
     <div class="home-quickstart">
       <div class="home-quickstart__icon">&#x1F680;</div>
       <div class="home-quickstart__text">
         <h3>Ready to begin?</h3>
-        <p>Create your first experiment by fetching a wild-type protein from UniProt. The 5-step workflow will guide you through validation, data upload, analysis, and sequence processing.</p>
+        <p>Create your first experiment by fetching a wild-type protein from UniProt. The 5-step workflow guides validation, data upload, analysis, and sequence processing.</p>
       </div>
+      {% if current_user.is_authenticated %}
       <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--primary btn--lg">Get Started</a>
+      {% else %}
+      <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--primary btn--lg">Get Started as Guest</a>
+      {% endif %}
     </div>
   </section>
   {% endif %}
@@ -124,6 +146,8 @@
   <script src="{{ url_for('static', filename='js/homepage.js') }}"></script>
 </body>
 </html>
+
+
 
 
 

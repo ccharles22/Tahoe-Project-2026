@@ -130,20 +130,27 @@ def create_app():
     from .blueprints.sequence import sequence_bp
     app.register_blueprint(sequence_bp)
 
-    # Serve built MkDocs site if present (generated `site/` folder from `mkdocs build`)
-    site_dir = os.path.join(os.path.dirname(__file__), "..", "site")
+    # Serve built MkDocs site (generated site for parsing/QC docs).
+    # Routes are always registered so docs work after a build without requiring
+    # the app to have seen `site/` at startup time.
+    site_dir = os.path.join(
+        os.path.dirname(__file__), "..", "mkdocs", "parsing_qc", "site"
+    )
     site_dir = os.path.abspath(site_dir)
-    if os.path.isdir(site_dir):
-        @app.route("/docs/")
-        def docs_index():
-            return send_from_directory(site_dir, "index.html")
 
-        @app.route("/docs/<path:filename>")
-        def docs_files(filename):
-            path = os.path.join(site_dir, filename)
-            if os.path.exists(path):
-                return send_from_directory(site_dir, filename)
-            abort(404)
+    @app.route("/docs/")
+    def docs_index():
+        index_path = os.path.join(site_dir, "index.html")
+        if os.path.exists(index_path):
+            return send_from_directory(site_dir, "index.html")
+        abort(404)
+
+    @app.route("/docs/<path:filename>")
+    def docs_files(filename):
+        path = os.path.join(site_dir, filename)
+        if os.path.exists(path):
+            return send_from_directory(site_dir, filename)
+        abort(404)
 
     return app
 

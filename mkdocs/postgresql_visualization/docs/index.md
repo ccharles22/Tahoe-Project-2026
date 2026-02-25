@@ -16,7 +16,7 @@ This site documents how the repository is used end-to-end:
 From the repository root:
 
 ```bash
-cd user_guide_mkdocs
+cd mkdocs/postgresql_visualization
 mkdocs serve -a 127.0.0.1:8000
 ```
 

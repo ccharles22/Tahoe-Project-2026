@@ -57,7 +57,7 @@ python -m src.analysis_MPL.app
 
 ### Serve documentation
 ```bash
-cd user_guide_mkdocs
+cd mkdocs/postgresql_visualization
 mkdocs serve -a 127.0.0.1:8000
 ```
 

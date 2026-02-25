@@ -1,13 +1,14 @@
 ﻿"""Staging workspace page route and view-level orchestration."""
 
 import os
+import secrets
 
-from flask import current_app, render_template, request, url_for
-from flask_login import current_user, login_required
+from flask import current_app, flash, redirect, render_template, request, url_for
+from flask_login import current_user, login_user
 from sqlalchemy import text
 
-from app.extensions import db
-from app.models import Experiment, WildtypeProtein
+from app.extensions import bcrypt, db
+from app.models import Experiment, User, WildtypeProtein
 from app.services.staging.session_state import (
     ValidationProxy,
     get_parsing_result_from_session,
@@ -23,9 +24,28 @@ from .. import staging_bp
 
 
 @staging_bp.get('/')
-@login_required
 def create_experiment():
     """Render staging UI for the selected experiment (or latest experiment)."""
+    if not current_user.is_authenticated:
+        try:
+            guest_suffix = secrets.token_hex(6)
+            guest_username = f"guest_{guest_suffix}"
+            guest_email = f"{guest_username}@guest.local"
+            guest_password = secrets.token_urlsafe(24)
+            guest_user = User(
+                username=guest_username,
+                email=guest_email,
+                password_hash=bcrypt.generate_password_hash(guest_password).decode("utf-8"),
+            )
+            db.session.add(guest_user)
+            db.session.commit()
+            login_user(guest_user, remember=False)
+            flash("Continuing as guest. Sign in later to keep long-term access to your work.", "info")
+        except Exception:
+            db.session.rollback()
+            flash("Unable to start a guest session right now. Please sign in and try again.", "error")
+            return redirect(url_for("auth.login"))
+
     experiment_id = request.args.get('experiment_id', '').strip()
     wt_message = request.args.get('wt_message', '').strip()
     analysis_message = request.args.get('analysis_message', '').strip()

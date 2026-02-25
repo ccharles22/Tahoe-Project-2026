@@ -7,7 +7,8 @@ Flask application for directed-evolution experiment staging, parsing, sequence p
 - `app/`: application code (Flask app, blueprints, services, templates, static assets)
 - `tests/`: pytest suites
 - `scripts/`: operational and debugging scripts
-- `docs/`: MkDocs documentation
+- `mkdocs/parsing_qc/`: MkDocs docs/site/config for parsing & QC
+- `mkdocs/postgresql_visualization/`: MkDocs docs/site/config for PostgreSQL visualization docs
 - `schema/`: SQL schema and published data artifacts
 - `data/`: local sample/input data files
 

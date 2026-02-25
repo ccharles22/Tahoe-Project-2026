@@ -444,8 +444,10 @@ a:hover { text-decoration: underline; }
   justify-content: space-between;
   padding: 0 24px;
   height: 56px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
+  background: linear-gradient(120deg, rgba(10, 27, 45, .88) 0%, rgba(17, 50, 74, .82) 100%);
+  border-bottom: 1px solid rgba(220, 236, 252, .14);
+  box-shadow: 0 8px 20px rgba(4, 16, 28, .18);
+  backdrop-filter: blur(6px);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -473,7 +475,7 @@ a:hover { text-decoration: underline; }
 .home-nav__name {
   font-size: 16px;
   font-weight: 700;
-  color: var(--text);
+  color: #eaf4ff;
   letter-spacing: -.02em;
 }
 
@@ -490,17 +492,18 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text);
+  border: 1px solid rgba(220, 236, 252, .22);
+  background: rgba(255, 255, 255, .08);
+  color: #eaf4ff;
   font-size: 16px;
   text-decoration: none;
   transition: all .15s var(--ease);
 }
 
 .home-nav__iconlink:hover {
-  border-color: var(--primary);
-  color: var(--primary);
+  border-color: rgba(220, 236, 252, .45);
+  color: #ffffff;
+  background: rgba(255, 255, 255, .14);
   transform: translateY(-1px);
   text-decoration: none;
 }
@@ -510,9 +513,9 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: 4px;
   padding: 3px;
-  border: 1px solid var(--border);
+  border: 1px solid rgba(220, 236, 252, .22);
   border-radius: 999px;
-  background: var(--surface);
+  background: rgba(255, 255, 255, .06);
 }
 
 .home-nav__iconlink--bare {
@@ -524,23 +527,47 @@ a:hover { text-decoration: underline; }
 
 .home-nav__iconlink--bare:hover {
   border: none;
-  background: var(--surface-alt);
+  background: rgba(255, 255, 255, .12);
   transform: none;
 }
 
 .home-nav__logout {
   font-size: 13px;
   font-weight: 600;
-  color: var(--danger);
+  color: #f2f8ff;
   text-decoration: none;
   padding: 6px 14px;
   border-radius: var(--radius);
-  border: 1px solid var(--danger);
+  border: 1px solid rgba(220, 236, 252, .32);
+  background: rgba(255, 255, 255, .06);
   transition: all .15s var(--ease);
 }
 
 .home-nav__logout:hover {
-  background: var(--danger-light);
+  background: rgba(255, 255, 255, .16);
+  border-color: rgba(220, 236, 252, .54);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.home-nav__signup {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(31, 200, 195, .9);
+  background: linear-gradient(135deg, var(--primary), #1fc8c3);
+  box-shadow: 0 8px 18px rgba(30, 144, 255, .28);
+  transition: all .15s var(--ease);
+}
+
+.home-nav__signup:hover {
+  color: #ffffff;
+  border-color: #7fe7e3;
+  box-shadow: 0 10px 22px rgba(30, 144, 255, .38);
+  transform: translateY(-1px);
   text-decoration: none;
 }
 
@@ -633,6 +660,8 @@ a:hover { text-decoration: underline; }
 }
 
 .btn--hero:hover {
+  background: linear-gradient(135deg, #1b86ef, #18b8b3);
+  color: #ffffff;
   transform: translateY(-2px);
   box-shadow: 0 6px 20px rgba(30, 144, 255, .38);
   text-decoration: none;
@@ -676,7 +705,7 @@ a:hover { text-decoration: underline; }
 .home-stage__viewport {
   display: grid;
   gap: 14px;
-  padding-top: clamp(240px, 36vh, 420px);
+  padding-top: clamp(300px, 42vh, 500px);
   justify-items: end;
 }
 

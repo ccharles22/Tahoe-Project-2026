@@ -1,0 +1,3430 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Documentation for the Directed Evolution Data Parsing and Quality Control Module">
+      
+      
+        <meta name="author" content="BIO727P Group Project Team">
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../git_workflow/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Database Setup (Tailscale) - BIO727P Data Parsing & QC</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#postgresql-installation-via-homebrew" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="BIO727P Data Parsing &amp; QC" class="md-header__button md-logo" aria-label="BIO727P Data Parsing & QC" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BIO727P Data Parsing & QC
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Database Setup (Tailscale)
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href=".." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../guide/getting-started/" class="md-tabs__link">
+          
+  
+  
+  User Guide
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../qc/overview/" class="md-tabs__link">
+          
+  
+  
+  Quality Control
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../api/endpoints/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../troubleshooting/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Troubleshooting
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../architecture/" class="md-tabs__link">
+          
+  
+  
+  Project Docs
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="BIO727P Data Parsing &amp; QC" class="md-nav__button md-logo" aria-label="BIO727P Data Parsing & QC" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BIO727P Data Parsing & QC
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/uploading-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uploading Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guide/file-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Control
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quality Control
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qc/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qc/thresholds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threshold System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../qc/validation-checks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Checks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/endpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Docs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project Docs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Setup (Tailscale)
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Setup (Tailscale)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#postgresql-installation-via-homebrew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL installation via Homebrew
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#brew-services-stop-postgresql-stopping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        brew services stop postgresql #stopping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-my-own-detabase-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create my own detabase user
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-database-and-visualize-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create database and visualize it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="create database and visualize it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-a-shared-environment-for-the-sql-database-considering-it-is-already-on-my-mac-terminal-tailscale-postgres-listen-on-tailscale-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SETTING UP A SHARED ENVIRONMENT FOR THE SQL DATABASE, CONSIDERING IT IS ALREADY ON MY MAC (TERMINAL): Tailscale + Postgres listen on Tailscale IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#this-makes-your-mac-behave-like-its-on-the-same-private-lan-as-your-teammates-no-router-port-forwarding-no-public-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        This makes your Mac behave like it’s on the same private LAN as your teammates. No router port forwarding, no public exposure.
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-tailscale-installation-from-homebrew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Tailscale installation from homebrew
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#to-authenticate-visit-httpslogintailscalecoma133fa7b601de0a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to authenticate visit: https://login.tailscale.com/a/133fa7b601de0a
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-through-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        completed through github
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#each-teammate-also-needs-to-download-timescale-on-their-laptop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        each teammate also needs to download timescale on their laptop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#everyone-logs-into-the-same-tailscale-tailnet-same-accountorg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Everyone logs into the same Tailscale “tailnet” (same account/org)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-finding-the-timescale-ip-on-my-mac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Finding the Timescale IP on my mac
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#this-is-the-ip-that-everybody-in-the-team-will-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        this is the IP that everybody in the team will use
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-find-postgresql-config-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Find PostgreSQL config files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opthomebrewvarpostgresql18postgresqlconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /opt/homebrew/var/postgresql@18/postgresql.conf
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opthomebrewvarpostgresql18pg_hbaconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /opt/homebrew/var/postgresql@18/pg_hba.conf
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-allow-postgres-to-listen-on-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Allow Postgres to listen on Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-the-line-listen_addresses-localhost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find the line #listen_addresses = 'localhost'
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-the-line-to-listen_addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        change the line to listen_addresses = '*'
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#and-remember-to-remove-in-front-of-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        and remember to remove # in front of it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#save-ctrlo-enter-ctrlx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save: CTRL+O → Enter → CTRL+X
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-allow-teammates-to-connect-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Allow teammates to connect (authentication)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-this-at-the-bottom-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add this at the bottom lines:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-database-user-address-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TYPE DATABASE USER ADDRESS METHOD
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-socket-connections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local socket connections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipv4-localhost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IPv4 localhost
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipv6-localhost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IPv6 localhost
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-tailscale-network-teammates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow Tailscale network (teammates)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-leave-as-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replication (leave as-is)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#save-ctrlo-enter-ctrlx_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save: CTRL+O → Enter → CTRL+X
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-make-sure-my-db-user-has-a-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Make sure my DB user has a password
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-restart-postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Restart PostgreSQL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-testing-the-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Testing the machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-what-everybody-needs-to-put-in-flask" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. What everybody needs to put in flask
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#or-directly-in-the-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        or directly in the terminal:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="or directly in the terminal:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ################
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#each-student-gets-their-own-username-and-password-for-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EACH STUDENT GETS THEIR OWN USERNAME AND PASSWORD FOR CONNECTION
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-as-database-admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connecting as database admin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-shared-permission-role-for-each-teammate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a shared permission role for each teammate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ensuring-the-role-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ensuring the role exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-connections-and-schema-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allow connections and schema usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        existing objects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-objects-created-by-me" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        future objects created by me
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-user-for-each-teammate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create a user for each teammate:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-reman" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Reman
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-login-options-considering-bio727p_role-does-not-allow-to-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        changing login options, considering bio727p_role does not allow to login
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-luke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Luke
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-login-options-considering-bio727p_role-does-not-allow-to-login_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        changing login options, considering bio727p_role does not allow to login
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-candice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Candice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-patricia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Patricia
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-granted-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        checking granted permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="checking granted permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation-of-automatic-synchronization-to-maintain-a-local-copy-of-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        **IMPLEMENTATION OF AUTOMATIC SYNCHRONIZATION TO MAINTAIN A LOCAL COPY OF THE DATA
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="**IMPLEMENTATION OF AUTOMATIC SYNCHRONIZATION TO MAINTAIN A LOCAL COPY OF THE DATA">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#publisher-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PUBLISHER (SERVER)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edit-pg_publicatios-conf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EDIT PG_PUBLICATIOS CONF
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-logical-replication-connections-from-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow logical replication connections from Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-normal-connections-from-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow normal connections from Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#restart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        restart
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-dedicated-replication-user-on-the-publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create a dedicated replication user on the publisher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-needed-for-initial-manual-copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -- needed for initial manual COPY
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-publisher-create-and-verify-publication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on publisher, create and verify publication
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-wild-type-control-and-metrics-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        no wild type control and metrics definitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all-there" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        all there!
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="all there!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#subscriber-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SUBSCRIBER (LOCAL)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-initial-schema-and-data-on-the-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add initial schema and data (on the terminal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        schema
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all-good" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        all good
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#now-back-to-the-subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        now back to the subscriber
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscription-is-created-but-not-connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subscription is created but not connected
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-and-refresh-subscription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enable and refresh subscription
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="enable and refresh subscription">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#back-on-the-publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BACK ON THE PUBLISHER
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reate-create-the-logical-slot-output-on-publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reate create the logical slot (output) on publisher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#and-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        and confirm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#f-until-the-subscriber-connects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        f until the subscriber connects
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="f until the subscriber connects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checking-the-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECKING THE CONNECTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subscriber
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        publisher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#t-in-both-so-it-connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        t in both so it connected!!!
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-trigger-checks-on-the-subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        important trigger checks on the subscriber
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-operating-model-all-writes-happen-on-the-publisher-the-subscriber-is-read-only-as-it-is-a-local-replica" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        the operating model: all writes happen on the publisher, the subscriber is read only, as it is a local replica
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="the operating model: all writes happen on the publisher, the subscriber is read only, as it is a local replica">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ***
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-moved-to-the-schema-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files moved to the schema folder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#send-it-into-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send it into github
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git_workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../methodology.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../parsing_qc_manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsing & QC Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema_design_notes.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema Design Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#postgresql-installation-via-homebrew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PostgreSQL installation via Homebrew
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#brew-services-stop-postgresql-stopping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        brew services stop postgresql #stopping
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-my-own-detabase-user" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create my own detabase user
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-database-and-visualize-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create database and visualize it
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="create database and visualize it">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-a-shared-environment-for-the-sql-database-considering-it-is-already-on-my-mac-terminal-tailscale-postgres-listen-on-tailscale-ip" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SETTING UP A SHARED ENVIRONMENT FOR THE SQL DATABASE, CONSIDERING IT IS ALREADY ON MY MAC (TERMINAL): Tailscale + Postgres listen on Tailscale IP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#this-makes-your-mac-behave-like-its-on-the-same-private-lan-as-your-teammates-no-router-port-forwarding-no-public-exposure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        This makes your Mac behave like it’s on the same private LAN as your teammates. No router port forwarding, no public exposure.
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-tailscale-installation-from-homebrew" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Tailscale installation from homebrew
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#to-authenticate-visit-httpslogintailscalecoma133fa7b601de0a" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        to authenticate visit: https://login.tailscale.com/a/133fa7b601de0a
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#completed-through-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        completed through github
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#each-teammate-also-needs-to-download-timescale-on-their-laptop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        each teammate also needs to download timescale on their laptop
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#everyone-logs-into-the-same-tailscale-tailnet-same-accountorg" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Everyone logs into the same Tailscale “tailnet” (same account/org)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-finding-the-timescale-ip-on-my-mac" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Finding the Timescale IP on my mac
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#this-is-the-ip-that-everybody-in-the-team-will-use" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        this is the IP that everybody in the team will use
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-find-postgresql-config-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Find PostgreSQL config files
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opthomebrewvarpostgresql18postgresqlconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /opt/homebrew/var/postgresql@18/postgresql.conf
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opthomebrewvarpostgresql18pg_hbaconf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        /opt/homebrew/var/postgresql@18/pg_hba.conf
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-allow-postgres-to-listen-on-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Allow Postgres to listen on Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#find-the-line-listen_addresses-localhost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        find the line #listen_addresses = 'localhost'
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#change-the-line-to-listen_addresses" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        change the line to listen_addresses = '*'
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#and-remember-to-remove-in-front-of-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        and remember to remove # in front of it
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#save-ctrlo-enter-ctrlx" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save: CTRL+O → Enter → CTRL+X
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-allow-teammates-to-connect-authentication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Allow teammates to connect (authentication)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-this-at-the-bottom-lines" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Add this at the bottom lines:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#type-database-user-address-method" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TYPE DATABASE USER ADDRESS METHOD
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#local-socket-connections" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Local socket connections
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipv4-localhost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IPv4 localhost
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ipv6-localhost" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IPv6 localhost
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-tailscale-network-teammates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow Tailscale network (teammates)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replication-leave-as-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replication (leave as-is)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#save-ctrlo-enter-ctrlx_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save: CTRL+O → Enter → CTRL+X
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-make-sure-my-db-user-has-a-password" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Make sure my DB user has a password
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-restart-postgresql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Restart PostgreSQL
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-testing-the-machine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Testing the machine
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-what-everybody-needs-to-put-in-flask" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. What everybody needs to put in flask
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#or-directly-in-the-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        or directly in the terminal:
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="or directly in the terminal:">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ################
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#each-student-gets-their-own-username-and-password-for-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EACH STUDENT GETS THEIR OWN USERNAME AND PASSWORD FOR CONNECTION
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#connecting-as-database-admin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Connecting as database admin
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#creating-a-shared-permission-role-for-each-teammate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Creating a shared permission role for each teammate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ensuring-the-role-exists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ensuring the role exists
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-connections-and-schema-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        allow connections and schema usage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#existing-objects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        existing objects
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#future-objects-created-by-me" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        future objects created by me
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-user-for-each-teammate" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create a user for each teammate:
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-reman" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Reman
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-login-options-considering-bio727p_role-does-not-allow-to-login" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        changing login options, considering bio727p_role does not allow to login
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-luke" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Luke
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#changing-login-options-considering-bio727p_role-does-not-allow-to-login_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        changing login options, considering bio727p_role does not allow to login
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-candice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Candice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-patricia" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        - Patricia
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#checking-granted-permissions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        checking granted permissions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="checking granted permissions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#implementation-of-automatic-synchronization-to-maintain-a-local-copy-of-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        **IMPLEMENTATION OF AUTOMATIC SYNCHRONIZATION TO MAINTAIN A LOCAL COPY OF THE DATA
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="**IMPLEMENTATION OF AUTOMATIC SYNCHRONIZATION TO MAINTAIN A LOCAL COPY OF THE DATA">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#publisher-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PUBLISHER (SERVER)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#edit-pg_publicatios-conf" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        EDIT PG_PUBLICATIOS CONF
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-logical-replication-connections-from-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow logical replication connections from Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#allow-normal-connections-from-tailscale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Allow normal connections from Tailscale
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#restart" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        restart
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#create-a-dedicated-replication-user-on-the-publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        create a dedicated replication user on the publisher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#-needed-for-initial-manual-copy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        -- needed for initial manual COPY
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#on-publisher-create-and-verify-publication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        on publisher, create and verify publication
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#no-wild-type-control-and-metrics-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        no wild type control and metrics definitions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#verify_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        verify
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all-there" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        all there!
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="all there!">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#subscriber-local" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SUBSCRIBER (LOCAL)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-initial-schema-and-data-on-the-terminal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        add initial schema and data (on the terminal)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#schema" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        schema
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        data
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        check
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#all-good" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        all good
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#now-back-to-the-subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        now back to the subscriber
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscription-is-created-but-not-connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subscription is created but not connected
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enable-and-refresh-subscription" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        enable and refresh subscription
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="enable and refresh subscription">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#back-on-the-publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BACK ON THE PUBLISHER
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reate-create-the-logical-slot-output-on-publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reate create the logical slot (output) on publisher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#and-confirm" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        and confirm
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#f-until-the-subscriber-connects" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        f until the subscriber connects
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="f until the subscriber connects">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#checking-the-connection" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CHECKING THE CONNECTION
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        subscriber
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#publisher" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        publisher
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#t-in-both-so-it-connected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        t in both so it connected!!!
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#important-trigger-checks-on-the-subscriber" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        important trigger checks on the subscriber
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-operating-model-all-writes-happen-on-the-publisher-the-subscriber-is-read-only-as-it-is-a-local-replica" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        the operating model: all writes happen on the publisher, the subscriber is read only, as it is a local replica
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="the operating model: all writes happen on the publisher, the subscriber is read only, as it is a local replica">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ***
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-moved-to-the-schema-folder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files moved to the schema folder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#send-it-into-github" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        send it into github
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h3 id="postgresql-installation-via-homebrew">PostgreSQL installation via Homebrew<a class="headerlink" href="#postgresql-installation-via-homebrew" title="Permanent link">&para;</a></h3>
+<p>brew install postgresql #installing the newest version
+brew services start postgresql@18
+brew services list #see what’s started</p>
+<p>psql postgres  #initialise the database cluster</p>
+<h2 id="brew-services-stop-postgresql-stopping">brew services stop postgresql #stopping<a class="headerlink" href="#brew-services-stop-postgresql-stopping" title="Permanent link">&para;</a></h2>
+<p>psql --version   </p>
+<h1 id="create-my-own-detabase-user">create my own detabase user<a class="headerlink" href="#create-my-own-detabase-user" title="Permanent link">&para;</a></h1>
+<p>createuser mariapaolaluciani –pwprompt #mysql is the password</p>
+<p>psql -d postgres -c "ALTER ROLE mariapaolaluciani CREATEDB;" #these represent the permission to be able to create databases</p>
+<h1 id="create-database-and-visualize-it">create database and visualize it<a class="headerlink" href="#create-database-and-visualize-it" title="Permanent link">&para;</a></h1>
+<p>createdb -O mariapaolaluciani bio727p_group_project</p>
+<p>psql -U mariapaolaluciani -d bio727p_group_project -h localhost</p>
+<p>psql -d postgres -c "\du"
+psql -d postgres -c "\l"</p>
+<h3 id="setting-up-a-shared-environment-for-the-sql-database-considering-it-is-already-on-my-mac-terminal-tailscale-postgres-listen-on-tailscale-ip">SETTING UP A SHARED ENVIRONMENT FOR THE SQL DATABASE, CONSIDERING IT IS ALREADY ON MY MAC (TERMINAL): Tailscale + Postgres listen on Tailscale IP<a class="headerlink" href="#setting-up-a-shared-environment-for-the-sql-database-considering-it-is-already-on-my-mac-terminal-tailscale-postgres-listen-on-tailscale-ip" title="Permanent link">&para;</a></h3>
+<h2 id="this-makes-your-mac-behave-like-its-on-the-same-private-lan-as-your-teammates-no-router-port-forwarding-no-public-exposure">This makes your Mac behave like it’s on the same private LAN as your teammates. No router port forwarding, no public exposure.<a class="headerlink" href="#this-makes-your-mac-behave-like-its-on-the-same-private-lan-as-your-teammates-no-router-port-forwarding-no-public-exposure" title="Permanent link">&para;</a></h2>
+<h1 id="1-tailscale-installation-from-homebrew">1.    Tailscale installation from homebrew<a class="headerlink" href="#1-tailscale-installation-from-homebrew" title="Permanent link">&para;</a></h1>
+<p>brew install --formula tailscale
+sudo brew services start tailscale #mac password
+ sudo tailscale up </p>
+<h1 id="to-authenticate-visit-httpslogintailscalecoma133fa7b601de0a">to authenticate visit: https://login.tailscale.com/a/133fa7b601de0a<a class="headerlink" href="#to-authenticate-visit-httpslogintailscalecoma133fa7b601de0a" title="Permanent link">&para;</a></h1>
+<h1 id="completed-through-github">completed through github<a class="headerlink" href="#completed-through-github" title="Permanent link">&para;</a></h1>
+<p>sudo tailscale status #visualisation of all the details</p>
+<h1 id="each-teammate-also-needs-to-download-timescale-on-their-laptop">each teammate also needs to download timescale on their laptop<a class="headerlink" href="#each-teammate-also-needs-to-download-timescale-on-their-laptop" title="Permanent link">&para;</a></h1>
+<h1 id="everyone-logs-into-the-same-tailscale-tailnet-same-accountorg">Everyone logs into the same Tailscale “tailnet” (same account/org)<a class="headerlink" href="#everyone-logs-into-the-same-tailscale-tailnet-same-accountorg" title="Permanent link">&para;</a></h1>
+<h1 id="2-finding-the-timescale-ip-on-my-mac">2.    Finding the Timescale IP on my mac<a class="headerlink" href="#2-finding-the-timescale-ip-on-my-mac" title="Permanent link">&para;</a></h1>
+<p>tailscale ip -4</p>
+<h1 id="this-is-the-ip-that-everybody-in-the-team-will-use">this is the IP that everybody in the team will use<a class="headerlink" href="#this-is-the-ip-that-everybody-in-the-team-will-use" title="Permanent link">&para;</a></h1>
+<p>c</p>
+<h1 id="3-find-postgresql-config-files">3.    Find PostgreSQL config files<a class="headerlink" href="#3-find-postgresql-config-files" title="Permanent link">&para;</a></h1>
+<p>psql -d postgres -c "SHOW config_file;"</p>
+<h1 id="opthomebrewvarpostgresql18postgresqlconf">/opt/homebrew/var/postgresql@18/postgresql.conf<a class="headerlink" href="#opthomebrewvarpostgresql18postgresqlconf" title="Permanent link">&para;</a></h1>
+<p>psql -d postgres -c "SHOW hba_file;"</p>
+<h1 id="opthomebrewvarpostgresql18pg_hbaconf">/opt/homebrew/var/postgresql@18/pg_hba.conf<a class="headerlink" href="#opthomebrewvarpostgresql18pg_hbaconf" title="Permanent link">&para;</a></h1>
+<h1 id="4-allow-postgres-to-listen-on-tailscale">4.    Allow Postgres to listen on Tailscale<a class="headerlink" href="#4-allow-postgres-to-listen-on-tailscale" title="Permanent link">&para;</a></h1>
+<p>nano /opt/homebrew/var/postgresql@18/postgresql.conf</p>
+<h1 id="find-the-line-listen_addresses-localhost">find the line #listen_addresses = 'localhost'<a class="headerlink" href="#find-the-line-listen_addresses-localhost" title="Permanent link">&para;</a></h1>
+<h1 id="change-the-line-to-listen_addresses">change the line to listen_addresses = '*'<a class="headerlink" href="#change-the-line-to-listen_addresses" title="Permanent link">&para;</a></h1>
+<h1 id="and-remember-to-remove-in-front-of-it">and remember to remove # in front of it<a class="headerlink" href="#and-remember-to-remove-in-front-of-it" title="Permanent link">&para;</a></h1>
+<h1 id="save-ctrlo-enter-ctrlx">save: CTRL+O → Enter → CTRL+X<a class="headerlink" href="#save-ctrlo-enter-ctrlx" title="Permanent link">&para;</a></h1>
+<h1 id="5-allow-teammates-to-connect-authentication">5.    Allow teammates to connect (authentication)<a class="headerlink" href="#5-allow-teammates-to-connect-authentication" title="Permanent link">&para;</a></h1>
+<p>nano /opt/homebrew/var/postgresql@18/pg_hba.conf</p>
+<h1 id="add-this-at-the-bottom-lines">Add this at the bottom lines:<a class="headerlink" href="#add-this-at-the-bottom-lines" title="Permanent link">&para;</a></h1>
+<h1 id="type-database-user-address-method">TYPE  DATABASE        USER            ADDRESS                 METHOD<a class="headerlink" href="#type-database-user-address-method" title="Permanent link">&para;</a></h1>
+<h1 id="local-socket-connections">Local socket connections<a class="headerlink" href="#local-socket-connections" title="Permanent link">&para;</a></h1>
+<p>local   all             all                                     trust</p>
+<h1 id="ipv4-localhost">IPv4 localhost<a class="headerlink" href="#ipv4-localhost" title="Permanent link">&para;</a></h1>
+<p>host    all             all             127.0.0.1/32            scram-sha-256</p>
+<h1 id="ipv6-localhost">IPv6 localhost<a class="headerlink" href="#ipv6-localhost" title="Permanent link">&para;</a></h1>
+<p>host    all             all             ::1/128                 scram-sha-256</p>
+<h1 id="allow-tailscale-network-teammates">Allow Tailscale network (teammates)<a class="headerlink" href="#allow-tailscale-network-teammates" title="Permanent link">&para;</a></h1>
+<p>host    all             all             100.64.0.0/10           scram-sha-256</p>
+<h1 id="replication-leave-as-is">Replication (leave as-is)<a class="headerlink" href="#replication-leave-as-is" title="Permanent link">&para;</a></h1>
+<p>local   replication     all                                     trust
+host    replication     all             127.0.0.1/32            trust
+host    replication     all             ::1/128                 trust</p>
+<h1 id="save-ctrlo-enter-ctrlx_1">save: CTRL+O → Enter → CTRL+X<a class="headerlink" href="#save-ctrlo-enter-ctrlx_1" title="Permanent link">&para;</a></h1>
+<h1 id="6-make-sure-my-db-user-has-a-password">6.    Make sure my DB user has a password<a class="headerlink" href="#6-make-sure-my-db-user-has-a-password" title="Permanent link">&para;</a></h1>
+<p>psql postgres
+alter role mariapaolaluciani with password '<PASSWORD>';
+\q</p>
+<h1 id="7-restart-postgresql">7.    Restart PostgreSQL<a class="headerlink" href="#7-restart-postgresql" title="Permanent link">&para;</a></h1>
+<p>brew services restart postgresql@18</p>
+<p>psql -d postgres -c "SHOW listen_addresses;"
+lsof -nP -iTCP:5432 -sTCP:LISTEN</p>
+<h1 id="8-testing-the-machine">8.    Testing the machine<a class="headerlink" href="#8-testing-the-machine" title="Permanent link">&para;</a></h1>
+<p>psql -h 100.80.183.102 -U mariapaolaluciani -d bio727p_group_project </p>
+<h1 id="9-what-everybody-needs-to-put-in-flask">9.    What everybody needs to put in flask<a class="headerlink" href="#9-what-everybody-needs-to-put-in-flask" title="Permanent link">&para;</a></h1>
+<p>postgresql://mariapaolaluciani:mysql@100.110.34.96:5432/bio727p_group_project</p>
+<p>postgresql://mariapaolaluciani:mysql@100.110.34.96:5432/bio727p_group_project</p>
+<h1 id="or-directly-in-the-terminal">or directly in the terminal:<a class="headerlink" href="#or-directly-in-the-terminal" title="Permanent link">&para;</a></h1>
+<p>psql "postgresql://mariapaolaluciani:mysql@100.110.34.96:5432/bio727p_group_project"</p>
+<h6 id="_1">################<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h6>
+<h1 id="each-student-gets-their-own-username-and-password-for-connection">EACH STUDENT GETS THEIR OWN USERNAME AND PASSWORD FOR CONNECTION<a class="headerlink" href="#each-student-gets-their-own-username-and-password-for-connection" title="Permanent link">&para;</a></h1>
+<h1 id="connecting-as-database-admin">Connecting as database admin<a class="headerlink" href="#connecting-as-database-admin" title="Permanent link">&para;</a></h1>
+<p>psql postgres
+\c bio727p_group_project</p>
+<p>\du #understanding the roles within the database</p>
+<h1 id="creating-a-shared-permission-role-for-each-teammate">Creating a shared permission role for each teammate<a class="headerlink" href="#creating-a-shared-permission-role-for-each-teammate" title="Permanent link">&para;</a></h1>
+<h1 id="ensuring-the-role-exists">ensuring the role exists<a class="headerlink" href="#ensuring-the-role-exists" title="Permanent link">&para;</a></h1>
+<p>DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'bio727p_role') THEN
+    CREATE ROLE bio727p_role NOLOGIN;
+  END IF;
+END$$;  </p>
+<h1 id="allow-connections-and-schema-usage">allow connections and schema usage<a class="headerlink" href="#allow-connections-and-schema-usage" title="Permanent link">&para;</a></h1>
+<p>GRANT CONNECT ON DATABASE bio727p_group_project TO bio727p_role;
+GRANT USAGE ON SCHEMA public TO bio727p_role;</p>
+<h1 id="existing-objects">existing objects<a class="headerlink" href="#existing-objects" title="Permanent link">&para;</a></h1>
+<p>GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO bio727p_role;
+GRANT USAGE, SELECT, UPDATE ON ALL SEQUENCES IN SCHEMA public TO bio727p_role;</p>
+<h1 id="future-objects-created-by-me">future objects created by me<a class="headerlink" href="#future-objects-created-by-me" title="Permanent link">&para;</a></h1>
+<p>ALTER DEFAULT PRIVILEGES FOR ROLE mariapaolaluciani IN SCHEMA public
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO bio727p_role;</p>
+<p>ALTER DEFAULT PRIVILEGES FOR ROLE mariapaolaluciani IN SCHEMA public
+GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO bio727p_role;</p>
+<h1 id="create-a-user-for-each-teammate">create a user for each teammate:<a class="headerlink" href="#create-a-user-for-each-teammate" title="Permanent link">&para;</a></h1>
+<h1 id="-reman">- Reman<a class="headerlink" href="#-reman" title="Permanent link">&para;</a></h1>
+<p>CREATE USER rp1284 WITH PASSWORD 'potato';
+GRANT bio727p_role TO rp1284;</p>
+<h1 id="changing-login-options-considering-bio727p_role-does-not-allow-to-login">changing login options, considering bio727p_role does not allow to login<a class="headerlink" href="#changing-login-options-considering-bio727p_role-does-not-allow-to-login" title="Permanent link">&para;</a></h1>
+<p>ALTER ROLE rp1284 LOGIN;
+ALTER ROLE rp1284 WITH PASSWORD 'potato';
+GRANT bio727p_role TO rp1284;</p>
+<p>psql "postgresql://rp1284:potato@100.80.183.102:5432/bio727p_group_project"</p>
+<h1 id="-luke">- Luke<a class="headerlink" href="#-luke" title="Permanent link">&para;</a></h1>
+<p>CREATE USER lukeoakarr WITH PASSWORD 'lukeoakarr17';
+GRANT bio727p_role TO lukeoakarr;</p>
+<h1 id="changing-login-options-considering-bio727p_role-does-not-allow-to-login_1">changing login options, considering bio727p_role does not allow to login<a class="headerlink" href="#changing-login-options-considering-bio727p_role-does-not-allow-to-login_1" title="Permanent link">&para;</a></h1>
+<p>ALTER ROLE lukeoakarr LOGIN;
+ALTER ROLE lukeoakarr WITH PASSWORD 'lukeoakarr17';
+GRANT bio727p_role TO lukeoakarr;</p>
+<p>psql "postgresql://lukeoakarr:lukeoakarr17@100.80.183.102:5432/bio727p_group_project"</p>
+<h1 id="-candice">- Candice<a class="headerlink" href="#-candice" title="Permanent link">&para;</a></h1>
+<p>CREATE USER candicecharles WITH PASSWORD 'Candy22';
+GRANT bio727p_role TO candicecharles;</p>
+<p>psql "postgresql://candicecharles:Candy22@100.80.183.102:5432/bio727p_group_project" </p>
+<h1 id="-patricia">- Patricia<a class="headerlink" href="#-patricia" title="Permanent link">&para;</a></h1>
+<p>CREATE USER patriciaosire WITH PASSWORD 'blue';
+GRANT bio727p_role TO patriciaosire;</p>
+<p>psql "postgresql://patriciaosire:blue@100.80.183.102:5432/bio727p_group_project"</p>
+<h1 id="checking-granted-permissions">checking granted permissions<a class="headerlink" href="#checking-granted-permissions" title="Permanent link">&para;</a></h1>
+<p>SELECT rolname, rolcanlogin
+FROM pg_roles
+WHERE rolname IN ('rp1284','bio727p_role','mariapaolaluciani','lukeoakarr', 'candicecharles','patriciaosire');</p>
+<h6 id="_2"><a class="headerlink" href="#_2" title="Permanent link">&para;</a></h6>
+<h2 id="implementation-of-automatic-synchronization-to-maintain-a-local-copy-of-the-data">**IMPLEMENTATION OF AUTOMATIC SYNCHRONIZATION TO MAINTAIN A LOCAL COPY OF THE DATA<a class="headerlink" href="#implementation-of-automatic-synchronization-to-maintain-a-local-copy-of-the-data" title="Permanent link">&para;</a></h2>
+<p>psql "host=100.80.183.102 port=5432 dbname=bio727p_group_project user=repl_user password=local" -c "select 1;" #</p>
+<h3 id="publisher-server">PUBLISHER (SERVER)<a class="headerlink" href="#publisher-server" title="Permanent link">&para;</a></h3>
+<p>ALTER SYSTEM SET wal_level = 'logical';
+ALTER SYSTEM SET max_wal_senders = 10;
+ALTER SYSTEM SET max_replication_slots = 10;</p>
+<p>brew services restart postgresql@18 #restart to allow changes to occur</p>
+<h1 id="verify">verify<a class="headerlink" href="#verify" title="Permanent link">&para;</a></h1>
+<p>SHOW wal_level;
+SHOW max_wal_senders;
+SHOW max_replication_slots;
+SHOW listen_addresses;
+SHOW port;</p>
+<h1 id="edit-pg_publicatios-conf">EDIT PG_PUBLICATIOS CONF<a class="headerlink" href="#edit-pg_publicatios-conf" title="Permanent link">&para;</a></h1>
+<p>nano /opt/homebrew/var/postgresql@18/pg_hba.conf</p>
+<h1 id="allow-logical-replication-connections-from-tailscale">Allow logical replication connections from Tailscale<a class="headerlink" href="#allow-logical-replication-connections-from-tailscale" title="Permanent link">&para;</a></h1>
+<p>host    replication     repl_user    100.64.0.0/10    scram-sha-256</p>
+<h1 id="allow-normal-connections-from-tailscale">Allow normal connections from Tailscale<a class="headerlink" href="#allow-normal-connections-from-tailscale" title="Permanent link">&para;</a></h1>
+<p>host    bio727p_group_project   all  100.64.0.0/10    scram-sha-256</p>
+<h1 id="restart">restart<a class="headerlink" href="#restart" title="Permanent link">&para;</a></h1>
+<p>brew services restart postgresql@18</p>
+<h1 id="create-a-dedicated-replication-user-on-the-publisher">create a dedicated replication user on the publisher<a class="headerlink" href="#create-a-dedicated-replication-user-on-the-publisher" title="Permanent link">&para;</a></h1>
+<p>DROP ROLE IF EXISTS repl_user;
+CREATE ROLE repl_user WITH LOGIN PASSWORD 'local' REPLICATION;</p>
+<p>GRANT CONNECT ON DATABASE bio727p_group_project TO repl_user;
+GRANT USAGE ON SCHEMA public TO repl_user;</p>
+<h1 id="-needed-for-initial-manual-copy">-- needed for initial manual COPY<a class="headerlink" href="#-needed-for-initial-manual-copy" title="Permanent link">&para;</a></h1>
+<p>GRANT SELECT ON ALL TABLES IN SCHEMA public TO repl_user;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO repl_user;</p>
+<h1 id="on-publisher-create-and-verify-publication">on publisher, create and verify publication<a class="headerlink" href="#on-publisher-create-and-verify-publication" title="Permanent link">&para;</a></h1>
+<p>DROP PUBLICATION IF EXISTS bio_pub;</p>
+<p>CREATE PUBLICATION bio_pub
+FOR TABLE
+  users,
+  wild_type_proteins,
+  protein_features,
+  experiments,
+  generations,
+  variants,
+  mutations,
+  metrics,
+  experiment_metadata;</p>
+<h1 id="no-wild-type-control-and-metrics-definitions">no wild type control and metrics definitions<a class="headerlink" href="#no-wild-type-control-and-metrics-definitions" title="Permanent link">&para;</a></h1>
+<h1 id="verify_1">verify<a class="headerlink" href="#verify_1" title="Permanent link">&para;</a></h1>
+<p>SELECT tablename
+FROM pg_publication_tables
+WHERE pubname='bio_pub'
+ORDER BY tablename;</p>
+<h1 id="all-there">all there!<a class="headerlink" href="#all-there" title="Permanent link">&para;</a></h1>
+<h3 id="subscriber-local">SUBSCRIBER (LOCAL)<a class="headerlink" href="#subscriber-local" title="Permanent link">&para;</a></h3>
+<p>\c bio727p_group_project_local
+ALTER SUBSCRIPTION bio_sub DISABLE;
+DROP SUBSCRIPTION bio_sub;</p>
+<h1 id="add-initial-schema-and-data-on-the-terminal">add initial schema and data (on the terminal)<a class="headerlink" href="#add-initial-schema-and-data-on-the-terminal" title="Permanent link">&para;</a></h1>
+<h1 id="schema">schema<a class="headerlink" href="#schema" title="Permanent link">&para;</a></h1>
+<p>pg_dump -h 100.80.183.102 -U mariapaolaluciani -d bio727p_group_project --schema-only &gt; published_schema.sql
+psql -d bio727p_group_project_local -f published_schema.sql</p>
+<h1 id="data">data<a class="headerlink" href="#data" title="Permanent link">&para;</a></h1>
+<p>pg_dump -h 100.80.183.102 -U mariapaolaluciani -d bio727p_group_project --data-only --inserts &gt; published_data.sql
+psql -d bio727p_group_project_local -f published_data.sql</p>
+<h1 id="check">check<a class="headerlink" href="#check" title="Permanent link">&para;</a></h1>
+<p>psql -d bio727p_group_project_local -c "\dt public.*"</p>
+<h1 id="all-good">all good<a class="headerlink" href="#all-good" title="Permanent link">&para;</a></h1>
+<h1 id="now-back-to-the-subscriber">now back to the subscriber<a class="headerlink" href="#now-back-to-the-subscriber" title="Permanent link">&para;</a></h1>
+<p>psql -d bio727p_group_project_local</p>
+<h1 id="subscription-is-created-but-not-connected">subscription is created but not connected<a class="headerlink" href="#subscription-is-created-but-not-connected" title="Permanent link">&para;</a></h1>
+<p>DROP SUBSCRIPTION IF EXISTS bio_sub;
+CREATE SUBSCRIPTION bio_sub
+CONNECTION 'host=100.80.183.102 port=5432 dbname=bio727p_group_project user=repl_user password=local'
+PUBLICATION bio_pub
+WITH (copy_data=false, create_slot=false, enabled=false, connect=false);</p>
+<h1 id="enable-and-refresh-subscription">enable and refresh subscription<a class="headerlink" href="#enable-and-refresh-subscription" title="Permanent link">&para;</a></h1>
+<p>ALTER SUBSCRIPTION bio_sub SET (slot_name='bio_sub');
+ALTER SUBSCRIPTION bio_sub ENABLE;
+ALTER SUBSCRIPTION bio_sub REFRESH PUBLICATION;</p>
+<h3 id="back-on-the-publisher">BACK ON THE PUBLISHER<a class="headerlink" href="#back-on-the-publisher" title="Permanent link">&para;</a></h3>
+<h1 id="reate-create-the-logical-slot-output-on-publisher">reate create the logical slot (output) on publisher<a class="headerlink" href="#reate-create-the-logical-slot-output-on-publisher" title="Permanent link">&para;</a></h1>
+<p>SELECT pg_create_logical_replication_slot('bio_sub', 'pgoutput');</p>
+<h1 id="and-confirm">and confirm<a class="headerlink" href="#and-confirm" title="Permanent link">&para;</a></h1>
+<p>SELECT slot_name, plugin, database, active
+FROM pg_replication_slots
+WHERE slot_name='bio_sub';</p>
+<h1 id="f-until-the-subscriber-connects">f until the subscriber connects<a class="headerlink" href="#f-until-the-subscriber-connects" title="Permanent link">&para;</a></h1>
+<h4 id="checking-the-connection">CHECKING THE CONNECTION<a class="headerlink" href="#checking-the-connection" title="Permanent link">&para;</a></h4>
+<h1 id="subscriber">subscriber<a class="headerlink" href="#subscriber" title="Permanent link">&para;</a></h1>
+<p>SELECT subname, subenabled, subslotname
+FROM pg_subscription;</p>
+<p>SELECT subname, worker_type, pid, last_msg_receipt_time, latest_end_lsn
+FROM pg_stat_subscription;</p>
+<h1 id="publisher">publisher<a class="headerlink" href="#publisher" title="Permanent link">&para;</a></h1>
+<p>SELECT pid, usename, client_addr, state, application_name
+FROM pg_stat_replication;</p>
+<p>SELECT slot_name, active, active_pid
+FROM pg_replication_slots
+WHERE slot_name='bio_sub';</p>
+<h1 id="t-in-both-so-it-connected">t in both so it connected!!!<a class="headerlink" href="#t-in-both-so-it-connected" title="Permanent link">&para;</a></h1>
+<h1 id="important-trigger-checks-on-the-subscriber">important trigger checks on the subscriber<a class="headerlink" href="#important-trigger-checks-on-the-subscriber" title="Permanent link">&para;</a></h1>
+<p>ALTER TABLE public.users ENABLE TRIGGER ALL;
+ALTER TABLE public.experiments ENABLE TRIGGER ALL;
+ALTER TABLE public.metrics ENABLE TRIGGER ALL;</p>
+<p>SET session_replication_role = DEFAULT;</p>
+<h1 id="the-operating-model-all-writes-happen-on-the-publisher-the-subscriber-is-read-only-as-it-is-a-local-replica">the operating model: all writes happen on the publisher, the subscriber is read only, as it is a local replica<a class="headerlink" href="#the-operating-model-all-writes-happen-on-the-publisher-the-subscriber-is-read-only-as-it-is-a-local-replica" title="Permanent link">&para;</a></h1>
+<h2 id="_3">***<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
+<h1 id="files-moved-to-the-schema-folder">Files moved to the schema folder<a class="headerlink" href="#files-moved-to-the-schema-folder" title="Permanent link">&para;</a></h1>
+<p>mv published_data.sql schema/
+mv published_schema.sql schema/</p>
+<h1 id="send-it-into-github">send it into github<a class="headerlink" href="#send-it-into-github" title="Permanent link">&para;</a></h1>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+      
+      
+    
+    <a href="https://github.com/your-repo" target="_blank" rel="noopener" title="github.com" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.highlight", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

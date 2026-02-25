@@ -44,13 +44,20 @@
 
         <!-- Password -->
         <div class="form-group">
-          {% if form.password.errors %}
-            {{ form.password(class="is-invalid", id="password") }}
-            <span class="field-feedback"></span>
-          {% else %}
-            {{ form.password(id="password") }}
-            <span class="field-feedback"></span>
-          {% endif %}
+          <div class="input-wrapper">
+            {% if form.password.errors %}
+              {{ form.password(class="is-invalid", id="password") }}
+            {% else %}
+              {{ form.password(id="password") }}
+            {% endif %}
+            <button type="button" class="btn-reveal" aria-label="Show password" data-target="password">
+              <svg class="icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </div>
+          <span class="field-feedback"></span>
         </div>
 
         <div class="btn-container">
@@ -69,6 +76,7 @@
 
     <aside class="auth-visual" aria-hidden="true"></aside>
   </main>
+  <script src="{{ url_for('static', filename='js/auth_password_toggle.js') }}" defer></script>
 </body>
 </html>
 

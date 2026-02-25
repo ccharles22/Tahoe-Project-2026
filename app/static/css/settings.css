@@ -1152,23 +1152,25 @@ a:hover { text-decoration: underline; }
 /* Password reveal control */
 .btn-reveal {
   position: absolute;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  width: 40px;
-  display: flex;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: none;
+  background: transparent;
   border: none;
+  border-radius: 999px;
   cursor: pointer;
   color: var(--text-secondary, #6b7280);
-  border-radius: 0 8px 8px 0;
-  transition: color 0.15s;
+  transition: color 0.15s, background 0.15s;
 }
 
 .btn-reveal:hover {
   color: var(--text-primary, #111827);
+  background: var(--surface-alt, #f1f3f5);
 }
 
 .btn-reveal:focus-visible {

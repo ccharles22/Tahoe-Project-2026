@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 from pathlib import Path
 import time
@@ -142,7 +142,7 @@ def protein_similarity(experiment_id: int):
     )
 
     return render_template(
-        "protein_similarity.html",
+        "analysis/protein_similarity.html",
         experiment_id=experiment_id,
         protein_png=f"plots/protein_exp{experiment_id}_{suffix}.png",
         mode=mode,

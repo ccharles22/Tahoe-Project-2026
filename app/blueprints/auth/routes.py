@@ -81,28 +81,31 @@ def login():
 def logout():
     logout_user()
     flash("You have been logged out successfully.", "success")
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.homepage"))
 
 
 @auth_bp.route("/homepage")
-@login_required
 def homepage():
     from app.models import Experiment, Variant, WildtypeProtein
     from sqlalchemy import func
 
-    uid = current_user.user_id
+    exp_count = 0
+    latest_exp = None
+    wt_count = 0
 
-    try:
-        exp_count = Experiment.query.filter_by(user_id=uid).count()
-        latest_exp = (Experiment.query
-                      .filter_by(user_id=uid)
-                      .order_by(Experiment.created_at.desc())
-                      .first())
-        wt_count = WildtypeProtein.query.filter_by(user_id=uid).count()
-    except Exception:
-        exp_count = 0
-        latest_exp = None
-        wt_count = 0
+    if current_user.is_authenticated:
+        uid = current_user.user_id
+        try:
+            exp_count = Experiment.query.filter_by(user_id=uid).count()
+            latest_exp = (Experiment.query
+                          .filter_by(user_id=uid)
+                          .order_by(Experiment.created_at.desc())
+                          .first())
+            wt_count = WildtypeProtein.query.filter_by(user_id=uid).count()
+        except Exception:
+            exp_count = 0
+            latest_exp = None
+            wt_count = 0
 
     return render_template(
         "auth/homepage.html",
@@ -114,11 +117,10 @@ def homepage():
 
 @auth_bp.route("/")
 def home():
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.homepage"))
 
 
 @auth_bp.route("/home-main")
-@login_required
 def home_main():
     return redirect(url_for("auth.homepage"))
 

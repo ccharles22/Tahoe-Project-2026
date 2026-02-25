@@ -1,10 +1,10 @@
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, redirect, url_for
 
 home_bp = Blueprint("home", __name__)
 
 @home_bp.get("/")
 def home():
-    return redirect(url_for("auth.login"))
+    return redirect(url_for("auth.homepage"))
 
 @home_bp.get("/start")
 def start():

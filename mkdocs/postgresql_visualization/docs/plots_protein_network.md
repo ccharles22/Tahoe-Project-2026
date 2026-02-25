@@ -48,4 +48,4 @@ where g.experiment_id = 41
 ## Example graph
 ![Protein network example](assets/plots/protein_network_placeholder.svg)
 
-Replace this placeholder by generating a protein network PNG and saving it in `user_guide_mkdocs/docs/assets/plots/`.
+Replace this placeholder by generating a protein network PNG and saving it in `mkdocs/postgresql_visualization/docs/assets/plots/`.

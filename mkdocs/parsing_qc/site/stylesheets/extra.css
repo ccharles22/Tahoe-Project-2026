@@ -1,0 +1,90 @@
+/* ==========================================================================
+   extra.css
+   Scope: MkDocs Parsing and QC documentation
+   ========================================================================== */
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+/* Tables */
+.md-typeset table:not([class]) {
+  font-size: 0.85rem;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: var(--md-primary-bg-color);
+  font-weight: 600;
+}
+
+/* Code blocks */
+.md-typeset pre > code {
+  font-size: 0.8rem;
+}
+
+/* Admonitions */
+.md-typeset .admonition.success {
+  border-color: #51cf66;
+}
+
+.md-typeset .admonition.success > .admonition-title::before {
+  background-color: #51cf66;
+}
+
+/* Card grid */
+.grid.cards > ul > li {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Header icons */
+.md-typeset h2 .twemoji,
+.md-typeset h3 .twemoji {
+  vertical-align: middle;
+  margin-right: 0.3rem;
+}
+
+/* Inline code */
+.md-typeset code {
+  padding: 0.1em 0.4em;
+  border-radius: 4px;
+}
+
+/* Tabs */
+.md-typeset .tabbed-content {
+  padding-top: 0.5rem;
+}
+
+/* Footer */
+.md-footer-meta {
+  background-color: var(--md-footer-bg-color);
+}
+
+/* Search results */
+.md-search-result mark {
+  background-color: #ffd43b;
+  color: #000;
+}
+
+/* Navigation */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* Print */
+@media print {
+  .mermaid {
+    page-break-inside: avoid;
+  }
+
+  .admonition {
+    page-break-inside: avoid;
+  }
+}
