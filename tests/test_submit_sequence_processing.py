@@ -271,6 +271,114 @@ class TestSubmitSequenceProcessing:
                 p.stop()
 
 
+    def test_qc_failure_frameshift_sets_analysed_with_errors(self):
+        """A variant with has_frameshift=True (no exception) → ANALYSED_WITH_ERRORS."""
+        patches = _patch_pipeline()
+        mocks = {k: p.start() for k, p in patches.items()}
+
+        frameshift_result = VariantSeqResult(
+            cds_start_0based=100,
+            cds_end_0based_excl=400,
+            strand="PLUS",
+            frame=0,
+            cds_dna="ATGGCTGC",  # 8 bases — not divisible by 3
+            protein_aa="MA",
+            qc=QCFlags(
+                has_ambiguous_bases=False,
+                has_frameshift=True,
+                has_premature_stop=False,
+            ),
+        )
+        mocks["process_variant"].return_value = frameshift_result
+
+        try:
+            from app.jobs.run_sequence_processing import submit_sequence_processing
+
+            thread = submit_sequence_processing(FAKE_EXPERIMENT_ID)
+            thread.join(timeout=10)
+
+            status_calls = mocks["update_status"].call_args_list
+            final_status = status_calls[-1].args[2]
+            assert final_status == "ANALYSED_WITH_ERRORS", (
+                f"Expected ANALYSED_WITH_ERRORS for frameshift QC, got {final_status}"
+            )
+        finally:
+            for p in patches.values():
+                p.stop()
+
+    def test_none_protein_sets_analysed_with_errors(self):
+        """A variant with protein_aa=None (no exception) → ANALYSED_WITH_ERRORS."""
+        patches = _patch_pipeline()
+        mocks = {k: p.start() for k, p in patches.items()}
+
+        no_protein_result = VariantSeqResult(
+            cds_start_0based=100,
+            cds_end_0based_excl=400,
+            strand="PLUS",
+            frame=0,
+            cds_dna="ATGGCTGCC",
+            protein_aa=None,  # Translation failed
+            qc=QCFlags(
+                has_ambiguous_bases=False,
+                has_frameshift=False,
+                has_premature_stop=False,
+                notes="Translation failed: unexpected error",
+            ),
+        )
+        mocks["process_variant"].return_value = no_protein_result
+
+        try:
+            from app.jobs.run_sequence_processing import submit_sequence_processing
+
+            thread = submit_sequence_processing(FAKE_EXPERIMENT_ID)
+            thread.join(timeout=10)
+
+            status_calls = mocks["update_status"].call_args_list
+            final_status = status_calls[-1].args[2]
+            assert final_status == "ANALYSED_WITH_ERRORS", (
+                f"Expected ANALYSED_WITH_ERRORS for None protein, got {final_status}"
+            )
+        finally:
+            for p in patches.values():
+                p.stop()
+
+    def test_premature_stop_sets_analysed_with_errors(self):
+        """A variant with has_premature_stop=True → ANALYSED_WITH_ERRORS."""
+        patches = _patch_pipeline()
+        mocks = {k: p.start() for k, p in patches.items()}
+
+        premature_stop_result = VariantSeqResult(
+            cds_start_0based=100,
+            cds_end_0based_excl=400,
+            strand="PLUS",
+            frame=0,
+            cds_dna="ATG" + "GCT" * 99,
+            protein_aa="MA" + "A" * 97,
+            qc=QCFlags(
+                has_ambiguous_bases=False,
+                has_frameshift=False,
+                has_premature_stop=True,
+                notes="Protein truncated due to in-frame stop codon.",
+            ),
+        )
+        mocks["process_variant"].return_value = premature_stop_result
+
+        try:
+            from app.jobs.run_sequence_processing import submit_sequence_processing
+
+            thread = submit_sequence_processing(FAKE_EXPERIMENT_ID)
+            thread.join(timeout=10)
+
+            status_calls = mocks["update_status"].call_args_list
+            final_status = status_calls[-1].args[2]
+            assert final_status == "ANALYSED_WITH_ERRORS", (
+                f"Expected ANALYSED_WITH_ERRORS for premature stop, got {final_status}"
+            )
+        finally:
+            for p in patches.values():
+                p.stop()
+
+
 class TestRunSequenceProcessingDirect:
     """Verifies run_sequence_processing() itself (called synchronously)."""
 
@@ -283,3 +391,121 @@ class TestRunSequenceProcessingDirect:
 
         with pytest.raises(ValueError, match="positive integer"):
             run_sequence_processing(-1)
+
+
+class TestProcessVariantNonZeroFrame:
+    """Verify that non-zero reading frames are handled correctly.
+
+    The frame offset is baked into cds_start_0based / cds_end_0based_excl
+    during WT mapping, so process_variant_plasmid must NOT trim again.
+    """
+
+    # 30-base plasmid: 1 junk base, then ATG GCT GCC = M A A, then padding
+    _PLASMID_FRAME1 = "G" + "ATGGCTGCC" + "T" * 20
+
+    def test_frame_1_extracts_correct_cds(self):
+        """With frame=1, CDS extracted from coordinates should be exact — no double trim."""
+        from app.services.sequence.sequence_service import process_variant_plasmid
+
+        wt_mapping = WTMapping(
+            strand="PLUS",
+            frame=1,
+            cds_start_0based=1,        # already includes frame offset
+            cds_end_0based_excl=10,     # 9 bases = 3 codons
+            wt_cds_dna="ATGGCTGCC",
+            wt_protein_aa="MAA",
+            match_identity_pct=100.0,
+            alignment_score=100.0,
+        )
+
+        result = process_variant_plasmid(
+            self._PLASMID_FRAME1,
+            wt_mapping,
+            fallback_search=False,
+        )
+
+        assert result.cds_dna == "ATGGCTGCC"
+        assert result.protein_aa is not None
+        assert result.protein_aa.startswith("M")
+        assert not result.qc.has_frameshift
+
+    def test_frame_2_extracts_correct_cds(self):
+        """With frame=2, same logic — coordinates already account for frame."""
+        from app.services.sequence.sequence_service import process_variant_plasmid
+
+        # 2 junk bases, then ATG AAA GCC = M K A, then padding
+        plasmid = "GG" + "ATGAAAGCC" + "T" * 19
+
+        wt_mapping = WTMapping(
+            strand="PLUS",
+            frame=2,
+            cds_start_0based=2,         # already includes frame offset
+            cds_end_0based_excl=11,     # 9 bases = 3 codons
+            wt_cds_dna="ATGAAAGCC",
+            wt_protein_aa="MKA",
+            match_identity_pct=100.0,
+            alignment_score=100.0,
+        )
+
+        result = process_variant_plasmid(
+            plasmid,
+            wt_mapping,
+            fallback_search=False,
+        )
+
+        assert result.cds_dna == "ATGAAAGCC"
+        assert result.protein_aa is not None
+        assert not result.qc.has_frameshift
+        assert result.frame == 2
+
+
+class TestCallMutationsIndels:
+    """Tests for insertion / deletion calling via protein alignment."""
+
+    def test_insertion_detected(self):
+        """A 3-base in-frame insertion should be detected as an INSERTION."""
+        from app.services.sequence.sequence_service import call_mutations_against_wt
+
+        # WT:  ATG GCT GCC = M A A (9 bases)
+        # Var: ATG GCT AAA GCC = M A K A (12 bases — 3 bp insertion)
+        wt_cds = "ATGGCTGCC"
+        var_cds = "ATGGCTAAAGCC"
+
+        mutations, counts = call_mutations_against_wt(wt_cds, var_cds)
+
+        # Should route to indel alignment path (lengths differ)
+        assert counts.total >= 1
+        mutation_types = [m.mutation_type for m in mutations]
+        assert any(
+            t in ("INSERTION", "NONSYNONYMOUS") for t in mutation_types
+        ), f"Expected insertion or substitution, got {mutation_types}"
+
+    def test_deletion_detected(self):
+        """A 3-base in-frame deletion should be detected as a DELETION."""
+        from app.services.sequence.sequence_service import call_mutations_against_wt
+
+        # WT:  ATG GCT AAA GCC = M A K A (12 bases)
+        # Var: ATG GCT GCC = M A A (9 bases — 3 bp deletion)
+        wt_cds = "ATGGCTAAAGCC"
+        var_cds = "ATGGCTGCC"
+
+        mutations, counts = call_mutations_against_wt(wt_cds, var_cds)
+
+        assert counts.total >= 1
+        mutation_types = [m.mutation_type for m in mutations]
+        assert any(
+            t in ("DELETION", "NONSYNONYMOUS") for t in mutation_types
+        ), f"Expected deletion or substitution, got {mutation_types}"
+
+    def test_frameshift_returns_frameshift_record(self):
+        """If CDS length is not divisible by 3, should return FRAMESHIFT."""
+        from app.services.sequence.sequence_service import call_mutations_against_wt
+
+        wt_cds = "ATGGCTGCC"        # 9 bases (OK)
+        var_cds = "ATGGCTGC"         # 8 bases (not divisible by 3)
+
+        mutations, counts = call_mutations_against_wt(wt_cds, var_cds)
+
+        assert len(mutations) == 1
+        assert mutations[0].mutation_type == "FRAMESHIFT"
+        assert counts.total == 1
