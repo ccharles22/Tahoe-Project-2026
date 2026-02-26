@@ -10,70 +10,21 @@ from app.forms import SettingsForm
 
 from flask import current_app
 
-
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
     if current_user.is_authenticated:
         return redirect(url_for("auth.homepage"))
-
-    form = RegisterForm()
-
-    if form.validate_on_submit():
-        try:
-            hashed_password = bcrypt.generate_password_hash(form.password.data).decode("utf-8")
-
-            new_user = User(
-                username=form.username.data,
-                email=form.email.data,
-                password_hash=hashed_password,
-            )
-
-            db.session.add(new_user)
-            db.session.commit()
-
-            login_user(new_user)
-            flash("Account created successfully!", "success")
-            return redirect(url_for("auth.homepage"))
-
-        except IntegrityError as e:
-            db.session.rollback()
-            err = str(getattr(e, "orig", e)).lower()
-            if "email" in err:
-                form.email.errors.append("That email is already registered. Please use a different one.")
-            elif "username" in err:
-                form.username.errors.append("That username already exists. Please choose a different one.")
-            else:
-                form.username.errors.append("Could not create account. Please try again.")
-        except Exception:
-            db.session.rollback()
-            form.username.errors.append("Could not create account. Please try again.")
-
-    return render_template("auth/register.html", form=form)
+    return redirect(url_for("auth.homepage", auth="register"))
 
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("auth.homepage"))
-
-    form = LoginForm()
-
-    if form.validate_on_submit():
-        user = User.query.filter_by(username=form.username.data).first()
-
-        if user:
-            stored_hash = (user.password_hash or "").rstrip()
-
-            if bcrypt.check_password_hash(stored_hash, form.password.data):
-                login_user(user)
-                flash(f"Welcome back, {user.username}!", "success")
-
-                next_page = request.args.get("next")
-                return redirect(next_page) if next_page else redirect(url_for("auth.homepage"))
-
-        form.password.errors.append("Invalid username or password.")
-
-    return render_template("auth/login.html", form=form)
+    next_page = (request.values.get("next") or "").strip()
+    if next_page:
+        return redirect(url_for("auth.homepage", auth="login", next=next_page))
+    return redirect(url_for("auth.homepage", auth="login"))
 
 
 @auth_bp.route("/logout", methods=["GET", "POST"])
@@ -84,10 +35,58 @@ def logout():
     return redirect(url_for("auth.homepage"))
 
 
-@auth_bp.route("/homepage")
+@auth_bp.route("/homepage", methods=["GET", "POST"])
 def homepage():
     from app.models import Experiment, Variant, WildtypeProtein
     from sqlalchemy import func
+
+    login_form = LoginForm(prefix="login")
+    register_form = RegisterForm(prefix="register")
+    requested_auth_panel = (request.args.get("auth") or "").strip().lower()
+    open_auth_panel = requested_auth_panel if requested_auth_panel in {"login", "register"} else None
+    login_next = (request.args.get("next") or "").strip()
+
+    if request.method == "POST":
+        auth_action = (request.form.get("auth_action") or "").strip().lower()
+        if auth_action == "login":
+            open_auth_panel = "login"
+            if login_form.validate():
+                user = User.query.filter_by(username=login_form.username.data).first()
+                if user:
+                    stored_hash = (user.password_hash or "").rstrip()
+                    if bcrypt.check_password_hash(stored_hash, login_form.password.data):
+                        login_user(user)
+                        flash(f"Welcome back, {user.username}!", "success")
+                        next_page = (request.form.get("next") or request.args.get("next") or "").strip()
+                        return redirect(next_page) if next_page else redirect(url_for("auth.homepage"))
+                login_form.password.errors.append("Invalid username or password.")
+        elif auth_action == "register":
+            open_auth_panel = "register"
+            if register_form.validate():
+                try:
+                    hashed_password = bcrypt.generate_password_hash(register_form.password.data).decode("utf-8")
+                    new_user = User(
+                        username=register_form.username.data,
+                        email=register_form.email.data,
+                        password_hash=hashed_password,
+                    )
+                    db.session.add(new_user)
+                    db.session.commit()
+                    login_user(new_user)
+                    flash("Account created successfully!", "success")
+                    return redirect(url_for("auth.homepage"))
+                except IntegrityError as e:
+                    db.session.rollback()
+                    err = str(getattr(e, "orig", e)).lower()
+                    if "email" in err:
+                        register_form.email.errors.append("That email is already registered. Please use a different one.")
+                    elif "username" in err:
+                        register_form.username.errors.append("That username already exists. Please choose a different one.")
+                    else:
+                        register_form.username.errors.append("Could not create account. Please try again.")
+                except Exception:
+                    db.session.rollback()
+                    register_form.username.errors.append("Could not create account. Please try again.")
 
     exp_count = 0
     latest_exp = None
@@ -107,11 +106,16 @@ def homepage():
             latest_exp = None
             wt_count = 0
 
+
     return render_template(
         "auth/homepage.html",
         exp_count=exp_count,
         latest_exp=latest_exp,
         wt_count=wt_count,
+        login_form=login_form,
+        register_form=register_form,
+        open_auth_panel=open_auth_panel,
+        login_next=login_next,
     )
 
 

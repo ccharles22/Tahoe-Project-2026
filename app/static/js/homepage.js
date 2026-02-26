@@ -9,6 +9,7 @@
     );
     const stagePanel = document.querySelector(".home-stage");
     const stageCards = document.querySelectorAll(".home-stage__card");
+    const stageCardsList = Array.from(stageCards);
     const pipelineItems = document.querySelectorAll(".home-pipeline__item");
 
     function setActiveStage(stageId) {
@@ -24,7 +25,7 @@
         const stageId = item.dataset.stage;
         const card = document.querySelector(`.home-stage__card[data-stage="${stageId}"]`);
         if (!card) return;
-        card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
         setActiveStage(stageId);
       });
     });
@@ -33,23 +34,36 @@
       setActiveStage(stageCards[0].dataset.stage);
     }
 
-    if (stageCards.length && "IntersectionObserver" in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          const visible = entries
-            .filter((entry) => entry.isIntersecting)
-            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
-          if (visible.length) {
-            setActiveStage(visible[0].target.dataset.stage);
+    if (stageCards.length) {
+      let rafScheduled = false;
+      const syncActiveStageFromScroll = () => {
+        if (rafScheduled) return;
+        rafScheduled = true;
+        window.requestAnimationFrame(() => {
+          rafScheduled = false;
+          const targetY = window.innerHeight * 0.52;
+          let closestCard = null;
+          let closestDistance = Infinity;
+
+          stageCardsList.forEach((card) => {
+            const rect = card.getBoundingClientRect();
+            const centerY = rect.top + rect.height / 2;
+            const distance = Math.abs(centerY - targetY);
+            if (distance < closestDistance) {
+              closestDistance = distance;
+              closestCard = card;
+            }
+          });
+
+          if (closestCard && closestCard.dataset.stage) {
+            setActiveStage(closestCard.dataset.stage);
           }
-        },
-        {
-          root: null,
-          rootMargin: "-55% 0px -10% 0px",
-          threshold: [0.2, 0.4, 0.6],
-        }
-      );
-      stageCards.forEach((card) => observer.observe(card));
+        });
+      };
+
+      window.addEventListener("scroll", syncActiveStageFromScroll, { passive: true });
+      window.addEventListener("resize", syncActiveStageFromScroll);
+      syncActiveStageFromScroll();
     }
 
     if (reduceMotion || !hasGSAP) return;
@@ -95,7 +109,7 @@
           stagger: 0.04,
           clearProps: "all",
         },
-        "-=0.32"
+        "<"
       );
     }
   }

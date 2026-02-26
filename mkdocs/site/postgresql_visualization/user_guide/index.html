@@ -1,0 +1,2794 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Unified docs for Parsing/QC and PostgreSQL Visualization">
+      
+      
+        <meta name="author" content="BIO727P Group Project Team">
+      
+      
+      
+        <link rel="prev" href="../pipeline/">
+      
+      
+        <link rel="next" href="../database_setup_tailscale/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>User Guide - BIO727P Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../parsing_qc/stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="BIO727P Documentation" class="md-header__button md-logo" aria-label="BIO727P Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            BIO727P Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../parsing_qc/" class="md-tabs__link">
+          
+  
+  
+  Parsing & QC
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
+          
+  
+  
+  PostgreSQL & Visualization
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../parsing_qc/OWNERS/" class="md-tabs__link">
+          
+  
+  
+  Ownership
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="BIO727P Documentation" class="md-nav__button md-logo" aria-label="BIO727P Documentation" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    BIO727P Documentation
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsing & QC
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Parsing & QC
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    User Guide
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/guide/getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/guide/uploading-data/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Uploading Data
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/guide/file-formats/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    File Formats
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Quality Control
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Quality Control
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/qc/overview/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/qc/thresholds/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threshold System
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/qc/validation-checks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Validation Checks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/api/endpoints/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Endpoints
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Project Docs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Project Docs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/parsing_qc_manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsing & QC Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PostgreSQL & Visualization
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    PostgreSQL & Visualization
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Database
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../schema_design_notes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Schema Notes
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_3" id="__nav_3_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Plots
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Plots
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_lineage/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Lineage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_distribution/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Distribution
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_top10/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Top 10
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../plots_protein_network/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Protein Network
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#who-this-is-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who this is for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daily-operations-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily operations checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-report-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate report artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-flask-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start Flask app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serve-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serve documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plot-usage-viewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot usage (viewers)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plot usage (viewers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network quick start
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#biology-background-why-these-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Biology background (why these plots)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Biology background (why these plots)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mutation-fingerprinting-by-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutation fingerprinting by generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-activity-landscape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D activity landscape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domain-mutation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain mutation enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-availability-for-co-occurrence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data availability for co-occurrence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameter-tuning-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameter tuning tips
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#note-on-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Note on normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-data-sources-analysts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common data sources (analysts)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#refresh-workflow-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refresh workflow (developers)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-checks-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick checks (SQL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting and recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting and recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-database_url-not-set-or-connection-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) DATABASE_URL not set or connection failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-empty-top-10-or-distribution-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Empty Top 10 or distribution output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-lineage-plot-has-nodes-but-no-edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Lineage plot has nodes but no edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-co-occurrence-protein-network-is-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Co-occurrence protein network is empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-landscape-or-domain-views-are-stale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Landscape or domain views are stale
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incident-checklist-fast-triage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incident checklist (fast triage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glossary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+          
+          
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_6" id="__nav_3_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ops
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ops
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../database_setup_tailscale/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Setup (Tailscale)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../postgresql_tailscale_methodology/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PostgreSQL Tailscale Methodology
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../git_workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ownership
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Ownership
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/OWNERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Parsing & QC Ownership
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../OWNERS/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PostgreSQL & Visualization Ownership
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#who-this-is-for" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Who this is for
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment variables
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#daily-operations-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily operations checklist
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#runtime-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Runtime commands
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Runtime commands">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#generate-report-artifacts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generate report artifacts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#start-flask-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Start Flask app
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#serve-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Serve documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#plot-usage-viewers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Plot usage (viewers)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Plot usage (viewers)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network quick start
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#biology-background-why-these-plots" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Biology background (why these plots)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Biology background (why these plots)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mutation-fingerprinting-by-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutation fingerprinting by generation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3d-activity-landscape" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3D activity landscape
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#domain-mutation-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Domain mutation enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protein-network-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein network modes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-availability-for-co-occurrence" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data availability for co-occurrence
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#parameter-tuning-tips" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Parameter tuning tips
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#note-on-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Note on normalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-data-sources-analysts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common data sources (analysts)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#refresh-workflow-developers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Refresh workflow (developers)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-checks-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick checks (SQL)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-and-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting and recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting and recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#1-database_url-not-set-or-connection-failure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) DATABASE_URL not set or connection failure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-empty-top-10-or-distribution-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) Empty Top 10 or distribution output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-lineage-plot-has-nodes-but-no-edges" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) Lineage plot has nodes but no edges
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-co-occurrence-protein-network-is-empty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Co-occurrence protein network is empty
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-landscape-or-domain-views-are-stale" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) Landscape or domain views are stale
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#incident-checklist-fast-triage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Incident checklist (fast triage)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#glossary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Glossary
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+
+<h1 id="user-guide">User guide<a class="headerlink" href="#user-guide" title="Permanent link">&para;</a></h1>
+<p>This guide is the operational runbook for running the project, verifying results, and recovering from common failures.</p>
+<h2 id="who-this-is-for">Who this is for<a class="headerlink" href="#who-this-is-for" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Viewers: open the plots and understand what they show</li>
+<li>Analysts: pull data for ad hoc checks</li>
+<li>Developers: refresh pipelines and materialized views</li>
+</ul>
+<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Python environment with dependencies installed (<code>requirements.txt</code>)</li>
+<li>PostgreSQL reachable through <code>DATABASE_URL</code></li>
+<li>Schema applied from <code>schema/schema.sql</code></li>
+</ul>
+<h2 id="environment-variables">Environment variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h2>
+<p>Set these before running scripts:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">DATABASE_URL</span><span class="o">=</span><span class="s2">&quot;postgresql://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;:5432/bio727p_group_project&quot;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EXPERIMENT_ID</span><span class="o">=</span><span class="m">41</span>
+</code></pre></div>
+<p>Optional:
+- <code>PROTEIN_NET_MODE=identity</code> or <code>PROTEIN_NET_MODE=cooccurrence</code> for <code>scripts.run_report</code></p>
+<h2 id="daily-operations-checklist">Daily operations checklist<a class="headerlink" href="#daily-operations-checklist" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Confirm DB connectivity:
+   <code>python -m scripts.test_connection</code></li>
+<li>Generate metrics + core plots:
+   <code>python -m scripts.run_report</code></li>
+<li>If mutation embeddings changed:
+   <code>python -m scripts.generate_pca_embeddings</code></li>
+<li>Refresh bonus materialized views:
+   <code>select refresh_bonus_materialized_views();</code></li>
+<li>Open Flask endpoints and verify images render:</li>
+<li><code>/top10/&lt;experiment_id&gt;</code></li>
+<li><code>/distribution/&lt;experiment_id&gt;</code></li>
+<li><code>/lineage/&lt;experiment_id&gt;</code></li>
+<li><code>/protein_similarity/&lt;experiment_id&gt;</code></li>
+</ol>
+<h2 id="runtime-commands">Runtime commands<a class="headerlink" href="#runtime-commands" title="Permanent link">&para;</a></h2>
+<h3 id="generate-report-artifacts">Generate report artifacts<a class="headerlink" href="#generate-report-artifacts" title="Permanent link">&para;</a></h3>
+<p><div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>python<span class="w"> </span>-m<span class="w"> </span>scripts.run_report
+</code></pre></div>
+Expected outputs in <code>app/static/generated</code>:
+- <code>exp_&lt;id&gt;_stage4_qc_debug.csv</code>
+- <code>exp_&lt;id&gt;_top10_variants.csv</code>
+- <code>exp_&lt;id&gt;_activity_distribution.png</code>
+- <code>exp_&lt;id&gt;_lineage.png</code>
+- <code>exp_&lt;id&gt;_protein_similarity*.png</code></p>
+<h3 id="start-flask-app">Start Flask app<a class="headerlink" href="#start-flask-app" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>python<span class="w"> </span>-m<span class="w"> </span>src.analysis_MPL.app
+</code></pre></div>
+<h3 id="serve-documentation">Serve documentation<a class="headerlink" href="#serve-documentation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nb">cd</span><span class="w"> </span>mkdocs
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>mkdocs<span class="w"> </span>serve<span class="w"> </span>-a<span class="w"> </span><span class="m">127</span>.0.0.1:8000
+</code></pre></div>
+<h2 id="plot-usage-viewers">Plot usage (viewers)<a class="headerlink" href="#plot-usage-viewers" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Lineage: parent-child structure across generations</li>
+<li>Distribution: activity score spread by generation</li>
+<li>Top10: highest activity variants in experiment</li>
+<li>Protein network: identity or co-occurrence relationships</li>
+</ul>
+<h3 id="protein-network-quick-start">Protein network quick start<a class="headerlink" href="#protein-network-quick-start" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Identity:
+  <code>/protein_similarity/41?mode=identity&amp;identity_threshold=0.95</code></li>
+<li>Co-occurrence:
+  <code>/protein_similarity/41?mode=cooccurrence&amp;min_shared=2&amp;jaccard_threshold=0.1</code></li>
+</ul>
+<h2 id="biology-background-why-these-plots">Biology background (why these plots)<a class="headerlink" href="#biology-background-why-these-plots" title="Permanent link">&para;</a></h2>
+<h3 id="mutation-fingerprinting-by-generation">Mutation fingerprinting by generation<a class="headerlink" href="#mutation-fingerprinting-by-generation" title="Permanent link">&para;</a></h3>
+<p>Directed evolution introduces mutations across generations. Tracking the first
+appearance of each amino acid change along a lineage highlights when sequence
+diversity emerges and which substitutions persist as the variant improves.
+This supports interpretation of adaptive trajectories and helps connect
+sequence changes to functional gains.
+(Selles Vidal et al., 2023: https://doi.org/10.1039/D2CB00231K)</p>
+<h3 id="3d-activity-landscape">3D activity landscape<a class="headerlink" href="#3d-activity-landscape" title="Permanent link">&para;</a></h3>
+<p>Protein sequences can be represented in a high-dimensional sequence space, where
+distance reflects sequence dissimilarity. Dimensionality reduction (e.g., PCA)
+projects this space into two coordinates for visualization while preserving
+overall similarity structure. Plotting activity score on the third axis produces
+an intuitive fitness landscape, where peaks represent high-activity variants.
+This mirrors established approaches to visualize sequence space and identify
+central or representative sequences.
+(Mead et al., 2019: https://doi.org/10.1016/j.jmgm.2019.07.014)</p>
+<h3 id="domain-mutation-enrichment">Domain mutation enrichment<a class="headerlink" href="#domain-mutation-enrichment" title="Permanent link">&para;</a></h3>
+<p>Protein features (domains, motifs) often constrain or amplify the effects of
+mutations. Aggregating nonsynonymous mutations by annotated feature highlights
+regions under selection pressure, and mutation density per residue normalizes
+for domain length. This helps distinguish true hotspots from long regions that
+accumulate mutations by chance.</p>
+<h3 id="protein-network-modes">Protein network modes<a class="headerlink" href="#protein-network-modes" title="Permanent link">&para;</a></h3>
+<p>Sequence identity networks connect variants with high amino acid similarity, while
+co-occurrence networks connect variants that share specific protein mutations. The
+co-occurrence view emphasizes shared evolutionary steps and can be filtered with a
+minimum shared-mutation count or an optional Jaccard threshold.</p>
+<h3 id="data-availability-for-co-occurrence">Data availability for co-occurrence<a class="headerlink" href="#data-availability-for-co-occurrence" title="Permanent link">&para;</a></h3>
+<p>Co-occurrence networks require protein mutations in the <code>mutations</code> table. If no
+protein mutations were loaded or called, the co-occurrence network will be empty.</p>
+<h3 id="parameter-tuning-tips">Parameter tuning tips<a class="headerlink" href="#parameter-tuning-tips" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Higher identity thresholds make identity networks sparser and more conservative.</li>
+<li>Higher minimum shared mutation counts reduce co-occurrence density.</li>
+<li>Higher Jaccard thresholds favor pairs with more similar mutation sets.</li>
+</ul>
+<h3 id="note-on-normalization">Note on normalization<a class="headerlink" href="#note-on-normalization" title="Permanent link">&para;</a></h3>
+<p>When comparing quantitative protein measurements across runs or batches,
+normalization helps reduce technical variation before interpreting biological
+effects.
+(O'Rourke et al., 2019: https://doi.org/10.3390/proteomes7030029)
+(Mule et al., 2022: https://doi.org/10.1038/s41467-022-29356-8)</p>
+<h2 id="common-data-sources-analysts">Common data sources (analysts)<a class="headerlink" href="#common-data-sources-analysts" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Raw and derived scoring: <code>metrics</code>, <code>variants</code>, <code>generations</code></li>
+<li>Mutation context: <code>mutations</code></li>
+<li>Optional bonus views: <code>mv_activity_landscape</code>, <code>mv_domain_mutation_enrichment</code></li>
+</ul>
+<h2 id="refresh-workflow-developers">Refresh workflow (developers)<a class="headerlink" href="#refresh-workflow-developers" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Load new metrics and mutations.</li>
+<li>Recompute derived metrics and plots.</li>
+<li>Regenerate embeddings if needed.</li>
+<li>Refresh materialized views.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">select</span><span class="w"> </span><span class="n">refresh_bonus_materialized_views</span><span class="p">();</span>
+</code></pre></div>
+<h2 id="quick-checks-sql">Quick checks (SQL)<a class="headerlink" href="#quick-checks-sql" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1">-- Derived metric presence</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">select</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_activity_scores</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="k">where</span><span class="w"> </span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;activity_score&#39;</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">metric_type</span><span class="o">=</span><span class="s1">&#39;derived&#39;</span><span class="p">;</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1">-- Derived metric coverage for one experiment</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="k">select</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_exp_scores</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span><span class="w"> </span><span class="n">m</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="k">join</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">variant_id</span>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;activity_score&#39;</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="o">=</span><span class="s1">&#39;derived&#39;</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span><span class="p">;</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="c1">-- Optional bonus view row counts</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="k">select</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">mv_activity_landscape</span><span class="p">;</span>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="k">select</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">from</span><span class="w"> </span><span class="n">mv_domain_mutation_enrichment</span><span class="p">;</span>
+</code></pre></div>
+<h2 id="troubleshooting-and-recovery">Troubleshooting and recovery<a class="headerlink" href="#troubleshooting-and-recovery" title="Permanent link">&para;</a></h2>
+<h3 id="1-database_url-not-set-or-connection-failure">1) <code>DATABASE_URL not set</code> or connection failure<a class="headerlink" href="#1-database_url-not-set-or-connection-failure" title="Permanent link">&para;</a></h3>
+<p>Symptoms:
+- script exits before querying data
+- psycopg2 connection errors</p>
+<p>Recovery:
+1. export a valid <code>DATABASE_URL</code>
+2. run <code>python -m scripts.test_connection</code>
+3. rerun report</p>
+<h3 id="2-empty-top-10-or-distribution-output">2) Empty Top 10 or distribution output<a class="headerlink" href="#2-empty-top-10-or-distribution-output" title="Permanent link">&para;</a></h3>
+<p>Symptoms:
+- blank/empty CSV for top10
+- distribution plot not generated</p>
+<p>Likely cause:
+- missing derived <code>activity_score</code></p>
+<p>Recovery:
+1. run <code>python -m scripts.run_report</code>
+2. check QC CSV in <code>app/static/generated</code>
+3. run SQL quick checks for derived metrics</p>
+<h3 id="3-lineage-plot-has-nodes-but-no-edges">3) Lineage plot has nodes but no edges<a class="headerlink" href="#3-lineage-plot-has-nodes-but-no-edges" title="Permanent link">&para;</a></h3>
+<p>Symptoms:
+- scattered points with no connecting lines</p>
+<p>Likely causes:
+- <code>parent_variant_id</code> missing in loaded variants
+- upstream data did not preserve parent links</p>
+<p>Recovery:
+1. verify parent IDs in DB
+2. reload variants with parent mapping
+3. rerun report</p>
+<h3 id="4-co-occurrence-protein-network-is-empty">4) Co-occurrence protein network is empty<a class="headerlink" href="#4-co-occurrence-protein-network-is-empty" title="Permanent link">&para;</a></h3>
+<p>Symptoms:
+- message indicating no shared protein mutations</p>
+<p>Likely causes:
+- no <code>mutation_type='protein'</code> rows
+- thresholds too strict</p>
+<p>Recovery:
+1. verify mutation rows exist
+2. try <code>preset=medium</code> or <code>preset=dense</code>
+3. lower <code>min_shared</code> and remove Jaccard threshold</p>
+<h3 id="5-landscape-or-domain-views-are-stale">5) Landscape or domain views are stale<a class="headerlink" href="#5-landscape-or-domain-views-are-stale" title="Permanent link">&para;</a></h3>
+<p>Symptoms:
+- old values despite new pipeline runs</p>
+<p>Recovery:
+1. run <code>select refresh_bonus_materialized_views();</code>
+2. rerun row-count checks
+3. reload UI or query again</p>
+<h2 id="incident-checklist-fast-triage">Incident checklist (fast triage)<a class="headerlink" href="#incident-checklist-fast-triage" title="Permanent link">&para;</a></h2>
+<ol>
+<li>Confirm DB connectivity.</li>
+<li>Confirm derived metric presence.</li>
+<li>Confirm experiment-specific row counts.</li>
+<li>Regenerate report outputs.</li>
+<li>Refresh materialized views.</li>
+<li>Re-open endpoints and inspect generated files.</li>
+</ol>
+<h2 id="glossary">Glossary<a class="headerlink" href="#glossary" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Variant: engineered sequence derived from a wild-type protein</li>
+<li>Generation: evolution round within an experiment</li>
+<li>Activity score: derived metric used for ranking</li>
+<li>Embedding: 2D coordinates used for the landscape plot</li>
+</ul>
+<h2 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Mead DJT, Lunagomez S, Gatherer D. Visualization of protein sequence space
+    with force-directed graphs, and their application to the choice of
+    target-template pairs for homology modelling. J Mol Graph Model. 2019;92:180-191.
+    https://doi.org/10.1016/j.jmgm.2019.07.014</li>
+<li>Selles Vidal L, Isalan M, Heap JT, Ledesma-Amaro R. A primer to directed evolution:
+    current methodologies and future directions. RSC Chem Biol. 2023;4:271-291.
+    https://doi.org/10.1039/D2CB00231K</li>
+<li>Geard N, Wiles J. Directed Evolution of an Artificial Cell Lineage. In: Randall M,
+    Abbass HA, Wiles J (eds) Progress in Artificial Life. ACAL 2007. LNCS 4828.
+    Springer, Berlin, Heidelberg. https://doi.org/10.1007/978-3-540-76931-6_13</li>
+<li>Mule MP, Martins AJ, Tsang JS. Normalizing and denoising protein expression data
+    from droplet-based single cell profiling. Nat Commun. 2022;13:2099.
+    https://doi.org/10.1038/s41467-022-29356-8</li>
+<li>O'Rourke MB, Town SEL, Dalla PV, Bicknell F, Koh Belic N, Violi JP, Steele JR,
+    Padula MP. What is Normalization? The Strategies Employed in Top-Down and
+    Bottom-Up Proteome Analysis Workflows. Proteomes. 2019;7(3):29.
+    https://doi.org/10.3390/proteomes7030029</li>
+<li>Mirzaei G. Constructing gene similarity networks using co-occurrence
+    probabilities. BMC Genomics. 2023;24:697.
+    https://doi.org/10.1186/s12864-023-09780-w</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

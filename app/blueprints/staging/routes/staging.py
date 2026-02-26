@@ -1,5 +1,6 @@
 ﻿"""Staging workspace page route and view-level orchestration."""
 
+import glob
 import os
 import secrets
 
@@ -44,7 +45,7 @@ def create_experiment():
         except Exception:
             db.session.rollback()
             flash("Unable to start a guest session right now. Please sign in and try again.", "error")
-            return redirect(url_for("auth.login"))
+            return redirect(url_for("auth.homepage", auth="login"))
 
     experiment_id = request.args.get('experiment_id', '').strip()
     wt_message = request.args.get('wt_message', '').strip()
@@ -142,6 +143,21 @@ def create_experiment():
         lineage_path = os.path.join(gen_dir, 'lineage.png')
         protein_network_path = os.path.join(gen_dir, 'protein_similarity.png')
         qc_path = os.path.join(gen_dir, 'stage4_qc_debug.csv')
+        bonus_dir = os.path.join(gen_dir, 'bonus')
+        bonus_surface_path = os.path.join(bonus_dir, 'activity_surface_pca.png')
+        bonus_landscape_path = os.path.join(bonus_dir, 'activity_landscape_pca_surface.html')
+        bonus_trajectory_path = os.path.join(bonus_dir, 'mutation_trajectory_top10.html')
+        bonus_domain_heatmap_path = os.path.join(bonus_dir, 'domain_enrichment_heatmap.html')
+        bonus_domain_generation_matches = glob.glob(os.path.join(bonus_dir, 'domain_enrichment_gen*.html'))
+        bonus_domain_generation_matches.sort(key=os.path.getmtime, reverse=True)
+        bonus_domain_generation_file = (
+            os.path.basename(bonus_domain_generation_matches[0]) if bonus_domain_generation_matches else ''
+        )
+        bonus_domain_generation_path = bonus_domain_generation_matches[0] if bonus_domain_generation_matches else ''
+        bonus_fingerprint_matches = glob.glob(os.path.join(bonus_dir, 'mutation_fingerprint_variant*.html'))
+        bonus_fingerprint_matches.sort(key=os.path.getmtime, reverse=True)
+        bonus_fingerprint_file = os.path.basename(bonus_fingerprint_matches[0]) if bonus_fingerprint_matches else ''
+        bonus_fingerprint_path = bonus_fingerprint_matches[0] if bonus_fingerprint_matches else ''
 
         sub = f'generated/{experiment_id}'
         analysis_outputs = {
@@ -187,6 +203,44 @@ def create_experiment():
                 'disabled_reason': (
                     sequence_failure_reason if sequence_failed else 'Run sequence processing first.'
                 ),
+            },
+            'bonus_surface': {
+                'url': url_for('static', filename=f'{sub}/bonus/activity_surface_pca.png'),
+                'label': 'Bonus activity surface (PNG)',
+                'exists': os.path.exists(bonus_surface_path),
+            },
+            'bonus_landscape': {
+                'url': url_for('static', filename=f'{sub}/bonus/activity_landscape_pca_surface.html'),
+                'label': 'Bonus activity landscape (HTML)',
+                'exists': os.path.exists(bonus_landscape_path),
+            },
+            'bonus_trajectory': {
+                'url': url_for('static', filename=f'{sub}/bonus/mutation_trajectory_top10.html'),
+                'label': 'Bonus mutation trajectory (HTML)',
+                'exists': os.path.exists(bonus_trajectory_path),
+            },
+            'bonus_domain_heatmap': {
+                'url': url_for('static', filename=f'{sub}/bonus/domain_enrichment_heatmap.html'),
+                'label': 'Bonus domain enrichment heatmap (HTML)',
+                'exists': os.path.exists(bonus_domain_heatmap_path),
+            },
+            'bonus_domain_generation': {
+                'url': (
+                    url_for('static', filename=f'{sub}/bonus/{bonus_domain_generation_file}')
+                    if bonus_domain_generation_file
+                    else ''
+                ),
+                'label': 'Bonus domain enrichment (generation) (HTML)',
+                'exists': os.path.exists(bonus_domain_generation_path),
+            },
+            'bonus_fingerprint': {
+                'url': (
+                    url_for('static', filename=f'{sub}/bonus/{bonus_fingerprint_file}')
+                    if bonus_fingerprint_file
+                    else ''
+                ),
+                'label': 'Bonus mutation fingerprint (HTML)',
+                'exists': os.path.exists(bonus_fingerprint_path),
             },
         }
         top10_rows = load_top10_rows(top10_csv_path, int(experiment_id))

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-_ALLOWED_DNA = set('ACGTN')
+# Canonical DNA bases + IUPAC ambiguity symbols commonly present in lab FASTA exports.
+_ALLOWED_DNA = set('ACGTNRYWSKMBDHV')
 
 
 def parse_fasta(file_bytes: bytes) -> str:
@@ -24,7 +25,13 @@ def parse_fasta(file_bytes: bytes) -> str:
     if sum(1 for line in lines if line.startswith('>')) > 1:
         raise ValueError('Please upload a single-record FASTA.')
 
-    seq = ''.join(line for line in lines if not line.startswith('>')).upper()
+    seq = ''.join(
+        line.replace(' ', '').replace('\t', '')
+        for line in lines
+        if not line.startswith('>')
+    ).upper()
+    # Accept RNA-style FASTA uploads by normalising uracil to thymine.
+    seq = seq.replace('U', 'T')
     if not seq:
         raise ValueError('FASTA sequence is empty.')
 

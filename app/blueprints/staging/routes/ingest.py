@@ -17,6 +17,14 @@ from app.services.staging.session_state import save_validation_to_session
 from .. import staging_bp
 
 
+def _merge_extra_metadata(exp: Experiment, updates: dict) -> None:
+    """Merge JSON-serialisable fields into experiment.extra_metadata."""
+    meta = exp.extra_metadata if isinstance(exp.extra_metadata, dict) else {}
+    merged = dict(meta)
+    merged.update(updates)
+    exp.extra_metadata = merged
+
+
 @staging_bp.post('/uniprot')
 @login_required
 def fetch_uniprot():
@@ -39,6 +47,7 @@ def fetch_uniprot():
             )
         )
 
+    accession = entry.accession
     sequence = entry.sequence
     protein_length = entry.length
     features = entry.features
@@ -46,9 +55,10 @@ def fetch_uniprot():
 
     wt = WildtypeProtein.query.filter_by(uniprot_id=accession).first()
     if wt:
+        # Preserve existing plasmid row data to avoid cross-experiment/user overwrites.
+        # Canonical UniProt sequence fields are deterministic and safe to refresh.
         wt.amino_acid_sequence = sequence
         wt.sequence_length = protein_length
-        wt.plasmid_sequence = placeholder_plasmid
         wt.protein_name = entry.protein_name or wt.protein_name
         wt.organism = entry.organism or wt.organism
     else:
@@ -65,14 +75,28 @@ def fetch_uniprot():
         db.session.flush()
 
     if experiment_id and experiment_id.isdigit():
-        exp = Experiment.query.get(int(experiment_id))
+        exp = Experiment.query.filter_by(
+            experiment_id=int(experiment_id),
+            user_id=current_user.user_id,
+        ).first()
         if not exp:
-            return redirect(url_for('staging.create_experiment', wt_message='Experiment not found'))
+            return redirect(
+                url_for(
+                    'staging.create_experiment',
+                    wt_message='Experiment not found or you do not have access.',
+                )
+            )
+        previous_accession = (
+            exp.wt.uniprot_id.strip().upper()
+            if getattr(exp, 'wt', None) and getattr(exp.wt, 'uniprot_id', None)
+            else ''
+        )
         exp.wt_id = wt.wt_id
         protein_name = entry.protein_name
         if protein_name and (not exp.name or exp.name.startswith('Experiment ')):
             exp.name = f'{protein_name} ({accession})'
     else:
+        previous_accession = ''
         protein_name = entry.protein_name
         exp = Experiment(
             user_id=current_user.user_id,
@@ -83,16 +107,26 @@ def fetch_uniprot():
         db.session.flush()
         experiment_id = str(exp.experiment_id)
 
-    ProteinFeature.query.filter_by(wt_id=wt.wt_id).delete()
-    for feat in features:
-        pf = ProteinFeature(
-            wt_id=wt.wt_id,
-            feature_type=feat.feature_type or 'unknown',
-            description=feat.description or '',
-            start_position=feat.begin or 0,
-            end_position=feat.end or 0,
-        )
-        db.session.add(pf)
+    # Persist experiment-scoped plasmid so uploads do not overwrite shared WT rows.
+    # Reset to placeholder when the accession changed for an existing experiment.
+    exp_meta_updates = {'wt_uniprot_accession': accession}
+    if previous_accession != accession or not (exp.extra_metadata or {}).get('wt_plasmid_sequence'):
+        exp_meta_updates['wt_plasmid_sequence'] = placeholder_plasmid
+    _merge_extra_metadata(exp, exp_meta_updates)
+
+    should_refresh_features = (
+        ProteinFeature.query.filter_by(wt_id=wt.wt_id).first() is None
+    )
+    if should_refresh_features:
+        for feat in features:
+            pf = ProteinFeature(
+                wt_id=wt.wt_id,
+                feature_type=feat.feature_type or 'unknown',
+                description=feat.description or '',
+                start_position=feat.begin or 0,
+                end_position=feat.end or 0,
+            )
+            db.session.add(pf)
 
     try:
         db.session.commit()
@@ -126,8 +160,15 @@ def upload_plasmid():
         return redirect(url_for('staging.create_experiment', wt_message='Invalid experiment_id'))
 
     exp_id_int = int(experiment_id)
-    exp = Experiment.query.get(exp_id_int)
-    if not exp or not exp.wt_id:
+    exp = Experiment.query.filter_by(experiment_id=exp_id_int, user_id=current_user.user_id).first()
+    if not exp:
+        return redirect(
+            url_for(
+                'staging.create_experiment',
+                wt_message='Experiment not found or you do not have access.',
+            )
+        )
+    if not exp.wt_id:
         return redirect(url_for('staging.create_experiment', wt_message='Fetch WT first.'))
 
     wt = WildtypeProtein.query.get(exp.wt_id)
@@ -142,7 +183,7 @@ def upload_plasmid():
     except ValueError as e:
         return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, wt_message=str(e)))
 
-    wt.plasmid_sequence = dna
+    _merge_extra_metadata(exp, {'wt_plasmid_sequence': dna, 'wt_uniprot_accession': wt.uniprot_id})
 
     if not wt.amino_acid_sequence:
         return redirect(
@@ -156,7 +197,17 @@ def upload_plasmid():
     result = validate_plasmid(wt.amino_acid_sequence, dna)
     save_validation_to_session(experiment_id, result)
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        return redirect(
+            url_for(
+                'staging.create_experiment',
+                experiment_id=experiment_id,
+                wt_message='Database error while saving plasmid upload.',
+            )
+        )
 
     return redirect(
         url_for(

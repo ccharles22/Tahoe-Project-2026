@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
 
 from Bio.Align import PairwiseAligner
 from Bio.Seq import Seq
@@ -30,27 +29,34 @@ def reverse_complement(dna: str) -> str:
 
 def translate_frame(dna: str, frame: int = 0) -> str:
     """Translate DNA from a reading frame index (0, 1, or 2)."""
-    return str(Seq(dna[frame:]).translate(to_stop=False))
+    frame_seq = dna[frame:]
+    trimmed_len = len(frame_seq) - (len(frame_seq) % 3)
+    if trimmed_len <= 0:
+        return ''
+    return str(Seq(frame_seq[:trimmed_len]).translate(to_stop=False))
 
 
-def _best_local_alignment(query: str, target: str) -> tuple[float, float, int, int]:
-    """Find best local alignment and return identity/coverage and target span."""
+def _make_local_aligner() -> PairwiseAligner:
+    """Build a local aligner configured for approximate fallback matching."""
     aligner = PairwiseAligner()
     aligner.mode = 'local'
     aligner.match_score = 2.0
     aligner.mismatch_score = -1.0
     aligner.open_gap_score = -5.0
     aligner.extend_gap_score = -1.0
+    return aligner
 
-    best = None
-    best_score = float('-inf')
-    for aln in aligner.align(target, query):
-        if aln.score > best_score:
-            best_score = aln.score
-            best = aln
 
-    if best is None:
+def _best_local_alignment(
+    query: str,
+    target: str,
+    aligner: PairwiseAligner,
+) -> tuple[float, float, int, int]:
+    """Find top local alignment and return identity/coverage and target span."""
+    alignments = aligner.align(target, query)
+    if len(alignments) == 0:
         return 0.0, 0.0, 0, 0
+    best = alignments[0]
 
     t_segs, q_segs = best.aligned
     if len(t_segs) == 0 or len(q_segs) == 0:
@@ -80,11 +86,37 @@ def _best_local_alignment(query: str, target: str) -> tuple[float, float, int, i
     return identity_pct, coverage_pct, target_start, target_end
 
 
+def _map_hit_to_plasmid_coords(
+    dna_length: int,
+    source: str,
+    frame: int,
+    start_aa: int,
+    end_aa: int,
+) -> tuple[int, int, bool]:
+    """Convert frame-space AA coordinates back to 0-based circular plasmid nt coords."""
+    start_nt_s2 = frame + start_aa * 3
+    end_nt_s2_excl = frame + end_aa * 3
+    len_s2 = dna_length * 2
+
+    if source == 'rev':
+        s2_start = len_s2 - end_nt_s2_excl
+        s2_end_excl = len_s2 - start_nt_s2
+    else:
+        s2_start = start_nt_s2
+        s2_end_excl = end_nt_s2_excl
+
+    start_nt = s2_start % dna_length
+    end_nt = (s2_end_excl - 1) % dna_length
+    wraps = (s2_start < dna_length) and (s2_end_excl > dna_length)
+    return start_nt, end_nt, wraps
+
+
 def validate_plasmid(
     wt_protein: str,
     plasmid_dna: str,
     min_identity: float = 98.0,
     min_coverage: float = 98.0,
+    require_exact: bool = True,
 ) -> ValidationResult:
     """Validate that circular plasmid DNA encodes WT protein in one of six frames."""
     protein = wt_protein.strip().upper()
@@ -98,8 +130,9 @@ def validate_plasmid(
     length = len(dna)
     dna2 = dna + dna
     dna2_rc = reverse_complement(dna2)
+    aligner = _make_local_aligner()
 
-    best: dict[str, Any] = {
+    best = {
         'identity': 0.0,
         'coverage': 0.0,
         'strand': '+',
@@ -109,62 +142,70 @@ def validate_plasmid(
         'source': 'fwd',
     }
 
-    for frame in (0, 1, 2):
-        translated = translate_frame(dna2, frame)
-        identity, coverage, start_aa, end_aa = _best_local_alignment(protein, translated)
+    translated_frames = []
+    for source, strand, seq in (('fwd', '+', dna2), ('rev', '-', dna2_rc)):
+        for frame in (0, 1, 2):
+            translated = translate_frame(seq, frame)
+            translated_frames.append((source, strand, frame, translated))
+            exact_start = translated.find(protein)
+            if exact_start >= 0:
+                exact_end = exact_start + len(protein)
+                start_nt, end_nt, wraps = _map_hit_to_plasmid_coords(
+                    dna_length=length,
+                    source=source,
+                    frame=frame,
+                    start_aa=exact_start,
+                    end_aa=exact_end,
+                )
+                return ValidationResult(
+                    is_valid=True,
+                    identity=100.0,
+                    coverage=100.0,
+                    strand=strand,
+                    start_nt=start_nt,
+                    end_nt=end_nt,
+                    wraps=wraps,
+                    message='PASS: WT protein is exactly encoded in the uploaded plasmid.',
+                )
+
+    for source, strand, frame, translated in translated_frames:
+        identity, coverage, start_aa, end_aa = _best_local_alignment(
+            protein,
+            translated,
+            aligner,
+        )
         if (coverage, identity) > (best['coverage'], best['identity']):
             best.update(
                 {
                     'identity': identity,
                     'coverage': coverage,
-                    'strand': '+',
+                    'strand': strand,
                     'frame': frame,
                     'start_aa': start_aa,
                     'end_aa': end_aa,
-                    'source': 'fwd',
+                    'source': source,
                 }
             )
 
-    for frame in (0, 1, 2):
-        translated = translate_frame(dna2_rc, frame)
-        identity, coverage, start_aa, end_aa = _best_local_alignment(protein, translated)
-        if (coverage, identity) > (best['coverage'], best['identity']):
-            best.update(
-                {
-                    'identity': identity,
-                    'coverage': coverage,
-                    'strand': '-',
-                    'frame': frame,
-                    'start_aa': start_aa,
-                    'end_aa': end_aa,
-                    'source': 'rev',
-                }
-            )
-
-    start_nt_s2 = best['frame'] + best['start_aa'] * 3
-    end_nt_s2_excl = best['frame'] + best['end_aa'] * 3
-    len_s2 = len(dna2)
-
-    if best['source'] == 'rev':
-        s2_start = len_s2 - end_nt_s2_excl
-        s2_end_excl = len_s2 - start_nt_s2
-    else:
-        s2_start = start_nt_s2
-        s2_end_excl = end_nt_s2_excl
-
-    start_nt = s2_start % length
-    end_nt = (s2_end_excl - 1) % length
-    wraps = (s2_start < length) and (s2_end_excl > length)
-    is_valid = (best['identity'] >= min_identity) and (best['coverage'] >= min_coverage)
+    start_nt, end_nt, wraps = _map_hit_to_plasmid_coords(
+        dna_length=length,
+        source=best['source'],
+        frame=best['frame'],
+        start_aa=best['start_aa'],
+        end_aa=best['end_aa'],
+    )
+    approx_valid = (best['identity'] >= min_identity) and (best['coverage'] >= min_coverage)
+    is_valid = approx_valid and not require_exact
 
     if is_valid:
         message = (
-            f"PASS: Exact match to the expected WT CDS "
+            f"PASS: Approximate match satisfies thresholds "
             f"({best['identity']:.1f}% identity, {best['coverage']:.1f}% coverage)."
         )
     else:
+        exact_note = 'No exact WT protein encoding found across six translated frames. '
         message = (
-            f"FAIL. Best hit: identity={best['identity']:.1f}%, coverage={best['coverage']:.1f}% "
+            f"FAIL. {exact_note}Best hit: identity={best['identity']:.1f}%, coverage={best['coverage']:.1f}% "
             f"on strand {best['strand']} frame {best['frame']}."
         )
 

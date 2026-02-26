@@ -41,7 +41,7 @@ fi
 # Skip view creation if MVs already exist:
 # ARGS+=( --skip-create-views )
 
-python -m analysis.pipelines.run_bonus_pipeline "${ARGS[@]}"
+python -m app.services.analysis.bonus.pipelines.run_bonus_pipeline "${ARGS[@]}"
 
 echo
 echo "Done. Open HTML outputs in: ${OUTDIR}"

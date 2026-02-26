@@ -46,8 +46,84 @@ def generate_protein_network_plot(experiment_id: int) -> tuple[bool, str]:
         return False, f'Protein network failed: {exc}'
 
 
-def run_analysis_background(experiment_id: int, app_obj) -> None:
-    """Run analysis in a background thread to avoid blocking web requests."""
+def _get_latest_generation_id(experiment_id: int) -> int | None:
+    """Return latest generation_id for an experiment, or None when unavailable."""
+    try:
+        from app.services.analysis.database import get_conn
+    except Exception:
+        return None
+
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT g.generation_id
+                    FROM generations g
+                    WHERE g.experiment_id = %s
+                    ORDER BY g.generation_number DESC, g.generation_id DESC
+                    LIMIT 1
+                    """,
+                    (experiment_id,),
+                )
+                row = cur.fetchone()
+        if not row:
+            return None
+        return int(row[0])
+    except Exception:
+        return None
+
+
+def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool, str]:
+    """Run bonus analysis pipeline for the latest generation in this experiment."""
+    generation_id = _get_latest_generation_id(experiment_id)
+    if generation_id is None:
+        return False, 'Bonus outputs skipped: no generation found.'
+
+    repo_root = os.path.dirname(app_obj.root_path)
+    out_dir = os.path.join(app_obj.root_path, 'static', 'generated', str(experiment_id), 'bonus')
+    os.makedirs(out_dir, exist_ok=True)
+
+    proc = subprocess.run(
+        [
+            sys.executable,
+            '-m',
+            'app.services.analysis.bonus.pipelines.run_bonus_pipeline',
+            '--generation-id',
+            str(generation_id),
+            '--outputs-dir',
+            out_dir,
+            '--sql-dir',
+            'sql',
+            '--landscape-method',
+            'pca',
+            '--landscape-mode',
+            'surface',
+            '--top-n',
+            '10',
+        ],
+        cwd=repo_root,
+        env=os.environ.copy(),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    if proc.returncode != 0:
+        details = proc.stderr[-1200:] if proc.stderr else (proc.stdout[-1200:] if proc.stdout else 'no output')
+        logger.warning(
+            'Bonus analysis failed for experiment %s generation %s (code=%s): %s',
+            experiment_id,
+            generation_id,
+            proc.returncode,
+            details,
+        )
+        return False, 'Bonus outputs failed to generate.'
+
+    return True, 'Bonus outputs generated.'
+
+
+def run_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool, str]:
+    """Run analysis for one experiment and return success state + message."""
     repo_root = os.path.dirname(app_obj.root_path)
     env = os.environ.copy()
     env['EXPERIMENT_ID'] = str(experiment_id)
@@ -61,20 +137,32 @@ def run_analysis_background(experiment_id: int, app_obj) -> None:
             check=False,
         )
         if proc.returncode != 0:
+            details = proc.stderr[-2000:] if proc.stderr else 'no stderr'
             logger.error(
-                'Background analysis failed for experiment %s (code=%s): %s',
+                'Analysis failed for experiment %s (code=%s): %s',
                 experiment_id,
                 proc.returncode,
-                proc.stderr[-2000:] if proc.stderr else 'no stderr',
+                details,
             )
-            return
+            return False, f'Analysis failed (code {proc.returncode}).'
 
         with app_obj.app_context():
             generated, protein_msg = generate_protein_network_plot(experiment_id)
-            logger.info(
-                'Background analysis complete for experiment %s: %s',
-                experiment_id,
-                'Protein network generated.' if generated else protein_msg,
-            )
+            bonus_generated, bonus_msg = run_bonus_analysis_for_experiment(experiment_id, app_obj)
+            if generated:
+                logger.info('Analysis complete for experiment %s.', experiment_id)
+                if bonus_generated:
+                    return True, 'Analysis complete. Outputs refreshed, including bonus visuals.'
+                return True, f'Analysis complete. Outputs refreshed. {bonus_msg}'
+            logger.info('Analysis complete for experiment %s with note: %s', experiment_id, protein_msg)
+            if bonus_generated:
+                return True, f'Analysis complete. {protein_msg} Bonus visuals generated.'
+            return True, f'Analysis complete. {protein_msg} {bonus_msg}'
     except Exception:
-        logger.exception('Background analysis crashed for experiment %s', experiment_id)
+        logger.exception('Analysis crashed for experiment %s', experiment_id)
+        return False, 'Analysis failed due to an unexpected server error.'
+
+
+def run_analysis_background(experiment_id: int, app_obj) -> None:
+    """Run analysis in a background thread to avoid blocking web requests."""
+    run_analysis_for_experiment(experiment_id, app_obj)

@@ -88,7 +88,7 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     with engine.connect() as conn:
         row = conn.execute(
             text("""
-                SELECT w.amino_acid_sequence, w.plasmid_sequence
+                SELECT w.amino_acid_sequence, w.plasmid_sequence, e.extra_metadata
                 FROM public.experiments e
                 JOIN public.wild_type_proteins w
                   ON w.wt_id = e.wt_id
@@ -100,8 +100,27 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     if not row:
         raise ValueError(f"No WT reference found for experiment_id={experiment_id}")
 
+    wt_protein = str(row[0])
+    wt_plasmid = str(row[1])
+
+    extra_metadata_raw = row[2] if len(row) > 2 else None
+    extra_metadata: Dict[str, Any] = {}
+    if isinstance(extra_metadata_raw, dict):
+        extra_metadata = extra_metadata_raw
+    elif isinstance(extra_metadata_raw, str) and extra_metadata_raw.strip():
+        try:
+            parsed = json.loads(extra_metadata_raw)
+            if isinstance(parsed, dict):
+                extra_metadata = parsed
+        except json.JSONDecodeError:
+            logger.debug("Invalid experiment extra_metadata JSON for experiment %s", experiment_id)
+
+    plasmid_override = extra_metadata.get("wt_plasmid_sequence")
+    if isinstance(plasmid_override, str) and plasmid_override.strip():
+        wt_plasmid = plasmid_override.strip().upper()
+
     logger.debug("Loaded WT reference for experiment %s", experiment_id)
-    return str(row[0]), str(row[1])
+    return wt_protein, wt_plasmid
 
 
 # =============================================================================

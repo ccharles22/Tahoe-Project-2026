@@ -8,7 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
 </head>
 
-<body class="home-body">
+<body class="home-body" data-open-auth="{{ open_auth_panel or '' }}">
 
   <!-- Top navigation -->
   <nav class="home-nav">
@@ -17,7 +17,7 @@
       <span class="home-nav__name">DirectEvo</span>
     </div>
     <div class="home-nav__right">
-      <a href="/docs/guide/getting-started/index.html" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
+      <a href="/docs/parsing_qc/guide/getting-started/index.html" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
         &#x1F4D8;
       </a>
       {% if current_user.is_authenticated %}
@@ -31,8 +31,8 @@
       </div>
       <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
       {% else %}
-      <a href="{{ url_for('auth.login') }}" class="home-nav__logout">Sign in</a>
-      <a href="{{ url_for('auth.register') }}" class="home-nav__signup">Sign up</a>
+      <a href="{{ url_for('auth.homepage', auth='login') }}" class="home-nav__logout" data-auth-open="login">Sign in</a>
+      <a href="{{ url_for('auth.homepage', auth='register') }}" class="home-nav__signup" data-auth-open="register">Sign up</a>
       {% endif %}
     </div>
   </nav>
@@ -44,7 +44,8 @@
       <div class="home-hero__copy">
         <p class="home-hero__eyebrow">Direct Evolution Monitoring</p>
         {% if current_user.is_authenticated %}
-        <h1 class="home-hero__title">Welcome back, {{ current_user.username }}</h1>
+        {% set is_guest_user = (current_user.username and current_user.username.startswith('guest_')) or (current_user.email and current_user.email.endswith('@guest.local')) %}
+        <h1 class="home-hero__title">{% if is_guest_user %}Welcome back{% else %}Welcome back, {{ current_user.username }}{% endif %}</h1>
         {% else %}
         <h1 class="home-hero__title">Run the workflow now</h1>
         {% endif %}
@@ -62,7 +63,7 @@
           <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
             Start Workflow as Guest
           </a>
-          <a href="{{ url_for('auth.login') }}" class="btn btn--hero-outline">
+          <a href="{{ url_for('auth.homepage', auth='login') }}" class="btn btn--hero-outline" data-auth-open="login">
             Sign In
           </a>
           {% endif %}
@@ -123,27 +124,282 @@
     </div>
   </section>
 
-  <!-- New-user onboarding callout -->
-  {% if (current_user.is_authenticated and exp_count == 0) or (not current_user.is_authenticated) %}
-  <section class="home-container">
-    <div class="home-quickstart">
-      <div class="home-quickstart__icon">&#x1F680;</div>
-      <div class="home-quickstart__text">
-        <h3>Ready to begin?</h3>
-        <p>Create your first experiment by fetching a wild-type protein from UniProt. The 5-step workflow guides validation, data upload, analysis, and sequence processing.</p>
-      </div>
-      {% if current_user.is_authenticated %}
-      <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--primary btn--lg">Get Started</a>
-      {% else %}
-      <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--primary btn--lg">Get Started as Guest</a>
-      {% endif %}
+  <section class="home-container home-results-preview" aria-label="Results preview">
+    <h2 class="home-section-title">What Results You Can Get</h2>
+    <div class="home-results-grid">
+      <article class="home-results-card">
+        <p class="home-results-card__kicker">Top Variants</p>
+        <h3 class="home-results-card__title">Top 10 Performers</h3>
+        <div class="home-results-table-wrap" aria-label="Example ranked activity score table">
+          <table class="home-results-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Generation</th>
+                <th>Variant</th>
+                <th>Activity Score</th>
+                <th>Mutations</th>
+              </tr>
+            </thead>
+                        <tbody>
+              <tr>
+                <td>#1</td>
+                <td>5</td>
+                <td>V-123</td>
+                <td>1.408</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#2</td>
+                <td>6</td>
+                <td>V-151</td>
+                <td>1.391</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#3</td>
+                <td>6</td>
+                <td>V-154</td>
+                <td>1.384</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#4</td>
+                <td>1</td>
+                <td>V-7</td>
+                <td>1.357</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#5</td>
+                <td>4</td>
+                <td>V-92</td>
+                <td>1.339</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#6</td>
+                <td>4</td>
+                <td>V-96</td>
+                <td>1.313</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#7</td>
+                <td>6</td>
+                <td>V-155</td>
+                <td>1.283</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#8</td>
+                <td>10</td>
+                <td>V-273</td>
+                <td>1.269</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#9</td>
+                <td>7</td>
+                <td>V-187</td>
+                <td>1.256</td>
+                <td>0</td>
+              </tr>
+              <tr>
+                <td>#10</td>
+                <td>4</td>
+                <td>V-95</td>
+                <td>1.235</td>
+                <td>0</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+      <article class="home-results-card">
+        <p class="home-results-card__kicker">Trend Analysis</p>
+        <h3 class="home-results-card__title">Activity across generations</h3>
+        <div class="home-results-graph-wrap" aria-label="Example activity across generations graph">
+          <img class="home-results-graph" src="{{ url_for('static', filename='generated/80/lineage.png') }}" alt="Variant lineage graph example">
+        </div>
+      </article>
+      <article class="home-results-card">
+        <p class="home-results-card__kicker">Distribution</p>
+        <h3 class="home-results-card__title">Activity Score Distribution by Generation</h3>
+        <div class="home-results-graph-wrap home-results-graph-wrap--right" aria-label="Example activity score distribution graph">
+          <img class="home-results-graph" src="{{ url_for('static', filename='generated/80/activity_distribution.png') }}" alt="Activity score distribution by generation">
+        </div>
+      </article>
     </div>
   </section>
+
+  {% if not current_user.is_authenticated %}
+  <div class="auth-sheet" id="auth-sheet" aria-hidden="true">
+    <button type="button" class="auth-sheet__backdrop" data-auth-close aria-label="Close"></button>
+    <section class="auth-sheet__panel" role="dialog" aria-modal="true" aria-labelledby="auth-sheet-title">
+      <button type="button" class="auth-sheet__close" data-auth-close aria-label="Close auth panel">
+        <svg class="auth-sheet__close-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M6 6l12 12M18 6L6 18"></path>
+        </svg>
+      </button>
+
+      <div class="auth-sheet__view is-active" data-auth-view="login">
+        <main class="auth-sheet__screen auth-sheet__screen--login">
+          <section class="auth-card">
+            <h2 id="auth-sheet-title" class="auth-card__title">Sign in</h2>
+            <p class="auth-card__subtitle">Access your dashboard</p>
+
+            <form method="post" action="{{ url_for('auth.homepage') }}" novalidate>
+              {{ login_form.hidden_tag() }}
+              <input type="hidden" name="auth_action" value="login">
+              <input type="hidden" name="next" value="{{ login_next or '' }}">
+
+              <div class="form-group">
+                {% if login_form.username.errors %}
+                  {{ login_form.username(class="is-invalid", id="login_username") }}
+                {% else %}
+                  {{ login_form.username(id="login_username") }}
+                {% endif %}
+                <span class="field-feedback"></span>
+                {% set ns_login_user = namespace(err='') %}
+                {% for e in login_form.username.errors %}
+                  {% if 'required' not in e|lower and not ns_login_user.err %}
+                    {% set ns_login_user.err = e %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns_login_user.err %}<p class="auth-sheet__error">{{ ns_login_user.err }}</p>{% endif %}
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  {% if login_form.password.errors %}
+                    {{ login_form.password(class="is-invalid", id="login_password") }}
+                  {% else %}
+                    {{ login_form.password(id="login_password") }}
+                  {% endif %}
+                  <button type="button" class="btn-reveal" aria-label="Show password" data-target="login_password">
+                    <svg class="icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                </div>
+                <span class="field-feedback"></span>
+                {% set ns_login_pw = namespace(err='') %}
+                {% for e in login_form.password.errors %}
+                  {% if 'required' not in e|lower and not ns_login_pw.err %}
+                    {% set ns_login_pw.err = e %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns_login_pw.err %}<p class="auth-sheet__error">{{ ns_login_pw.err }}</p>{% endif %}
+              </div>
+
+              <div class="btn-container">
+                <button type="submit" class="btn-primary"><span>Sign In</span></button>
+              </div>
+            </form>
+
+            <p class="text-link">
+              Don't have an account?
+              <a href="#" data-auth-tab="register">Create one here</a>
+            </p>
+          </section>
+
+          <aside class="auth-visual" aria-hidden="true"></aside>
+        </main>
+      </div>
+
+      <div class="auth-sheet__view" data-auth-view="register">
+        <main class="auth-sheet__screen auth-sheet__screen--register">
+          <section class="auth-card">
+            <h2 class="auth-card__title">Sign up</h2>
+            <p class="auth-card__subtitle">Start your directed evolution workflow.</p>
+
+            <form method="post" action="{{ url_for('auth.homepage') }}" novalidate>
+              {{ register_form.hidden_tag() }}
+              <input type="hidden" name="auth_action" value="register">
+
+              <div class="form-group">
+                {% if register_form.username.errors %}
+                  {{ register_form.username(class="is-invalid", id="register_username") }}
+                {% else %}
+                  {{ register_form.username(id="register_username") }}
+                {% endif %}
+                <span class="field-feedback hint">Minimum 4 characters</span>
+                {% set ns_reg_user = namespace(err='') %}
+                {% for e in register_form.username.errors %}
+                  {% if 'required' not in e|lower and not ns_reg_user.err %}
+                    {% set ns_reg_user.err = e %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns_reg_user.err %}<p class="auth-sheet__error">{{ ns_reg_user.err }}</p>{% endif %}
+              </div>
+
+              <div class="form-group">
+                {% if register_form.email.errors %}
+                  {{ register_form.email(class="is-invalid", id="register_email", type="email") }}
+                {% else %}
+                  {{ register_form.email(id="register_email", type="email") }}
+                {% endif %}
+                <span class="field-feedback"></span>
+                {% set ns_reg_email = namespace(err='') %}
+                {% for e in register_form.email.errors %}
+                  {% if 'required' not in e|lower and not ns_reg_email.err %}
+                    {% set ns_reg_email.err = e %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns_reg_email.err %}<p class="auth-sheet__error">{{ ns_reg_email.err }}</p>{% endif %}
+              </div>
+
+              <div class="form-group">
+                <div class="input-wrapper">
+                  {% if register_form.password.errors %}
+                    {{ register_form.password(class="is-invalid", id="register_password") }}
+                  {% else %}
+                    {{ register_form.password(id="register_password") }}
+                  {% endif %}
+                  <button type="button" class="btn-reveal" aria-label="Show password" data-target="register_password">
+                    <svg class="icon" aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                      <circle cx="12" cy="12" r="3"></circle>
+                    </svg>
+                  </button>
+                </div>
+                <span class="field-feedback hint">Minimum 8 characters</span>
+                {% set ns_reg_pw = namespace(err='') %}
+                {% for e in register_form.password.errors %}
+                  {% if 'required' not in e|lower and not ns_reg_pw.err %}
+                    {% set ns_reg_pw.err = e %}
+                  {% endif %}
+                {% endfor %}
+                {% if ns_reg_pw.err %}<p class="auth-sheet__error">{{ ns_reg_pw.err }}</p>{% endif %}
+              </div>
+
+              <div class="btn-container">
+                <button type="submit" class="btn-primary"><span>Create your account</span></button>
+              </div>
+            </form>
+
+            <p class="text-link">
+              Already have an account?
+              <a href="#" data-auth-tab="login">Sign in here</a>
+            </p>
+          </section>
+
+          <aside class="auth-visual" aria-hidden="true"></aside>
+        </main>
+      </div>
+    </section>
+  </div>
   {% endif %}
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="{{ url_for('static', filename='js/homepage.js') }}"></script>
+  {% if not current_user.is_authenticated %}
+  <script src="{{ url_for('static', filename='js/auth_password_toggle.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/homepage_auth.js') }}" defer></script>
+  {% endif %}
 </body>
 </html>
 

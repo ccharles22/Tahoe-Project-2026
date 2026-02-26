@@ -1,0 +1,99 @@
+site_name: BIO727P Documentation
+site_description: Unified docs for Parsing/QC and PostgreSQL Visualization
+site_author: BIO727P Group Project Team
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - content.code.copy
+
+nav:
+  - Home: index.md
+  - Parsing & QC:
+      - Overview: parsing_qc/index.md
+      - User Guide:
+          - Getting Started: parsing_qc/guide/getting-started.md
+          - Uploading Data: parsing_qc/guide/uploading-data.md
+          - File Formats: parsing_qc/guide/file-formats.md
+      - Quality Control:
+          - Overview: parsing_qc/qc/overview.md
+          - Threshold System: parsing_qc/qc/thresholds.md
+          - Validation Checks: parsing_qc/qc/validation-checks.md
+      - API Reference:
+          - Endpoints: parsing_qc/api/endpoints.md
+      - Troubleshooting: parsing_qc/troubleshooting.md
+      - Project Docs:
+          - Architecture: parsing_qc/architecture.md
+          - Parsing & QC Manual: parsing_qc/parsing_qc_manual.md
+  - PostgreSQL & Visualization:
+      - Overview: postgresql_visualization/index.md
+      - Database:
+          - Overview: postgresql_visualization/database.md
+          - Schema Notes: postgresql_visualization/schema_design_notes.md
+      - Plots:
+          - Overview: postgresql_visualization/plots.md
+          - Lineage: postgresql_visualization/plots_lineage.md
+          - Distribution: postgresql_visualization/plots_distribution.md
+          - Top 10: postgresql_visualization/plots_top10.md
+          - Protein Network: postgresql_visualization/plots_protein_network.md
+      - Pipelines: postgresql_visualization/pipeline.md
+      - User Guide: postgresql_visualization/user_guide.md
+      - Ops:
+          - Database Setup (Tailscale): postgresql_visualization/database_setup_tailscale.md
+          - PostgreSQL Tailscale Methodology: postgresql_visualization/postgresql_tailscale_methodology.md
+          - Git Workflow: postgresql_visualization/git_workflow.md
+  - Ownership:
+      - Parsing & QC Ownership: parsing_qc/OWNERS.md
+      - PostgreSQL & Visualization Ownership: postgresql_visualization/OWNERS.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+
+extra:
+  generator: false
+
+extra_css:
+  - parsing_qc/stylesheets/extra.css

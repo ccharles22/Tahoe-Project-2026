@@ -1,4 +1,4 @@
-﻿import os
+import os
 import logging
 from flask import Flask, render_template, send_from_directory, abort
 from dotenv import load_dotenv
@@ -130,11 +130,11 @@ def create_app():
     from .blueprints.sequence import sequence_bp
     app.register_blueprint(sequence_bp)
 
-    # Serve built MkDocs site (generated site for parsing/QC docs).
+    # Serve built MkDocs site (unified docs site output).
     # Routes are always registered so docs work after a build without requiring
     # the app to have seen `site/` at startup time.
     site_dir = os.path.join(
-        os.path.dirname(__file__), "..", "mkdocs", "parsing_qc", "site"
+        os.path.dirname(__file__), "..", "mkdocs", "site"
     )
     site_dir = os.path.abspath(site_dir)
 
