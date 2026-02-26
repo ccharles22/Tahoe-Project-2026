@@ -18,6 +18,7 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    # Prefer a stable column order; gracefully fall back if schema/query changes.
     preferred = ["generation_number", "plasmid_variant_index", "activity_score", "total_mutations"]
     cols = [c for c in preferred if c in df_top10.columns]
     if not cols:
@@ -25,6 +26,7 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
 
     t = df_top10[cols].copy()
 
+    # Short labels keep the rendered table compact and readable.
     rename = {
         "generation_number": "Gen",
         "plasmid_variant_index": "Variant",
@@ -33,12 +35,14 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
     }
     t = t.rename(columns={c: rename.get(c, c) for c in t.columns})
 
+    # Normalize numeric display to fixed precision for clean alignment.
     for c in t.columns:
         if "score" in c.lower():
             t[c] = pd.to_numeric(t[c], errors="coerce").map(lambda x: "" if pd.isna(x) else f"{x:.3f}")
         elif t[c].dtype.kind in "fc":
             t[c] = pd.to_numeric(t[c], errors="coerce").map(lambda x: "" if pd.isna(x) else f"{x:.3f}")
 
+    # Scale figure height with row count to avoid clipping.
     nrows = len(t) + 1
     fig_h = max(2.8, 0.50 * nrows)
     fig, ax = plt.subplots(figsize=(9.5, fig_h))
@@ -56,6 +60,7 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
     table.set_fontsize(11)
     table.scale(1.0, 1.35)
 
+    # Header emphasis + zebra striping improve scanability.
     for (r, c), cell in table.get_celld().items():
         cell.set_linewidth(1.0)
         if r == 0:

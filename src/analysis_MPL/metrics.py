@@ -15,6 +15,7 @@ def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
         unit  = EXCLUDED.unit;
     """
 
+    # Batch upsert keeps writes efficient while preserving idempotency on reruns.
     with conn.cursor() as cur:
         cur.executemany(sql, rows)
 

@@ -7,6 +7,7 @@ def compute_activity_score_fallback(df_raw: pd.DataFrame) -> pd.DataFrame:
     by the generation median, then define activity_score as dna_rel / prot_rel.
     """
 
+    # Work on a copy to keep caller data unchanged.
     d = df_raw.copy()
 
     # Ensure numeric
@@ -25,9 +26,11 @@ def compute_activity_score_fallback(df_raw: pd.DataFrame) -> pd.DataFrame:
     d["dna_yield_norm"] = d["dna_yield_raw"] / d["dna_med"]
     d["protein_yield_norm"] = d["protein_yield_raw"] / d["prot_med"]
 
+    # Higher score means DNA signal is strong relative to protein within generation-normalized space.
     d["activity_score"] = d["dna_yield_norm"] / d["protein_yield_norm"]
 
     # Clean up infinities/nans
     d = d.replace([np.inf, -np.inf], np.nan).dropna(subset=["activity_score"])
 
+    # Return only fields expected downstream by DB upsert/report layers.
     return d[["variant_id", "generation_id", "dna_yield_norm", "protein_yield_norm", "activity_score"]]

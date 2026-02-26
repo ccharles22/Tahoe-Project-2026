@@ -21,7 +21,7 @@ LabelMode = Literal["none", "top10", "all"]
 NetworkMode = Literal["identity", "cooccurrence"]
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True) #configuration for the protein similarity network plot, with defaults and type annotations
 class ProteinNetConfig:
 	# plotting
 	figsize: tuple[float, float] = (14, 8)
@@ -79,7 +79,7 @@ def _hamming_distance(a: str, b: str, *, max_dist: int) -> int | None:
 	Hamming distance with early stop.
 	Returns None if lengths differ or if distance exceeds max_dist.
 	"""
-	if a is None or b is None:
+	if a is None or b is None: #treat None as missing sequence, not comparable
 		return None
 	if len(a) != len(b):
 		return None
@@ -92,7 +92,7 @@ def _hamming_distance(a: str, b: str, *, max_dist: int) -> int | None:
 	return d
 
 
-def _pick_nodes_for_network(
+def _pick_nodes_for_network( 
 	nodes: pd.DataFrame,
 	cfg: ProteinNetConfig,
 	*,
@@ -173,17 +173,15 @@ def _pick_nodes_for_network(
 	return base
 
 
-def build_protein_similarity_edges(
+def build_protein_similarity_edges( #build edges based on sequence identity above threshold; only for equal-length sequences; O(N^2) so keep input small
 	nodes_sub: pd.DataFrame,
 	*,
 	id_col: str,
 	seq_col: str,
 	identity_threshold: float,
 ) -> pd.DataFrame:
-	"""
-	Build undirected edges for pairs with identity > identity_threshold (equal-length sequences).
-	WARNING: O(N^2) - keep nodes_sub small (<= ~400).
-	"""
+	
+	# WARNING: O(N^2) - keep nodes_sub small (<= ~400).
 	ids = nodes_sub[id_col].tolist()
 	seqs = nodes_sub[seq_col].tolist()
 
@@ -207,7 +205,7 @@ def build_protein_similarity_edges(
 	return pd.DataFrame(edges, columns=["u", "v", "identity"])
 
 
-def _build_mutation_sets(
+def _build_mutation_sets( 
 	mutations: pd.DataFrame,
 	*,
 	variant_col: str,

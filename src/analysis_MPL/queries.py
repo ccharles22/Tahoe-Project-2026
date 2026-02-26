@@ -108,6 +108,7 @@ SELECT
   g.generation_number,
   v.plasmid_variant_index,
   r.activity_score,
+  -- Top-10 is a highlight flag for plots; it is not a hard filter on returned rows.
   CASE WHEN r.rn <= 10 AND r.activity_score IS NOT NULL THEN 1 ELSE 0 END AS is_top10
 FROM variants v
 JOIN generations g ON g.generation_id = v.generation_id
@@ -211,7 +212,7 @@ def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float
             "Stage 4 normalisation cannot proceed."
         )
 
-    # STRICT check: every generation in the experiment must have a valid WT baseline.
+    # STRICT check: enforce one usable WT baseline per generation to keep normalization comparable.
     df_generations = pd.read_sql(
         """
         SELECT generation_id, generation_number
@@ -248,7 +249,8 @@ def fetch_distribution(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(DISTRIBUTION_SQL, conn, params=(experiment_id,))
 
 def fetch_protein_similarity_nodes(conn, experiment_id: int) -> pd.DataFrame:
-  return pd.read_sql(PROTEIN_SIMILARITY_NODES_SQL, conn, params=(experiment_id, experiment_id))
+    # Same experiment id is used twice because the SQL has two placeholders (CTE and outer select).
+    return pd.read_sql(PROTEIN_SIMILARITY_NODES_SQL, conn, params=(experiment_id, experiment_id))
 
 def fetch_protein_mutations(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(PROTEIN_MUTATIONS_SQL, conn, params=(experiment_id,))
@@ -291,6 +293,7 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
       ON m.variant_id = v.variant_id
      AND m.metric_name = 'activity_score'
      AND m.metric_type = 'derived'
+    -- Include external parent nodes when needed so lineage edges remain drawable.
     WHERE v.variant_id IN (SELECT variant_id FROM all_needed);
     """
     return pd.read_sql(q, conn, params=(experiment_id, experiment_id))
