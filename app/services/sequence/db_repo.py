@@ -1,19 +1,9 @@
 """
 Database repository layer for the sequence processing pipeline.
 
-Provides all SQL persistence operations required by the sequence analysis
-workflow, including:
-    - WT reference and variant retrieval
-    - Mutation storage (synonymous / nonsynonymous / indel classification)
-    - Derived metric persistence (mutation counts)
-    - Experiment status tracking and run metadata
-    - WT mapping cache (avoids 6-frame recomputation)
-    - UniProt staging for WT protein accession data
-    - Atomic end-to-end variant analysis persistence
-
-Dependencies:
-    - SQLAlchemy (create_engine, text, Connection, Engine)
-    - app.config.settings for DATABASE_URL and pipeline configuration
+All SQL persistence operations (reads, upserts, batch writes) used by the
+pipeline orchestrator. See the project MkDocs for architecture and workflow
+details.
 """
 from __future__ import annotations
 

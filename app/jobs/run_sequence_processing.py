@@ -1,33 +1,12 @@
 """
 Sequence processing orchestrator for variant analysis pipeline.
 
-This module provides the main entry point for processing all variants in an
-experiment. It coordinates the workflow: WT mapping, variant CDS extraction,
-mutation calling, and result persistence.
+Coordinates WT mapping, variant processing, mutation calling, and DB
+persistence for an experiment. See the project MkDocs for pipeline
+architecture details.
 
-Pipeline Architecture:
-    1. Load WT References: Obtains the UniProt protein and WT plasmid DNA
-    2. WT Mapping (cached): Computes or loads 6-frame gene mapping
-    3. Variant Processing Loop:
-        a. Extracts the variant CDS using WT coordinates
-        b. Translates and performs QC checks
-        c. Calls mutations against WT (codon-by-codon or alignment-based)
-        d. Persists results and mutation records
-    4. Status Tracking: Updates experiment status (i.e. ANALYSED, FAILED)
-
-Error Recovery:
-    - Individual variant failures are logged but don't affect processing
-    - Failed variants get QC-only records with error details in notes
-    - Final status reflects whether any variants failed (ANALYSED_WITH_ERRORS)
-
-Command-Line Usage:
+Usage:
     python -m app.jobs.run_sequence_processing <experiment_id>
-
-Integration Points:
-    - Called by the main Flask application's job queue
-    - Can be invoked directly via CLI for testing or batch processing
-    - All database writes are atomic (per-variant transactions)
-
 """
 
 from __future__ import annotations
@@ -68,47 +47,18 @@ def _empty_counts() -> MutationCounts:
 
 def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False) -> None:
     """
-    Executes the complete sequence processing pipeline for one experiment.
-    
-    Processes all variants in the experiment sequentially, performing CDS
-    extraction, translation, QC checks, and mutation calling. Results are
-    persisted to the database with atomic per-variant transactions.
-    
-    Workflow:
-        1. Update status to "ANALYSIS_RUNNING"
-        2. Load WT protein and plasmid DNA references
-        3. Compute or load cached WT gene mapping (6-frame search)
-        4. For each variant (skips already-processed unless force_reprocess=True):
-            - Extracts the variant CDS using WT coordinates
-            - Translates to protein
-            - Runs QC checks (frameshifts, stop codons, ambiguous bases)
-            - Calls mutations (strategy adapts to sequence characteristics)
-            - Saves results and mutation records
-        5. Updates final status (ANALYSED, ANALYSED_WITH_ERRORS, or FAILED)
-    
-    Error Handling:
-        - Individual variant errors: Logged, QC-only record saved, processing continues
-        - Fatal errors (WT mapping, DB connection): Status set to FAILED, exception raised
-    
+    Run the full variant-analysis pipeline for one experiment.
+
+    See the project MkDocs (Architecture / Visualisations) for the
+    detailed workflow, error-handling strategy, and database effects.
+
     Args:
-        experiment_id: Unique experiment identifier (must be positive integer).
-        force_reprocess: If True, re-process all variants even if they already
-            have results. Default False (skip already-processed variants).
-    
+        experiment_id: Positive integer identifying the experiment.
+        force_reprocess: Re-process variants that already have results.
+
     Raises:
         ValueError: If experiment_id <= 0.
-        Exception: If fatal error occurs during WT reference loading or mapping.
-    
-    Database Effects:
-        - Updates experiments.extra_metadata → 'analysis_status' (ANALYSIS_RUNNING → final state)
-        - Caches WT mapping in experiment_metadata (field_name='wt_mapping_json')
-        - Stores per-variant analysis in variants.protein_sequence + variants.extra_metadata
-        - Replaces mutations per variant (atomic delete + insert)
-        - Writes derived mutation-count metrics to public.metrics
-    
-    Note:
-        Progress is logged every LOG_EVERY_N variants (configurable via settings).
-        The function is idempotent - safe to re-run on the same experiment_id.
+        Exception: On fatal errors (WT loading, DB connection).
     """
     if experiment_id <= 0:
         raise ValueError("experiment_id must be a positive integer.")
@@ -185,6 +135,25 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
                     fallback_search=settings.FALLBACK_SEARCH,
                 )
                 
+                # Flag QC-level failures that don't raise exceptions
+                if (
+                    not seq_result.cds_dna
+                    or seq_result.protein_aa is None
+                    or seq_result.qc.has_frameshift
+                    or seq_result.qc.has_premature_stop
+                ):
+                    had_variant_errors = True
+                    if not seq_result.cds_dna:
+                        logger.warning(
+                            "Variant %d: no CDS extracted (experiment %s)",
+                            variant_id, experiment_id,
+                        )
+                    elif seq_result.protein_aa is None:
+                        logger.warning(
+                            "Variant %d: translation failed (experiment %s)",
+                            variant_id, experiment_id,
+                        )
+
                 if not seq_result.cds_dna:
                     pending.append(VariantAnalysisItem(
                         variant_id=variant_id,
@@ -311,18 +280,7 @@ def submit_sequence_processing(
 # ============================================================================
 
 if __name__ == "__main__":
-    """
-    CLI entry point for direct execution.
-    
-    Usage:
-        python -m app.jobs.run_sequence_processing <experiment_id>
-    
-    This enables testing and batch processing outside the Flask web application
-    or job queue (e.g., Celery, RQ).
-    
-    Example:
-        python -m app.jobs.run_sequence_processing 42
-    """
+    # CLI entry point: python -m app.jobs.run_sequence_processing <experiment_id>
     if len(sys.argv) != 2:
         raise SystemExit("Usage: python -m app.jobs.run_sequence_processing <experiment_id>")
     

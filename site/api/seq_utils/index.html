@@ -1,0 +1,2194 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Directed evolution sequence processing pipeline">
+      
+      
+      
+      
+        <link rel="prev" href="../db_repo/">
+      
+      
+        <link rel="next" href="../config/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Sequence Utilities - Tahoe Project 2026</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#sequence-utilities" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Tahoe Project 2026" class="md-header__button md-logo" aria-label="Tahoe Project 2026" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Tahoe Project 2026
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Sequence Utilities
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/your-org/Tahoe-Project-2026" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Tahoe Project 2026" class="md-nav__button md-logo" aria-label="Tahoe Project 2026" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Tahoe Project 2026
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/your-org/Tahoe-Project-2026" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visualisations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualisations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequence_service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../run_sequence_processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline Orchestrator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../db_repo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Repository
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Utilities
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#app.utils.seq_utils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        seq_utils
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="seq_utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.TranslationQC" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TranslationQC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.normalise_dna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalise_dna
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.contains_ambiguous_bases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contains_ambiguous_bases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.reverse_complement_dna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reverse_complement_dna
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.translate_dna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        translate_dna
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.translate_cds_with_qc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        translate_cds_with_qc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.circular_slice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        circular_slice
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#app.utils.seq_utils" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        seq_utils
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="seq_utils">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.TranslationQC" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TranslationQC
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.normalise_dna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        normalise_dna
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.contains_ambiguous_bases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        contains_ambiguous_bases
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.reverse_complement_dna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        reverse_complement_dna
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.translate_dna" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        translate_dna
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.translate_cds_with_qc" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        translate_cds_with_qc
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.utils.seq_utils.circular_slice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        circular_slice
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="sequence-utilities">Sequence Utilities<a class="headerlink" href="#sequence-utilities" title="Permanent link">&para;</a></h1>
+<p>DNA/protein utility functions for normalisation, translation, and circular plasmid handling.</p>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="app.utils.seq_utils" class="doc doc-heading">
+            <code>app.utils.seq_utils</code>
+
+
+<a href="#app.utils.seq_utils" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>DNA/protein sequence utility functions.</p>
+<p>Provides DNA normalisation, translation (with QC), reverse complement,
+and circular plasmid slicing. See the project MkDocs for detailed
+descriptions and usage examples.</p>
+
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="app.utils.seq_utils.TranslationQC" class="doc doc-heading">
+            <code>TranslationQC</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#app.utils.seq_utils.TranslationQC" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>Quality control metrics for in-silico translation results.</p>
+<p>Captures all issues that may affect downstream analysis, enabling
+automated filtering and manual review of problematic sequences.</p>
+
+
+<p><span class="doc-section-title">Attributes:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.normalised_len">normalised_len</span></code></td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Length of normalised DNA sequence (nt, after whitespace removal).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.has_ambiguous_bases">has_ambiguous_bases</span></code></td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if sequence contains non-ACGT bases (N, R, Y, etc.).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.has_stop_codon">has_stop_codon</span></code></td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if stop codon (*) found anywhere in translated protein.</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.has_frameshift">has_frameshift</span></code></td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if DNA length not divisible by 3 (incomplete codon).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.is_truncated">is_truncated</span></code></td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if translation stopped early due to stop codon (stop_policy="truncate").</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.stop_index">stop_index</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>0-based position of first stop codon in protein (None if no stop).</p>
+              </div>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code><span title="app.utils.seq_utils.TranslationQC.notes">notes</span></code></td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Human-readable warnings or error messages (None if no issues).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">19</span>
+<span class="normal">20</span>
+<span class="normal">21</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span>
+<span class="normal">34</span>
+<span class="normal">35</span>
+<span class="normal">36</span>
+<span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">TranslationQC</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Quality control metrics for in-silico translation results.</span>
+
+<span class="sd">    Captures all issues that may affect downstream analysis, enabling</span>
+<span class="sd">    automated filtering and manual review of problematic sequences.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        normalised_len: Length of normalised DNA sequence (nt, after whitespace removal).</span>
+<span class="sd">        has_ambiguous_bases: True if sequence contains non-ACGT bases (N, R, Y, etc.).</span>
+<span class="sd">        has_stop_codon: True if stop codon (*) found anywhere in translated protein.</span>
+<span class="sd">        has_frameshift: True if DNA length not divisible by 3 (incomplete codon).</span>
+<span class="sd">        is_truncated: True if translation stopped early due to stop codon (stop_policy=&quot;truncate&quot;).</span>
+<span class="sd">        stop_index: 0-based position of first stop codon in protein (None if no stop).</span>
+<span class="sd">        notes: Human-readable warnings or error messages (None if no issues).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">normalised_len</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">has_ambiguous_bases</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">has_stop_codon</span><span class="p">:</span> <span class="nb">bool</span>    
+    <span class="n">has_frameshift</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">is_truncated</span><span class="p">:</span> <span class="nb">bool</span>
+    <span class="n">stop_index</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.utils.seq_utils.normalise_dna" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">normalise_dna</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span></code>
+
+<a href="#app.utils.seq_utils.normalise_dna" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Normalise DNA sequence to standard format.</p>
+<p>Removes all whitespace (spaces, tabs, newlines) and converts sequence to uppercase.
+This is an essential preprocessing step to ensure consistent handling of sequences
+from different sources (FASTA files, databases, user input).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>seq</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Raw DNA sequence string (may contain whitespace, mixed case).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Normalised sequence (uppercase, no whitespace).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">normalise_dna</span><span class="p">(</span><span class="n">seq</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Normalise DNA sequence to standard format.</span>
+
+<span class="sd">    Removes all whitespace (spaces, tabs, newlines) and converts sequence to uppercase.</span>
+<span class="sd">    This is an essential preprocessing step to ensure consistent handling of sequences</span>
+<span class="sd">    from different sources (FASTA files, databases, user input).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        seq: Raw DNA sequence string (may contain whitespace, mixed case).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Normalised sequence (uppercase, no whitespace).</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">seq</span><span class="o">.</span><span class="n">split</span><span class="p">())</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.utils.seq_utils.contains_ambiguous_bases" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">contains_ambiguous_bases</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span></code>
+
+<a href="#app.utils.seq_utils.contains_ambiguous_bases" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Checks if DNA sequence contains ambiguous bases by detecting any non-ACGT <br />
+bases,which typically indicate low-confidence regions in assembled sequences 
+or degenerate primers. This is useful for flagging sequences that may produce
+unreliable translation results.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>dna</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DNA sequence to check (will be normalised automatically).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>bool</code></td>            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>True if any ambiguous bases found, False if all bases are ACGT.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span>
+<span class="normal">70</span>
+<span class="normal">71</span>
+<span class="normal">72</span>
+<span class="normal">73</span>
+<span class="normal">74</span>
+<span class="normal">75</span>
+<span class="normal">76</span>
+<span class="normal">77</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">contains_ambiguous_bases</span><span class="p">(</span><span class="n">dna</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Checks if DNA sequence contains ambiguous bases by detecting any non-ACGT   </span>
+<span class="sd">    bases,which typically indicate low-confidence regions in assembled sequences </span>
+<span class="sd">    or degenerate primers. This is useful for flagging sequences that may produce</span>
+<span class="sd">    unreliable translation results.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dna: DNA sequence to check (will be normalised automatically).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        bool: True if any ambiguous bases found, False if all bases are ACGT.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dna</span> <span class="o">=</span> <span class="n">normalise_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">any</span><span class="p">(</span><span class="n">base</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">VALID_DNA</span> <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="n">dna</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.utils.seq_utils.reverse_complement_dna" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">reverse_complement_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span></code>
+
+<a href="#app.utils.seq_utils.reverse_complement_dna" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Computes the reverse complement of DNA sequence. This is 
+essential for processing genes encoded on the minus strand, as DNA
+sequences are conventionally read 5' to 3' on the plus strand.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>dna</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DNA sequence (will be normalised automatically).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Reverse complement (A↔T, C↔G, reversed).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">79</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span>
+<span class="normal">88</span>
+<span class="normal">89</span>
+<span class="normal">90</span>
+<span class="normal">91</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">reverse_complement_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Computes the reverse complement of DNA sequence. This is </span>
+<span class="sd">    essential for processing genes encoded on the minus strand, as DNA</span>
+<span class="sd">    sequences are conventionally read 5&#39; to 3&#39; on the plus strand.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dna: DNA sequence (will be normalised automatically).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Reverse complement (A↔T, C↔G, reversed).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">Seq</span><span class="p">(</span><span class="n">normalise_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">))</span><span class="o">.</span><span class="n">reverse_complement</span><span class="p">())</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.utils.seq_utils.translate_dna" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">translate_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">to_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></code>
+
+<a href="#app.utils.seq_utils.translate_dna" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Translates DNA sequence into protein using Biopython's 
+Seq.translate with automatic normalisation to ensure 
+consistent input format. </p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>dna</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>DNA sequence to translate (will be normalised automatically).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>table</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>NCBI genetic code table number (default: 11 = bacterial).</p>
+              </div>
+            </td>
+            <td>
+                  <code>11</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>to_stop</code>
+            </td>
+            <td>
+                  <code><span title="bool">bool</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If True, stop translation at first stop codon (default: False).</p>
+              </div>
+            </td>
+            <td>
+                  <code>False</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Translated protein sequence (single-letter amino acid codes).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span>
+<span class="normal">105</span>
+<span class="normal">106</span>
+<span class="normal">107</span>
+<span class="normal">108</span>
+<span class="normal">109</span>
+<span class="normal">110</span>
+<span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">translate_dna</span><span class="p">(</span>
+        <span class="n">dna</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">table</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
+        <span class="n">to_stop</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates DNA sequence into protein using Biopython&#39;s </span>
+<span class="sd">    Seq.translate with automatic normalisation to ensure </span>
+<span class="sd">    consistent input format. </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dna: DNA sequence to translate (will be normalised automatically).</span>
+<span class="sd">        table: NCBI genetic code table number (default: 11 = bacterial).</span>
+<span class="sd">        to_stop: If True, stop translation at first stop codon (default: False).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Translated protein sequence (single-letter amino acid codes).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dna</span> <span class="o">=</span> <span class="n">normalise_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">Seq</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="n">table</span><span class="p">,</span> <span class="n">to_stop</span><span class="o">=</span><span class="n">to_stop</span><span class="p">))</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.utils.seq_utils.translate_cds_with_qc" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">translate_cds_with_qc</span><span class="p">(</span><span class="n">cds_dna</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">genetic_code_table</span><span class="o">=</span><span class="mi">11</span><span class="p">,</span> <span class="n">stop_policy</span><span class="o">=</span><span class="s1">&#39;truncate&#39;</span><span class="p">,</span> <span class="n">min_len_nt</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span></code>
+
+<a href="#app.utils.seq_utils.translate_cds_with_qc" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Translates CDS to protein with comprehensive quality control which consists of 
+frameshift detection,ambiguous base flagging, and stop codon handling. 
+Returns both the translated protein (if successful) and detailed QC metrics.</p>
+
+
+<details class="stop-codon-handling-policies" open>
+  <summary>Stop codon handling policies</summary>
+  <ul>
+<li>"truncate": Stop at first stop codon (standard protein translation)</li>
+<li>"keep_stops": Include stop codons (*) in output (useful for mutation analysis)</li>
+</ul>
+</details>
+
+<details class="qc-checks-performed" open>
+  <summary>QC checks performed</summary>
+  <ol>
+<li>Minimum length validation (rejects sequences &lt; min_len_nt)</li>
+<li>Frameshift detection (length % 3 ≠ 0)</li>
+<li>Ambiguous base detection (non-ACGT characters)</li>
+<li>Stop codon detection and position tracking</li>
+<li>Translation error handling</li>
+</ol>
+</details>
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>cds_dna</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Coding DNA sequence to translate.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>genetic_code_table</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>NCBI genetic code table (default: 11 = bacterial).</p>
+              </div>
+            </td>
+            <td>
+                  <code>11</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>stop_policy</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>How to handle stop codons ("truncate" or "keep_stops").</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;truncate&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>min_len_nt</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Minimum sequence length in nucleotides (default: 3 = 1 codon).</p>
+              </div>
+            </td>
+            <td>
+                  <code>3</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="typing.Optional">Optional</span>[<span title="str">str</span>], <a class="autorefs autorefs-internal" title="TranslationQC
+
+
+  
+      dataclass
+   (app.utils.seq_utils.TranslationQC)" href="#app.utils.seq_utils.TranslationQC">TranslationQC</a>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple containing:
+- Optional[str]: Translated protein (None if translation failed)
+- TranslationQC: Comprehensive quality control metrics</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If stop_policy is not "truncate" or "keep_stops".</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span>
+<span class="normal">142</span>
+<span class="normal">143</span>
+<span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span>
+<span class="normal">170</span>
+<span class="normal">171</span>
+<span class="normal">172</span>
+<span class="normal">173</span>
+<span class="normal">174</span>
+<span class="normal">175</span>
+<span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span>
+<span class="normal">207</span>
+<span class="normal">208</span>
+<span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">translate_cds_with_qc</span><span class="p">(</span>
+        <span class="n">cds_dna</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="o">*</span><span class="p">,</span>
+        <span class="n">genetic_code_table</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">11</span><span class="p">,</span>
+        <span class="n">stop_policy</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;truncate&quot;</span><span class="p">,</span>
+        <span class="n">min_len_nt</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">3</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span> <span class="n">TranslationQC</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Translates CDS to protein with comprehensive quality control which consists of </span>
+<span class="sd">    frameshift detection,ambiguous base flagging, and stop codon handling. </span>
+<span class="sd">    Returns both the translated protein (if successful) and detailed QC metrics.</span>
+
+<span class="sd">    Stop codon handling policies:</span>
+<span class="sd">        - &quot;truncate&quot;: Stop at first stop codon (standard protein translation)</span>
+<span class="sd">        - &quot;keep_stops&quot;: Include stop codons (*) in output (useful for mutation analysis)</span>
+
+<span class="sd">    QC checks performed:</span>
+<span class="sd">        1. Minimum length validation (rejects sequences &lt; min_len_nt)</span>
+<span class="sd">        2. Frameshift detection (length % 3 ≠ 0)</span>
+<span class="sd">        3. Ambiguous base detection (non-ACGT characters)</span>
+<span class="sd">        4. Stop codon detection and position tracking</span>
+<span class="sd">        5. Translation error handling</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        cds_dna: Coding DNA sequence to translate.</span>
+<span class="sd">        genetic_code_table: NCBI genetic code table (default: 11 = bacterial).</span>
+<span class="sd">        stop_policy: How to handle stop codons (&quot;truncate&quot; or &quot;keep_stops&quot;).</span>
+<span class="sd">        min_len_nt: Minimum sequence length in nucleotides (default: 3 = 1 codon).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple containing:</span>
+<span class="sd">            - Optional[str]: Translated protein (None if translation failed)</span>
+<span class="sd">            - TranslationQC: Comprehensive quality control metrics</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If stop_policy is not &quot;truncate&quot; or &quot;keep_stops&quot;.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">stop_policy</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">{</span><span class="s2">&quot;truncate&quot;</span><span class="p">,</span> <span class="s2">&quot;keep_stops&quot;</span><span class="p">}:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;stop_policy must be &#39;truncate&#39; or &#39;keep_stops&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">dna</span> <span class="o">=</span> <span class="n">normalise_dna</span><span class="p">(</span><span class="n">cds_dna</span><span class="p">)</span>
+    <span class="n">notes</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Rejects sequences that are too short to encode even a single codon</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">min_len_nt</span><span class="p">:</span>
+        <span class="n">qc</span> <span class="o">=</span> <span class="n">TranslationQC</span><span class="p">(</span>
+            <span class="n">normalised_len</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">),</span>
+            <span class="n">has_ambiguous_bases</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">has_stop_codon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">has_frameshift</span><span class="o">=</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">),</span>
+            <span class="n">is_truncated</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">stop_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Sequence too short to translate&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">qc</span>
+
+
+    <span class="n">has_ambiguous</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span> <span class="o">-</span> <span class="n">VALID_DNA</span><span class="p">)</span>
+    <span class="n">has_frameshift</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">has_frameshift</span><span class="p">:</span>
+        <span class="n">notes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;CDS length not divisible by 3.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Translates first without truncation to detect internal stop codons consistently.</span>
+    <span class="k">try</span><span class="p">:</span> 
+        <span class="n">full_translation</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span>
+            <span class="n">Seq</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span><span class="o">.</span><span class="n">translate</span><span class="p">(</span><span class="n">table</span><span class="o">=</span><span class="n">genetic_code_table</span><span class="p">,</span> <span class="n">to_stop</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">qc</span> <span class="o">=</span> <span class="n">TranslationQC</span><span class="p">(</span>
+            <span class="n">normalised_len</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">),</span>
+            <span class="n">has_ambiguous_bases</span><span class="o">=</span><span class="n">has_ambiguous</span><span class="p">,</span>
+            <span class="n">has_stop_codon</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">has_frameshift</span><span class="o">=</span><span class="n">has_frameshift</span><span class="p">,</span>
+            <span class="n">is_truncated</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">stop_index</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+            <span class="n">notes</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Translation failed: </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">e</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="n">qc</span>
+
+    <span class="n">stop_index</span> <span class="o">=</span> <span class="n">full_translation</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)</span>
+    <span class="n">has_stop</span> <span class="o">=</span> <span class="p">(</span><span class="n">stop_index</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">stop_policy</span> <span class="o">==</span> <span class="s2">&quot;truncate&quot;</span><span class="p">:</span>
+        <span class="n">protein</span> <span class="o">=</span> <span class="n">full_translation</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">is_truncated</span> <span class="o">=</span> <span class="n">has_stop</span>
+    <span class="k">else</span><span class="p">:</span>
+       <span class="n">protein</span> <span class="o">=</span> <span class="n">full_translation</span>
+       <span class="n">is_truncated</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="n">qc</span> <span class="o">=</span> <span class="n">TranslationQC</span><span class="p">(</span>
+        <span class="n">normalised_len</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">),</span>
+        <span class="n">has_ambiguous_bases</span><span class="o">=</span><span class="n">has_ambiguous</span><span class="p">,</span>
+        <span class="n">has_frameshift</span><span class="o">=</span><span class="n">has_frameshift</span><span class="p">,</span>
+        <span class="n">has_stop_codon</span><span class="o">=</span><span class="n">has_stop</span><span class="p">,</span>
+        <span class="n">is_truncated</span><span class="o">=</span><span class="n">is_truncated</span><span class="p">,</span>
+        <span class="n">stop_index</span><span class="o">=</span><span class="p">(</span><span class="n">stop_index</span> <span class="k">if</span> <span class="n">has_stop</span> <span class="k">else</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">notes</span><span class="p">)</span> <span class="k">if</span> <span class="n">notes</span> <span class="k">else</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">protein</span><span class="p">,</span> <span class="n">qc</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.utils.seq_utils.circular_slice" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">circular_slice</span><span class="p">(</span><span class="n">dna</span><span class="p">,</span> <span class="n">start_0based</span><span class="p">,</span> <span class="n">end_0based_excl</span><span class="p">)</span></code>
+
+<a href="#app.utils.seq_utils.circular_slice" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Extracts the subsequence from plasmid DNA by handling wrap-around coordinates.
+To achieve this, Python-style 0-based indexing with exclusive end coordinate is used.</p>
+
+
+<details class="coordinate-interpretation" open>
+  <summary>Coordinate interpretation</summary>
+  <ul>
+<li>start &lt; end: Normal linear slice [start:end)</li>
+<li>start &gt; end: Wrap-around slice [start:] + [:end)</li>
+<li>start == end: Empty string (ambiguous - could mean empty or full circle)</li>
+</ul>
+</details>
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>dna</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Circular DNA sequence (will be normalised automatically).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>start_0based</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Start position (0-based inclusive).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>end_0based_excl</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>End position (0-based exclusive).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>str</code></td>            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Extracted subsequence.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If coordinates are negative.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\utils\seq_utils.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span>
+<span class="normal">232</span>
+<span class="normal">233</span>
+<span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span>
+<span class="normal">258</span>
+<span class="normal">259</span>
+<span class="normal">260</span>
+<span class="normal">261</span>
+<span class="normal">262</span>
+<span class="normal">263</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">circular_slice</span><span class="p">(</span><span class="n">dna</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">start_0based</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">end_0based_excl</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extracts the subsequence from plasmid DNA by handling wrap-around coordinates.</span>
+<span class="sd">    To achieve this, Python-style 0-based indexing with exclusive end coordinate is used.</span>
+
+<span class="sd">    Coordinate interpretation:</span>
+<span class="sd">        - start &lt; end: Normal linear slice [start:end)</span>
+<span class="sd">        - start &gt; end: Wrap-around slice [start:] + [:end)</span>
+<span class="sd">        - start == end: Empty string (ambiguous - could mean empty or full circle)</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dna: Circular DNA sequence (will be normalised automatically).</span>
+<span class="sd">        start_0based: Start position (0-based inclusive).</span>
+<span class="sd">        end_0based_excl: End position (0-based exclusive).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: Extracted subsequence.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If coordinates are negative.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">if</span> <span class="n">start_0based</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">end_0based_excl</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Coordinates must be non-negative.&quot;</span><span class="p">)</span>
+
+    <span class="n">dna</span> <span class="o">=</span> <span class="n">normalise_dna</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dna</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+
+    <span class="n">start</span> <span class="o">=</span> <span class="n">start_0based</span> <span class="o">%</span> <span class="n">n</span>
+    <span class="n">end</span> <span class="o">=</span> <span class="n">end_0based_excl</span> <span class="o">%</span> <span class="n">n</span>
+
+    <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">dna</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">start</span> <span class="o">&gt;</span> <span class="n">end</span><span class="p">:</span>
+        <span class="c1"># Wrap-around: take from start to end of sequence, then from beginning to end</span>
+        <span class="k">return</span> <span class="n">dna</span><span class="p">[</span><span class="n">start</span><span class="p">:]</span> <span class="o">+</span> <span class="n">dna</span><span class="p">[:</span><span class="n">end</span><span class="p">]</span>
+
+    <span class="c1"># Return empty string; caller must handle full-circle case if needed</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

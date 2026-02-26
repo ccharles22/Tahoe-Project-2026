@@ -1,0 +1,2679 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Directed evolution sequence processing pipeline">
+      
+      
+      
+      
+        <link rel="prev" href="../architecture/">
+      
+      
+        <link rel="next" href="../api/sequence_service/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Visualisations - Tahoe Project 2026</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#visualisations-sequence-processing-user-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="Tahoe Project 2026" class="md-header__button md-logo" aria-label="Tahoe Project 2026" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Tahoe Project 2026
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Visualisations
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/your-org/Tahoe-Project-2026" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="Tahoe Project 2026" class="md-nav__button md-logo" aria-label="Tahoe Project 2026" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Tahoe Project 2026
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/your-org/Tahoe-Project-2026" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualisations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualisations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-concepts-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Concepts &amp; Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Concepts &amp; Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#molecular-biology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Molecular Biology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-specific" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline-Specific
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mutation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutation Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-wild-type-gene-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Wild-Type Gene Mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1 — Wild-Type Gene Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works-6-frame-translation-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works — 6-Frame Translation Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagram-6-frame-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagram — 6-Frame Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-plasmid-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Plasmid Map
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-variant-cds-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Variant CDS Extraction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2 — Variant CDS Extraction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-wt-vs-variant-cds-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — WT vs Variant CDS Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-translation-quality-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Translation &amp; Quality Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3 — Translation &amp; Quality Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#translation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Translation Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qc-checks-performed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QC Checks Performed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-codon-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Codon Policies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-qc-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — QC Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-mutation-calling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Mutation Calling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4 — Mutation Calling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-selection-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy Selection Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codon-by-codon-comparison-same-length-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codon-by-Codon Comparison (Same-Length Sequences)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protein-alignment-different-length-sequences-indels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein Alignment (Different-Length Sequences — Indels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-mutation-spectrum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Mutation Spectrum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-mutation-heatmap-position-variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Mutation Heatmap (Position × Variant)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-interpreting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — Interpreting Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5 — Interpreting Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#experiment-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-your-mutation-counts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Your Mutation Counts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-experiment-summary-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Experiment Summary Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualisation-code-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation Code Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualisation Code Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complete-end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete End-to-End Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporting-results-to-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporting Results to CSV
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-qc-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting &amp; QC Flags
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting &amp; QC Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experiment-status-decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment Status Decision Tree
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/sequence_service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/run_sequence_processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline Orchestrator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/db_repo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Repository
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/seq_utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api/config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-concepts-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key Concepts &amp; Definitions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Key Concepts &amp; Definitions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#molecular-biology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Molecular Biology
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pipeline-specific" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline-Specific
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mutation-types" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Mutation Types
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-wild-type-gene-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 1 — Wild-Type Gene Mapping
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 1 — Wild-Type Gene Mapping">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works-6-frame-translation-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works — 6-Frame Translation Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#diagram-6-frame-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Diagram — 6-Frame Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-plasmid-map" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Plasmid Map
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-2-variant-cds-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 2 — Variant CDS Extraction
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 2 — Variant CDS Extraction">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-it-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How It Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-wt-vs-variant-cds-alignment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — WT vs Variant CDS Alignment
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-3-translation-quality-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 3 — Translation &amp; Quality Control
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 3 — Translation &amp; Quality Control">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#translation-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Translation Process
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qc-checks-performed" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QC Checks Performed
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stop-codon-policies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stop Codon Policies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-qc-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — QC Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-4-mutation-calling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 4 — Mutation Calling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 4 — Mutation Calling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-happens_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What Happens
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#strategy-selection-diagram" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Strategy Selection Diagram
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codon-by-codon-comparison-same-length-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codon-by-Codon Comparison (Same-Length Sequences)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#protein-alignment-different-length-sequences-indels" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Protein Alignment (Different-Length Sequences — Indels)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#code-example_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-mutation-spectrum" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Mutation Spectrum
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-mutation-heatmap-position-variant" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Mutation Heatmap (Position × Variant)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-5-interpreting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step 5 — Interpreting Results
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Step 5 — Interpreting Results">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#experiment-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-your-mutation-counts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Your Mutation Counts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#visualisation-experiment-summary-dashboard" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation — Experiment Summary Dashboard
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#visualisation-code-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Visualisation Code Examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Visualisation Code Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#complete-end-to-end-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Complete End-to-End Example
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#exporting-results-to-csv" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Exporting Results to CSV
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-qc-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting &amp; QC Flags
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting &amp; QC Flags">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#common-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#experiment-status-decision-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Experiment Status Decision Tree
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="visualisations-sequence-processing-user-guide">Visualisations — Sequence Processing User Guide<a class="headerlink" href="#visualisations-sequence-processing-user-guide" title="Permanent link">&para;</a></h1>
+<p>This guide walks you through every stage of the Tahoe sequence processing pipeline, from raw plasmid DNA to mutation reports. Each section includes <strong>definitions</strong>, <strong>visual diagrams</strong>, and <strong>code examples</strong> you can run directly in the portal.</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#key-concepts-definitions">Key Concepts &amp; Definitions</a></li>
+<li><a href="#pipeline-overview">Pipeline Overview</a></li>
+<li><a href="#step-1-wild-type-gene-mapping">Step 1 — Wild-Type Gene Mapping</a></li>
+<li><a href="#step-2-variant-cds-extraction">Step 2 — Variant CDS Extraction</a></li>
+<li><a href="#step-3-translation-quality-control">Step 3 — Translation &amp; Quality Control</a></li>
+<li><a href="#step-4-mutation-calling">Step 4 — Mutation Calling</a></li>
+<li><a href="#step-5-interpreting-results">Step 5 — Interpreting Results</a></li>
+<li><a href="#visualisation-code-examples">Visualisation Code Examples</a></li>
+<li><a href="#troubleshooting-qc-flags">Troubleshooting &amp; QC Flags</a></li>
+</ol>
+<hr />
+<h2 id="key-concepts-definitions">Key Concepts &amp; Definitions<a class="headerlink" href="#key-concepts-definitions" title="Permanent link">&para;</a></h2>
+<p>Before using the pipeline, familiarise yourself with these terms:</p>
+<h3 id="molecular-biology">Molecular Biology<a class="headerlink" href="#molecular-biology" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Plasmid</strong></td>
+<td>A small, circular DNA molecule found in bacteria. In directed evolution, the gene of interest is cloned into a plasmid for expression and mutagenesis.</td>
+</tr>
+<tr>
+<td><strong>CDS (Coding DNA Sequence)</strong></td>
+<td>The portion of the plasmid that encodes the protein. Starts with a start codon (ATG) and ends with a stop codon (TAA/TAG/TGA).</td>
+</tr>
+<tr>
+<td><strong>Codon</strong></td>
+<td>A sequence of 3 DNA nucleotides (e.g., ATG, GCT) that encodes a single amino acid.</td>
+</tr>
+<tr>
+<td><strong>Reading Frame</strong></td>
+<td>One of 3 possible ways to divide a DNA sequence into codons. Frame 0 starts at position 0, frame 1 at position 1, frame 2 at position 2.</td>
+</tr>
+<tr>
+<td><strong>Strand</strong></td>
+<td>DNA is double-stranded. The <strong>PLUS</strong> (sense) strand reads 5′→3′; the <strong>MINUS</strong> (antisense) strand is the reverse complement. The gene can be on either strand.</td>
+</tr>
+<tr>
+<td><strong>Wild-Type (WT)</strong></td>
+<td>The original, unmodified reference sequence — the starting point before mutations are introduced.</td>
+</tr>
+<tr>
+<td><strong>Variant</strong></td>
+<td>A modified version of the plasmid produced by mutagenesis. Each variant may contain zero or more mutations relative to the WT.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="pipeline-specific">Pipeline-Specific<a class="headerlink" href="#pipeline-specific" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>WTMapping</strong></td>
+<td>The result of locating the WT gene in the plasmid. Contains the strand, reading frame, CDS start/end coordinates, and the extracted WT CDS and protein sequences.</td>
+</tr>
+<tr>
+<td><strong>VariantSeqResult</strong></td>
+<td>The result of extracting and translating a single variant's CDS. Contains the DNA sequence, translated protein, and quality control flags.</td>
+</tr>
+<tr>
+<td><strong>QCFlags</strong></td>
+<td>A set of boolean flags indicating quality issues: frameshifts, ambiguous bases, or premature stop codons.</td>
+</tr>
+<tr>
+<td><strong>MutationRecord</strong></td>
+<td>A single mutation detected between the WT and a variant, classified as SYNONYMOUS, NONSYNONYMOUS, NONSENSE, FRAMESHIFT, INSERTION, DELETION, or AMBIGUOUS.</td>
+</tr>
+<tr>
+<td><strong>MutationCounts</strong></td>
+<td>Aggregated mutation statistics: counts of synonymous, nonsynonymous, and total mutations for a variant.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="mutation-types">Mutation Types<a class="headerlink" href="#mutation-types" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Symbol</th>
+<th>Definition</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Synonymous</strong></td>
+<td>SYN</td>
+<td>Codon changes but amino acid stays the same (e.g., GCT→GCC both encode Alanine)</td>
+<td>Silent — no protein change</td>
+</tr>
+<tr>
+<td><strong>Nonsynonymous</strong></td>
+<td>NONSYN</td>
+<td>Codon changes AND amino acid changes (e.g., GCT→GAT: Ala→Asp)</td>
+<td>Alters protein sequence</td>
+</tr>
+<tr>
+<td><strong>Nonsense</strong></td>
+<td>STOP</td>
+<td>Mutation introduces a premature stop codon (e.g., TGG→TGA: Trp→Stop)</td>
+<td>Truncates protein</td>
+</tr>
+<tr>
+<td><strong>Frameshift</strong></td>
+<td>FS</td>
+<td>Insertion or deletion of bases not divisible by 3, shifting the reading frame</td>
+<td>Scrambles downstream protein</td>
+</tr>
+<tr>
+<td><strong>Insertion</strong></td>
+<td>INS</td>
+<td>One or more codons added to the variant that are absent in the WT</td>
+<td>Lengthens protein</td>
+</tr>
+<tr>
+<td><strong>Deletion</strong></td>
+<td>DEL</td>
+<td>One or more codons present in the WT are absent in the variant</td>
+<td>Shortens protein</td>
+</tr>
+<tr>
+<td><strong>Ambiguous</strong></td>
+<td>AMB</td>
+<td>Variant codon contains non-ACGT bases (N, R, Y, etc.) — cannot classify</td>
+<td>Unknown effect</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="pipeline-overview">Pipeline Overview<a class="headerlink" href="#pipeline-overview" title="Permanent link">&para;</a></h2>
+<p>The pipeline processes each experiment in <strong>five stages</strong>. Every variant is compared against the same wild-type reference.</p>
+<div class="highlight"><pre><span></span><code>┌───────────────────────────────────────────────────────────────────┐
+│                        INPUT                                      │
+│  • WT protein sequence (from UniProt)                             │
+│  • WT plasmid DNA (circular, ~3–10 kb)                            │
+│  • Variant plasmid DNAs (one per variant, assembled reads)        │
+└─────────────────────────────┬─────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 1 — Wild-Type Gene Mapping                                │
+│  Find the CDS in the plasmid using 6-frame protein alignment    │
+│  Output: WTMapping (strand, frame, coordinates, CDS, protein)   │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 2 — Variant CDS Extraction (per variant)                  │
+│  Use WT coordinates to extract the same region from each variant │
+│  Handles circular plasmids, MINUS strand, wrap-around genes      │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 3 — Translation &amp; QC (per variant)                        │
+│  Translate CDS → protein, check for frameshifts, stops, Ns      │
+│  Output: VariantSeqResult with QCFlags                           │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 4 — Mutation Calling (per variant)                        │
+│  Compare variant CDS against WT CDS                              │
+│  Strategy: codon-by-codon (same length) or alignment (indels)   │
+│  Output: List[MutationRecord] + MutationCounts                   │
+└─────────────────────────────┬───────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  STEP 5 — Results &amp; Database Persistence                        │
+│  Store proteins, mutations, metrics → PostgreSQL                 │
+│  Experiment status: ANALYSED / ANALYSED_WITH_ERRORS / FAILED    │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<hr />
+<h2 id="step-1-wild-type-gene-mapping">Step 1 — Wild-Type Gene Mapping<a class="headerlink" href="#step-1-wild-type-gene-mapping" title="Permanent link">&para;</a></h2>
+<h3 id="what-happens">What Happens<a class="headerlink" href="#what-happens" title="Permanent link">&para;</a></h3>
+<p>The pipeline must find where your gene of interest sits within the circular plasmid. Since plasmids also contain backbone elements (origin of replication, antibiotic resistance markers, etc.), we need to pinpoint the exact CDS coordinates.</p>
+<h3 id="how-it-works-6-frame-translation-search">How It Works — 6-Frame Translation Search<a class="headerlink" href="#how-it-works-6-frame-translation-search" title="Permanent link">&para;</a></h3>
+<p>A circular plasmid can encode proteins on <strong>either strand</strong> in <strong>any of 3 reading frames</strong>, giving <strong>6 possible translations</strong>:</p>
+<div class="highlight"><pre><span></span><code>PLUS strand:
+  Frame 0:  A T G | G C T | G C C | ...
+  Frame 1:    T G G | C T G | C C A | ...
+  Frame 2:      G G C | T G C | C A T | ...
+
+MINUS strand (reverse complement):
+  Frame 0:  ... | G G C | A G C | C A T
+  Frame 1:    ... | G C A | G C C | A T ...
+  Frame 2:      ... | C A G | C C A | T ...
+</code></pre></div>
+<p>The algorithm:</p>
+<ol>
+<li><strong>Circularise</strong> the plasmid by concatenating it with itself (<code>plasmid + plasmid</code>). This handles genes that wrap around the origin.</li>
+<li><strong>Translate</strong> each of the 6 frames into protein.</li>
+<li><strong>Align</strong> each translation against the known WT protein using the BLOSUM62 scoring matrix.</li>
+<li><strong>Select</strong> the frame with the highest percent identity above the threshold (default: 60%).</li>
+<li><strong>Validate</strong> the candidate: CDS must be divisible by 3, no ambiguous bases, protein length ≥ 80% of reference.</li>
+</ol>
+<h3 id="diagram-6-frame-search">Diagram — 6-Frame Search<a class="headerlink" href="#diagram-6-frame-search" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>        Circular plasmid (5000 bp)
+    ┌───────────────────────────────┐
+    │ ▸▸▸▸▸▸ backbone ▸▸▸▸▸▸▸▸▸▸▸ │
+    │                               │
+    │    ┌─── YOUR GENE ───┐        │
+    │    │  CDS: 1200–2400 │        │
+    │    │  PLUS strand     │        │
+    │    │  Frame 0         │        │
+    │    └──────────────────┘        │
+    │                               │
+    │ ◂◂◂◂◂◂ backbone ◂◂◂◂◂◂◂◂◂◂◂ │
+    └───────────────────────────────┘
+
+          6 translations tried
+    ┌──────────┐
+    │ PLUS F0  │ ━━━ 98.5% identity ← BEST MATCH
+    │ PLUS F1  │ ─── 12.3% identity
+    │ PLUS F2  │ ─── 15.1% identity
+    │ MINUS F0 │ ─── 8.7% identity
+    │ MINUS F1 │ ─── 11.2% identity
+    │ MINUS F2 │ ─── 9.4% identity
+    └──────────┘
+</code></pre></div>
+<h3 id="code-example">Code Example<a class="headerlink" href="#code-example" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">app.services.sequence.sequence_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">map_wt_gene_in_plasmid</span>
+
+<span class="c1"># Your WT protein (from UniProt) and plasmid DNA</span>
+<span class="n">wt_protein</span> <span class="o">=</span> <span class="s2">&quot;MSKGEELFTG...&quot;</span>   <span class="c1"># Full protein sequence</span>
+<span class="n">wt_plasmid</span> <span class="o">=</span> <span class="s2">&quot;ATGCGTACC...&quot;</span>    <span class="c1"># Full circular plasmid</span>
+
+<span class="c1"># Find the gene</span>
+<span class="n">mapping</span> <span class="o">=</span> <span class="n">map_wt_gene_in_plasmid</span><span class="p">(</span><span class="n">wt_protein</span><span class="p">,</span> <span class="n">wt_plasmid</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Strand:     </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">strand</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>          <span class="c1"># &quot;PLUS&quot; or &quot;MINUS&quot;</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Frame:      </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>            <span class="c1"># 0, 1, or 2</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CDS start:  </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">cds_start_0based</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span> <span class="c1"># e.g., 1200</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CDS end:    </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">cds_end_0based_excl</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># e.g., 2400</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Identity:   </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">match_identity_pct</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>  <span class="c1"># e.g., 99.2%</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CDS length: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">wt_cds_dna</span><span class="p">)</span><span class="si">}</span><span class="s2"> bp&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="visualisation-plasmid-map">Visualisation — Plasmid Map<a class="headerlink" href="#visualisation-plasmid-map" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">patches</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">plot_plasmid_map</span><span class="p">(</span><span class="n">mapping</span><span class="p">,</span> <span class="n">plasmid_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Draws a circular plasmid map highlighting the CDS location.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mapping: WTMapping result from map_wt_gene_in_plasmid()</span>
+<span class="sd">        plasmid_length: Total plasmid length in base pairs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="mi">8</span><span class="p">))</span>
+
+    <span class="c1"># Draw plasmid circle</span>
+    <span class="n">circle</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">Circle</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mf">0.35</span><span class="p">,</span> <span class="n">fill</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> 
+                         <span class="n">linewidth</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#333333&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">circle</span><span class="p">)</span>
+
+    <span class="c1"># Calculate CDS arc</span>
+    <span class="n">start_frac</span> <span class="o">=</span> <span class="n">mapping</span><span class="o">.</span><span class="n">cds_start_0based</span> <span class="o">/</span> <span class="n">plasmid_length</span>
+    <span class="n">end_frac</span> <span class="o">=</span> <span class="n">mapping</span><span class="o">.</span><span class="n">cds_end_0based_excl</span> <span class="o">/</span> <span class="n">plasmid_length</span>
+
+    <span class="c1"># Draw CDS arc</span>
+    <span class="n">theta_start</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="p">(</span><span class="n">start_frac</span> <span class="o">*</span> <span class="mi">360</span><span class="p">)</span>
+    <span class="n">theta_end</span> <span class="o">=</span> <span class="mi">90</span> <span class="o">-</span> <span class="p">(</span><span class="n">end_frac</span> <span class="o">*</span> <span class="mi">360</span><span class="p">)</span>
+
+    <span class="n">cds_arc</span> <span class="o">=</span> <span class="n">patches</span><span class="o">.</span><span class="n">Arc</span><span class="p">(</span>
+        <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="mf">0.7</span><span class="p">,</span> <span class="mf">0.7</span><span class="p">,</span>
+        <span class="n">angle</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">theta1</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">theta_start</span><span class="p">,</span> <span class="n">theta_end</span><span class="p">),</span>
+        <span class="n">theta2</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">theta_start</span><span class="p">,</span> <span class="n">theta_end</span><span class="p">),</span>
+        <span class="n">linewidth</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#2196F3&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">add_patch</span><span class="p">(</span><span class="n">cds_arc</span><span class="p">)</span>
+
+    <span class="c1"># Labels</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">plasmid_length</span><span class="si">}</span><span class="s2"> bp</span><span class="se">\n</span><span class="s2">plasmid&quot;</span><span class="p">,</span> 
+            <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+
+    <span class="n">cds_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">wt_cds_dna</span><span class="p">)</span> 
+    <span class="n">mid_frac</span> <span class="o">=</span> <span class="p">(</span><span class="n">start_frac</span> <span class="o">+</span> <span class="n">end_frac</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span>
+    <span class="n">mid_angle</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">radians</span><span class="p">(</span><span class="mi">90</span> <span class="o">-</span> <span class="n">mid_frac</span> <span class="o">*</span> <span class="mi">360</span><span class="p">)</span>
+    <span class="n">label_r</span> <span class="o">=</span> <span class="mf">0.42</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+        <span class="mf">0.5</span> <span class="o">+</span> <span class="n">label_r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">mid_angle</span><span class="p">),</span>
+        <span class="mf">0.5</span> <span class="o">+</span> <span class="n">label_r</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">mid_angle</span><span class="p">),</span>
+        <span class="sa">f</span><span class="s2">&quot;CDS</span><span class="se">\n</span><span class="si">{</span><span class="n">cds_len</span><span class="si">}</span><span class="s2"> bp</span><span class="se">\n</span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">strand</span><span class="si">}</span><span class="s2"> F</span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+        <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#2196F3&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="s1">&#39;equal&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Wild-Type Plasmid Map — </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">match_identity_pct</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">% identity&quot;</span><span class="p">,</span>
+        <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">20</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># plot_plasmid_map(mapping, len(wt_plasmid))</span>
+</code></pre></div>
+<hr />
+<h2 id="step-2-variant-cds-extraction">Step 2 — Variant CDS Extraction<a class="headerlink" href="#step-2-variant-cds-extraction" title="Permanent link">&para;</a></h2>
+<h3 id="what-happens_1">What Happens<a class="headerlink" href="#what-happens_1" title="Permanent link">&para;</a></h3>
+<p>Once the WT gene location is known, the pipeline uses those <strong>same coordinates</strong> to extract the CDS from every variant plasmid. This ensures all variants are compared to the same region.</p>
+<h3 id="how-it-works">How It Works<a class="headerlink" href="#how-it-works" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>  WT Mapping says: CDS = positions [1200, 2400), PLUS strand, frame 0
+
+  Variant plasmid:
+  ┌──────────────────────────────────────────────────┐
+  │ ...backbone... │ VARIANT CDS │ ...backbone...    │
+  │                │ [1200:2400) │                    │
+  │                │◀── extract ─▶│                    │
+  └──────────────────────────────────────────────────┘
+                         │
+                         ▼
+              &quot;ATGGCTGCCAAA...TAA&quot;
+              (variant CDS DNA)
+</code></pre></div>
+<p><strong>Key behaviours:</strong></p>
+<ul>
+<li><strong>Circular wrap-around</strong>: If the CDS spans the plasmid origin (start &gt; end), the extraction wraps: <code>plasmid[start:] + plasmid[:end]</code></li>
+<li><strong>MINUS strand</strong>: After extraction, the sequence is reverse-complemented</li>
+<li><strong>Frame offset</strong>: Already baked into the coordinates — no additional trimming occurs</li>
+</ul>
+<h3 id="code-example_1">Code Example<a class="headerlink" href="#code-example_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">app.services.sequence.sequence_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_variant_plasmid</span>
+
+<span class="c1"># Use the mapping from Step 1</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_variant_plasmid</span><span class="p">(</span>
+    <span class="n">variant_plasmid_dna</span><span class="o">=</span><span class="s2">&quot;ATGCGTACC...&quot;</span><span class="p">,</span>  <span class="c1"># variant&#39;s full plasmid</span>
+    <span class="n">wt_mapping</span><span class="o">=</span><span class="n">mapping</span><span class="p">,</span>                   <span class="c1"># from Step 1</span>
+    <span class="n">fallback_search</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CDS DNA:   </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">cds_dna</span><span class="p">[:</span><span class="mi">30</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Protein:   </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">[:</span><span class="mi">30</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Frame:     </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Strand:    </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">strand</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="visualisation-wt-vs-variant-cds-alignment">Visualisation — WT vs Variant CDS Alignment<a class="headerlink" href="#visualisation-wt-vs-variant-cds-alignment" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_cds_comparison</span><span class="p">(</span><span class="n">wt_mapping</span><span class="p">,</span> <span class="n">variant_result</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Horizontal bar chart comparing WT and variant CDS properties.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">12</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">wt_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wt_mapping</span><span class="o">.</span><span class="n">wt_cds_dna</span><span class="p">)</span>
+    <span class="n">var_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">variant_result</span><span class="o">.</span><span class="n">cds_dna</span><span class="p">)</span> <span class="k">if</span> <span class="n">variant_result</span><span class="o">.</span><span class="n">cds_dna</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="c1"># DNA length comparison</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">barh</span><span class="p">([</span><span class="s1">&#39;WT&#39;</span><span class="p">,</span> <span class="s1">&#39;Variant&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">wt_len</span><span class="p">,</span> <span class="n">var_len</span><span class="p">],</span> 
+                 <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#4CAF50&#39;</span><span class="p">,</span> <span class="s1">&#39;#2196F3&#39;</span><span class="p">],</span> <span class="n">height</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;CDS Length (bp)&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">wt_len</span><span class="p">,</span> <span class="n">var_len</span><span class="p">]):</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">5</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> bp&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Protein length comparison</span>
+    <span class="n">wt_prot_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">wt_mapping</span><span class="o">.</span><span class="n">wt_protein_aa</span><span class="p">)</span>
+    <span class="n">var_prot_len</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">variant_result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">)</span> <span class="k">if</span> <span class="n">variant_result</span><span class="o">.</span><span class="n">protein_aa</span> <span class="k">else</span> <span class="mi">0</span>
+
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">barh</span><span class="p">([</span><span class="s1">&#39;WT&#39;</span><span class="p">,</span> <span class="s1">&#39;Variant&#39;</span><span class="p">],</span> <span class="p">[</span><span class="n">wt_prot_len</span><span class="p">,</span> <span class="n">var_prot_len</span><span class="p">],</span>
+                 <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#4CAF50&#39;</span><span class="p">,</span> <span class="s1">&#39;#2196F3&#39;</span><span class="p">],</span> <span class="n">height</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Protein Length (aa)&#39;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">([</span><span class="n">wt_prot_len</span><span class="p">,</span> <span class="n">var_prot_len</span><span class="p">]):</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">}</span><span class="s2"> aa&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># plot_cds_comparison(mapping, result)</span>
+</code></pre></div>
+<hr />
+<h2 id="step-3-translation-quality-control">Step 3 — Translation &amp; Quality Control<a class="headerlink" href="#step-3-translation-quality-control" title="Permanent link">&para;</a></h2>
+<h3 id="what-happens_2">What Happens<a class="headerlink" href="#what-happens_2" title="Permanent link">&para;</a></h3>
+<p>After CDS extraction, the DNA is translated to protein and checked for quality issues. The QC flags help you identify problematic variants that need manual review.</p>
+<h3 id="translation-process">Translation Process<a class="headerlink" href="#translation-process" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>  CDS DNA:    A T G  G C T  G C C  A A A  ...  T A A
+              ─┬──   ─┬──   ─┬──   ─┬──       ─┬──
+Codon #:       1       2       3       4        last
+
+Amino Acids:   M       A       A       K    ...  Stop
+
+Protein:      &quot;MAAK...&quot;
+</code></pre></div>
+<h3 id="qc-checks-performed">QC Checks Performed<a class="headerlink" href="#qc-checks-performed" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>┌─────────────────────────────────────────────────────────┐
+│                    QC Checkpoint                         │
+├──────────────────────────┬──────────────────────────────┤
+│  Check                   │  What it detects              │
+├──────────────────────────┼──────────────────────────────┤
+│  len(CDS) % 3 ≠ 0       │  FRAMESHIFT — codons are      │
+│                          │  misaligned, protein is        │
+│                          │  scrambled downstream          │
+├──────────────────────────┼──────────────────────────────┤
+│  Non-ACGT bases          │  AMBIGUOUS BASES — assembly    │
+│  (N, R, Y, W, S, etc.)  │  quality issue, translation    │
+│                          │  may be unreliable             │
+├──────────────────────────┼──────────────────────────────┤
+│  Early stop codon (*)    │  PREMATURE STOP — protein is   │
+│  in translated sequence  │  truncated or nonfunctional    │
+└──────────────────────────┴──────────────────────────────┘
+</code></pre></div>
+<h3 id="stop-codon-policies">Stop Codon Policies<a class="headerlink" href="#stop-codon-policies" title="Permanent link">&para;</a></h3>
+<p>The pipeline supports two stop codon handling modes (configured via <code>STOP_POLICY</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Policy</th>
+<th>Behaviour</th>
+<th>When to Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>truncate</code></td>
+<td>Stop translation at first stop codon. Flag as premature if protein is shorter than WT.</td>
+<td>Standard protein analysis — you want the mature protein only</td>
+</tr>
+<tr>
+<td><code>keep_stops</code></td>
+<td>Include stop codons (<code>*</code>) in the protein sequence. Flag any internal stops.</td>
+<td>Mutation scanning — you want to see where stops appear</td>
+</tr>
+</tbody>
+</table>
+<h3 id="code-example_2">Code Example<a class="headerlink" href="#code-example_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Inspect QC results</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_variant_plasmid</span><span class="p">(</span><span class="n">variant_dna</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">fallback_search</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;=== Quality Control Report ===&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Frameshift:      </span><span class="si">{</span><span class="s1">&#39;YES ⚠&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_frameshift</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No ✓&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Ambiguous bases: </span><span class="si">{</span><span class="s1">&#39;YES ⚠&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_ambiguous_bases</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No ✓&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Premature stop:  </span><span class="si">{</span><span class="s1">&#39;YES ⚠&#39;</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">result</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_premature_stop</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="s1">&#39;No ✓&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">notes</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Notes: </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">notes</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  Protein (</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">)</span><span class="si">}</span><span class="s2"> aa): </span><span class="si">{</span><span class="n">result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">[:</span><span class="mi">50</span><span class="p">]</span><span class="si">}</span><span class="s2">...&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">  ⚠ Translation failed — protein_aa is None&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="visualisation-qc-dashboard">Visualisation — QC Dashboard<a class="headerlink" href="#visualisation-qc-dashboard" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_qc_summary</span><span class="p">(</span><span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pie charts showing QC flag distribution across all variants.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        results: List of VariantSeqResult objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span>
+    <span class="n">frameshifts</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_frameshift</span><span class="p">)</span>
+    <span class="n">ambiguous</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_ambiguous_bases</span><span class="p">)</span>
+    <span class="n">premature</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_premature_stop</span><span class="p">)</span>
+    <span class="n">no_protein</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">protein_aa</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="n">total</span> <span class="o">-</span> <span class="n">frameshifts</span> <span class="o">-</span> <span class="n">ambiguous</span> <span class="o">-</span> <span class="n">premature</span> <span class="o">-</span> <span class="n">no_protein</span>
+    <span class="c1"># Deduplicate — some variants have multiple flags</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">total</span> <span class="o">-</span> <span class="nb">len</span><span class="p">([</span>
+        <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> 
+        <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_frameshift</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_ambiguous_bases</span> 
+        <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_premature_stop</span> <span class="ow">or</span> <span class="n">r</span><span class="o">.</span><span class="n">protein_aa</span> <span class="ow">is</span> <span class="kc">None</span>
+    <span class="p">]))</span>
+    <span class="n">flagged</span> <span class="o">=</span> <span class="n">total</span> <span class="o">-</span> <span class="n">clean</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">14</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="c1"># Overall pass/fail</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pie</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">clean</span><span class="p">,</span> <span class="n">flagged</span><span class="p">],</span>
+        <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Clean (</span><span class="si">{</span><span class="n">clean</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Flagged (</span><span class="si">{</span><span class="n">flagged</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">],</span>
+        <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#4CAF50&#39;</span><span class="p">,</span> <span class="s1">&#39;#FF5722&#39;</span><span class="p">],</span>
+        <span class="n">autopct</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%1.1f%%</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">startangle</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+        <span class="n">textprops</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span><span class="p">:</span> <span class="mi">12</span><span class="p">},</span>
+    <span class="p">)</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;QC Summary — </span><span class="si">{</span><span class="n">total</span><span class="si">}</span><span class="s1"> Variants&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+
+    <span class="c1"># Flag breakdown</span>
+    <span class="n">flags</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;Frameshift&#39;</span><span class="p">:</span> <span class="n">frameshifts</span><span class="p">,</span>
+        <span class="s1">&#39;Ambiguous Bases&#39;</span><span class="p">:</span> <span class="n">ambiguous</span><span class="p">,</span>
+        <span class="s1">&#39;Premature Stop&#39;</span><span class="p">:</span> <span class="n">premature</span><span class="p">,</span>
+        <span class="s1">&#39;No Protein&#39;</span><span class="p">:</span> <span class="n">no_protein</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">flag_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flags</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+    <span class="n">flag_vals</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flags</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">flag_vals</span><span class="p">:</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;#FF9800&#39;</span><span class="p">,</span> <span class="s1">&#39;#F44336&#39;</span><span class="p">,</span> <span class="s1">&#39;#9C27B0&#39;</span><span class="p">,</span> <span class="s1">&#39;#795548&#39;</span><span class="p">]</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="n">flag_names</span><span class="p">,</span> <span class="n">flag_vals</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">flag_names</span><span class="p">)])</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;QC Flag Breakdown&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">flag_vals</span><span class="p">):</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mf">0.3</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontweight</span><span class="o">=</span><span class="s1">&#39;bold&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s1">&#39;All variants passed QC ✓&#39;</span><span class="p">,</span>
+                     <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#4CAF50&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axis</span><span class="p">(</span><span class="s1">&#39;off&#39;</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># all_results = [process_variant_plasmid(dna, mapping, fallback_search=False) </span>
+<span class="c1">#                for _, dna in variants]</span>
+<span class="c1"># plot_qc_summary(all_results)</span>
+</code></pre></div>
+<hr />
+<h2 id="step-4-mutation-calling">Step 4 — Mutation Calling<a class="headerlink" href="#step-4-mutation-calling" title="Permanent link">&para;</a></h2>
+<h3 id="what-happens_3">What Happens<a class="headerlink" href="#what-happens_3" title="Permanent link">&para;</a></h3>
+<p>Each variant's CDS is compared against the WT CDS to identify and classify every mutation. The pipeline automatically selects the best strategy.</p>
+<h3 id="strategy-selection-diagram">Strategy Selection Diagram<a class="headerlink" href="#strategy-selection-diagram" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>                    ┌─────────────────────────┐
+                    │   call_mutations_against_wt()   │
+                    │   (variant CDS vs WT CDS)       │
+                    └──────────────┬──────────────────┘
+                                   │
+                    ┌──────────────▼──────────────────┐
+                    │  Either CDS length % 3 ≠ 0?     │
+                    └──────┬───────────────┬──────────┘
+                           │ YES           │ NO
+                           ▼               ▼
+               ┌───────────────┐   ┌──────────────────┐
+               │  FRAMESHIFT   │   │  Same length?     │
+               │  (1 record)   │   └───┬──────────┬───┘
+               └───────────────┘       │ YES      │ NO
+                                       ▼          ▼
+                            ┌──────────────┐  ┌──────────────────┐
+                            │  Codon-by-   │  │  Protein         │
+                            │  codon       │  │  alignment       │
+                            │  comparison  │  │  (BLOSUM62)      │
+                            │  ▸▸ FAST ▸▸  │  │  ▸▸ INDELS ▸▸   │
+                            └──────────────┘  └──────────────────┘
+</code></pre></div>
+<h3 id="codon-by-codon-comparison-same-length-sequences">Codon-by-Codon Comparison (Same-Length Sequences)<a class="headerlink" href="#codon-by-codon-comparison-same-length-sequences" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>Position:  1     2     3     4     5     6     7
+WT:       ATG   GCT   GCC   AAA   GAT   TTG   TAA
+Variant:  ATG   GCT   GCC   AAG   GAT   TTG   TAA
+                             ^^^
+                     Codon 4: AAA → AAG
+                     AA:      Lys → Lys
+                     Type:    SYNONYMOUS
+                     (Same amino acid, different codon)
+</code></pre></div>
+<h3 id="protein-alignment-different-length-sequences-indels">Protein Alignment (Different-Length Sequences — Indels)<a class="headerlink" href="#protein-alignment-different-length-sequences-indels" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>WT protein:      M  A  A  K  D  L  *
+Variant protein: M  A  A  R  K  D  L  *
+                          ↑
+                    INSERTION at position 4
+                    New residue: R (Arg)
+
+Alignment:
+  WT:   M  A  A  -  K  D  L  *
+  Var:  M  A  A  R  K  D  L  *
+                 ↑
+              gap in WT = INSERTION in variant
+</code></pre></div>
+<h3 id="code-example_3">Code Example<a class="headerlink" href="#code-example_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">app.services.sequence.sequence_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">call_mutations_against_wt</span>
+
+<span class="c1"># Compare variant CDS to WT CDS</span>
+<span class="n">mutations</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">call_mutations_against_wt</span><span class="p">(</span>
+    <span class="n">wt_cds_dna</span><span class="o">=</span><span class="n">mapping</span><span class="o">.</span><span class="n">wt_cds_dna</span><span class="p">,</span>    <span class="c1"># from Step 1</span>
+    <span class="n">var_cds_dna</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">cds_dna</span><span class="p">,</span>         <span class="c1"># from Step 2</span>
+<span class="p">)</span>
+
+<span class="c1"># Summary</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total mutations:     </span><span class="si">{</span><span class="n">counts</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Synonymous:        </span><span class="si">{</span><span class="n">counts</span><span class="o">.</span><span class="n">synonymous</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  Nonsynonymous:     </span><span class="si">{</span><span class="n">counts</span><span class="o">.</span><span class="n">nonsynonymous</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Detailed mutation list</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="si">{</span><span class="s1">&#39;Type&#39;</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;Pos&#39;</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;WT&#39;</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="s1">&#39;Var&#39;</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;WT Codon&#39;</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="s1">&#39;Var Codon&#39;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">3</span><span class="si">}</span><span class="s2">   </span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">3</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">9</span><span class="si">}</span><span class="s2">   </span><span class="si">{</span><span class="s1">&#39;─&#39;</span><span class="o">*</span><span class="mi">9</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mutations</span><span class="p">:</span>
+    <span class="n">pos</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">aa_position_1based</span> <span class="ow">or</span> <span class="s2">&quot;-&quot;</span>
+    <span class="n">wt_aa</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">wt_aa</span> <span class="ow">or</span> <span class="s2">&quot;-&quot;</span>
+    <span class="n">var_aa</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">var_aa</span> <span class="ow">or</span> <span class="s2">&quot;-&quot;</span>
+    <span class="n">wt_c</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">wt_codon</span> <span class="ow">or</span> <span class="s2">&quot;-&quot;</span>
+    <span class="n">var_c</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">var_codon</span> <span class="ow">or</span> <span class="s2">&quot;-&quot;</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">m</span><span class="o">.</span><span class="n">mutation_type</span><span class="si">:</span><span class="s2">&lt;16</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="nb">str</span><span class="p">(</span><span class="n">pos</span><span class="p">)</span><span class="si">:</span><span class="s2">&gt;4</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">wt_aa</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">var_aa</span><span class="si">:</span><span class="s2">&gt;3</span><span class="si">}</span><span class="s2">  </span><span class="si">{</span><span class="n">wt_c</span><span class="si">:</span><span class="s2">&gt;9</span><span class="si">}</span><span class="s2"> → </span><span class="si">{</span><span class="n">var_c</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="visualisation-mutation-spectrum">Visualisation — Mutation Spectrum<a class="headerlink" href="#visualisation-mutation-spectrum" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_mutation_spectrum</span><span class="p">(</span><span class="n">mutations_by_variant</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stacked bar chart showing mutation type distribution per variant.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mutations_by_variant: Dict of {variant_id: List[MutationRecord]}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+
+    <span class="n">type_colors</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;SYNONYMOUS&#39;</span><span class="p">:</span> <span class="s1">&#39;#4CAF50&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NONSYNONYMOUS&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF9800&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;NONSENSE&#39;</span><span class="p">:</span> <span class="s1">&#39;#F44336&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;FRAMESHIFT&#39;</span><span class="p">:</span> <span class="s1">&#39;#9C27B0&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;INSERTION&#39;</span><span class="p">:</span> <span class="s1">&#39;#2196F3&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;DELETION&#39;</span><span class="p">:</span> <span class="s1">&#39;#00BCD4&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;AMBIGUOUS&#39;</span><span class="p">:</span> <span class="s1">&#39;#9E9E9E&#39;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">variant_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mutations_by_variant</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">all_types</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">type_colors</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="c1"># Count each type per variant</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">mtype</span> <span class="ow">in</span> <span class="n">all_types</span><span class="p">:</span>
+        <span class="n">data</span><span class="p">[</span><span class="n">mtype</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mutations_by_variant</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">mutation_type</span> <span class="o">==</span> <span class="n">mtype</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">vid</span> <span class="ow">in</span> <span class="n">variant_ids</span>
+        <span class="p">]</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.4</span><span class="p">),</span> <span class="mi">6</span><span class="p">))</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">))</span>
+    <span class="n">bottom</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">mtype</span> <span class="ow">in</span> <span class="n">all_types</span><span class="p">:</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">mtype</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">v</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">vals</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">bottom</span><span class="o">=</span><span class="n">bottom</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">mtype</span><span class="p">,</span> 
+                   <span class="n">color</span><span class="o">=</span><span class="n">type_colors</span><span class="p">[</span><span class="n">mtype</span><span class="p">],</span> <span class="n">width</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+            <span class="n">bottom</span> <span class="o">=</span> <span class="p">[</span><span class="n">b</span> <span class="o">+</span> <span class="n">v</span> <span class="k">for</span> <span class="n">b</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">bottom</span><span class="p">,</span> <span class="n">vals</span><span class="p">)]</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Variant ID&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Mutation Count&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Mutation Spectrum by Variant&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticks</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xticklabels</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">,</span> <span class="n">rotation</span><span class="o">=</span><span class="mi">45</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s1">&#39;right&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># mutations_dict = {}</span>
+<span class="c1"># for vid, dna in variants:</span>
+<span class="c1">#     res = process_variant_plasmid(dna, mapping, fallback_search=False)</span>
+<span class="c1">#     if res.cds_dna:</span>
+<span class="c1">#         muts, _ = call_mutations_against_wt(mapping.wt_cds_dna, res.cds_dna)</span>
+<span class="c1">#         mutations_dict[vid] = muts</span>
+<span class="c1"># plot_mutation_spectrum(mutations_dict)</span>
+</code></pre></div>
+<h3 id="visualisation-mutation-heatmap-position-variant">Visualisation — Mutation Heatmap (Position × Variant)<a class="headerlink" href="#visualisation-mutation-heatmap-position-variant" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_mutation_heatmap</span><span class="p">(</span><span class="n">mutations_by_variant</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">wt_protein_length</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Heatmap showing which positions are mutated across variants.</span>
+<span class="sd">    Rows = variants, columns = amino acid positions.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        mutations_by_variant: Dict of {variant_id: List[MutationRecord]}</span>
+<span class="sd">        wt_protein_length: Length of WT protein in amino acids</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+    <span class="n">variant_ids</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mutations_by_variant</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+    <span class="c1"># Encode: 0=WT, 1=SYN, 2=NONSYN, 3=NONSENSE</span>
+    <span class="n">type_to_val</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;SYNONYMOUS&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NONSYNONYMOUS&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+        <span class="s1">&#39;NONSENSE&#39;</span><span class="p">:</span> <span class="mi">3</span><span class="p">,</span> <span class="s1">&#39;INSERTION&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s1">&#39;DELETION&#39;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="n">matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">),</span> <span class="n">wt_protein_length</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">vid</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mutations_by_variant</span><span class="p">[</span><span class="n">vid</span><span class="p">]:</span>
+            <span class="n">pos</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">aa_position_1based</span>
+            <span class="k">if</span> <span class="n">pos</span> <span class="ow">and</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">pos</span> <span class="o">&lt;=</span> <span class="n">wt_protein_length</span><span class="p">:</span>
+                <span class="n">matrix</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">pos</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">type_to_val</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">mutation_type</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+    <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="mi">20</span><span class="p">,</span> <span class="n">wt_protein_length</span> <span class="o">*</span> <span class="mf">0.08</span><span class="p">),</span> 
+                                     <span class="nb">max</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">)</span> <span class="o">*</span> <span class="mf">0.3</span><span class="p">)))</span>
+
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.colors</span><span class="w"> </span><span class="kn">import</span> <span class="n">ListedColormap</span>
+    <span class="n">cmap</span> <span class="o">=</span> <span class="n">ListedColormap</span><span class="p">([</span><span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span> <span class="s1">&#39;#A5D6A7&#39;</span><span class="p">,</span> <span class="s1">&#39;#FFB74D&#39;</span><span class="p">,</span> <span class="s1">&#39;#E57373&#39;</span><span class="p">])</span>
+
+    <span class="n">im</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="n">cmap</span><span class="p">,</span> <span class="n">vmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Amino Acid Position&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Variant&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Mutation Heatmap&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">14</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticks</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">)))</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_yticklabels</span><span class="p">(</span><span class="n">variant_ids</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">8</span><span class="p">)</span>
+
+    <span class="c1"># Legend</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">matplotlib.patches</span><span class="w"> </span><span class="kn">import</span> <span class="n">Patch</span>
+    <span class="n">legend_elements</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#FFFFFF&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;#CCC&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Wild-type&#39;</span><span class="p">),</span>
+        <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#A5D6A7&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Synonymous&#39;</span><span class="p">),</span>
+        <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#FFB74D&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nonsynonymous&#39;</span><span class="p">),</span>
+        <span class="n">Patch</span><span class="p">(</span><span class="n">facecolor</span><span class="o">=</span><span class="s1">&#39;#E57373&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nonsense&#39;</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_elements</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;upper right&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># plot_mutation_heatmap(mutations_dict, len(mapping.wt_protein_aa))</span>
+</code></pre></div>
+<hr />
+<h2 id="step-5-interpreting-results">Step 5 — Interpreting Results<a class="headerlink" href="#step-5-interpreting-results" title="Permanent link">&para;</a></h2>
+<h3 id="experiment-status">Experiment Status<a class="headerlink" href="#experiment-status" title="Permanent link">&para;</a></h3>
+<p>After all variants are processed, the experiment receives a final status:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ANALYSED</strong></td>
+<td>All variants processed successfully, no QC issues</td>
+<td>Results are ready for analysis</td>
+</tr>
+<tr>
+<td><strong>ANALYSED_WITH_ERRORS</strong></td>
+<td>Processing completed but some variants had issues (frameshift, premature stop, failed translation, or exceptions)</td>
+<td>Review flagged variants — most results are still valid</td>
+</tr>
+<tr>
+<td><strong>FAILED</strong></td>
+<td>Fatal pipeline error (e.g., WT mapping failed, database unreachable)</td>
+<td>Check logs, fix the issue, re-run</td>
+</tr>
+</tbody>
+</table>
+<h3 id="understanding-your-mutation-counts">Understanding Your Mutation Counts<a class="headerlink" href="#understanding-your-mutation-counts" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>┌──────────────────────────────────────────────────────────┐
+│  Experiment Summary                                       │
+│                                                           │
+│  Total variants:          150                             │
+│  With mutations:          142  (94.7%)                    │
+│  WT-identical:              8  ( 5.3%)                    │
+│                                                           │
+│  Mutation breakdown:                                      │
+│  ┌────────────────────┬──────┬───────────┐               │
+│  │ Type               │ Count│ % of Total│               │
+│  ├────────────────────┼──────┼───────────┤               │
+│  │ Synonymous         │  387 │   62.3%   │               │
+│  │ Nonsynonymous      │  198 │   31.9%   │               │
+│  │ Nonsense (stop)    │   12 │    1.9%   │               │
+│  │ Frameshift         │    5 │    0.8%   │               │
+│  │ Insertion          │    8 │    1.3%   │               │
+│  │ Deletion           │   11 │    1.8%   │               │
+│  └────────────────────┴──────┴───────────┘               │
+└──────────────────────────────────────────────────────────┘
+</code></pre></div>
+<h3 id="visualisation-experiment-summary-dashboard">Visualisation — Experiment Summary Dashboard<a class="headerlink" href="#visualisation-experiment-summary-dashboard" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">plot_experiment_dashboard</span><span class="p">(</span><span class="n">all_results</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">all_mutations</span><span class="p">:</span> <span class="nb">dict</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Full experiment summary: status pie, mutation totals, protein length distribution.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        all_results: List of VariantSeqResult for all variants</span>
+<span class="sd">        all_mutations: Dict of {variant_id: MutationCounts}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">18</span><span class="p">,</span> <span class="mi">5</span><span class="p">))</span>
+
+    <span class="c1"># Panel 1: Variant status</span>
+    <span class="n">clean</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">all_results</span> 
+                <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">protein_aa</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_frameshift</span> 
+                <span class="ow">and</span> <span class="ow">not</span> <span class="n">r</span><span class="o">.</span><span class="n">qc</span><span class="o">.</span><span class="n">has_premature_stop</span><span class="p">)</span>
+    <span class="n">flagged</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_results</span><span class="p">)</span> <span class="o">-</span> <span class="n">clean</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">pie</span><span class="p">([</span><span class="n">clean</span><span class="p">,</span> <span class="n">flagged</span><span class="p">],</span> 
+                <span class="n">labels</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s1">&#39;Clean</span><span class="se">\n</span><span class="s1">(</span><span class="si">{</span><span class="n">clean</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Flagged</span><span class="se">\n</span><span class="s1">(</span><span class="si">{</span><span class="n">flagged</span><span class="si">}</span><span class="s1">)&#39;</span><span class="p">],</span>
+                <span class="n">colors</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;#4CAF50&#39;</span><span class="p">,</span> <span class="s1">&#39;#FF5722&#39;</span><span class="p">],</span> <span class="n">autopct</span><span class="o">=</span><span class="s1">&#39;</span><span class="si">%1.0f%%</span><span class="s1">&#39;</span><span class="p">,</span>
+                <span class="n">textprops</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;fontsize&#39;</span><span class="p">:</span> <span class="mi">11</span><span class="p">})</span>
+    <span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Variant QC Status&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+
+    <span class="c1"># Panel 2: Total mutations by type</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">Counter</span>
+    <span class="n">type_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">muts</span> <span class="ow">in</span> <span class="n">all_mutations</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">muts</span><span class="p">:</span>
+            <span class="n">type_counts</span><span class="p">[</span><span class="n">m</span><span class="o">.</span><span class="n">mutation_type</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">type_counts</span><span class="p">:</span>
+        <span class="n">type_colors_map</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;SYNONYMOUS&#39;</span><span class="p">:</span> <span class="s1">&#39;#4CAF50&#39;</span><span class="p">,</span> <span class="s1">&#39;NONSYNONYMOUS&#39;</span><span class="p">:</span> <span class="s1">&#39;#FF9800&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;NONSENSE&#39;</span><span class="p">:</span> <span class="s1">&#39;#F44336&#39;</span><span class="p">,</span> <span class="s1">&#39;FRAMESHIFT&#39;</span><span class="p">:</span> <span class="s1">&#39;#9C27B0&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;INSERTION&#39;</span><span class="p">:</span> <span class="s1">&#39;#2196F3&#39;</span><span class="p">,</span> <span class="s1">&#39;DELETION&#39;</span><span class="p">:</span> <span class="s1">&#39;#00BCD4&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;AMBIGUOUS&#39;</span><span class="p">:</span> <span class="s1">&#39;#9E9E9E&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">type_counts</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">type_counts</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="n">type_colors_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="s1">&#39;#999&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">]</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">barh</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">vals</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Total Mutations by Type&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">vals</span><span class="p">):</span>
+            <span class="n">axes</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">v</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">v</span><span class="p">),</span> <span class="n">va</span><span class="o">=</span><span class="s1">&#39;center&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+    <span class="c1"># Panel 3: Protein length distribution</span>
+    <span class="n">prot_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">)</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">all_results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">prot_lengths</span><span class="p">:</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">prot_lengths</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">30</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;#2196F3&#39;</span><span class="p">,</span> <span class="n">edgecolor</span><span class="o">=</span><span class="s1">&#39;white&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">prot_lengths</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s1">&#39;red&#39;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s1">&#39;--&#39;</span><span class="p">,</span> 
+                        <span class="n">label</span><span class="o">=</span><span class="s1">&#39;WT length&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Protein Length (aa)&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Count&#39;</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Protein Length Distribution&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">13</span><span class="p">)</span>
+        <span class="n">axes</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">suptitle</span><span class="p">(</span><span class="s1">&#39;Experiment Analysis Dashboard&#39;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">1.02</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># plot_experiment_dashboard(all_results, mutations_dict) </span>
+</code></pre></div>
+<hr />
+<h2 id="visualisation-code-examples">Visualisation Code Examples<a class="headerlink" href="#visualisation-code-examples" title="Permanent link">&para;</a></h2>
+<h3 id="complete-end-to-end-example">Complete End-to-End Example<a class="headerlink" href="#complete-end-to-end-example" title="Permanent link">&para;</a></h3>
+<p>This code runs the full pipeline on 5 variants and generates all visualisations:</p>
+<div class="highlight"><pre><span></span><code><span class="kn">from</span><span class="w"> </span><span class="nn">app.services.sequence.db_repo</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">get_engine</span><span class="p">,</span> <span class="n">get_wt_reference</span><span class="p">,</span> <span class="n">list_variants_by_experiment</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">app.services.sequence.sequence_service</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">map_wt_gene_in_plasmid</span><span class="p">,</span>
+    <span class="n">process_variant_plasmid</span><span class="p">,</span>
+    <span class="n">call_mutations_against_wt</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="c1"># ── Configuration ──</span>
+<span class="n">EXPERIMENT_ID</span> <span class="o">=</span> <span class="mi">41</span>
+<span class="n">MAX_VARIANTS</span> <span class="o">=</span> <span class="mi">5</span>
+
+<span class="c1"># ── Step 1: Load references &amp; map WT ──</span>
+<span class="n">engine</span> <span class="o">=</span> <span class="n">get_engine</span><span class="p">()</span>
+<span class="n">wt_protein</span><span class="p">,</span> <span class="n">wt_plasmid</span> <span class="o">=</span> <span class="n">get_wt_reference</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">EXPERIMENT_ID</span><span class="p">)</span>
+<span class="n">mapping</span> <span class="o">=</span> <span class="n">map_wt_gene_in_plasmid</span><span class="p">(</span><span class="n">wt_protein</span><span class="p">,</span> <span class="n">wt_plasmid</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;WT Mapping: </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">strand</span><span class="si">}</span><span class="s2"> strand, frame </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">frame</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;CDS: [</span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">cds_start_0based</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">cds_end_0based_excl</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Identity: </span><span class="si">{</span><span class="n">mapping</span><span class="o">.</span><span class="n">match_identity_pct</span><span class="si">:</span><span class="s2">.1f</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">)</span>
+
+<span class="c1"># ── Steps 2–4: Process variants ──</span>
+<span class="n">variants</span> <span class="o">=</span> <span class="n">list_variants_by_experiment</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">EXPERIMENT_ID</span><span class="p">)[:</span><span class="n">MAX_VARIANTS</span><span class="p">]</span>
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">mutations_dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">dna</span> <span class="ow">in</span> <span class="n">variants</span><span class="p">:</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">process_variant_plasmid</span><span class="p">(</span><span class="n">dna</span><span class="p">,</span> <span class="n">mapping</span><span class="p">,</span> <span class="n">fallback_search</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">res</span><span class="o">.</span><span class="n">cds_dna</span> <span class="ow">and</span> <span class="n">mapping</span><span class="o">.</span><span class="n">wt_cds_dna</span><span class="p">:</span>
+        <span class="n">muts</span><span class="p">,</span> <span class="n">counts</span> <span class="o">=</span> <span class="n">call_mutations_against_wt</span><span class="p">(</span><span class="n">mapping</span><span class="o">.</span><span class="n">wt_cds_dna</span><span class="p">,</span> <span class="n">res</span><span class="o">.</span><span class="n">cds_dna</span><span class="p">)</span>
+        <span class="n">mutations_dict</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="n">muts</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Variant </span><span class="si">{</span><span class="n">vid</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">counts</span><span class="o">.</span><span class="n">total</span><span class="si">}</span><span class="s2"> mutations &quot;</span>
+              <span class="sa">f</span><span class="s2">&quot;(</span><span class="si">{</span><span class="n">counts</span><span class="o">.</span><span class="n">synonymous</span><span class="si">}</span><span class="s2"> syn, </span><span class="si">{</span><span class="n">counts</span><span class="o">.</span><span class="n">nonsynonymous</span><span class="si">}</span><span class="s2"> nonsyn)&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">mutations_dict</span><span class="p">[</span><span class="n">vid</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Variant </span><span class="si">{</span><span class="n">vid</span><span class="si">}</span><span class="s2">: No CDS extracted&quot;</span><span class="p">)</span>
+
+<span class="c1"># ── Step 5: Generate visualisations ──</span>
+<span class="c1"># (Call any of the plot_* functions defined above)</span>
+<span class="c1"># plot_plasmid_map(mapping, len(wt_plasmid))</span>
+<span class="c1"># plot_qc_summary(results)</span>
+<span class="c1"># plot_mutation_spectrum(mutations_dict)</span>
+<span class="c1"># plot_mutation_heatmap(mutations_dict, len(mapping.wt_protein_aa))</span>
+<span class="c1"># plot_experiment_dashboard(results, mutations_dict)</span>
+</code></pre></div>
+<h3 id="exporting-results-to-csv">Exporting Results to CSV<a class="headerlink" href="#exporting-results-to-csv" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">export_mutations_csv</span><span class="p">(</span><span class="n">mutations_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="n">output_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Export all mutations to a CSV file for downstream analysis.&quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">writer</span> <span class="o">=</span> <span class="n">csv</span><span class="o">.</span><span class="n">writer</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span>
+            <span class="s1">&#39;variant_id&#39;</span><span class="p">,</span> <span class="s1">&#39;mutation_type&#39;</span><span class="p">,</span> <span class="s1">&#39;aa_position&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;wt_aa&#39;</span><span class="p">,</span> <span class="s1">&#39;var_aa&#39;</span><span class="p">,</span> <span class="s1">&#39;wt_codon&#39;</span><span class="p">,</span> <span class="s1">&#39;var_codon&#39;</span><span class="p">,</span> <span class="s1">&#39;notes&#39;</span><span class="p">,</span>
+        <span class="p">])</span>
+        <span class="k">for</span> <span class="n">vid</span><span class="p">,</span> <span class="n">muts</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">mutations_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+            <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">muts</span><span class="p">:</span>
+                <span class="n">writer</span><span class="o">.</span><span class="n">writerow</span><span class="p">([</span>
+                    <span class="n">vid</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">mutation_type</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">aa_position_1based</span><span class="p">,</span>
+                    <span class="n">m</span><span class="o">.</span><span class="n">wt_aa</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">var_aa</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">wt_codon</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">var_codon</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">notes</span><span class="p">,</span>
+                <span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Exported </span><span class="si">{</span><span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">m</span><span class="p">)</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">mutations_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span><span class="si">}</span><span class="s2"> mutations to </span><span class="si">{</span><span class="n">output_path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Usage:</span>
+<span class="c1"># export_mutations_csv(mutations_dict, &quot;experiment_41_mutations.csv&quot;)</span>
+</code></pre></div>
+<hr />
+<h2 id="troubleshooting-qc-flags">Troubleshooting &amp; QC Flags<a class="headerlink" href="#troubleshooting-qc-flags" title="Permanent link">&para;</a></h2>
+<h3 id="common-issues">Common Issues<a class="headerlink" href="#common-issues" title="Permanent link">&para;</a></h3>
+<div class="admonition warning">
+<p class="admonition-title">Frameshift Detected</p>
+<p><strong>Symptom</strong>: <code>qc.has_frameshift = True</code>, mutation type is <code>FRAMESHIFT</code><br />
+<strong>Cause</strong>: Variant CDS length is not divisible by 3. Usually caused by an insertion or deletion of 1–2 bases (not a multiple of 3).<br />
+<strong>Impact</strong>: The protein downstream of the frameshift is completely scrambled. Mutation calling cannot be performed.<br />
+<strong>Action</strong>: Check the assembly quality. If the variant truly has a frameshift, it likely produces a nonfunctional protein.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Premature Stop Codon</p>
+<p><strong>Symptom</strong>: <code>qc.has_premature_stop = True</code>, variant protein is shorter than WT<br />
+<strong>Cause</strong>: A nonsense mutation introduced a stop codon partway through the gene.<br />
+<strong>Impact</strong>: Protein is truncated. May still be partially functional depending on where the stop occurs.<br />
+<strong>Action</strong>: Check the mutation report for NONSENSE-type mutations to see the exact position.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Ambiguous Bases</p>
+<p><strong>Symptom</strong>: <code>qc.has_ambiguous_bases = True</code><br />
+<strong>Cause</strong>: The assembled DNA contains N, R, Y, or other IUPAC ambiguity codes, typically from low-coverage regions in sequencing.<br />
+<strong>Impact</strong>: Translation may be unreliable. Codons with ambiguous bases are classified as AMBIGUOUS mutations.<br />
+<strong>Action</strong>: Check sequencing coverage at the CDS region. Consider re-sequencing the variant.</p>
+</div>
+<div class="admonition danger">
+<p class="admonition-title">Translation Failed (protein_aa is None)</p>
+<p><strong>Symptom</strong>: <code>result.protein_aa is None</code><br />
+<strong>Cause</strong>: Biopython could not translate the CDS (e.g., invalid bases, empty CDS).<br />
+<strong>Impact</strong>: No protein sequence available. Variant is recorded with QC-only data.<br />
+<strong>Action</strong>: Inspect <code>result.qc.notes</code> for the specific error message.</p>
+</div>
+<div class="admonition info">
+<p class="admonition-title">No CDS Extracted</p>
+<p><strong>Symptom</strong>: <code>result.cds_dna is None</code> or empty string<br />
+<strong>Cause</strong>: The variant plasmid may be truncated, or the CDS coordinates fall outside the sequence.<br />
+<strong>Impact</strong>: Cannot process this variant at all.<br />
+<strong>Action</strong>: Verify the variant's assembled DNA sequence covers the full plasmid.</p>
+</div>
+<h3 id="experiment-status-decision-tree">Experiment Status Decision Tree<a class="headerlink" href="#experiment-status-decision-tree" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code>                    All variants processed?
+                    ┌────────┴────────┐
+                    │ NO              │ YES
+                    ▼                 │
+              ┌──────────┐           │
+              │  FAILED   │           │
+              └──────────┘           ▼
+                            Any variant had:
+                           • exception?
+                           • frameshift?
+                           • premature stop?
+                           • protein_aa = None?
+                           • empty CDS?
+                    ┌────────┴────────┐
+                    │ YES             │ NO
+                    ▼                 ▼
+        ┌───────────────────┐  ┌───────────┐
+        │ ANALYSED_WITH_    │  │ ANALYSED  │
+        │ ERRORS            │  │           │
+        └───────────────────┘  └───────────┘
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

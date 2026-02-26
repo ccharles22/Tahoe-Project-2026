@@ -1,0 +1,44 @@
+site_name: Tahoe Project 2026
+site_description: Directed evolution sequence processing pipeline
+repo_url: https://github.com/your-org/Tahoe-Project-2026
+
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: teal
+  features:
+    - navigation.sections
+    - navigation.expand
+    - content.code.copy
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            heading_level: 2
+            docstring_style: google
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Visualisations: visualisations.md
+  - API Reference:
+    - Sequence Service: api/sequence_service.md
+    - Pipeline Orchestrator: api/run_sequence_processing.md
+    - Database Repository: api/db_repo.md
+    - Sequence Utilities: api/seq_utils.md
+    - Configuration: api/config.md
+  - Testing: testing.md
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.details
+  - toc:
+      permalink: true

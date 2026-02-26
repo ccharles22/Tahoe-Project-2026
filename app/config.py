@@ -1,35 +1,8 @@
 """
 Application configuration with environment variable support.
 
-This module provides centralised configuration for the sequence processing pipeline,
-with all settings exposed via environment variables for flexible deployment across
-development, testing, and production environments.
-
-Settings are loaded automatically from an .env file in the project root
-(via python-dotenv) and can be overridden by real environment variables.
-
-Configuration Categories:
-    1. Database: PostgreSQL connection string
-    2. Sequence Processing: Genetic code table, stop codon handling
-    3. Quality Control: Identity thresholds, ambiguous base tolerance
-    4. WT Mapping: Alignment thresholds and gap penalties
-    5. Variant Processing: Optional fallback algorithms
-    6. Job Logging: Progress reporting frequency
-
-Environment Variables:
-    - DATABASE_URL (required): PostgreSQL connection string (psycopg format).
-    - GENETIC_CODE_TABLE: NCBI genetic code table number (default: 11 for bacterial)
-    - STOP_POLICY: "truncate" (stop at first stop) or "keep_stops" (default: truncate)
-    - MIN_MAPPING_IDENTITY_PCT: Minimum percent identity for WT mapping (default: 95.0)
-    - MAX_X_FRACTION: Maximum allowed unknown residues fraction (default: 0.05)
-    - LOG_EVERY_N: Log progress for every N variants (default: 10)
-    - FALLBACK_SEARCH: Enables de novo search on variant extraction failure (default: false)
-
-Usage:
-    from app.config import settings
-
-    engine = create_engine(settings.DATABASE_URL)
-    translate_dna(seq, table=settings.GENETIC_CODE_TABLE)
+Loads settings from .env / environment variables. See the project MkDocs
+for the full list of configuration options.
 """
 
 from __future__ import annotations

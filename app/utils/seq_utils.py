@@ -1,38 +1,9 @@
 """
-DNA/protein sequence utility functions for bioinformatics workflows.
+DNA/protein sequence utility functions.
 
-This module provides foundational sequence manipulation and quality control
-functions used throughout the sequence processing pipeline:
-
-1. DNA Normalisation: Standardises input sequences (whitespace removal, uppercase)
-2. Translation: DNA to protein with configurable genetic code and stop codon handling
-3. Quality Control: Detects ambiguous bases, frameshifts, premature stops
-4. Strand Operations: Reverse complements for minus-strand genes
-5. Circular DNA: Handles genes spanning plasmid origin (wrap-around coordinates)
-
-Key Functions:
-    - translate_dna(): Simple DNA→protein translation (Biopython wrapper)
-    - translate_cds_with_qc(): Translation with comprehensive QC checks
-    - circular_slice(): Extracts subsequences from circular plasmids
-    - normalise_dna(): Equalises the DNA input format
-
-Quality Control:
-    TranslationQC dataclass captures:
-    - Ambiguous bases (N, R, Y, etc.) from low-confidence assemblies
-    - Frameshifts (length not divisible by 3)
-    - Premature stop codons
-    - Truncation events
-
-Usage:
-    from app.utils.seq_utils import translate_cds_with_qc, circular_slice
-    
-    # Translate with QC
-    protein, qc = translate_cds_with_qc(cds, genetic_code_table=11)
-    if qc.has_frameshift:
-        print("Warning: frameshift detected")
-    
-    # Extract gene spanning plasmid origin
-    gene = circular_slice(plasmid, start=4500, end=150)  # wraps around
+Provides DNA normalisation, translation (with QC), reverse complement,
+and circular plasmid slicing. See the project MkDocs for detailed
+descriptions and usage examples.
 """
 
 from __future__ import annotations

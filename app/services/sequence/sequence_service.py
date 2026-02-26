@@ -1,27 +1,9 @@
 """
 Sequence Processing Service for Variant Analysis.
 
-This module provides core functionality for processing DNA sequences in directed evolution
-experiments, including:
-    - Wild-type (WT) gene identification in circular plasmids via 6-frame alignment
-    - Variant CDS extraction and translation with quality control
-    - Mutation calling (synonymous, nonsynonymous, indels, frameshifts)
-    - Protein alignment-based indel detection
-
-The pipeline follows a reference-guided approach where the WT protein sequence from UniProt
-is aligned against all 6 reading frames of the plasmid to identify the correct CDS coordinates,
-which are then used to process all variant sequences consistently.
-
-Key Classes:
-    WTMapping: Captures WT gene mapping results (coordinates, strand, frame)
-    VariantSeqResult: Stores per-variant CDS and translation results with QC flags
-    MutationRecord: Represents individual mutations with classification
-    MutationCounts: Aggregated mutation statistics
-
-Algorithm Overview:
-    1. WT mapping: 6-frame translation + BLOSUM62 alignment → CDS coordinates
-    2. Variant processing: Extract CDS using WT coords → translate → QC
-    3. Mutation calling: Codon-by-codon comparison or protein alignment for indels
+Core logic for WT gene mapping, variant CDS extraction, translation/QC,
+and mutation calling. See the project MkDocs for detailed algorithm
+documentation and visualisations.
 """
 from __future__ import annotations
 
@@ -225,7 +207,7 @@ def _identity_pct_from_alignment(aln) -> float:
 
 def _gapped_seqs_from_alignment(aln) -> Tuple[str, str]:
     """
-    Reconstruct gapped alignment strings from structured coordinate blocks.
+    Reconstructs gapped alignment strings from structured coordinate blocks.
 
     Uses Biopython's aln.aligned arrays instead of the human-readable
     aln.format() output, which is fragile across Biopython versions and
@@ -324,44 +306,21 @@ def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
 
 def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping:
     """
-    Locates the wild-type CDS within circular plasmid using 6-frame protein alignment.
-    
-    Performs an exhaustive 6-frame translation search (3 frames x 2 strands) on a
-    circularised plasmid sequence, aligning each translated frame against the
-    reference protein using BLOSUM62. Returns the best-scoring mapping that
-    exceeds the minimum identity threshold.
-    
-    Algorithm:
-        1. Circularise plasmid by concatenating (handles genes spanning origin)
-        2. For each strand (PLUS, MINUS):
-            a. On each frame (0, 1, 2):
-                - Translate to protein
-                - Global align vs reference protein
-                - Calculate percent identity
-                - If identity ≥ WT_MIN_IDENTITY_PCT, validate candidate
-        3. Return candidate with the highest identity (ties broken by score)
-    
-    Validation checks:
-        - Identity must meet WT_MIN_IDENTITY_PCT threshold (config)
-        - CDS length must be multiple of 3
-        - No ambiguous bases (N, R, Y, etc.)
-        - Translated protein ≥ 80% of reference length (tolerance for truncation)
-    
+    Locates the wild-type CDS within a circular plasmid using 6-frame
+    protein alignment. See the project MkDocs (Visualisations > Step 1)
+    for the full algorithm walkthrough and diagrams.
+
     Args:
         wt_protein_aa: Reference protein sequence (amino acids).
         wt_plasmid_dna: Circular plasmid DNA sequence.
-    
+
     Returns:
-        WTMapping: Best mapping with strand, frame, coordinates, sequences, 
+        WTMapping: Best mapping with strand, frame, coordinates, sequences,
                    identity percentage, and alignment score.
-    
+
     Raises:
         ValueError: If plasmid or protein is empty.
         RuntimeError: If no valid mapping found above identity threshold.
-    
-    Note:
-        The 0.8 length threshold (80%) allows flexibility for minor truncations
-        or annotation differences while rejecting short spurious matches.
     """
     wt_protein = wt_protein_aa.strip().upper()
     plasmid = normalise_dna(wt_plasmid_dna)
@@ -488,33 +447,18 @@ def process_variant_plasmid(
         fallback_search: bool,
 ) -> VariantSeqResult:
     """
-    Uses the WT mapping (strand, frame, coordinates) to extract the corresponding
-    CDS from the variant plasmid, translate it, and perform quality control checks.
-    
-    Process:
-        1. Extracts CDS using circular_slice (handles wrap-around coordinates)
-        2. Applies strand orientation (reverse complement if MINUS strand)
-        3. Translates to protein using configured genetic code
-        4. Performs QC checks (frameshifts, ambiguous bases, premature stops)
-    
-    Note on reading frame:
-        The frame offset is already incorporated into cds_start_0based /
-        cds_end_0based_excl during WT mapping, so no trimming is done here.
-    
+    Extracts, translates, and QC-checks the variant CDS using WT mapping
+    coordinates. See the project MkDocs (Visualisations > Steps 2-3) for
+    details.
+
     Args:
         variant_plasmid_dna: Variant plasmid DNA sequence.
         wt_mapping: Wild-type mapping with coordinates and orientation.
-        fallback_search: If True and extraction fails, this performs a de novo search
-                        (currently placeholder - not yet implemented).
-    
+        fallback_search: If True and extraction fails, performs a de novo
+                        search (currently placeholder).
+
     Returns:
-        VariantSeqResult: Contains extracted CDS, translated protein, coordinates,
-                         and QC flags indicating any issues detected.
-    
-    Note:
-        STOP_POLICY configuration controls stop codon handling:
-        - "truncate": Stop at first stop codon, flags if the variant protein is shorter than WT
-        - Other: Keep stops in sequence, flags any embedded stop codons
+        VariantSeqResult: Extracted CDS, translated protein, and QC flags.
     """
     plasmid = normalise_dna(variant_plasmid_dna)
     n = len(plasmid)
@@ -591,31 +535,15 @@ def call_indels_via_protein_alignment(
         var_cds_dna: str, 
 ) -> Tuple[List[MutationRecord], MutationCounts]:
     """
-    Detects mutations using protein-level alignment (indel-aware).
-    
-    Translates both WT and variant CDS to protein, performs global alignment,
-    then walks through aligned columns to detect insertions, deletions, and
-    substitutions for a more robust approach.
-    
-    Algorithm:
-        1. Translates both sequences to protein (keep stop codons as *)
-        2. Performs global protein alignment with BLOSUM62 scoring
-        3. Walks through alignment columns:
-            - WT gap + variant residue → INSERTION
-            - WT residue + variant gap → DELETION
-            - Both residues present:
-                a. Checks if amino acids match (synonymous vs nonsynonymous)
-                b. Retrieves codons from DNA for classification
-                c. Detects nonsense mutations (stop codon introduced)
-    
+    Detects mutations via BLOSUM62 protein alignment (indel-aware).
+    Called by call_mutations_against_wt when CDS lengths differ.
+
     Args:
         wt_cds_dna: Wild-type CDS DNA sequence.
         var_cds_dna: Variant CDS DNA sequence.
-    
+
     Returns:
-        Tuple containing:
-            - List[MutationRecord]: All detected mutations with coordinates
-            - MutationCounts: Aggregated counts (synonymous, nonsynonymous, total)        
+        Tuple of (List[MutationRecord], MutationCounts).
     """
     wt_cds = normalise_dna(wt_cds_dna)
     var_cds = normalise_dna(var_cds_dna)
@@ -727,39 +655,16 @@ def call_mutations_against_wt(
         var_cds_dna: str,
 ) -> Tuple[List[MutationRecord], MutationCounts]:
     """
-    Main mutation calling entry point with adaptive strategy selection.
-    
-    Determines the appropriate mutation detection algorithm based on sequence
-    characteristics to optimise accuracy and performance:
-    
-    Strategy selection:
-        1. Frameshift check: If either CDS length not divisible by 3
-           → Returns single FRAMESHIFT record (detailed calling impossible)
-        
-        2. Length mismatch (but both in-frame): If len(WT) ≠ len(variant)
-           → Delegates to protein alignment, which absorbs insertions and
-             deletions into gap characters so surrounding residues stay
-             correctly paired (codon-by-codon would misalign everything
-             downstream of the indel)
-        
-        3. Equal length sequences
-           → Use fast codon-by-codon comparison (most efficient)
-    
-    The codon-by-codon approach compares triplets directly and classifies each:
-        - Identical codon → Skip (no mutation)
-        - Ambiguous bases → AMBIGUOUS classification
-        - Stop codon introduced → NONSENSE (nonsynonymous)
-        - Amino acid remains same → SYNONYMOUS
-        - Amino acid changes → NONSYNONYMOUS
-    
+    Main mutation calling entry point — selects codon-by-codon or protein
+    alignment strategy automatically. See the project MkDocs
+    (Visualisations > Step 4) for the strategy diagram.
+
     Args:
         wt_cds_dna: Wild-type CDS DNA sequence.
         var_cds_dna: Variant CDS DNA sequence.
-    
+
     Returns:
-        Tuple containing:
-            - List[MutationRecord]: All detected mutations with full annotations
-            - MutationCounts: Summary statistics (synonymous, nonsynonymous, total)
+        Tuple of (List[MutationRecord], MutationCounts).
     """
     wt = normalise_dna(wt_cds_dna)
     var = normalise_dna(var_cds_dna)

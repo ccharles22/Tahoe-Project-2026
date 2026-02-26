@@ -1,0 +1,3817 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Directed evolution sequence processing pipeline">
+      
+      
+      
+      
+        <link rel="prev" href="../run_sequence_processing/">
+      
+      
+        <link rel="next" href="../seq_utils/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.3">
+    
+    
+      
+        <title>Database Repository - Tahoe Project 2026</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="teal" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#database-repository" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Tahoe Project 2026" class="md-header__button md-logo" aria-label="Tahoe Project 2026" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Tahoe Project 2026
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Database Repository
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/your-org/Tahoe-Project-2026" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Tahoe Project 2026" class="md-nav__button md-logo" aria-label="Tahoe Project 2026" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    Tahoe Project 2026
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/your-org/Tahoe-Project-2026" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    GitHub
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../visualisations/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Visualisations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequence_service/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Service
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../run_sequence_processing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Pipeline Orchestrator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Repository
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Repository
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        db_repo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="db_repo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.VariantAnalysisItem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VariantAnalysisItem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_experiment_user_and_wt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_experiment_user_and_wt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_variant_generation_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_variant_generation_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_wt_reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_wt_reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.insert_variant_analyses_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        insert_variant_analyses_batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.insert_variant_analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        insert_variant_analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.list_processed_variant_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_processed_variant_ids
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.list_variants_by_experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_variants_by_experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.load_wt_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_wt_mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.persist_full_variant_analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        persist_full_variant_analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.replace_variant_mutations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        replace_variant_mutations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.save_run_metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_run_metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.save_variant_counts_as_metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_variant_counts_as_metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.update_experiment_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_experiment_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.upsert_uniprot_staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        upsert_uniprot_staging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.upsert_wt_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        upsert_wt_mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../seq_utils/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sequence Utilities
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../config/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../testing/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        db_repo
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="db_repo">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.VariantAnalysisItem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VariantAnalysisItem
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_engine" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_engine
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_experiment_user_and_wt" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_experiment_user_and_wt
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_variant_generation_id" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_variant_generation_id
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.get_wt_reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        get_wt_reference
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.insert_variant_analyses_batch" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        insert_variant_analyses_batch
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.insert_variant_analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        insert_variant_analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.list_processed_variant_ids" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_processed_variant_ids
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.list_variants_by_experiment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        list_variants_by_experiment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.load_wt_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        load_wt_mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.persist_full_variant_analysis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        persist_full_variant_analysis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.replace_variant_mutations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        replace_variant_mutations
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.save_run_metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_run_metadata
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.save_variant_counts_as_metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        save_variant_counts_as_metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.update_experiment_status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        update_experiment_status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.upsert_uniprot_staging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        upsert_uniprot_staging
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#app.services.sequence.db_repo.upsert_wt_mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        upsert_wt_mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="database-repository">Database Repository<a class="headerlink" href="#database-repository" title="Permanent link">&para;</a></h1>
+<p>SQL persistence layer for the sequence analysis pipeline.</p>
+
+
+<div class="doc doc-object doc-module">
+
+
+
+<h2 id="app.services.sequence.db_repo" class="doc doc-heading">
+            <code>app.services.sequence.db_repo</code>
+
+
+<a href="#app.services.sequence.db_repo" class="headerlink" title="Permanent link">&para;</a></h2>
+
+    <div class="doc doc-contents first">
+
+        <p>Database repository layer for the sequence processing pipeline.</p>
+<p>Provides all SQL persistence operations required by the sequence analysis
+workflow, including:
+    - WT reference and variant retrieval
+    - Mutation storage (synonymous / nonsynonymous / indel classification)
+    - Derived metric persistence (mutation counts)
+    - Experiment status tracking and run metadata
+    - WT mapping cache (avoids 6-frame recomputation)
+    - UniProt staging for WT protein accession data
+    - Atomic end-to-end variant analysis persistence</p>
+
+
+<details class="dependencies" open>
+  <summary>Dependencies</summary>
+  <ul>
+<li>SQLAlchemy (create_engine, text, Connection, Engine)</li>
+<li>app.config.settings for DATABASE_URL and pipeline configuration</li>
+</ul>
+</details>
+
+
+
+
+
+
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+<div class="doc doc-object doc-class">
+
+
+
+<h3 id="app.services.sequence.db_repo.VariantAnalysisItem" class="doc doc-heading">
+            <code>VariantAnalysisItem</code>
+
+
+  <span class="doc doc-labels">
+      <small class="doc doc-label doc-label-dataclass"><code>dataclass</code></small>
+  </span>
+
+<a href="#app.services.sequence.db_repo.VariantAnalysisItem" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+
+
+        <p>A single variant's analysis results, ready for batch persistence.</p>
+
+
+
+
+
+
+
+
+              <details class="mkdocstrings-source">
+                <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">979</span>
+<span class="normal">980</span>
+<span class="normal">981</span>
+<span class="normal">982</span>
+<span class="normal">983</span>
+<span class="normal">984</span>
+<span class="normal">985</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclasses</span><span class="o">.</span><span class="n">dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">VariantAnalysisItem</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;A single variant&#39;s analysis results, ready for batch persistence.&quot;&quot;&quot;</span>
+    <span class="n">variant_id</span><span class="p">:</span> <span class="nb">int</span>
+    <span class="n">result</span><span class="p">:</span> <span class="s2">&quot;VariantSeqResult&quot;</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="s2">&quot;MutationCounts&quot;</span>
+    <span class="n">mutations</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="s2">&quot;MutationRecord&quot;</span><span class="p">]</span>
+</code></pre></div></td></tr></table></div>
+              </details>
+
+
+
+<div class="doc doc-children">
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.get_engine" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_engine</span><span class="p">()</span></code>
+
+<a href="#app.services.sequence.db_repo.get_engine" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Creates and returns a SQLAlchemy engine using the application DATABASE_URL.</p>
+
+
+<details class="the-engine-is-configured-with" open>
+  <summary>The engine is configured with</summary>
+  <ul>
+<li>pool_pre_ping: validates connections before use (handles stale connections)</li>
+<li>future: enables SQLAlchemy 2.0 style usage</li>
+</ul>
+</details>
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+<th>Name</th>          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+<td><code>Engine</code></td>            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Configured SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_engine</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">Engine</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates and returns a SQLAlchemy engine using the application DATABASE_URL.</span>
+
+<span class="sd">    The engine is configured with:</span>
+<span class="sd">        - pool_pre_ping: validates connections before use (handles stale connections)</span>
+<span class="sd">        - future: enables SQLAlchemy 2.0 style usage</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Engine: Configured SQLAlchemy engine instance.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">create_engine</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATABASE_URL</span><span class="p">,</span> <span class="n">pool_pre_ping</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">future</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.get_experiment_user_and_wt" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_experiment_user_and_wt</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.get_experiment_user_and_wt" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Returns the owning user_id and wt_id for an experiment.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="int">int</span>, <span title="int">int</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple of (user_id, wt_id).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the experiment does not exist.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">111</span>
+<span class="normal">112</span>
+<span class="normal">113</span>
+<span class="normal">114</span>
+<span class="normal">115</span>
+<span class="normal">116</span>
+<span class="normal">117</span>
+<span class="normal">118</span>
+<span class="normal">119</span>
+<span class="normal">120</span>
+<span class="normal">121</span>
+<span class="normal">122</span>
+<span class="normal">123</span>
+<span class="normal">124</span>
+<span class="normal">125</span>
+<span class="normal">126</span>
+<span class="normal">127</span>
+<span class="normal">128</span>
+<span class="normal">129</span>
+<span class="normal">130</span>
+<span class="normal">131</span>
+<span class="normal">132</span>
+<span class="normal">133</span>
+<span class="normal">134</span>
+<span class="normal">135</span>
+<span class="normal">136</span>
+<span class="normal">137</span>
+<span class="normal">138</span>
+<span class="normal">139</span>
+<span class="normal">140</span>
+<span class="normal">141</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_experiment_user_and_wt</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the owning user_id and wt_id for an experiment.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple of (user_id, wt_id).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the experiment does not exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT user_id, wt_id</span>
+<span class="s2">                FROM public.experiments</span>
+<span class="s2">                WHERE experiment_id = :eid</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Experiment not found: </span><span class="si">{</span><span class="n">experiment_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.get_variant_generation_id" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_variant_generation_id</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.get_variant_generation_id" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Looks up the generation_id that owns a variant.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>variant_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the variant.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>The generation_id (int).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If the variant does not exist.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">234</span>
+<span class="normal">235</span>
+<span class="normal">236</span>
+<span class="normal">237</span>
+<span class="normal">238</span>
+<span class="normal">239</span>
+<span class="normal">240</span>
+<span class="normal">241</span>
+<span class="normal">242</span>
+<span class="normal">243</span>
+<span class="normal">244</span>
+<span class="normal">245</span>
+<span class="normal">246</span>
+<span class="normal">247</span>
+<span class="normal">248</span>
+<span class="normal">249</span>
+<span class="normal">250</span>
+<span class="normal">251</span>
+<span class="normal">252</span>
+<span class="normal">253</span>
+<span class="normal">254</span>
+<span class="normal">255</span>
+<span class="normal">256</span>
+<span class="normal">257</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_variant_generation_id</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Looks up the generation_id that owns a variant.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        variant_id: Primary key of the variant.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        The generation_id (int).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If the variant does not exist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;SELECT generation_id FROM public.variants WHERE variant_id = :vid&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;vid&quot;</span><span class="p">:</span> <span class="n">variant_id</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">scalar_one_or_none</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Variant not found: </span><span class="si">{</span><span class="n">variant_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">gid</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.get_wt_reference" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">get_wt_reference</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.get_wt_reference" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Retrieves the wild-type protein and plasmid sequences for an experiment.</p>
+<p>Joins the experiments table with wild_type_proteins to fetch the WT
+amino acid sequence and original plasmid DNA which are both required as
+inputs to the 6-frame WT gene mapping step.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Tuple">Tuple</span>[<span title="str">str</span>, <span title="str">str</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Tuple of (wt_protein_aa, wt_plasmid_dna).</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+<p><span class="doc-section-title">Raises:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="ValueError">ValueError</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>If no WT reference is linked to the experiment.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 70</span>
+<span class="normal"> 71</span>
+<span class="normal"> 72</span>
+<span class="normal"> 73</span>
+<span class="normal"> 74</span>
+<span class="normal"> 75</span>
+<span class="normal"> 76</span>
+<span class="normal"> 77</span>
+<span class="normal"> 78</span>
+<span class="normal"> 79</span>
+<span class="normal"> 80</span>
+<span class="normal"> 81</span>
+<span class="normal"> 82</span>
+<span class="normal"> 83</span>
+<span class="normal"> 84</span>
+<span class="normal"> 85</span>
+<span class="normal"> 86</span>
+<span class="normal"> 87</span>
+<span class="normal"> 88</span>
+<span class="normal"> 89</span>
+<span class="normal"> 90</span>
+<span class="normal"> 91</span>
+<span class="normal"> 92</span>
+<span class="normal"> 93</span>
+<span class="normal"> 94</span>
+<span class="normal"> 95</span>
+<span class="normal"> 96</span>
+<span class="normal"> 97</span>
+<span class="normal"> 98</span>
+<span class="normal"> 99</span>
+<span class="normal">100</span>
+<span class="normal">101</span>
+<span class="normal">102</span>
+<span class="normal">103</span>
+<span class="normal">104</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">get_wt_reference</span><span class="p">(</span><span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the wild-type protein and plasmid sequences for an experiment.</span>
+
+<span class="sd">    Joins the experiments table with wild_type_proteins to fetch the WT</span>
+<span class="sd">    amino acid sequence and original plasmid DNA which are both required as</span>
+<span class="sd">    inputs to the 6-frame WT gene mapping step.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Tuple of (wt_protein_aa, wt_plasmid_dna).</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValueError: If no WT reference is linked to the experiment.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT w.amino_acid_sequence, w.plasmid_sequence</span>
+<span class="s2">                FROM public.experiments e</span>
+<span class="s2">                JOIN public.wild_type_proteins w</span>
+<span class="s2">                  ON w.wt_id = e.wt_id</span>
+<span class="s2">                WHERE e.experiment_id = :eid</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;No WT reference found for experiment_id=</span><span class="si">{</span><span class="n">experiment_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loaded WT reference for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.insert_variant_analyses_batch" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">insert_variant_analyses_batch</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">items</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.insert_variant_analyses_batch" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persists analysis results for multiple variants in a single transaction.</p>
+<p>Compared to calling insert_variant_analysis() in a loop, this:
+  - Opens one DB connection/transaction instead of N
+  - Pre-fetches all generation_ids in a single query
+  - Reduces total round-trips from ~6N to ~3N+2</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 988</span>
+<span class="normal"> 989</span>
+<span class="normal"> 990</span>
+<span class="normal"> 991</span>
+<span class="normal"> 992</span>
+<span class="normal"> 993</span>
+<span class="normal"> 994</span>
+<span class="normal"> 995</span>
+<span class="normal"> 996</span>
+<span class="normal"> 997</span>
+<span class="normal"> 998</span>
+<span class="normal"> 999</span>
+<span class="normal">1000</span>
+<span class="normal">1001</span>
+<span class="normal">1002</span>
+<span class="normal">1003</span>
+<span class="normal">1004</span>
+<span class="normal">1005</span>
+<span class="normal">1006</span>
+<span class="normal">1007</span>
+<span class="normal">1008</span>
+<span class="normal">1009</span>
+<span class="normal">1010</span>
+<span class="normal">1011</span>
+<span class="normal">1012</span>
+<span class="normal">1013</span>
+<span class="normal">1014</span>
+<span class="normal">1015</span>
+<span class="normal">1016</span>
+<span class="normal">1017</span>
+<span class="normal">1018</span>
+<span class="normal">1019</span>
+<span class="normal">1020</span>
+<span class="normal">1021</span>
+<span class="normal">1022</span>
+<span class="normal">1023</span>
+<span class="normal">1024</span>
+<span class="normal">1025</span>
+<span class="normal">1026</span>
+<span class="normal">1027</span>
+<span class="normal">1028</span>
+<span class="normal">1029</span>
+<span class="normal">1030</span>
+<span class="normal">1031</span>
+<span class="normal">1032</span>
+<span class="normal">1033</span>
+<span class="normal">1034</span>
+<span class="normal">1035</span>
+<span class="normal">1036</span>
+<span class="normal">1037</span>
+<span class="normal">1038</span>
+<span class="normal">1039</span>
+<span class="normal">1040</span>
+<span class="normal">1041</span>
+<span class="normal">1042</span>
+<span class="normal">1043</span>
+<span class="normal">1044</span>
+<span class="normal">1045</span>
+<span class="normal">1046</span>
+<span class="normal">1047</span>
+<span class="normal">1048</span>
+<span class="normal">1049</span>
+<span class="normal">1050</span>
+<span class="normal">1051</span>
+<span class="normal">1052</span>
+<span class="normal">1053</span>
+<span class="normal">1054</span>
+<span class="normal">1055</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">insert_variant_analyses_batch</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">items</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">VariantAnalysisItem</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Persists analysis results for multiple variants in a single transaction.</span>
+
+<span class="sd">    Compared to calling insert_variant_analysis() in a loop, this:</span>
+<span class="sd">      - Opens one DB connection/transaction instead of N</span>
+<span class="sd">      - Pre-fetches all generation_ids in a single query</span>
+<span class="sd">      - Reduces total round-trips from ~6N to ~3N+2</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">items</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="n">variant_ids</span> <span class="o">=</span> <span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">variant_id</span> <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">items</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="c1"># Bulk-fetch generation_ids for all variants in one query</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT variant_id, generation_id</span>
+<span class="s2">                FROM public.variants</span>
+<span class="s2">                WHERE variant_id = ANY(:vids)</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;vids&quot;</span><span class="p">:</span> <span class="n">variant_ids</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+        <span class="n">gid_map</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">it</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="n">muts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">mutations</span><span class="p">)</span>
+            <span class="n">payload</span> <span class="o">=</span> <span class="n">_build_analysis_payload</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>
+
+            <span class="n">vsa_id</span> <span class="o">=</span> <span class="n">_write_variant_sequence_analysis</span><span class="p">(</span>
+                <span class="n">conn</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">variant_id</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">result</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">counts</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                    UPDATE public.variants</span>
+<span class="s2">                    SET protein_sequence = :prot,</span>
+<span class="s2">                        extra_metadata   = jsonb_set(</span>
+<span class="s2">                            COALESCE(extra_metadata, CAST(&#39;</span><span class="si">{}</span><span class="s2">&#39; AS jsonb)),</span>
+<span class="s2">                            &#39;</span><span class="si">{sequence_analysis}</span><span class="s2">&#39;,</span>
+<span class="s2">                            CAST(:payload AS jsonb)</span>
+<span class="s2">                        )</span>
+<span class="s2">                    WHERE variant_id = :vid</span>
+<span class="s2">                &quot;&quot;&quot;</span><span class="p">),</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;vid&quot;</span><span class="p">:</span> <span class="n">it</span><span class="o">.</span><span class="n">variant_id</span><span class="p">,</span>
+                    <span class="s2">&quot;prot&quot;</span><span class="p">:</span> <span class="n">it</span><span class="o">.</span><span class="n">result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">,</span>
+                    <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+                <span class="p">},</span>
+            <span class="p">)</span>
+
+            <span class="n">_write_mutations</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">variant_id</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">mutation_type</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">,</span> <span class="n">vsa_id</span><span class="o">=</span><span class="n">vsa_id</span><span class="p">)</span>
+
+            <span class="n">gid</span> <span class="o">=</span> <span class="n">gid_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">variant_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">gid</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">_write_metrics</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">variant_id</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">it</span><span class="o">.</span><span class="n">counts</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;Batch-persisted </span><span class="si">%d</span><span class="s2"> variant analyses for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">items</span><span class="p">),</span> <span class="n">experiment_id</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.insert_variant_analysis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">insert_variant_analysis</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">mutations</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.insert_variant_analysis" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persists a complete variant analysis result atomically.</p>
+
+
+<details class="writes-to-five-locations-in-a-single-transaction" open>
+  <summary>Writes to five locations in a single transaction</summary>
+  <ol>
+<li>variant_sequence_analysis — structured analysis row.</li>
+<li>variants.protein_sequence — translated protein string.</li>
+<li>variants.extra_metadata — legacy JSONB snapshot.</li>
+<li>mutations — individual rows (linked to VSA via vsa_id).</li>
+<li>metrics — derived mutation-count metrics.</li>
+</ol>
+</details>
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">857</span>
+<span class="normal">858</span>
+<span class="normal">859</span>
+<span class="normal">860</span>
+<span class="normal">861</span>
+<span class="normal">862</span>
+<span class="normal">863</span>
+<span class="normal">864</span>
+<span class="normal">865</span>
+<span class="normal">866</span>
+<span class="normal">867</span>
+<span class="normal">868</span>
+<span class="normal">869</span>
+<span class="normal">870</span>
+<span class="normal">871</span>
+<span class="normal">872</span>
+<span class="normal">873</span>
+<span class="normal">874</span>
+<span class="normal">875</span>
+<span class="normal">876</span>
+<span class="normal">877</span>
+<span class="normal">878</span>
+<span class="normal">879</span>
+<span class="normal">880</span>
+<span class="normal">881</span>
+<span class="normal">882</span>
+<span class="normal">883</span>
+<span class="normal">884</span>
+<span class="normal">885</span>
+<span class="normal">886</span>
+<span class="normal">887</span>
+<span class="normal">888</span>
+<span class="normal">889</span>
+<span class="normal">890</span>
+<span class="normal">891</span>
+<span class="normal">892</span>
+<span class="normal">893</span>
+<span class="normal">894</span>
+<span class="normal">895</span>
+<span class="normal">896</span>
+<span class="normal">897</span>
+<span class="normal">898</span>
+<span class="normal">899</span>
+<span class="normal">900</span>
+<span class="normal">901</span>
+<span class="normal">902</span>
+<span class="normal">903</span>
+<span class="normal">904</span>
+<span class="normal">905</span>
+<span class="normal">906</span>
+<span class="normal">907</span>
+<span class="normal">908</span>
+<span class="normal">909</span>
+<span class="normal">910</span>
+<span class="normal">911</span>
+<span class="normal">912</span>
+<span class="normal">913</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">insert_variant_analysis</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">variant_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">result</span><span class="p">:</span> <span class="s2">&quot;VariantSeqResult&quot;</span><span class="p">,</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="s2">&quot;MutationCounts&quot;</span><span class="p">,</span>
+    <span class="n">mutations</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;MutationRecord&quot;</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Persists a complete variant analysis result atomically.</span>
+
+<span class="sd">    Writes to five locations in a single transaction:</span>
+<span class="sd">        1. variant_sequence_analysis — structured analysis row.</span>
+<span class="sd">        2. variants.protein_sequence — translated protein string.</span>
+<span class="sd">        3. variants.extra_metadata — legacy JSONB snapshot.</span>
+<span class="sd">        4. mutations — individual rows (linked to VSA via vsa_id).</span>
+<span class="sd">        5. metrics — derived mutation-count metrics.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">muts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mutations</span><span class="p">)</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">_build_analysis_payload</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="c1"># Structured analysis row (returns vsa_id for linking mutations)</span>
+        <span class="n">vsa_id</span> <span class="o">=</span> <span class="n">_write_variant_sequence_analysis</span><span class="p">(</span>
+            <span class="n">conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Update variant&#39;s protein_sequence, fetch generation_id, and keep legacy JSONB snapshot</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                UPDATE public.variants</span>
+<span class="s2">                SET protein_sequence = :prot,</span>
+<span class="s2">                    extra_metadata   = jsonb_set(</span>
+<span class="s2">                        COALESCE(extra_metadata, CAST(&#39;</span><span class="si">{}</span><span class="s2">&#39; AS jsonb)),</span>
+<span class="s2">                        &#39;</span><span class="si">{sequence_analysis}</span><span class="s2">&#39;,</span>
+<span class="s2">                        CAST(:payload AS jsonb)</span>
+<span class="s2">                    )</span>
+<span class="s2">                WHERE variant_id = :vid</span>
+<span class="s2">                RETURNING generation_id</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;vid&quot;</span><span class="p">:</span> <span class="n">variant_id</span><span class="p">,</span>
+                <span class="s2">&quot;prot&quot;</span><span class="p">:</span> <span class="n">result</span><span class="o">.</span><span class="n">protein_aa</span><span class="p">,</span>
+                <span class="s2">&quot;payload&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">payload</span><span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">scalar_one</span><span class="p">()</span>
+        <span class="n">gid</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">)</span>
+
+        <span class="n">_write_mutations</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">mutation_type</span><span class="o">=</span><span class="s2">&quot;protein&quot;</span><span class="p">,</span> <span class="n">vsa_id</span><span class="o">=</span><span class="n">vsa_id</span><span class="p">)</span>
+        <span class="n">_write_metrics</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span>
+        <span class="s2">&quot;Persisted analysis for variant </span><span class="si">%s</span><span class="s2"> (experiment </span><span class="si">%s</span><span class="s2">, vsa_id=</span><span class="si">%d</span><span class="s2">, </span><span class="si">%d</span><span class="s2"> mutations)&quot;</span><span class="p">,</span>
+        <span class="n">variant_id</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">vsa_id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">muts_list</span><span class="p">),</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.list_processed_variant_ids" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">list_processed_variant_ids</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.list_processed_variant_ids" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Returns the set of variant_ids that already have a protein_sequence
+recorded, indicating they were previously processed.</p>
+<p>Used by the orchestrator to skip re-processing unchanged variants.</p>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">209</span>
+<span class="normal">210</span>
+<span class="normal">211</span>
+<span class="normal">212</span>
+<span class="normal">213</span>
+<span class="normal">214</span>
+<span class="normal">215</span>
+<span class="normal">216</span>
+<span class="normal">217</span>
+<span class="normal">218</span>
+<span class="normal">219</span>
+<span class="normal">220</span>
+<span class="normal">221</span>
+<span class="normal">222</span>
+<span class="normal">223</span>
+<span class="normal">224</span>
+<span class="normal">225</span>
+<span class="normal">226</span>
+<span class="normal">227</span>
+<span class="normal">228</span>
+<span class="normal">229</span>
+<span class="normal">230</span>
+<span class="normal">231</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">list_processed_variant_ids</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">set</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns the set of variant_ids that already have a protein_sequence</span>
+<span class="sd">    recorded, indicating they were previously processed.</span>
+
+<span class="sd">    Used by the orchestrator to skip re-processing unchanged variants.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT v.variant_id</span>
+<span class="s2">                FROM public.variants v</span>
+<span class="s2">                JOIN public.generations g</span>
+<span class="s2">                  ON g.generation_id = v.generation_id</span>
+<span class="s2">                WHERE g.experiment_id = :eid</span>
+<span class="s2">                  AND v.protein_sequence IS NOT NULL</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+    <span class="k">return</span> <span class="p">{</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">}</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.list_variants_by_experiment" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">list_variants_by_experiment</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.list_variants_by_experiment" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Obtains all variants for an experiment, ordered by generation then variant_id.
+Intentionally skips rows where assembled_dna_sequence is NULL (incomplete uploads).</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.List">List</span>[<span title="typing.Tuple">Tuple</span>[<span title="int">int</span>, <span title="str">str</span>]]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>List of (variant_id, assembled_dna_sequence) tuples.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">176</span>
+<span class="normal">177</span>
+<span class="normal">178</span>
+<span class="normal">179</span>
+<span class="normal">180</span>
+<span class="normal">181</span>
+<span class="normal">182</span>
+<span class="normal">183</span>
+<span class="normal">184</span>
+<span class="normal">185</span>
+<span class="normal">186</span>
+<span class="normal">187</span>
+<span class="normal">188</span>
+<span class="normal">189</span>
+<span class="normal">190</span>
+<span class="normal">191</span>
+<span class="normal">192</span>
+<span class="normal">193</span>
+<span class="normal">194</span>
+<span class="normal">195</span>
+<span class="normal">196</span>
+<span class="normal">197</span>
+<span class="normal">198</span>
+<span class="normal">199</span>
+<span class="normal">200</span>
+<span class="normal">201</span>
+<span class="normal">202</span>
+<span class="normal">203</span>
+<span class="normal">204</span>
+<span class="normal">205</span>
+<span class="normal">206</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">list_variants_by_experiment</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">List</span><span class="p">[</span><span class="n">Tuple</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Obtains all variants for an experiment, ordered by generation then variant_id.</span>
+<span class="sd">    Intentionally skips rows where assembled_dna_sequence is NULL (incomplete uploads).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        List of (variant_id, assembled_dna_sequence) tuples.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT v.variant_id, v.assembled_dna_sequence</span>
+<span class="s2">                FROM public.variants v</span>
+<span class="s2">                JOIN public.generations g</span>
+<span class="s2">                  ON g.generation_id = v.generation_id</span>
+<span class="s2">                WHERE g.experiment_id = :eid</span>
+<span class="s2">                ORDER BY g.generation_number, v.variant_id</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[(</span><span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span> <span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loaded </span><span class="si">%d</span><span class="s2"> variants for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">),</span> <span class="n">experiment_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">results</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.load_wt_mapping" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">load_wt_mapping</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.load_wt_mapping" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Loads a previously cached WT gene mapping from the database.</p>
+<p>The mapping is stored as a JSON string in experiment_metadata under the key
+'wt_mapping_json'. This then returns None on a cache miss
+so the caller can compute and cache it via upsert_wt_mapping.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>user_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>User who owns the mapping (stored in the JSON for
+     traceability, but the lookup key is experiment_id only).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[&#39;WTMapping&#39;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Reconstructed WTMapping dataclass, or None if not cached.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">264</span>
+<span class="normal">265</span>
+<span class="normal">266</span>
+<span class="normal">267</span>
+<span class="normal">268</span>
+<span class="normal">269</span>
+<span class="normal">270</span>
+<span class="normal">271</span>
+<span class="normal">272</span>
+<span class="normal">273</span>
+<span class="normal">274</span>
+<span class="normal">275</span>
+<span class="normal">276</span>
+<span class="normal">277</span>
+<span class="normal">278</span>
+<span class="normal">279</span>
+<span class="normal">280</span>
+<span class="normal">281</span>
+<span class="normal">282</span>
+<span class="normal">283</span>
+<span class="normal">284</span>
+<span class="normal">285</span>
+<span class="normal">286</span>
+<span class="normal">287</span>
+<span class="normal">288</span>
+<span class="normal">289</span>
+<span class="normal">290</span>
+<span class="normal">291</span>
+<span class="normal">292</span>
+<span class="normal">293</span>
+<span class="normal">294</span>
+<span class="normal">295</span>
+<span class="normal">296</span>
+<span class="normal">297</span>
+<span class="normal">298</span>
+<span class="normal">299</span>
+<span class="normal">300</span>
+<span class="normal">301</span>
+<span class="normal">302</span>
+<span class="normal">303</span>
+<span class="normal">304</span>
+<span class="normal">305</span>
+<span class="normal">306</span>
+<span class="normal">307</span>
+<span class="normal">308</span>
+<span class="normal">309</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">load_wt_mapping</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Optional</span><span class="p">[</span><span class="s2">&quot;WTMapping&quot;</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loads a previously cached WT gene mapping from the database.</span>
+
+<span class="sd">    The mapping is stored as a JSON string in experiment_metadata under the key</span>
+<span class="sd">    &#39;wt_mapping_json&#39;. This then returns None on a cache miss</span>
+<span class="sd">    so the caller can compute and cache it via upsert_wt_mapping.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+<span class="sd">        user_id: User who owns the mapping (stored in the JSON for</span>
+<span class="sd">                 traceability, but the lookup key is experiment_id only).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Reconstructed WTMapping dataclass, or None if not cached.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">app.services.sequence.sequence_service</span><span class="w"> </span><span class="kn">import</span> <span class="n">WTMapping</span>  <span class="c1"># deferred to avoid circular import</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">row</span> <span class="o">=</span> <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                SELECT field_value</span>
+<span class="s2">                FROM public.experiment_metadata</span>
+<span class="s2">                WHERE experiment_id = :eid</span>
+<span class="s2">                  AND field_name = &#39;wt_mapping_json&#39;</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">},</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">fetchone</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">row</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;No cached WT mapping for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="n">data</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+    <span class="c1"># The stored JSON may contain a &#39;user_id&#39; key for provenance — strip it</span>
+    <span class="c1"># before constructing the dataclass so it doesn&#39;t cause a TypeError.</span>
+    <span class="n">data</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;user_id&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Loaded cached WT mapping for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">WTMapping</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.persist_full_variant_analysis" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">persist_full_variant_analysis</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">mutations</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.persist_full_variant_analysis" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persists mutations, VSA row, metrics, and run metadata atomically.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Owning experiment primary key.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>variant_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Variant being persisted.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>result</code>
+            </td>
+            <td>
+                  <code>&#39;VariantSeqResult&#39;</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>VariantSeqResult from sequence processing.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>counts</code>
+            </td>
+            <td>
+                  <code>&#39;MutationCounts&#39;</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>MutationCounts.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mutations</code>
+            </td>
+            <td>
+                  <code><span title="typing.Iterable">Iterable</span>[&#39;MutationRecord&#39;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Individual MutationRecord instances to store.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">920</span>
+<span class="normal">921</span>
+<span class="normal">922</span>
+<span class="normal">923</span>
+<span class="normal">924</span>
+<span class="normal">925</span>
+<span class="normal">926</span>
+<span class="normal">927</span>
+<span class="normal">928</span>
+<span class="normal">929</span>
+<span class="normal">930</span>
+<span class="normal">931</span>
+<span class="normal">932</span>
+<span class="normal">933</span>
+<span class="normal">934</span>
+<span class="normal">935</span>
+<span class="normal">936</span>
+<span class="normal">937</span>
+<span class="normal">938</span>
+<span class="normal">939</span>
+<span class="normal">940</span>
+<span class="normal">941</span>
+<span class="normal">942</span>
+<span class="normal">943</span>
+<span class="normal">944</span>
+<span class="normal">945</span>
+<span class="normal">946</span>
+<span class="normal">947</span>
+<span class="normal">948</span>
+<span class="normal">949</span>
+<span class="normal">950</span>
+<span class="normal">951</span>
+<span class="normal">952</span>
+<span class="normal">953</span>
+<span class="normal">954</span>
+<span class="normal">955</span>
+<span class="normal">956</span>
+<span class="normal">957</span>
+<span class="normal">958</span>
+<span class="normal">959</span>
+<span class="normal">960</span>
+<span class="normal">961</span>
+<span class="normal">962</span>
+<span class="normal">963</span>
+<span class="normal">964</span>
+<span class="normal">965</span>
+<span class="normal">966</span>
+<span class="normal">967</span>
+<span class="normal">968</span>
+<span class="normal">969</span>
+<span class="normal">970</span>
+<span class="normal">971</span>
+<span class="normal">972</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">persist_full_variant_analysis</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">variant_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">result</span><span class="p">:</span> <span class="s2">&quot;VariantSeqResult&quot;</span><span class="p">,</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="s2">&quot;MutationCounts&quot;</span><span class="p">,</span>
+    <span class="n">mutations</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;MutationRecord&quot;</span><span class="p">],</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Persists mutations, VSA row, metrics, and run metadata atomically.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Owning experiment primary key.</span>
+<span class="sd">        variant_id: Variant being persisted.</span>
+<span class="sd">        result: VariantSeqResult from sequence processing.</span>
+<span class="sd">        counts: MutationCounts.</span>
+<span class="sd">        mutations: Individual MutationRecord instances to store.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">muts_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">mutations</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">vsa_id</span> <span class="o">=</span> <span class="n">_write_variant_sequence_analysis</span><span class="p">(</span>
+            <span class="n">conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">result</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span>
+            <span class="n">user_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>  <span class="c1"># unknown at this call site</span>
+        <span class="p">)</span>
+        <span class="n">replace_variant_mutations</span><span class="p">(</span>
+            <span class="n">engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">muts_list</span><span class="p">,</span> <span class="n">conn</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="c1"># Back-fill vsa_id on the mutation rows just written</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                UPDATE public.mutations</span>
+<span class="s2">                SET vsa_id = :vsa</span>
+<span class="s2">                WHERE variant_id = :vid AND mutation_type = &#39;protein&#39;</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;vsa&quot;</span><span class="p">:</span> <span class="n">vsa_id</span><span class="p">,</span> <span class="s2">&quot;vid&quot;</span><span class="p">:</span> <span class="n">variant_id</span><span class="p">},</span>
+        <span class="p">)</span>
+        <span class="n">save_variant_counts_as_metrics</span><span class="p">(</span>
+            <span class="n">engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="n">conn</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">save_run_metadata</span><span class="p">(</span>
+            <span class="n">engine</span><span class="p">,</span>
+            <span class="n">experiment_id</span><span class="p">,</span>
+            <span class="n">field_name</span><span class="o">=</span><span class="s2">&quot;last_sequence_processing_run&quot;</span><span class="p">,</span>
+            <span class="n">field_value</span><span class="o">=</span><span class="s2">&quot;completed&quot;</span><span class="p">,</span>
+            <span class="n">conn</span><span class="o">=</span><span class="n">conn</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;Persisted full analysis for variant </span><span class="si">%s</span><span class="s2"> (experiment </span><span class="si">%s</span><span class="s2">, vsa_id=</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">variant_id</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">vsa_id</span><span class="p">,</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.replace_variant_mutations" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">replace_variant_mutations</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">mutations</span><span class="p">,</span> <span class="n">mutation_type</span><span class="o">=</span><span class="s1">&#39;protein&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">conn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.replace_variant_mutations" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Replaces all mutations of a given type for a variant (idempotent upsert).
+Deletes existing records collected by variant_id and mutation_type and
+inserts fresh rows.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>variant_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Target variant primary key.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mutations</code>
+            </td>
+            <td>
+                  <code><span title="typing.Iterable">Iterable</span>[&#39;MutationRecord&#39;]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>MutationRecord instances to persist.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>mutation_type</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p><code>'protein'</code> (default) or <code>'dna'</code>.</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;protein&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>conn</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="sqlalchemy.engine.Connection">Connection</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional existing connection for shared transactions.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">520</span>
+<span class="normal">521</span>
+<span class="normal">522</span>
+<span class="normal">523</span>
+<span class="normal">524</span>
+<span class="normal">525</span>
+<span class="normal">526</span>
+<span class="normal">527</span>
+<span class="normal">528</span>
+<span class="normal">529</span>
+<span class="normal">530</span>
+<span class="normal">531</span>
+<span class="normal">532</span>
+<span class="normal">533</span>
+<span class="normal">534</span>
+<span class="normal">535</span>
+<span class="normal">536</span>
+<span class="normal">537</span>
+<span class="normal">538</span>
+<span class="normal">539</span>
+<span class="normal">540</span>
+<span class="normal">541</span>
+<span class="normal">542</span>
+<span class="normal">543</span>
+<span class="normal">544</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">replace_variant_mutations</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">variant_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">mutations</span><span class="p">:</span> <span class="n">Iterable</span><span class="p">[</span><span class="s2">&quot;MutationRecord&quot;</span><span class="p">],</span>
+    <span class="n">mutation_type</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;protein&quot;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Replaces all mutations of a given type for a variant (idempotent upsert).</span>
+<span class="sd">    Deletes existing records collected by variant_id and mutation_type and</span>
+<span class="sd">    inserts fresh rows.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        variant_id: Target variant primary key.</span>
+<span class="sd">        mutations: MutationRecord instances to persist.</span>
+<span class="sd">        mutation_type: ``&#39;protein&#39;`` (default) or ``&#39;dna&#39;``.</span>
+<span class="sd">        conn: Optional existing connection for shared transactions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">conn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_write_mutations</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">mutations</span><span class="p">,</span> <span class="n">mutation_type</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">txn_conn</span><span class="p">:</span>
+            <span class="n">_write_mutations</span><span class="p">(</span><span class="n">txn_conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">mutations</span><span class="p">,</span> <span class="n">mutation_type</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.save_run_metadata" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_run_metadata</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_value</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">conn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.save_run_metadata" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Persists run-level metadata into experiment_metadata.By recording traceability information such as pipeline completion timestamps
+and processing parameters. </p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Owning experiment primary key.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>field_name</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Metadata key (unique per experiment).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>field_value</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Metadata value to store.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>conn</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="sqlalchemy.engine.Connection">Connection</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional existing connection for shared transactions.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">668</span>
+<span class="normal">669</span>
+<span class="normal">670</span>
+<span class="normal">671</span>
+<span class="normal">672</span>
+<span class="normal">673</span>
+<span class="normal">674</span>
+<span class="normal">675</span>
+<span class="normal">676</span>
+<span class="normal">677</span>
+<span class="normal">678</span>
+<span class="normal">679</span>
+<span class="normal">680</span>
+<span class="normal">681</span>
+<span class="normal">682</span>
+<span class="normal">683</span>
+<span class="normal">684</span>
+<span class="normal">685</span>
+<span class="normal">686</span>
+<span class="normal">687</span>
+<span class="normal">688</span>
+<span class="normal">689</span>
+<span class="normal">690</span>
+<span class="normal">691</span>
+<span class="normal">692</span>
+<span class="normal">693</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">save_run_metadata</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">field_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">field_value</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Persists run-level metadata into experiment_metadata.By recording traceability information such as pipeline completion timestamps</span>
+<span class="sd">    and processing parameters. </span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Owning experiment primary key.</span>
+<span class="sd">        field_name: Metadata key (unique per experiment).</span>
+<span class="sd">        field_value: Metadata value to store.</span>
+<span class="sd">        conn: Optional existing connection for shared transactions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">conn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_write_run_metadata</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_value</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">txn_conn</span><span class="p">:</span>
+            <span class="n">_write_run_metadata</span><span class="p">(</span><span class="n">txn_conn</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_value</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Saved metadata </span><span class="si">%s</span><span class="s2">=</span><span class="si">%s</span><span class="s2"> for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_value</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.save_variant_counts_as_metrics" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">save_variant_counts_as_metrics</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">counts</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">conn</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.save_variant_counts_as_metrics" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Saves mutation summary statistics into the metrics table.</p>
+<p>Looks up the variant's generation_id (foreign key) then upserts
+three derived-metric rows.  Supports standalone or shared-transaction use.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>variant_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Target variant primary key.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>counts</code>
+            </td>
+            <td>
+                  <code>&#39;MutationCounts&#39;</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>MutationCounts with synonymous, nonsynonymous, and total.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>conn</code>
+            </td>
+            <td>
+                  <code><span title="typing.Optional">Optional</span>[<span title="sqlalchemy.engine.Connection">Connection</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Optional existing connection for shared transactions.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">604</span>
+<span class="normal">605</span>
+<span class="normal">606</span>
+<span class="normal">607</span>
+<span class="normal">608</span>
+<span class="normal">609</span>
+<span class="normal">610</span>
+<span class="normal">611</span>
+<span class="normal">612</span>
+<span class="normal">613</span>
+<span class="normal">614</span>
+<span class="normal">615</span>
+<span class="normal">616</span>
+<span class="normal">617</span>
+<span class="normal">618</span>
+<span class="normal">619</span>
+<span class="normal">620</span>
+<span class="normal">621</span>
+<span class="normal">622</span>
+<span class="normal">623</span>
+<span class="normal">624</span>
+<span class="normal">625</span>
+<span class="normal">626</span>
+<span class="normal">627</span>
+<span class="normal">628</span>
+<span class="normal">629</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">save_variant_counts_as_metrics</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">variant_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">counts</span><span class="p">:</span> <span class="s2">&quot;MutationCounts&quot;</span><span class="p">,</span>
+    <span class="o">*</span><span class="p">,</span>
+    <span class="n">conn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Connection</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Saves mutation summary statistics into the metrics table.</span>
+
+<span class="sd">    Looks up the variant&#39;s generation_id (foreign key) then upserts</span>
+<span class="sd">    three derived-metric rows.  Supports standalone or shared-transaction use.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        variant_id: Target variant primary key.</span>
+<span class="sd">        counts: MutationCounts with synonymous, nonsynonymous, and total.</span>
+<span class="sd">        conn: Optional existing connection for shared transactions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gid</span> <span class="o">=</span> <span class="n">get_variant_generation_id</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">conn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">_write_metrics</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">txn_conn</span><span class="p">:</span>
+            <span class="n">_write_metrics</span><span class="p">(</span><span class="n">txn_conn</span><span class="p">,</span> <span class="n">variant_id</span><span class="p">,</span> <span class="n">gid</span><span class="p">,</span> <span class="n">counts</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.update_experiment_status" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">update_experiment_status</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.update_experiment_status" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Records the pipeline analysis status for an experiment.</p>
+
+
+<details class="status-values-used-by-the-orchestrator" open>
+  <summary>Status values used by the orchestrator</summary>
+  <p>ANALYSIS_RUNNING, ANALYSED, ANALYSED_WITH_ERRORS, FAILED</p>
+</details>
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>status</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>New status string to record.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">144</span>
+<span class="normal">145</span>
+<span class="normal">146</span>
+<span class="normal">147</span>
+<span class="normal">148</span>
+<span class="normal">149</span>
+<span class="normal">150</span>
+<span class="normal">151</span>
+<span class="normal">152</span>
+<span class="normal">153</span>
+<span class="normal">154</span>
+<span class="normal">155</span>
+<span class="normal">156</span>
+<span class="normal">157</span>
+<span class="normal">158</span>
+<span class="normal">159</span>
+<span class="normal">160</span>
+<span class="normal">161</span>
+<span class="normal">162</span>
+<span class="normal">163</span>
+<span class="normal">164</span>
+<span class="normal">165</span>
+<span class="normal">166</span>
+<span class="normal">167</span>
+<span class="normal">168</span>
+<span class="normal">169</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">update_experiment_status</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Records the pipeline analysis status for an experiment.</span>
+
+<span class="sd">    Status values used by the orchestrator:</span>
+<span class="sd">        ANALYSIS_RUNNING, ANALYSED, ANALYSED_WITH_ERRORS, FAILED</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+<span class="sd">        status: New status string to record.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                UPDATE public.experiments</span>
+<span class="s2">                SET analysis_status = :status</span>
+<span class="s2">                WHERE experiment_id = :eid</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span><span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="n">status</span><span class="p">},</span>
+        <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Experiment </span><span class="si">%s</span><span class="s2"> status → </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">status</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.upsert_uniprot_staging" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">upsert_uniprot_staging</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">accession</span><span class="p">,</span> <span class="n">protein_sequence</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.upsert_uniprot_staging" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Stages a UniProt protein sequence for an experiment.</p>
+<p>Stores the accession, user_id, and retrieved protein as a JSON string
+in experiment_metadata under 'uniprot_staging', so
+it can be used for WT mapping without re-fetching from UniProt.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>user_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>User who triggered the staging.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>accession</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>UniProt accession identifier (e.g. "P00582").</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>protein_sequence</code>
+            </td>
+            <td>
+                  <code><span title="str">str</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Full amino acid sequence from UniProt.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">356</span>
+<span class="normal">357</span>
+<span class="normal">358</span>
+<span class="normal">359</span>
+<span class="normal">360</span>
+<span class="normal">361</span>
+<span class="normal">362</span>
+<span class="normal">363</span>
+<span class="normal">364</span>
+<span class="normal">365</span>
+<span class="normal">366</span>
+<span class="normal">367</span>
+<span class="normal">368</span>
+<span class="normal">369</span>
+<span class="normal">370</span>
+<span class="normal">371</span>
+<span class="normal">372</span>
+<span class="normal">373</span>
+<span class="normal">374</span>
+<span class="normal">375</span>
+<span class="normal">376</span>
+<span class="normal">377</span>
+<span class="normal">378</span>
+<span class="normal">379</span>
+<span class="normal">380</span>
+<span class="normal">381</span>
+<span class="normal">382</span>
+<span class="normal">383</span>
+<span class="normal">384</span>
+<span class="normal">385</span>
+<span class="normal">386</span>
+<span class="normal">387</span>
+<span class="normal">388</span>
+<span class="normal">389</span>
+<span class="normal">390</span>
+<span class="normal">391</span>
+<span class="normal">392</span>
+<span class="normal">393</span>
+<span class="normal">394</span>
+<span class="normal">395</span>
+<span class="normal">396</span>
+<span class="normal">397</span>
+<span class="normal">398</span>
+<span class="normal">399</span>
+<span class="normal">400</span>
+<span class="normal">401</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">upsert_uniprot_staging</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">accession</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">protein_sequence</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Stages a UniProt protein sequence for an experiment.</span>
+
+<span class="sd">    Stores the accession, user_id, and retrieved protein as a JSON string</span>
+<span class="sd">    in experiment_metadata under &#39;uniprot_staging&#39;, so</span>
+<span class="sd">    it can be used for WT mapping without re-fetching from UniProt.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+<span class="sd">        user_id: User who triggered the staging.</span>
+<span class="sd">        accession: UniProt accession identifier (e.g. &quot;P00582&quot;).</span>
+<span class="sd">        protein_sequence: Full amino acid sequence from UniProt.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">payload</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">({</span>
+        <span class="s2">&quot;user_id&quot;</span><span class="p">:</span> <span class="n">user_id</span><span class="p">,</span>
+        <span class="s2">&quot;accession&quot;</span><span class="p">:</span> <span class="n">accession</span><span class="p">,</span>
+        <span class="s2">&quot;protein_sequence&quot;</span><span class="p">:</span> <span class="n">protein_sequence</span><span class="p">,</span>
+    <span class="p">})</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                INSERT INTO public.experiment_metadata</span>
+<span class="s2">                  (experiment_id, field_name, field_value)</span>
+<span class="s2">                VALUES</span>
+<span class="s2">                  (:eid, &#39;uniprot_staging&#39;, :val)</span>
+<span class="s2">                ON CONFLICT (experiment_id, field_name)</span>
+<span class="s2">                DO UPDATE SET field_value = EXCLUDED.field_value</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">,</span>
+                <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">payload</span><span class="p">,</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+        <span class="s2">&quot;Staged UniProt </span><span class="si">%s</span><span class="s2"> for experiment </span><span class="si">%s</span><span class="s2"> (len=</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span>
+        <span class="n">accession</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">protein_sequence</span><span class="p">),</span>
+    <span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h3 id="app.services.sequence.db_repo.upsert_wt_mapping" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">upsert_wt_mapping</span><span class="p">(</span><span class="n">engine</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">,</span> <span class="n">user_id</span><span class="p">,</span> <span class="n">wt_mapping</span><span class="p">)</span></code>
+
+<a href="#app.services.sequence.db_repo.upsert_wt_mapping" class="headerlink" title="Permanent link">&para;</a></h3>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Caches a WT gene mapping result in the database.</p>
+<p>Serialises the WTMapping dataclass to a JSON string and stores it in
+experiment_metadata under 'wt_mapping_json'.
+Uses an upsert so re-running the pipeline safely overwrites stale data.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>engine</code>
+            </td>
+            <td>
+                  <code><span title="sqlalchemy.engine.Engine">Engine</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>SQLAlchemy engine instance.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>experiment_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Primary key of the experiment.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>user_id</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>User who owns the mapping (stored inside the JSON).</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>wt_mapping</code>
+            </td>
+            <td>
+                  <code>&#39;WTMapping&#39;</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>WTMapping dataclass to persist.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>app\services\sequence\db_repo.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">312</span>
+<span class="normal">313</span>
+<span class="normal">314</span>
+<span class="normal">315</span>
+<span class="normal">316</span>
+<span class="normal">317</span>
+<span class="normal">318</span>
+<span class="normal">319</span>
+<span class="normal">320</span>
+<span class="normal">321</span>
+<span class="normal">322</span>
+<span class="normal">323</span>
+<span class="normal">324</span>
+<span class="normal">325</span>
+<span class="normal">326</span>
+<span class="normal">327</span>
+<span class="normal">328</span>
+<span class="normal">329</span>
+<span class="normal">330</span>
+<span class="normal">331</span>
+<span class="normal">332</span>
+<span class="normal">333</span>
+<span class="normal">334</span>
+<span class="normal">335</span>
+<span class="normal">336</span>
+<span class="normal">337</span>
+<span class="normal">338</span>
+<span class="normal">339</span>
+<span class="normal">340</span>
+<span class="normal">341</span>
+<span class="normal">342</span>
+<span class="normal">343</span>
+<span class="normal">344</span>
+<span class="normal">345</span>
+<span class="normal">346</span>
+<span class="normal">347</span>
+<span class="normal">348</span>
+<span class="normal">349</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">upsert_wt_mapping</span><span class="p">(</span>
+    <span class="n">engine</span><span class="p">:</span> <span class="n">Engine</span><span class="p">,</span>
+    <span class="n">experiment_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="n">wt_mapping</span><span class="p">:</span> <span class="s2">&quot;WTMapping&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Caches a WT gene mapping result in the database.</span>
+
+<span class="sd">    Serialises the WTMapping dataclass to a JSON string and stores it in</span>
+<span class="sd">    experiment_metadata under &#39;wt_mapping_json&#39;.</span>
+<span class="sd">    Uses an upsert so re-running the pipeline safely overwrites stale data.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        engine: SQLAlchemy engine instance.</span>
+<span class="sd">        experiment_id: Primary key of the experiment.</span>
+<span class="sd">        user_id: User who owns the mapping (stored inside the JSON).</span>
+<span class="sd">        wt_mapping: WTMapping dataclass to persist.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mapping_dict</span> <span class="o">=</span> <span class="n">dataclasses</span><span class="o">.</span><span class="n">asdict</span><span class="p">(</span><span class="n">wt_mapping</span><span class="p">)</span>
+    <span class="n">mapping_dict</span><span class="p">[</span><span class="s2">&quot;user_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">user_id</span>  <span class="c1"># embed provenance</span>
+
+    <span class="k">with</span> <span class="n">engine</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span> <span class="k">as</span> <span class="n">conn</span><span class="p">:</span>
+        <span class="n">conn</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+            <span class="n">text</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">                INSERT INTO public.experiment_metadata</span>
+<span class="s2">                  (experiment_id, field_name, field_value)</span>
+<span class="s2">                VALUES</span>
+<span class="s2">                  (:eid, &#39;wt_mapping_json&#39;, :val)</span>
+<span class="s2">                ON CONFLICT (experiment_id, field_name)</span>
+<span class="s2">                DO UPDATE SET field_value = EXCLUDED.field_value</span>
+<span class="s2">            &quot;&quot;&quot;</span><span class="p">),</span>
+            <span class="p">{</span>
+                <span class="s2">&quot;eid&quot;</span><span class="p">:</span> <span class="n">experiment_id</span><span class="p">,</span>
+                <span class="s2">&quot;val&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">mapping_dict</span><span class="p">),</span>
+            <span class="p">},</span>
+        <span class="p">)</span>
+    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Cached WT mapping for experiment </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">experiment_id</span><span class="p">)</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+
+
+  </div>
+
+    </div>
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.sections", "navigation.expand", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
