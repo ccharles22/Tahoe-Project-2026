@@ -302,9 +302,10 @@ def main() -> None:
     top10_path = OUTPUT_DIR / f"exp_{experiment_id}_top10_variants.csv"
     plot_path = OUTPUT_DIR / f"exp_{experiment_id}_activity_distribution.png"
     lineage_path = OUTPUT_DIR / f"exp_{experiment_id}_lineage.png"
-    protein_mode = os.getenv("PROTEIN_NET_MODE", "identity").strip().lower()
+    # Default to mutation co-occurrence unless explicitly overridden.
+    protein_mode = os.getenv("PROTEIN_NET_MODE", "cooccurrence").strip().lower()
     if protein_mode not in {"identity", "cooccurrence"}:
-        protein_mode = "identity"
+        protein_mode = "cooccurrence"
 
     protein_suffix = "" if protein_mode == "identity" else f"_{protein_mode}"
     protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity{protein_suffix}.png"
