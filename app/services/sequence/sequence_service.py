@@ -156,9 +156,17 @@ class MutationCounts:
 # ============================================================================
 # Alignment Utilities
 # ============================================================================
+# Pre-load BLOSUM62 once at import time so it is not re-read from disk
+# on every alignment call (substitution_matrices.load is I/O-bound).
+_BLOSUM62 = substitution_matrices.load("BLOSUM62")
+
+
 def _make_protein_aligner(mode: str = "global") -> PairwiseAligner:
     """
     Configures a pairwise aligner with BLOSUM62 and gap penalties.
+    
+    Uses the module-level cached BLOSUM62 matrix to avoid reloading
+    from disk on every call.
     
     Args:
         mode: Alignment mode - "global" or "local".
@@ -168,10 +176,16 @@ def _make_protein_aligner(mode: str = "global") -> PairwiseAligner:
     """
     aligner = PairwiseAligner()
     aligner.mode = mode
-    aligner.substitution_matrix = substitution_matrices.load("BLOSUM62")
+    aligner.substitution_matrix = _BLOSUM62
     aligner.open_gap_score = -10.0
     aligner.extend_gap_score = -0.5
     return aligner
+
+
+# Cached aligners for reuse across calls (PairwiseAligner is stateless
+# after configuration, so sharing instances is safe).
+_GLOBAL_ALIGNER = _make_protein_aligner("global")
+_LOCAL_ALIGNER = _make_protein_aligner("local")
 
 def _identity_pct_from_alignment(aln) -> float:
     """
@@ -208,6 +222,80 @@ def _identity_pct_from_alignment(aln) -> float:
 # ============================================================================
 # Translation & Sequence Utilities
 # ============================================================================
+
+def _gapped_seqs_from_alignment(aln) -> Tuple[str, str]:
+    """
+    Reconstruct gapped alignment strings from structured coordinate blocks.
+
+    Uses Biopython's aln.aligned arrays instead of the human-readable
+    aln.format() output, which is fragile across Biopython versions and
+    breaks on line-wrapped or annotated output.
+
+    Args:
+        aln: Biopython PairwiseAlignment object.
+
+    Returns:
+        Tuple of (gapped_seq_a, gapped_seq_b) with '-' for gap characters.
+    """
+    seq_a = str(aln.sequences[0])
+    seq_b = str(aln.sequences[1])
+    blocks_a = aln.aligned[0]
+    blocks_b = aln.aligned[1]
+
+    if len(blocks_a) == 0:
+        return "", ""
+
+    gapped_a: list[str] = []
+    gapped_b: list[str] = []
+
+    prev_a_end = int(blocks_a[0][0])
+    prev_b_end = int(blocks_b[0][0])
+
+    # Leading unaligned residues (global alignment may have leading gaps)
+    if prev_a_end > 0 and prev_b_end == 0:
+        gapped_a.append(seq_a[:prev_a_end])
+        gapped_b.append("-" * prev_a_end)
+    elif prev_b_end > 0 and prev_a_end == 0:
+        gapped_a.append("-" * prev_b_end)
+        gapped_b.append(seq_b[:prev_b_end])
+    elif prev_a_end > 0 and prev_b_end > 0:
+        # Both have leading unaligned - treat longer as gapping the shorter
+        gapped_a.append(seq_a[:prev_a_end])
+        gapped_b.append(seq_b[:prev_b_end])
+
+    for idx in range(len(blocks_a)):
+        a_start, a_end = int(blocks_a[idx][0]), int(blocks_a[idx][1])
+        b_start, b_end = int(blocks_b[idx][0]), int(blocks_b[idx][1])
+
+        if idx > 0:
+            gap_a = a_start - prev_a_end  # unaligned residues in A
+            gap_b = b_start - prev_b_end  # unaligned residues in B
+            if gap_a > 0:
+                gapped_a.append(seq_a[prev_a_end:a_start])
+                gapped_b.append("-" * gap_a)
+            if gap_b > 0:
+                gapped_b.append(seq_b[prev_b_end:b_start])
+                gapped_a.append("-" * gap_b)
+
+        # Aligned block (same length in both sequences)
+        gapped_a.append(seq_a[a_start:a_end])
+        gapped_b.append(seq_b[b_start:b_end])
+
+        prev_a_end = a_end
+        prev_b_end = b_end
+
+    # Trailing unaligned residues
+    if prev_a_end < len(seq_a):
+        tail = len(seq_a) - prev_a_end
+        gapped_a.append(seq_a[prev_a_end:])
+        gapped_b.append("-" * tail)
+    if prev_b_end < len(seq_b):
+        tail = len(seq_b) - prev_b_end
+        gapped_b.append(seq_b[prev_b_end:])
+        gapped_a.append("-" * tail)
+
+    return "".join(gapped_a), "".join(gapped_b)
+
 
 def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
     """
@@ -284,9 +372,9 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
         raise ValueError("WT protein reference is empty.")
     
     n = len(plasmid) 
-    circular = plasmid + plasmid # Supports wrap-around gene locations on circular plasmids.
+    circular = plasmid + plasmid
 
-    aligner = _make_protein_aligner(mode="local")
+    aligner = _LOCAL_ALIGNER
 
     best:Optional[WTMapping] = None
     best_score = float("-inf")
@@ -321,8 +409,19 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
                 continue
 
             q0_prot = int(aln.aligned[0][0][0])
-            nt_start = frame + (q0_prot * 3)
+            t0_prot = int(aln.aligned[1][0][0])
+
+            # Adjust CDS start to account for any leading WT residues
+            # before the alignment anchor (t0_prot > 0 means the alignment
+            # matched starting partway into the WT protein).
+            nt_start = frame + (q0_prot - t0_prot) * 3
             nt_end = nt_start + (len(wt_protein) * 3)
+
+            # Clamp to valid range within the doubled-plasmid coordinate space
+            max_nt = 2 * n
+            if nt_start < 0 or nt_end > max_nt:
+                continue
+
             nt_start_mod = nt_start % n
             nt_end_mod = nt_end % n
 
@@ -395,9 +494,12 @@ def process_variant_plasmid(
     Process:
         1. Extracts CDS using circular_slice (handles wrap-around coordinates)
         2. Applies strand orientation (reverse complement if MINUS strand)
-        3. Applies reading frame offset (trim 0, 1, or 2 leading bases)
-        4. Translates to protein using configured genetic code
-        5. Performs QC checks (frameshifts, ambiguous bases, premature stops)
+        3. Translates to protein using configured genetic code
+        4. Performs QC checks (frameshifts, ambiguous bases, premature stops)
+    
+    Note on reading frame:
+        The frame offset is already incorporated into cds_start_0based /
+        cds_end_0based_excl during WT mapping, so no trimming is done here.
     
     Args:
         variant_plasmid_dna: Variant plasmid DNA sequence.
@@ -429,9 +531,9 @@ def process_variant_plasmid(
     if wt_mapping.strand == "MINUS":
         cds_dna = reverse_complement_dna(cds_dna)
 
-    if wt_mapping.frame in (0,1,2):
-        cds_dna = cds_dna[wt_mapping.frame:]
-    
+    # Frame offset is already incorporated into cds_start_0based / cds_end_0based_excl
+    # during WT mapping, so no additional trimming is needed here.
+
     has_frameshift = (len(cds_dna) % 3 != 0)
     has_ambig = contains_ambiguous_bases(cds_dna)
 
@@ -521,16 +623,12 @@ def call_indels_via_protein_alignment(
     wt_prot = translate_dna(wt_cds, table=settings.GENETIC_CODE_TABLE, to_stop=False)
     var_prot = translate_dna(var_cds, table=settings.GENETIC_CODE_TABLE, to_stop=False)
 
-    aligner = _make_protein_aligner()
-    aln = aligner.align(wt_prot, var_prot)[0]
+    aln = _GLOBAL_ALIGNER.align(wt_prot, var_prot)[0]
 
-    lines = aln.format().splitlines()
-    if len(lines) < 3:
+    # Use structured coordinate blocks instead of fragile aln.format() text
+    wt_aln, var_aln = _gapped_seqs_from_alignment(aln)
+    if not wt_aln:
         return ([], MutationCounts(synonymous=0, nonsynonymous=0, total=0))
-
-
-    wt_aln = lines[0]
-    var_aln = lines[2]
 
     muts: List[MutationRecord] = []
     syn = 0

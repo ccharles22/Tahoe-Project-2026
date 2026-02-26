@@ -9,8 +9,8 @@ Tests the full pipeline end-to-end using experiment_id=2 (30 variants, smallest 
     5. Prints summary results
 
 Usage:
-    python -m scripts.test_variant_analysis
-    python -m scripts.test_variant_analysis --experiment 1
+    python tests/test_variant_analysis.py
+    python tests/test_variant_analysis.py --experiment 1
 """
 from __future__ import annotations
 

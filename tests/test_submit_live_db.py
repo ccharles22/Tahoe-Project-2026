@@ -173,7 +173,7 @@ def run_live_test(experiment_id: int, force_reprocess: bool = False) -> bool:
     # ── Submit background processing ─────────────────────────────────────
     print(f"\n  [2] Submitting background thread...")
     t0 = time.perf_counter()
-    thread = submit_sequence_processing(experiment_id)
+    thread = submit_sequence_processing(experiment_id, force_reprocess=force_reprocess)
     submit_elapsed = time.perf_counter() - t0
     print(f"      Returned in {submit_elapsed:.3f}s (thread={thread.name})")
 
