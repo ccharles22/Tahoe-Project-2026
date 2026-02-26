@@ -63,16 +63,23 @@ def ensure_wt_control(cur, generation_id: int, wt_id: int) -> int:
     return int(cur.fetchone()[0])
 
 
-def upsert_metric_for_wt(cur, wt_control_id: int, name: str, value: float, unit: str = "") -> None:
+def upsert_metric_for_wt(
+    cur,
+    generation_id: int,
+    wt_control_id: int,
+    name: str,
+    value: float,
+    unit: str = "",
+) -> None:
     cur.execute(
         """
-        INSERT INTO metrics (wt_control_id, metric_name, metric_type, value, unit)
-        VALUES (%s, %s, 'raw', %s, %s)
+        INSERT INTO metrics (generation_id, wt_control_id, metric_name, metric_type, value, unit)
+        VALUES (%s, %s, %s, 'raw', %s, %s)
         ON CONFLICT (generation_id, wt_control_id, metric_name, metric_type)
         WHERE wt_control_id IS NOT NULL
         DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit;
         """,
-        (wt_control_id, name, float(value), unit),
+        (generation_id, wt_control_id, name, float(value), unit),
     )
 
 
@@ -147,16 +154,23 @@ def purge_experiment_variants(cur, experiment_id: int) -> tuple[int, int]:
     return deleted_variants, deleted_metrics
 
 
-def upsert_metric_for_variant(cur, variant_id: int, name: str, value: float, unit: str = "") -> None:
+def upsert_metric_for_variant(
+    cur,
+    generation_id: int,
+    variant_id: int,
+    name: str,
+    value: float,
+    unit: str = "",
+) -> None:
     cur.execute(
         """
-        INSERT INTO metrics (variant_id, metric_name, metric_type, value, unit)
-        VALUES (%s, %s, 'raw', %s, %s)
+        INSERT INTO metrics (generation_id, variant_id, metric_name, metric_type, value, unit)
+        VALUES (%s, %s, %s, 'raw', %s, %s)
         ON CONFLICT (generation_id, variant_id, metric_name, metric_type)
         WHERE variant_id IS NOT NULL
         DO UPDATE SET value = EXCLUDED.value, unit = EXCLUDED.unit;
         """,
-        (variant_id, name, float(value), unit),
+        (generation_id, variant_id, name, float(value), unit),
     )
 
 
@@ -195,6 +209,17 @@ def main() -> None:
             if wt_df.empty:
                 raise ValueError("No WT control rows found (Control==true). Cannot create WT baselines.")
 
+            # Enforce at least one control row per generation so WT-based scoring is valid.
+            all_generations = sorted({int(g) for g in df[GEN_COL].dropna().unique()})
+            wt_generations = sorted({int(g) for g in wt_df[GEN_COL].dropna().unique()})
+            missing_control_generations = sorted(set(all_generations) - set(wt_generations))
+            if missing_control_generations:
+                raise ValueError(
+                    "Missing WT control rows (Control==true) for generations: "
+                    f"{missing_control_generations}. "
+                    "Cannot load experiment for WT-based scoring."
+                )
+
             wt_means = (
                 wt_df.groupby(GEN_COL)[[DNA_COL, PROT_COL]]
                 .mean(numeric_only=True)
@@ -207,8 +232,8 @@ def main() -> None:
 
                 wt_control_id = ensure_wt_control(cur, gen_id, wt_id)
 
-                upsert_metric_for_wt(cur, wt_control_id, "dna_yield_raw", float(r[DNA_COL]), "fg")
-                upsert_metric_for_wt(cur, wt_control_id, "protein_yield_raw", float(r[PROT_COL]), "pg")
+                upsert_metric_for_wt(cur, gen_id, wt_control_id, "dna_yield_raw", float(r[DNA_COL]), "fg")
+                upsert_metric_for_wt(cur, gen_id, wt_control_id, "protein_yield_raw", float(r[PROT_COL]), "pg")
 
             # 3) Insert variants + their raw metrics (Control==False)
             var_df = df[df[CONTROL_COL] == False].copy()
@@ -243,8 +268,8 @@ def main() -> None:
                 variant_id = ensure_variant(cur, gen_id, plasmid_idx, parent_variant_id, dna_seq)
                 ids_by_generation_and_index[(gen_num, plasmid_idx)] = variant_id
 
-                upsert_metric_for_variant(cur, variant_id, "dna_yield_raw", float(r[DNA_COL]), "fg")
-                upsert_metric_for_variant(cur, variant_id, "protein_yield_raw", float(r[PROT_COL]), "pg")
+                upsert_metric_for_variant(cur, gen_id, variant_id, "dna_yield_raw", float(r[DNA_COL]), "fg")
+                upsert_metric_for_variant(cur, gen_id, variant_id, "protein_yield_raw", float(r[PROT_COL]), "pg")
 
         conn.commit()
 

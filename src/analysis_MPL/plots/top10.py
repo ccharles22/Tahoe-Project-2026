@@ -18,7 +18,7 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    preferred = ["generation_number", "plasmid_variant_index", "activity_score", "protein_mutations"]
+    preferred = ["generation_number", "plasmid_variant_index", "activity_score", "total_mutations"]
     cols = [c for c in preferred if c in df_top10.columns]
     if not cols:
         cols = list(df_top10.columns)
@@ -29,7 +29,7 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
         "generation_number": "Gen",
         "plasmid_variant_index": "Variant",
         "activity_score": "Activity score",
-        "protein_mutations": "Protein muts",
+        "total_mutations": "Total muts vs WT",
     }
     t = t.rename(columns={c: rename.get(c, c) for c in t.columns})
 

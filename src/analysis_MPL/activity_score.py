@@ -74,10 +74,38 @@ def compute_stage4_metrics(
     rows_to_insert: List[dict[str, Any]] = []
     for _, r in df_valid.iterrows():
         vid = int(r["variant_id"])
+        gen_id = int(r["generation_id"])
         rows_to_insert.extend([
-            {"variant_id": vid, "metric_name": "dna_yield_norm", "metric_type": "normalized", "value": float(r["dna_yield_norm"]), "unit": "ratio"},
-            {"variant_id": vid, "metric_name": "protein_yield_norm", "metric_type": "normalized", "value": float(r["protein_yield_norm"]), "unit": "ratio"},
-            {"variant_id": vid, "metric_name": "activity_score", "metric_type": "derived", "value": float(r["activity_score"]), "unit": "ratio"},
+            {
+                "generation_id": gen_id,
+                "variant_id": vid,
+                "wt_control_id": None,
+                "metric_name": "dna_yield_norm",
+                "metric_type": "normalized",
+                "value": float(r["dna_yield_norm"]),
+                "unit": "ratio",
+                "metric_definition_id": None,
+            },
+            {
+                "generation_id": gen_id,
+                "variant_id": vid,
+                "wt_control_id": None,
+                "metric_name": "protein_yield_norm",
+                "metric_type": "normalized",
+                "value": float(r["protein_yield_norm"]),
+                "unit": "ratio",
+                "metric_definition_id": None,
+            },
+            {
+                "generation_id": gen_id,
+                "variant_id": vid,
+                "wt_control_id": None,
+                "metric_name": "activity_score",
+                "metric_type": "derived",
+                "value": float(r["activity_score"]),
+                "unit": "ratio",
+                "metric_definition_id": None,
+            },
         ])
 
     return rows_to_insert, df_out

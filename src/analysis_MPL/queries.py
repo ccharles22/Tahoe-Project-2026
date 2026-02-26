@@ -12,12 +12,12 @@ warnings.filterwarnings(
 WT_BASELINE_SQL = """
 SELECT
   m.generation_id,
-  AVG(CASE WHEN m.metric_name='dna_yield' THEN m.value END)     AS dna_wt,
-  AVG(CASE WHEN m.metric_name='protein_yield' THEN m.value END) AS prot_wt
+  AVG(CASE WHEN m.metric_name IN ('dna_yield_raw', 'dna_yield') THEN m.value END)     AS dna_wt,
+  AVG(CASE WHEN m.metric_name IN ('protein_yield_raw', 'protein_yield') THEN m.value END) AS prot_wt
 FROM metrics m
 WHERE m.wt_control_id IS NOT NULL
   AND m.metric_type='raw'
-  AND m.metric_name IN ('dna_yield','protein_yield')
+  AND m.metric_name IN ('dna_yield_raw', 'protein_yield_raw', 'dna_yield', 'protein_yield')
   AND m.generation_id IN (
     SELECT g.generation_id
     FROM generations g
@@ -32,14 +32,14 @@ SELECT
   v.generation_id,
   g.generation_number,
   v.plasmid_variant_index,
-  MAX(CASE WHEN m.metric_name='dna_yield' THEN m.value END)      AS dna_yield_raw,
-  MAX(CASE WHEN m.metric_name='protein_yield' THEN m.value END)  AS protein_yield_raw
+  MAX(CASE WHEN m.metric_name IN ('dna_yield_raw', 'dna_yield') THEN m.value END)      AS dna_yield_raw,
+  MAX(CASE WHEN m.metric_name IN ('protein_yield_raw', 'protein_yield') THEN m.value END)  AS protein_yield_raw
 FROM variants v
 JOIN generations g ON g.generation_id = v.generation_id
 LEFT JOIN metrics m
   ON m.variant_id = v.variant_id
  AND m.metric_type = 'raw'
- AND m.metric_name IN ('dna_yield','protein_yield')
+ AND m.metric_name IN ('dna_yield_raw', 'protein_yield_raw', 'dna_yield', 'protein_yield')
 WHERE g.experiment_id = %s
 GROUP BY v.variant_id, v.generation_id, g.generation_number, v.plasmid_variant_index
 ORDER BY g.generation_number, v.plasmid_variant_index;
@@ -50,16 +50,15 @@ SELECT
   g.generation_number,
   v.plasmid_variant_index,
   m.value AS activity_score,
-  COALESCE(pm.protein_mut_count, 0) AS protein_mutations
+  COALESCE(tm.total_mut_count, 0) AS total_mutations
 FROM metrics m
 JOIN variants v ON v.variant_id = m.variant_id
 JOIN generations g ON g.generation_id = v.generation_id
 LEFT JOIN (
-  SELECT variant_id, COUNT(*) AS protein_mut_count
+  SELECT variant_id, COUNT(*) AS total_mut_count
   FROM mutations
-  WHERE mutation_type='protein'
   GROUP BY variant_id
-) pm ON pm.variant_id = v.variant_id
+) tm ON tm.variant_id = v.variant_id
 WHERE m.metric_name='activity_score'
   AND m.metric_type='derived'
   AND g.experiment_id = %s
@@ -210,6 +209,31 @@ def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float
         raise ValueError(
             f"No valid WT baselines found for experiment {experiment_id}. "
             "Stage 4 normalisation cannot proceed."
+        )
+
+    # STRICT check: every generation in the experiment must have a valid WT baseline.
+    df_generations = pd.read_sql(
+        """
+        SELECT generation_id, generation_number
+        FROM generations
+        WHERE experiment_id = %s
+        ORDER BY generation_number;
+        """,
+        conn,
+        params=(experiment_id,),
+    )
+    expected = set(df_generations["generation_id"].astype(int).tolist())
+    missing_ids = sorted(expected - set(baselines.keys()))
+    if missing_ids:
+        missing_map = (
+            df_generations[df_generations["generation_id"].isin(missing_ids)]
+            .set_index("generation_id")["generation_number"]
+            .to_dict()
+        )
+        missing_gen_nums = [int(missing_map[g]) for g in missing_ids]
+        raise ValueError(
+            f"Missing WT baselines for experiment {experiment_id} generations: "
+            f"{missing_gen_nums}. Stage 4 normalisation cannot proceed."
         )
 
     return baselines

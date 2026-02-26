@@ -8,13 +8,13 @@
       
       
       
-        <link rel="canonical" href="http://localhost:8000/plots_top10/">
+        <link rel="canonical" href="http://localhost:8000/metrics/">
       
       
-        <link rel="prev" href="../plots_distribution/">
+        <link rel="prev" href="../plots_protein_network/">
       
       
-        <link rel="next" href="../plots_protein_network/">
+        <link rel="next" href="../activity_score_calculations/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>Top 10 - PostgreSQL Repository and Data Visualization</title>
+        <title>Overview - PostgreSQL Repository and Data Visualization</title>
       
     
     
@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#top-10-table" class="md-skip">
+        <a href="#metrics" class="md-skip">
           Skip to content
         </a>
       
@@ -102,7 +102,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Top 10
+              Overview
             
           </span>
         </div>
@@ -337,8 +337,6 @@
       
   
   
-    
-  
   
   
     
@@ -351,11 +349,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
@@ -376,7 +374,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -475,37 +473,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Top 10
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../plots_top10/" class="md-nav__link">
         
   
   
@@ -521,92 +492,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#data-sources" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Data sources
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#suggested-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Suggested filters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#endpoint" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Endpoint
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#sql-check" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        SQL check
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Interpretation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-graph" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Example graph
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -651,8 +536,10 @@
       
   
   
+    
   
   
+  
     
     
     
@@ -663,11 +550,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
@@ -688,7 +575,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -703,10 +590,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../metrics/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -722,6 +636,114 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#metric-categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric categories
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#unified-metrics-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unified metrics strategy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#current-scoring-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current scoring policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#where-metrics-live" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where metrics live
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#key-storage-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key storage behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upsert-logic-used-by-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upsert logic used by code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-metric-names-in-this-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common metric names in this repo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-validation-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick validation SQL
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1046,10 +1068,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#data-sources" class="md-nav__link">
+  <a href="#metric-categories" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data sources
+        Metric categories
       
     </span>
   </a>
@@ -1057,10 +1079,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-filters" class="md-nav__link">
+  <a href="#unified-metrics-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Suggested filters
+        Unified metrics strategy
       
     </span>
   </a>
@@ -1068,10 +1090,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#endpoint" class="md-nav__link">
+  <a href="#current-scoring-policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Endpoint
+        Current scoring policy
       
     </span>
   </a>
@@ -1079,10 +1101,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sql-check" class="md-nav__link">
+  <a href="#where-metrics-live" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SQL check
+        Where metrics live
       
     </span>
   </a>
@@ -1090,10 +1112,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
+  <a href="#key-storage-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interpretation
+        Key storage behavior
       
     </span>
   </a>
@@ -1101,10 +1123,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-graph" class="md-nav__link">
+  <a href="#upsert-logic-used-by-code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Example graph
+        Upsert logic used by code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-metric-names-in-this-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common metric names in this repo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-validation-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick validation SQL
       
     </span>
   </a>
@@ -1128,42 +1172,71 @@
 
 
 
-<h1 id="top-10-table">Top 10 table</h1>
-<h2 id="data-sources">Data sources</h2>
+<h1 id="metrics">Metrics</h1>
+<p>This section describes how metrics are stored, typed, and updated in the project.</p>
+<h2 id="metric-categories">Metric categories</h2>
 <ul>
-<li>Activity scores: <code>metrics</code> where <code>metric_name='activity_score'</code> and <code>metric_type='derived'</code></li>
-<li>Mutation counts: <code>mutations</code> (protein)</li>
-<li>Generation + variant labels: <code>generations</code>, <code>variants</code></li>
+<li><code>raw</code>: direct measured values (for example <code>dna_yield_raw</code>, <code>protein_yield_raw</code>)</li>
+<li><code>normalized</code>: scaled values (<code>dna_yield_norm</code>, <code>protein_yield_norm</code>)</li>
+<li><code>derived</code>: computed outputs (mainly <code>activity_score</code>)</li>
 </ul>
-<h2 id="suggested-filters">Suggested filters</h2>
+<h2 id="unified-metrics-strategy">Unified metrics strategy</h2>
+<p>The metric flow described in the tutorials is:
+1. Store raw DNA/protein yields.
+2. Compute WT baseline values per generation.
+3. Normalize variant values against WT.
+4. Compute final <code>activity_score</code> from normalized ratios.
+5. Store both normalized and derived outputs for downstream ranking/plots.</p>
+<p>This supports top-variant selection and generation-level activity distribution views.</p>
+<h2 id="current-scoring-policy">Current scoring policy</h2>
 <ul>
-<li>Filter by <code>experiment_id</code></li>
+<li>Report generation uses WT-based normalization only.</li>
+<li>If WT baselines are missing or invalid, score computation fails with an explicit error.</li>
+<li>No median-based fallback is used in current pipeline runs.</li>
 </ul>
-<h2 id="endpoint">Endpoint</h2>
-<p><code>/top10/&lt;experiment_id&gt;</code></p>
-<p>Example:
-<code>/top10/41</code></p>
-<h2 id="sql-check">SQL check</h2>
-<pre><code class="language-sql">select
-  g.generation_number,
-  v.plasmid_variant_index,
-  m.value as activity_score
-from metrics m
-join variants v on v.variant_id = m.variant_id
-join generations g on g.generation_id = v.generation_id
-where m.metric_name='activity_score'
-  and m.metric_type='derived'
-  and g.experiment_id = 41
-order by m.value desc
-limit 10;
+<h2 id="where-metrics-live">Where metrics live</h2>
+<ul>
+<li>Table: <code>metrics</code></li>
+<li>Optional dictionary table: <code>metric_definitions</code></li>
+</ul>
+<p><code>metrics</code> rows are attached to either:
+- a variant (<code>variant_id</code>), or
+- a WT control (<code>wt_control_id</code>)</p>
+<h2 id="key-storage-behavior">Key storage behavior</h2>
+<ul>
+<li><code>generation_id</code> is automatically set by trigger logic from <code>variant_id</code> or <code>wt_control_id</code>.</li>
+<li>Uniqueness is enforced so one <code>(generation_id, variant_id, metric_name, metric_type)</code> row exists per variant metric.</li>
+<li>WT rows use analogous uniqueness with <code>wt_control_id</code>.</li>
+</ul>
+<h2 id="upsert-logic-used-by-code">Upsert logic used by code</h2>
+<p>Code path:
+- <code>src/analysis_MPL/metrics.py</code> -&gt; <code>upsert_variant_metrics</code></p>
+<p>Behavior:
+- Inserts metric rows.
+- On conflict, updates <code>value</code> and <code>unit</code>.</p>
+<h2 id="common-metric-names-in-this-repo">Common metric names in this repo</h2>
+<ul>
+<li><code>dna_yield_raw</code></li>
+<li><code>protein_yield_raw</code></li>
+<li><code>dna_yield_norm</code></li>
+<li><code>protein_yield_norm</code></li>
+<li><code>activity_score</code></li>
+</ul>
+<p>For detailed formulas and QC exclusions, see:
+- <a href="../activity_score_calculations/">Activity score calculations</a></p>
+<h2 id="quick-validation-sql">Quick validation SQL</h2>
+<pre><code class="language-sql">-- all activity scores
+select count(*) as n_activity_scores
+from metrics
+where metric_name = 'activity_score'
+  and metric_type = 'derived';
+
+-- count by metric name + type
+select metric_name, metric_type, count(*) as n
+from metrics
+group by metric_name, metric_type
+order by metric_name, metric_type;
 </code></pre>
-<h2 id="interpretation">Interpretation</h2>
-<ul>
-<li>Rows are the highest <code>activity_score</code> variants in the selected experiment.</li>
-<li>If fewer than 10 rows appear, not enough valid derived metrics were computed.</li>
-</ul>
-<h2 id="example-graph">Example graph</h2>
-<p><img alt="Top 10 example" src="../assets/plots/top10_exp41.png" /></p>
 
 
 
