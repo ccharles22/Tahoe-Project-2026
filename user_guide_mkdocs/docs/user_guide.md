@@ -44,7 +44,7 @@ Optional:
 python -m scripts.run_report
 ```
 Expected outputs in `app/static/generated`:
-- `exp_<id>_stage4_qc_debug.csv`
+- `exp_<id>_analysis.csv`
 - `exp_<id>_top10_variants.csv`
 - `exp_<id>_activity_distribution.png`
 - `exp_<id>_lineage.png`

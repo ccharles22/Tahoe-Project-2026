@@ -30,6 +30,7 @@ def plot_activity_distribution(df_dist: pd.DataFrame, out_path: Union[str, Path]
 
     generations = sorted(d[gen_col].unique().tolist())
     data = [d.loc[d[gen_col] == g, score_col].to_numpy() for g in generations]
+    # Use sequential positions to keep spacing/layout consistent with the reference style.
     xs = np.arange(1, len(generations) + 1)
 
     fig, ax = plt.subplots(figsize=(10, 7))
@@ -63,8 +64,12 @@ def plot_activity_distribution(df_dist: pd.DataFrame, out_path: Union[str, Path]
     ax.set_title("Activity Score Distribution by Generation", fontsize=18)
     ax.set_xlabel("Generation", fontsize=14)
     ax.set_ylabel("Activity Score", fontsize=14)
+    ax.axhline(1.0, color="red", linewidth=1.4, alpha=0.8, linestyle="--", label="WT control baseline = 1.0")
 
-    ax.axhline(1.0, color="red", linewidth=1.4, alpha=0.8, label="baseline = 1.0")
+    y_min = float(np.min(mins))
+    y_max = float(np.max(maxs))
+    pad = max(0.5, 0.08 * (y_max - y_min))
+    ax.set_ylim(y_min - pad, y_max + pad)
 
     ax.set_xticks(xs)
     ax.set_xticklabels([str(g) for g in generations], fontsize=12)

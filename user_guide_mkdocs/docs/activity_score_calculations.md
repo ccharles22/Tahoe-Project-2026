@@ -211,7 +211,7 @@ python -m scripts.run_report
 ```
 
 After running, inspect:
-- `app/static/generated/exp_<EXPERIMENT_ID>_stage4_qc_debug.csv`
+- `app/static/generated/exp_<EXPERIMENT_ID>_analysis.csv`
 for per-variant QC outcomes and computed values.
 
 ## Historical results note

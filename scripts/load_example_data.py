@@ -212,6 +212,19 @@ def main() -> None:
             # Enforce at least one control row per generation so WT-based scoring is valid.
             all_generations = sorted({int(g) for g in df[GEN_COL].dropna().unique()})
             wt_generations = sorted({int(g) for g in wt_df[GEN_COL].dropna().unique()})
+
+            # Briefing requirement: generation 0 must exist and include WT controls.
+            if 0 not in all_generations:
+                raise ValueError(
+                    "Generation 0 is missing from the dataset. "
+                    "A generation 0 WT control baseline is required."
+                )
+            if 0 not in wt_generations:
+                raise ValueError(
+                    "Generation 0 WT control is missing (Control==true at generation 0). "
+                    "Cannot load experiment for WT-based scoring."
+                )
+
             missing_control_generations = sorted(set(all_generations) - set(wt_generations))
             if missing_control_generations:
                 raise ValueError(

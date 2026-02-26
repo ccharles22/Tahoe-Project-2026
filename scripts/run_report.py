@@ -29,6 +29,7 @@ from src.analysis_MPL.queries import (
 )
 
 OUTPUT_DIR = Path("app/static/generated")
+SCORE_TOL = 1e-9
 
 
 def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
@@ -60,6 +61,66 @@ def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
         exp_n = int(cur.fetchone()[0])
 
     return all_n, exp_n
+
+
+def _validate_stage4_formula(df_with_qc: pd.DataFrame) -> None:
+    """Hard check: activity_score must equal dna_norm / protein_norm for all OK rows."""
+    if "qc_stage4" not in df_with_qc.columns:
+        raise ValueError("Stage4 validation failed: qc_stage4 column missing.")
+
+    ok = df_with_qc[df_with_qc["qc_stage4"] == "ok"].copy()
+    if ok.empty:
+        raise ValueError("Stage4 validation failed: no rows with qc_stage4='ok'.")
+
+    required = {"dna_yield_norm", "protein_yield_norm", "activity_score"}
+    if not required.issubset(ok.columns):
+        missing = sorted(required - set(ok.columns))
+        raise ValueError(f"Stage4 validation failed: missing columns {missing}.")
+
+    calc = ok["dna_yield_norm"] / ok["protein_yield_norm"]
+    err = (calc - ok["activity_score"]).abs()
+    max_err = float(err.max())
+    if not np.isfinite(max_err) or max_err > SCORE_TOL:
+        raise ValueError(
+            f"Stage4 validation failed: activity_score mismatch. max_abs_err={max_err:.3e}"
+        )
+
+
+def _validate_top10_consistency(df_with_qc: pd.DataFrame, df_top10: pd.DataFrame) -> None:
+    """Hard check: top10 table must match highest activity_score values from stage4 outputs."""
+    required_top10 = {"generation_number", "plasmid_variant_index", "activity_score", "total_mutations"}
+    if not required_top10.issubset(df_top10.columns):
+        missing = sorted(required_top10 - set(df_top10.columns))
+        raise ValueError(f"Top10 validation failed: missing expected columns {missing}.")
+
+    ok = df_with_qc[df_with_qc["qc_stage4"] == "ok"].copy()
+    if ok.empty:
+        raise ValueError("Top10 validation failed: no valid stage4 rows.")
+
+    expect = (
+        ok[["generation_number", "plasmid_variant_index", "activity_score"]]
+        .sort_values("activity_score", ascending=False)
+        .head(10)
+        .reset_index(drop=True)
+    )
+    actual = (
+        df_top10[["generation_number", "plasmid_variant_index", "activity_score"]]
+        .head(10)
+        .reset_index(drop=True)
+    )
+    if len(expect) != len(actual):
+        raise ValueError(
+            f"Top10 validation failed: expected {len(expect)} rows, got {len(actual)}."
+        )
+
+    # Compare with tolerance for floating-point.
+    same_gen = (expect["generation_number"].astype(str) == actual["generation_number"].astype(str)).all()
+    same_idx = (expect["plasmid_variant_index"].astype(str) == actual["plasmid_variant_index"].astype(str)).all()
+    score_err = (expect["activity_score"].astype(float) - actual["activity_score"].astype(float)).abs()
+    same_score = bool((score_err <= SCORE_TOL).all())
+
+    if not (same_gen and same_idx and same_score):
+        raise ValueError("Top10 validation failed: table rows do not match highest activity scores.")
 
 
 def compute_activity_score_fallback(
@@ -237,7 +298,7 @@ def main() -> None:
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    qc_path = OUTPUT_DIR / f"exp_{experiment_id}_stage4_qc_debug.csv"
+    qc_path = OUTPUT_DIR / f"exp_{experiment_id}_analysis.csv"
     top10_path = OUTPUT_DIR / f"exp_{experiment_id}_top10_variants.csv"
     plot_path = OUTPUT_DIR / f"exp_{experiment_id}_activity_distribution.png"
     lineage_path = OUTPUT_DIR / f"exp_{experiment_id}_lineage.png"
@@ -280,6 +341,10 @@ def main() -> None:
         print(f"[Stage4] rows_to_insert: {len(rows_to_insert)} (expected ~OK*3)")
         # --------------------
 
+        # Hard validation for consistent scoring behavior across experiments.
+        _validate_stage4_formula(df_with_qc)
+        print("[Stage4] Validation passed: activity_score formula consistency")
+
         # 3) Upsert computed metrics into DB
         inserted_attempted = upsert_variant_metrics(conn, rows_to_insert)
         print(f"[DB] Upsert attempted rows: {inserted_attempted}")
@@ -295,6 +360,8 @@ def main() -> None:
 
         # 5) Top-10 table + PNG
         df_top10 = fetch_top10(conn, experiment_id)
+        _validate_top10_consistency(df_with_qc, df_top10)
+        print("[Top10] Validation passed: top10 rows match highest activity scores")
         df_top10.to_csv(top10_path, index=False)
         print("[File] Wrote:", top10_path, f"(rows={len(df_top10)})")
 
