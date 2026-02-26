@@ -88,17 +88,17 @@ def _require_columns(df: pd.DataFrame, required: set[str], name: str) -> None:
         raise ValueError(f"{name} is missing required column(s): {sorted(missing)}")
 
 
-def _coerce_id_series(s: pd.Series) -> pd.Series:
+def _coerce_id_series(s: pd.Series) -> pd.Series: 
     """
     Convert IDs into stable hashable keys WITHOUT forcing numeric.
     - preserves ints and strings
     - converts float whole-numbers (1.0) -> Int64(1)
     - leaves other floats as strings
     """
-    if pd.api.types.is_integer_dtype(s) or pd.api.types.is_string_dtype(s):
+    if pd.api.types.is_integer_dtype(s) or pd.api.types.is_string_dtype(s): #good for ids, preserves type
         return s
 
-    if pd.api.types.is_float_dtype(s):
+    if pd.api.types.is_float_dtype(s): #handles floats
         out = s.copy()
         arr = out.to_numpy()
         mask = out.notna() & np.isfinite(arr)
@@ -111,8 +111,8 @@ def _coerce_id_series(s: pd.Series) -> pd.Series:
     return s.astype("object")
 
 
-def _filter_edges_to_nodes(
-    nodes: pd.DataFrame,
+def _filter_edges_to_nodes( 
+    nodes: pd.DataFrame, 
     edges: pd.DataFrame | None,
     *,
     node_id_col: str,
@@ -123,17 +123,17 @@ def _filter_edges_to_nodes(
     if edges is None or edges.empty:
         return edges
 
-    _require_columns(nodes, {node_id_col}, "nodes")
-    _require_columns(edges, {parent_col, child_col}, "edges")
+    _require_columns(nodes, {node_id_col}, "nodes") #important for filtering
+    _require_columns(edges, {parent_col, child_col}, "edges") #important for filtering
 
-    node_ids = set(_coerce_id_series(nodes[node_id_col]).dropna().tolist())
+    node_ids = set(_coerce_id_series(nodes[node_id_col]).dropna().tolist()) #valid node IDs as hashable keys
 
-    e = edges.copy()
+    e = edges.copy() #parent/child ids coercion for filtering
     e[parent_col] = _coerce_id_series(e[parent_col])
     e[child_col] = _coerce_id_series(e[child_col])
     e = e.dropna(subset=[parent_col, child_col])
 
-    return e[e[parent_col].isin(node_ids) & e[child_col].isin(node_ids)].copy()
+    return e[e[parent_col].isin(node_ids) & e[child_col].isin(node_ids)].copy() #only edges with valid node references
 
 
 def _ensure_top_col(nodes: pd.DataFrame, *, top_col: str, activity_col: str) -> pd.DataFrame:
@@ -160,8 +160,8 @@ def _ensure_top_col(nodes: pd.DataFrame, *, top_col: str, activity_col: str) -> 
 
     return n
 
-
-def _filter_subgraph_top10_and_ancestors(
+ 
+def _filter_subgraph_top10_and_ancestors(  
     nodes: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
@@ -188,10 +188,10 @@ def _filter_subgraph_top10_and_ancestors(
     e[child_col] = _coerce_id_series(e[child_col])
     e = e.dropna(subset=[parent_col, child_col])
 
-    parent_map: dict[Hashable, Hashable] = dict(zip(e[child_col], e[parent_col]))
+    parent_map: dict[Hashable, Hashable] = dict(zip(e[child_col], e[parent_col])) #child -> parent mapping for traversal
 
-    keep: set[Hashable] = set(top_ids)
-    stack = list(top_ids)
+    keep: set[Hashable] = set(top_ids) 
+    stack = list(top_ids) 
     while stack:
         cid = stack.pop()
         pid = parent_map.get(cid)
@@ -204,7 +204,7 @@ def _filter_subgraph_top10_and_ancestors(
     return n_f, e_f
 
 
-def _order_by_parent(
+def _order_by_parent( #reorder nodes within generations so children cluster near parents
     df: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
@@ -226,11 +226,11 @@ def _order_by_parent(
     e[child_col] = _coerce_id_series(e[child_col])
     e = e.dropna(subset=[parent_col, child_col])
 
-    parent = dict(zip(e[child_col], e[parent_col]))
+    parent = dict(zip(e[child_col], e[parent_col])) #child -> parent mapping for ordering
 
     d["_ord"] = d.groupby(generation_col, sort=False).cumcount().astype(float)
 
-    for _ in range(2):
+    for _ in range(2): 
         ord_map = dict(zip(d["_vid"], d["_ord"]))
         d["_pord"] = d["_vid"].map(lambda vid: ord_map.get(parent.get(vid, None), np.nan))
         d["_key"] = d["_pord"].fillna(d["_ord"])
@@ -240,7 +240,7 @@ def _order_by_parent(
     return d.drop(columns=["_ord", "_pord", "_key", "_vid"])
 
 
-def _assign_x_from_current_order(
+def _assign_x_from_current_order( #assign x based on existing order within each generation, with optional jitter
     df: pd.DataFrame,
     cfg: PlotConfig,
     *,
@@ -288,7 +288,7 @@ def _assign_y_rank_mode(
     return out
 
 
-def _layout_nodes(
+def _layout_nodes( #x/y positions based on generations and parent-child relationships
     nodes: pd.DataFrame,
     cfg: PlotConfig,
     *,
@@ -341,7 +341,7 @@ def _layout_nodes(
     return df
 
 
-def _build_pos(df: pd.DataFrame, *, node_id_col: str) -> Mapping[Hashable, tuple[float, float]]:
+def _build_pos(df: pd.DataFrame, *, node_id_col: str) -> Mapping[Hashable, tuple[float, float]]: #build position dict for nx from dataframe
     ids = _coerce_id_series(df[node_id_col])
     valid = ids.notna()
     if not valid.any():
@@ -374,7 +374,7 @@ def _node_label(
     return f"G{gen}"
 
 
-def _compute_lineage_ids(
+def _compute_lineage_ids( #compute lineage IDs by traversing parent links until root for each node
     nodes: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
@@ -393,7 +393,7 @@ def _compute_lineage_ids(
 
     lineage: dict[Hashable, Hashable] = {}
 
-    def _root(node: Hashable) -> Hashable:
+    def _root(node: Hashable) -> Hashable: # traverse up to root ancestor, with cycle protection
         seen: set[Hashable] = set()
         cur = node
         while cur in parent_map and cur not in seen:
@@ -408,7 +408,7 @@ def _compute_lineage_ids(
     return vids.map(lineage)
 
 
-def _compute_highlight_nodes(
+def _compute_highlight_nodes( #compute set of node IDs to highlight based on top-k per generation and their ancestors
     df: pd.DataFrame,
     edges: pd.DataFrame | None,
     cfg: PlotConfig,
@@ -457,7 +457,7 @@ def _compute_highlight_nodes(
     return keep
 
 
-def _resolve_color(
+def _resolve_color( #determine color values and colormap based on configuration and available data
     df: pd.DataFrame,
     edges: pd.DataFrame | None,
     cfg: PlotConfig,

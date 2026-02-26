@@ -20,7 +20,11 @@ nav:
       - Distribution: plots_distribution.md
       - Top 10: plots_top10.md
       - Protein network: plots_protein_network.md
-  - Pipelines: pipeline.md
+  - Metrics:
+      - Overview: metrics.md
+      - Activity score calculations: activity_score_calculations.md
+  - Pipelines:
+      - Overview: pipeline.md
   - User guide: user_guide.md
   - Ops:
       - Database setup (Tailscale): database_setup_tailscale.md

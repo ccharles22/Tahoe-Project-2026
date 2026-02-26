@@ -2,6 +2,10 @@
 
 This page describes the compute order used by this repository.
 
+## Activity score details
+For the full formulas and QC states, see:
+- [Activity score calculations](activity_score_calculations.md)
+
 ## Stage 1: Load raw data
 Use your loader to insert:
 - generations
@@ -27,8 +31,8 @@ python -m scripts.run_report
 
 What this does:
 - fetches variant raw metrics
-- tries WT-based normalization first
-- falls back to generation-median normalization if WT baselines are missing
+- uses WT-based normalization
+- fails with an explicit error if WT baselines are missing/invalid
 - upserts `dna_yield_norm`, `protein_yield_norm`, `activity_score`
 - writes CSV + PNG outputs in `app/static/generated`
 
@@ -77,3 +81,17 @@ select refresh_bonus_materialized_views();
 - No distribution/top10 data: check `metrics` contains derived `activity_score`.
 - Empty co-occurrence network: check protein mutations exist in `mutations`.
 - Empty lineage edges: parent links may be missing in loaded variants.
+
+## Known issue: sequence-processing pipeline
+- Root cause appears in sequence-processing code, not SQL schema design.
+- Evidence: variants with protein length 1-8 show approximately 874 mutations, which is biologically implausible for this dataset.
+- Suspected bug points:
+  - Double frame trim during ORF/translation handling.
+  - Fragile alignment parsing based on `aln.format()` output.
+  - WT boundary over-extension during mutation coordinate mapping.
+- Affected experiments:
+  - `1`, `41`, `74`, `76`, `77`, `78`
+
+### Immediate handling guidance
+- Treat mutation-level outputs from affected experiments as unreliable until sequence processing is fixed.
+- Prioritize review of frame trimming, alignment parsing, and WT boundary checks before re-running mutation extraction.

@@ -29,6 +29,7 @@ from app.services.analysis.queries import (
 )
 
 OUTPUT_DIR = Path("app/static/generated")
+SCORE_TOL = 1e-9
 
 
 def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
@@ -60,6 +61,66 @@ def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
         exp_n = int(cur.fetchone()[0])
 
     return all_n, exp_n
+
+
+def _validate_stage4_formula(df_with_qc: pd.DataFrame) -> None:
+    """Hard check: activity_score must equal dna_norm / protein_norm for all OK rows."""
+    if "qc_stage4" not in df_with_qc.columns:
+        raise ValueError("Stage4 validation failed: qc_stage4 column missing.")
+
+    ok = df_with_qc[df_with_qc["qc_stage4"] == "ok"].copy()
+    if ok.empty:
+        raise ValueError("Stage4 validation failed: no rows with qc_stage4='ok'.")
+
+    required = {"dna_yield_norm", "protein_yield_norm", "activity_score"}
+    if not required.issubset(ok.columns):
+        missing = sorted(required - set(ok.columns))
+        raise ValueError(f"Stage4 validation failed: missing columns {missing}.")
+
+    calc = ok["dna_yield_norm"] / ok["protein_yield_norm"]
+    err = (calc - ok["activity_score"]).abs()
+    max_err = float(err.max())
+    if not np.isfinite(max_err) or max_err > SCORE_TOL:
+        raise ValueError(
+            f"Stage4 validation failed: activity_score mismatch. max_abs_err={max_err:.3e}"
+        )
+
+
+def _validate_top10_consistency(df_with_qc: pd.DataFrame, df_top10: pd.DataFrame) -> None:
+    """Hard check: top10 table must match highest activity_score values from stage4 outputs."""
+    required_top10 = {"generation_number", "plasmid_variant_index", "activity_score", "total_mutations"}
+    if not required_top10.issubset(df_top10.columns):
+        missing = sorted(required_top10 - set(df_top10.columns))
+        raise ValueError(f"Top10 validation failed: missing expected columns {missing}.")
+
+    ok = df_with_qc[df_with_qc["qc_stage4"] == "ok"].copy()
+    if ok.empty:
+        raise ValueError("Top10 validation failed: no valid stage4 rows.")
+
+    expect = (
+        ok[["generation_number", "plasmid_variant_index", "activity_score"]]
+        .sort_values("activity_score", ascending=False)
+        .head(10)
+        .reset_index(drop=True)
+    )
+    actual = (
+        df_top10[["generation_number", "plasmid_variant_index", "activity_score"]]
+        .head(10)
+        .reset_index(drop=True)
+    )
+    if len(expect) != len(actual):
+        raise ValueError(
+            f"Top10 validation failed: expected {len(expect)} rows, got {len(actual)}."
+        )
+
+    # Compare with tolerance for floating-point.
+    same_gen = (expect["generation_number"].astype(str) == actual["generation_number"].astype(str)).all()
+    same_idx = (expect["plasmid_variant_index"].astype(str) == actual["plasmid_variant_index"].astype(str)).all()
+    score_err = (expect["activity_score"].astype(float) - actual["activity_score"].astype(float)).abs()
+    same_score = bool((score_err <= SCORE_TOL).all())
+
+    if not (same_gen and same_idx and same_score):
+        raise ValueError("Top10 validation failed: table rows do not match highest activity scores.")
 
 
 def compute_activity_score_fallback(
@@ -237,40 +298,61 @@ def main() -> None:
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-    qc_path = OUTPUT_DIR / f"exp_{experiment_id}_stage4_qc_debug.csv"
+    qc_path = OUTPUT_DIR / f"exp_{experiment_id}_analysis.csv"
     top10_path = OUTPUT_DIR / f"exp_{experiment_id}_top10_variants.csv"
     plot_path = OUTPUT_DIR / f"exp_{experiment_id}_activity_distribution.png"
     lineage_path = OUTPUT_DIR / f"exp_{experiment_id}_lineage.png"
-    protein_mode = os.getenv("PROTEIN_NET_MODE", "identity").strip().lower()
+    # Default to mutation co-occurrence unless explicitly overridden.
+    protein_mode = os.getenv("PROTEIN_NET_MODE", "cooccurrence").strip().lower()
     if protein_mode not in {"identity", "cooccurrence"}:
-        protein_mode = "identity"
+        protein_mode = "cooccurrence"
+
+    # Scoring mode:
+    # - auto: try WT-based, fallback to median-normalized scoring if WT baselines are missing
+    # - wt: require WT baselines
+    # - fallback: always use WT-free fallback scoring
+    scoring_mode = os.getenv("SCORING_MODE", "auto").strip().lower()
+    if scoring_mode not in {"auto", "wt", "fallback"}:
+        scoring_mode = "auto"
 
     protein_suffix = "" if protein_mode == "identity" else f"_{protein_mode}"
     protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity{protein_suffix}.png"
 
     with get_conn() as conn:
-        # 1) Raw variant metrics (needed for BOTH WT-based + fallback)
+        # 1) Raw variant metrics
         df_variants = fetch_variant_raw(conn, experiment_id)
         print(f"[Stage4] Variants fetched from DB: {len(df_variants)}")
         if df_variants.empty:
             print("[Stage4] No variants returned for this experiment_id. Exiting.")
             return
 
-        # 2) Try WT-based baselines first, else fallback
-        score_mode = "WT-based"
-        try:
-            baselines = fetch_wt_baselines(conn, experiment_id)
+        # 2) Stage4 scoring selection
+        baselines = None
+        baseline_err: Exception | None = None
+        if scoring_mode in {"auto", "wt"}:
+            try:
+                baselines = fetch_wt_baselines(conn, experiment_id)
+            except Exception as e:
+                baseline_err = e
+                if scoring_mode == "wt":
+                    raise SystemExit(
+                        f"[Stage4] WT-based scoring is required. "
+                        f"Unable to fetch valid WT baselines for experiment {experiment_id}: "
+                        f"{type(e).__name__}: {e}"
+                    )
+
+        if baselines is not None:
             print(f"[Stage4] WT baselines found for generations: {len(baselines)}")
-
             rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
-        except Exception as e:
-            score_mode = "fallback (no WT baselines)"
-            print(f"[Stage4] WT-based scoring unavailable ({type(e).__name__}: {e})")
-            print("[Stage4] Using fallback scoring (generation-median normalisation).")
-
+            print("[Stage4] Activity score computed using: WT-based")
+        else:
+            if baseline_err is not None:
+                print(
+                    "[Stage4] WT baselines unavailable; switching to fallback scoring: "
+                    f"{type(baseline_err).__name__}: {baseline_err}"
+                )
             rows_to_insert, df_with_qc = compute_activity_score_fallback(df_variants)
-
-        print(f"[Stage4] Activity score computed using: {score_mode}")
+            print("[Stage4] Activity score computed using: fallback (generation medians)")
 
         # ---- QC summary ----
         if "qc_stage4" in df_with_qc.columns:
@@ -281,6 +363,10 @@ def main() -> None:
             print(f"[Stage4] OK variants: {ok_n}")
         print(f"[Stage4] rows_to_insert: {len(rows_to_insert)} (expected ~OK*3)")
         # --------------------
+
+        # Hard validation for consistent scoring behavior across experiments.
+        _validate_stage4_formula(df_with_qc)
+        print("[Stage4] Validation passed: activity_score formula consistency")
 
         # 3) Upsert computed metrics into DB
         inserted_attempted = upsert_variant_metrics(conn, rows_to_insert)
@@ -297,6 +383,8 @@ def main() -> None:
 
         # 5) Top-10 table + PNG
         df_top10 = fetch_top10(conn, experiment_id)
+        _validate_top10_consistency(df_with_qc, df_top10)
+        print("[Top10] Validation passed: top10 rows match highest activity scores")
         df_top10.to_csv(top10_path, index=False)
         print("[File] Wrote:", top10_path, f"(rows={len(df_top10)})")
 
