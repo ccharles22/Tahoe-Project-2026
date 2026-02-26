@@ -21,7 +21,8 @@ export EXPERIMENT_ID=41
 ```
 
 Optional:
-- `PROTEIN_NET_MODE=identity` or `PROTEIN_NET_MODE=cooccurrence` for `scripts.run_report`
+- `SCORING_MODE=auto|wt|fallback` for `scripts.run_report`
+- `PROTEIN_NET_MODE=cooccurrence|identity` for `scripts.run_report`
 
 ## Daily operations checklist
 1. Confirm DB connectivity:
@@ -41,6 +42,8 @@ Optional:
 ## Runtime commands
 ### Generate report artifacts
 ```bash
+export SCORING_MODE=auto
+export PROTEIN_NET_MODE=cooccurrence
 python -m scripts.run_report
 ```
 Expected outputs in `app/static/generated`:
@@ -104,6 +107,8 @@ Sequence identity networks connect variants with high amino acid similarity, whi
 co-occurrence networks connect variants that share specific protein mutations. The
 co-occurrence view emphasizes shared evolutionary steps and can be filtered with a
 minimum shared-mutation count or an optional Jaccard threshold.
+
+For `scripts.run_report`, the current default is co-occurrence mode unless overridden.
 
 ### Data availability for co-occurrence
 Co-occurrence networks require protein mutations in the `mutations` table. If no
@@ -176,9 +181,10 @@ Symptoms:
 
 Likely cause:
 - missing derived `activity_score`
+- strict WT scoring enabled for a no-WT experiment
 
 Recovery:
-1. run `python -m scripts.run_report`
+1. run `python -m scripts.run_report` with `SCORING_MODE=auto` (or `fallback` for synthetic datasets)
 2. check QC CSV in `app/static/generated`
 3. run SQL quick checks for derived metrics
 

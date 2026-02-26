@@ -1,3 +1,22 @@
+"""
+WT-free activity scoring utilities.
+
+This module provides a fallback scoring path for experiments where WT control
+baselines are unavailable or intentionally omitted (for example synthetic
+datasets). The method normalizes each variant within its generation using
+generation medians, then derives:
+
+    activity_score = dna_yield_norm / protein_yield_norm
+
+Expected input columns:
+- variant_id
+- generation_id
+- dna_yield_raw
+- protein_yield_raw
+
+Output columns are intentionally shaped for downstream upsert/report logic.
+"""
+
 import numpy as np
 import pandas as pd
 

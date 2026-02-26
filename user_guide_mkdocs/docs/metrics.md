@@ -21,9 +21,18 @@ This supports top-variant selection and generation-level activity distribution v
 
 ## Current scoring policy
 
-- Report generation uses WT-based normalization only.
-- If WT baselines are missing or invalid, score computation fails with an explicit error.
-- No median-based fallback is used in current pipeline runs.
+`scripts.run_report` supports configurable scoring behavior via `SCORING_MODE`:
+
+- `SCORING_MODE=auto` (default): try WT-based normalization first; if WT baselines are unavailable, use fallback median-based normalization.
+- `SCORING_MODE=wt`: require WT baselines; fail if missing/invalid.
+- `SCORING_MODE=fallback`: always use WT-free fallback normalization.
+
+Fallback mode uses generation medians:
+- `dna_yield_norm = dna_yield_raw / median(dna_yield_raw within generation)`
+- `protein_yield_norm = protein_yield_raw / median(protein_yield_raw within generation)`
+- `activity_score = dna_yield_norm / protein_yield_norm`
+
+This mode is useful for synthetic datasets or experiments without WT controls.
 
 ## Where metrics live
 

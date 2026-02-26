@@ -62,13 +62,29 @@ Where:
 This logic is implemented in:
 - `src/analysis_MPL/activity_score.py` (`compute_stage4_metrics`)
 
+## Fallback method: generation-median normalization
+
+When WT baselines are unavailable (for example synthetic datasets), fallback mode
+computes activity relative to generation medians:
+
+- `dna_yield_norm = dna_yield_raw / median(dna_yield_raw in generation)`
+- `protein_yield_norm = protein_yield_raw / median(protein_yield_raw in generation)`
+- `activity_score = dna_yield_norm / protein_yield_norm`
+
+This logic is implemented in:
+- `scripts/run_report.py` (`compute_activity_score_fallback`)
+- `src/analysis_MPL/scoring_function_noWTcontrol.py`
+
 ### WT baseline source
 
 WT baselines are pulled from WT control metric rows, grouped per generation:
 - WT DNA baseline comes from WT DNA raw values.
 - WT protein baseline comes from WT protein raw values.
 
-If a generation has no valid WT baseline, scoring stops with an explicit error. The pipeline does not switch to an alternative normalization mode.
+If a generation has no valid WT baseline:
+- `SCORING_MODE=wt` stops with an explicit error.
+- `SCORING_MODE=auto` falls back to generation-median scoring.
+- `SCORING_MODE=fallback` always uses generation-median scoring.
 
 ### WT-based worked example
 
@@ -88,14 +104,16 @@ Then:
 ## Full algorithm flow
 
 1. Fetch variant-level raw metrics (`dna_yield_raw`, `protein_yield_raw`) and `generation_id`.
-2. Fetch WT baselines for the experiment and verify they are valid.
-3. Apply QC gates.
-4. Keep only rows that pass QC.
-5. Upsert three metric rows per valid variant:
+2. Resolve scoring mode (`auto|wt|fallback`).
+3. If WT path is selected, fetch WT baselines and verify validity.
+4. Otherwise, compute generation medians for fallback normalization.
+5. Apply QC gates.
+6. Keep only rows that pass QC.
+7. Upsert three metric rows per valid variant:
    - `dna_yield_norm`
    - `protein_yield_norm`
    - `activity_score`
-6. Write a stage-4 QC debug CSV for diagnostics.
+8. Write a stage-4 QC debug CSV for diagnostics.
 
 ## Quality control (QC) behavior
 
@@ -207,6 +225,7 @@ Run the report stage to compute and store these metrics:
 
 ```bash
 export EXPERIMENT_ID=41
+export SCORING_MODE=auto
 python -m scripts.run_report
 ```
 
@@ -214,10 +233,10 @@ After running, inspect:
 - `app/static/generated/exp_<EXPERIMENT_ID>_analysis.csv`
 for per-variant QC outcomes and computed values.
 
-## Historical results note
+## Scoring mode reminder
 
-Some previously generated experiment outputs may have used older fallback behavior before WT-only enforcement.
-If you compare old and new outputs, regenerate the experiment with current `scripts/run_report.py` to ensure WT-based consistency.
+Use `SCORING_MODE=wt` when biological WT controls are required by your analysis.
+Use `SCORING_MODE=auto` or `fallback` for synthetic/no-WT experiments.
 
 ## Practical interpretation guidance
 

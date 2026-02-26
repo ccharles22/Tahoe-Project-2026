@@ -29,10 +29,21 @@ export EXPERIMENT_ID=41
 python -m scripts.run_report
 ```
 
+Optional controls:
+
+```bash
+# Scoring behavior: auto | wt | fallback
+export SCORING_MODE=auto
+
+# Protein network behavior: cooccurrence | identity
+export PROTEIN_NET_MODE=cooccurrence
+```
+
 What this does:
 - fetches variant raw metrics
-- uses WT-based normalization
-- fails with an explicit error if WT baselines are missing/invalid
+- computes activity with selected scoring mode:
+  - WT-based when valid WT baselines are available
+  - fallback median normalization when configured/required
 - upserts `dna_yield_norm`, `protein_yield_norm`, `activity_score`
 - writes CSV + PNG outputs in `app/static/generated`
 
@@ -81,6 +92,7 @@ select refresh_bonus_materialized_views();
 - No distribution/top10 data: check `metrics` contains derived `activity_score`.
 - Empty co-occurrence network: check protein mutations exist in `mutations`.
 - Empty lineage edges: parent links may be missing in loaded variants.
+- WT strict-mode failure: set `SCORING_MODE=auto` or `SCORING_MODE=fallback` for synthetic/no-WT experiments.
 
 ## Known issue: sequence-processing pipeline
 - Root cause appears in sequence-processing code, not SQL schema design.
