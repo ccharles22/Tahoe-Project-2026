@@ -307,6 +307,14 @@ def main() -> None:
     if protein_mode not in {"identity", "cooccurrence"}:
         protein_mode = "cooccurrence"
 
+    # Scoring mode:
+    # - auto: try WT-based, fallback to median-normalized scoring if WT baselines are missing
+    # - wt: require WT baselines
+    # - fallback: always use WT-free fallback scoring
+    scoring_mode = os.getenv("SCORING_MODE", "auto").strip().lower()
+    if scoring_mode not in {"auto", "wt", "fallback"}:
+        scoring_mode = "auto"
+
     protein_suffix = "" if protein_mode == "identity" else f"_{protein_mode}"
     protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity{protein_suffix}.png"
 
@@ -318,19 +326,33 @@ def main() -> None:
             print("[Stage4] No variants returned for this experiment_id. Exiting.")
             return
 
-        # 2) WT-based baselines are required (fallback disabled)
-        try:
-            baselines = fetch_wt_baselines(conn, experiment_id)
-        except Exception as e:
-            raise SystemExit(
-                f"[Stage4] WT-based scoring is required. "
-                f"Unable to fetch valid WT baselines for experiment {experiment_id}: "
-                f"{type(e).__name__}: {e}"
-            )
+        # 2) Stage4 scoring selection
+        baselines = None
+        baseline_err: Exception | None = None
+        if scoring_mode in {"auto", "wt"}:
+            try:
+                baselines = fetch_wt_baselines(conn, experiment_id)
+            except Exception as e:
+                baseline_err = e
+                if scoring_mode == "wt":
+                    raise SystemExit(
+                        f"[Stage4] WT-based scoring is required. "
+                        f"Unable to fetch valid WT baselines for experiment {experiment_id}: "
+                        f"{type(e).__name__}: {e}"
+                    )
 
-        print(f"[Stage4] WT baselines found for generations: {len(baselines)}")
-        rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
-        print("[Stage4] Activity score computed using: WT-based")
+        if baselines is not None:
+            print(f"[Stage4] WT baselines found for generations: {len(baselines)}")
+            rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
+            print("[Stage4] Activity score computed using: WT-based")
+        else:
+            if baseline_err is not None:
+                print(
+                    "[Stage4] WT baselines unavailable; switching to fallback scoring: "
+                    f"{type(baseline_err).__name__}: {baseline_err}"
+                )
+            rows_to_insert, df_with_qc = compute_activity_score_fallback(df_variants)
+            print("[Stage4] Activity score computed using: fallback (generation medians)")
 
         # ---- QC summary ----
         if "qc_stage4" in df_with_qc.columns:
