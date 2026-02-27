@@ -509,3 +509,61 @@ class TestCallMutationsIndels:
         assert len(mutations) == 1
         assert mutations[0].mutation_type == "FRAMESHIFT"
         assert counts.total == 1
+
+    def test_indel_path_preserves_synonymous_codon_events(self):
+        """Indel-aware calling should still count synonymous codon substitutions."""
+        from app.services.sequence.sequence_service import call_mutations_against_wt
+
+        # WT:  ATG GAA TTT GCT = M E F A
+        # Var: ATG GAG AAA TTC GCT = M E K F A
+        # Events:
+        #   - GAA -> GAG (synonymous E)
+        #   - AAA insertion (K)
+        #   - TTT -> TTC (synonymous F)
+        wt_cds = "ATGGAATTTGCT"
+        var_cds = "ATGGAGAAATTCGCT"
+
+        mutations, counts = call_mutations_against_wt(wt_cds, var_cds)
+
+        mutation_types = [m.mutation_type for m in mutations]
+        assert counts.total == 3, mutation_types
+        assert counts.synonymous == 2, mutation_types
+        assert counts.nonsynonymous == 1, mutation_types
+        assert mutation_types.count("SYNONYMOUS") == 2, mutation_types
+        assert "INSERTION" in mutation_types, mutation_types
+
+    def test_multi_codon_insertion_counts_each_inserted_codon(self):
+        """A multi-codon insertion should count one event per inserted codon."""
+        from app.services.sequence.sequence_service import call_mutations_against_wt
+
+        # WT:  ATG GCT GCC = M A A
+        # Var: ATG AAA TTT GCT GCC = M K F A A
+        wt_cds = "ATGGCTGCC"
+        var_cds = "ATGAAATTTGCTGCC"
+
+        mutations, counts = call_mutations_against_wt(wt_cds, var_cds)
+
+        mutation_types = [m.mutation_type for m in mutations]
+        assert counts.total == 2, mutation_types
+        assert counts.synonymous == 0, mutation_types
+        assert counts.nonsynonymous == 2, mutation_types
+        assert mutation_types.count("INSERTION") == 2, mutation_types
+
+    def test_equal_length_offset_uses_codon_alignment_events(self):
+        """Compensating offset cases should count the real indel events, not a mismatch cascade."""
+        from app.services.sequence.sequence_service import call_mutations_against_wt
+
+        # WT:  ATG GAA TTT GCT CCA = M E F A P
+        # Var: ATG AAA GAA GCT CCA = M K E A P
+        # Real events: insert AAA (K), delete TTT (F)
+        wt_cds = "ATGGAATTTGCTCCA"
+        var_cds = "ATGAAAGAAGCTCCA"
+
+        mutations, counts = call_mutations_against_wt(wt_cds, var_cds)
+
+        mutation_types = [m.mutation_type for m in mutations]
+        assert counts.total == 2, mutation_types
+        assert counts.synonymous == 0, mutation_types
+        assert counts.nonsynonymous == 2, mutation_types
+        assert "INSERTION" in mutation_types, mutation_types
+        assert "DELETION" in mutation_types, mutation_types
