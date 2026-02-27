@@ -1,4 +1,4 @@
-ffrom __future__ import annotations
+from __future__ import annotations
 
 import threading
 
@@ -50,13 +50,7 @@ def run_processing(experiment_id: int):
         name=f"seq-processing-{experiment_id}",
     )
     worker.start()
-
-    return jsonify(
-        {
-            "experiment_id": experiment_id,
-            "status": "ANALYSIS_RUNNING",
-        }
-    ), 202
+    return jsonify({"experiment_id": experiment_id, "status": "ANALYSIS_RUNNING"}), 202
 
 
 @sequence_bp.get("/health")
