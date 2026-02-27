@@ -707,14 +707,17 @@ def process_variant_plasmid(
                 notes=(f"{note} {qc.notes}" if qc.notes else note),
             )
         except Exception as e:
-            if fallback_search:
-                note = f"Variant remap failed: {type(e).__name__}: {e}"
-                qc = QCFlags(
-                    has_ambiguous_bases=qc.has_ambiguous_bases,
-                    has_frameshift=qc.has_frameshift,
-                    has_premature_stop=qc.has_premature_stop,
-                    notes=(f"{qc.notes} {note}" if qc.notes else note),
-                )
+            note = f"Variant remap failed: {type(e).__name__}: {e}"
+            qc = QCFlags(
+                has_ambiguous_bases=qc.has_ambiguous_bases,
+                has_frameshift=qc.has_frameshift,
+                has_premature_stop=qc.has_premature_stop,
+                notes=(f"{qc.notes} {note}" if qc.notes else note),
+            )
+            # The fixed-coordinate slice is known bad at this point.
+            # Return a QC-only failure so downstream mutation counting is skipped.
+            cds_dna = None
+            protein = None
 
     return VariantSeqResult(
         cds_start_0based=active_mapping.cds_start_0based,
