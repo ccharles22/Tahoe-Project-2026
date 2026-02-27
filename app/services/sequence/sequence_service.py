@@ -5,6 +5,7 @@ Core logic for WT gene mapping, variant CDS extraction, translation/QC,
 and mutation calling. See the project MkDocs for detailed algorithm
 documentation and visualisations.
 """
+
 from __future__ import annotations
 
 import warnings
@@ -233,17 +234,13 @@ def _gapped_seqs_from_alignment(aln) -> Tuple[str, str]:
     prev_a_end = int(blocks_a[0][0])
     prev_b_end = int(blocks_b[0][0])
 
-    # Leading unaligned residues (global alignment may have leading gaps)
-    if prev_a_end > 0 and prev_b_end == 0:
-        gapped_a.append(seq_a[:prev_a_end])
-        gapped_b.append("-" * prev_a_end)
-    elif prev_b_end > 0 and prev_a_end == 0:
-        gapped_a.append("-" * prev_b_end)
-        gapped_b.append(seq_b[:prev_b_end])
-    elif prev_a_end > 0 and prev_b_end > 0:
-        # Both have leading unaligned - treat longer as gapping the shorter
-        gapped_a.append(seq_a[:prev_a_end])
-        gapped_b.append(seq_b[:prev_b_end])
+    # Leading unaligned residues (ensure both gapped strings stay same length)
+    lead_a = prev_a_end
+    lead_b = prev_b_end
+    if lead_a > 0 or lead_b > 0:
+        lead_len = max(lead_a, lead_b)
+        gapped_a.append(seq_a[:lead_a] + "-" * (lead_len - lead_a))
+        gapped_b.append(seq_b[:lead_b] + "-" * (lead_len - lead_b))
 
     for idx in range(len(blocks_a)):
         a_start, a_end = int(blocks_a[idx][0]), int(blocks_a[idx][1])
@@ -583,7 +580,7 @@ def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping
             if not translated:
                 continue
 
-            aln = aligner.align(translated, wt_protein_aa)[0]
+            aln = aligner.align(translated, wt_protein)[0]
             score = float(aln.score)
             identity_pct = _identity_pct_from_alignment(aln)
 
@@ -694,7 +691,26 @@ def process_variant_plasmid(
 
     remap_needed = _needs_variant_remap(protein, active_mapping.wt_protein_aa)
 
-    if remap_needed:
+    # Only attempt de novo remap when the caller explicitly enables fallback search.
+    if remap_needed and not fallback_search:
+        note = "CDS coordinate drift suspected; de novo remap disabled (fallback_search=False)."
+        qc = QCFlags(
+            has_ambiguous_bases=qc.has_ambiguous_bases,
+            has_frameshift=qc.has_frameshift,
+            has_premature_stop=qc.has_premature_stop,
+            notes=(f"{qc.notes} {note}" if qc.notes else note),
+        )
+        return VariantSeqResult(
+            cds_start_0based=None,
+            cds_end_0based_excl=None,
+            strand=None,
+            frame=None,
+            cds_dna=None,
+            protein_aa=None,
+            qc=qc,
+        )
+
+    if remap_needed and fallback_search:
         try:
             active_mapping = map_wt_gene_in_plasmid(active_mapping.wt_protein_aa, plasmid)
             cds_dna = active_mapping.wt_cds_dna
@@ -716,8 +732,15 @@ def process_variant_plasmid(
             )
             # The fixed-coordinate slice is known bad at this point.
             # Return a QC-only failure so downstream mutation counting is skipped.
-            cds_dna = None
-            protein = None
+            return VariantSeqResult(
+                cds_start_0based=None,
+                cds_end_0based_excl=None,
+                strand=None,
+                frame=None,
+                cds_dna=None,
+                protein_aa=None,
+                qc=qc,
+            )
 
     return VariantSeqResult(
         cds_start_0based=active_mapping.cds_start_0based,
