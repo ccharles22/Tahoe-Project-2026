@@ -1,19 +1,9 @@
 """
 Database repository layer for the sequence processing pipeline.
 
-Provides all SQL persistence operations required by the sequence analysis
-workflow, including:
-    - WT reference and variant retrieval
-    - Mutation storage (synonymous / nonsynonymous / indel classification)
-    - Derived metric persistence (mutation counts)
-    - Experiment status tracking and run metadata
-    - WT mapping cache (avoids 6-frame recomputation)
-    - UniProt staging for WT protein accession data
-    - Atomic end-to-end variant analysis persistence
-
-Dependencies:
-    - SQLAlchemy (create_engine, text, Connection, Engine)
-    - app.config.settings for DATABASE_URL and pipeline configuration
+All SQL persistence operations (reads, upserts, batch writes) used by the
+pipeline orchestrator. See the project MkDocs for architecture and workflow
+details.
 """
 from __future__ import annotations
 
@@ -88,7 +78,7 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     with engine.connect() as conn:
         row = conn.execute(
             text("""
-                SELECT w.amino_acid_sequence, w.plasmid_sequence, e.extra_metadata
+                SELECT w.amino_acid_sequence, w.plasmid_sequence
                 FROM public.experiments e
                 JOIN public.wild_type_proteins w
                   ON w.wt_id = e.wt_id
@@ -100,27 +90,8 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     if not row:
         raise ValueError(f"No WT reference found for experiment_id={experiment_id}")
 
-    wt_protein = str(row[0])
-    wt_plasmid = str(row[1])
-
-    extra_metadata_raw = row[2] if len(row) > 2 else None
-    extra_metadata: Dict[str, Any] = {}
-    if isinstance(extra_metadata_raw, dict):
-        extra_metadata = extra_metadata_raw
-    elif isinstance(extra_metadata_raw, str) and extra_metadata_raw.strip():
-        try:
-            parsed = json.loads(extra_metadata_raw)
-            if isinstance(parsed, dict):
-                extra_metadata = parsed
-        except json.JSONDecodeError:
-            logger.debug("Invalid experiment extra_metadata JSON for experiment %s", experiment_id)
-
-    plasmid_override = extra_metadata.get("wt_plasmid_sequence")
-    if isinstance(plasmid_override, str) and plasmid_override.strip():
-        wt_plasmid = plasmid_override.strip().upper()
-
     logger.debug("Loaded WT reference for experiment %s", experiment_id)
-    return wt_protein, wt_plasmid
+    return str(row[0]), str(row[1])
 
 
 # =============================================================================
@@ -222,42 +193,6 @@ def list_variants_by_experiment(
 
     results = [(int(r[0]), str(r[1])) for r in rows if r[1] is not None]
     logger.debug("Loaded %d variants for experiment %s", len(results), experiment_id)
-    return results
-
-
-def list_variants_with_generation_by_experiment(
-    engine: Engine,
-    experiment_id: int,
-) -> List[Tuple[int, int, str]]:
-    """
-    Loads variants with generation_id for chunked sequence processing writes.
-
-    Returns:
-        List of (variant_id, generation_id, assembled_dna_sequence) tuples.
-    """
-    with engine.connect() as conn:
-        rows = conn.execute(
-            text("""
-                SELECT v.variant_id, v.generation_id, v.assembled_dna_sequence
-                FROM public.variants v
-                JOIN public.generations g
-                  ON g.generation_id = v.generation_id
-                WHERE g.experiment_id = :eid
-                ORDER BY g.generation_number, v.variant_id
-            """),
-            {"eid": experiment_id},
-        ).fetchall()
-
-    results = [
-        (int(r[0]), int(r[1]), str(r[2]))
-        for r in rows
-        if r[2] is not None
-    ]
-    logger.debug(
-        "Loaded %d variants (with generation_id) for experiment %s",
-        len(results),
-        experiment_id,
-    )
     return results
 
 
@@ -479,8 +414,10 @@ def _write_mutations(
         - mutated  char(1) NOT NULL, CHECK valid amino acid / base
 
     Mutations of types that cannot satisfy these constraints (FRAMESHIFT,
-    INSERTION, DELETION) are skipped here.  They are preserved in the
-    VSA row's qc_flags JSONB.
+    INSERTION, DELETION) are skipped here. Protein-scope synonymous codon
+    changes are also skipped because they do not change the amino acid and
+    should not appear in the protein mutation table. Skipped details are
+    preserved in the VSA row's qc_flags / legacy JSON payload.
 
     Args:
         conn: Active SQLAlchemy connection (caller manages transaction).
@@ -510,6 +447,10 @@ def _write_mutations(
 
     for m in muts:
         if m.mutation_type not in _INSERTABLE_MUTATION_TYPES:
+            skipped += 1
+            continue
+
+        if mutation_type == "protein" and m.mutation_type == "SYNONYMOUS":
             skipped += 1
             continue
 
@@ -560,8 +501,8 @@ def _write_mutations(
 
     if skipped:
         logger.info(
-            "Variant %s: wrote %d mutations, skipped %d (FRAMESHIFT/INSERTION/DELETION "
-            "stored in VSA qc_flags only)",
+            "Variant %s: wrote %d mutations, skipped %d non-insertable/synonymous "
+            "records (details preserved in VSA payload)",
             variant_id, written, skipped,
         )
     else:
@@ -965,57 +906,6 @@ def insert_variant_analysis(
     logger.debug(
         "Persisted analysis for variant %s (experiment %s, vsa_id=%d, %d mutations)",
         variant_id, experiment_id, vsa_id, len(muts_list),
-    )
-
-
-def insert_variant_analysis_on_conn(
-    conn: Connection,
-    *,
-    variant_id: int,
-    generation_id: int,
-    experiment_id: int,
-    user_id: int,
-    result: "VariantSeqResult",
-    counts: "MutationCounts",
-    mutations: Iterable["MutationRecord"],
-) -> None:
-    """
-    Persists variant analysis using an existing DB connection/transaction.
-
-    This is used by chunked processing to avoid opening one transaction per
-    variant and to avoid per-variant generation_id lookup queries.
-    """
-    muts_list = list(mutations)
-    payload = _build_analysis_payload(result, counts, muts_list, user_id)
-
-    conn.execute(
-        text(
-            """
-            UPDATE public.variants
-            SET protein_sequence = :prot,
-                extra_metadata   = jsonb_set(
-                    COALESCE(extra_metadata, CAST('{}' AS jsonb)),
-                    '{sequence_analysis}',
-                    CAST(:payload AS jsonb)
-                )
-            WHERE variant_id = :vid
-            """
-        ),
-        {
-            "vid": variant_id,
-            "prot": result.protein_aa,
-            "payload": json.dumps(payload),
-        },
-    )
-
-    _write_mutations(conn, variant_id, muts_list, mutation_type="protein")
-    _write_metrics(conn, variant_id, generation_id, counts)
-
-    logger.debug(
-        "Persisted analysis (shared tx) for variant %s (experiment %s, %d mutations)",
-        variant_id,
-        experiment_id,
-        len(muts_list),
     )
 
 
