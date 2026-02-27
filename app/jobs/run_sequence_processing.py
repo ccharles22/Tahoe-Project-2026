@@ -138,6 +138,7 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
                 experiment_id=experiment_id,
                 user_id=user_id,
                 items=list(pending),
+                overwrite=force_reprocess,
             )
             total_flushed += batch_len
             pending.clear()
