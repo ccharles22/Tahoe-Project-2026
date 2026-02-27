@@ -1,6 +1,20 @@
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+import sys
+
 import pandas as pd
 
-from src.analysis_MPL.plots.protein_similarity_network import build_protein_cooccurrence_edges
+
+MODULE_PATH = (
+    Path(__file__).resolve().parents[1]
+    / "app/services/analysis/plots/protein_similarity_network.py"
+)
+MODULE_SPEC = spec_from_file_location("protein_similarity_network", MODULE_PATH)
+MODULE = module_from_spec(MODULE_SPEC)
+assert MODULE_SPEC is not None and MODULE_SPEC.loader is not None
+sys.modules[MODULE_SPEC.name] = MODULE
+MODULE_SPEC.loader.exec_module(MODULE)
+build_protein_cooccurrence_edges = MODULE.build_protein_cooccurrence_edges
 
 
 def test_build_protein_cooccurrence_edges_matches_shared_mutation_sets():
