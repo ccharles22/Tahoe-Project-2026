@@ -15,7 +15,10 @@ from app.services.analysis.database import get_conn
 from app.services.analysis.metrics import upsert_variant_metrics
 from app.services.analysis.plots.distribution import plot_activity_distribution
 from app.services.analysis.plots.lineage import PlotConfig, plot_layered_lineage
-from app.services.analysis.plots.protein_similarity_network import plot_protein_similarity_network
+from app.services.analysis.plots.protein_similarity_network import (
+    ProteinNetConfig,
+    plot_protein_similarity_network,
+)
 from app.services.analysis.plots.top10 import plot_top10_table
 from app.services.analysis.queries import (
     fetch_distribution,
@@ -451,6 +454,7 @@ def main() -> None:
             generation_col="generation_number",
             parent_col="parent_id",
             child_col="child_id",
+            mutations_col="total_mutations",
         )
         print("[File] Wrote:", lineage_path)
 
@@ -467,6 +471,19 @@ def main() -> None:
         protein_mutations = None
         if protein_mode == "cooccurrence":
             protein_mutations = fetch_protein_mutations(conn, experiment_id)
+            protein_cfg = ProteinNetConfig(
+                mode="cooccurrence",
+                cooccur_min_shared_mutations=1,
+                top_n_by_activity=40,
+                max_nodes_final=40,
+                cooccur_focus_top10_neighbors=False,
+                title="Protein Co-Occurrence Network (Top 40 Variants by Activity)",
+            )
+        else:
+            protein_cfg = ProteinNetConfig(
+                mode="identity",
+                title="Protein Similarity Network",
+            )
 
         plot_protein_similarity_network(
             df_protein,
@@ -477,6 +494,7 @@ def main() -> None:
             top_col="is_top10",
             mutations=protein_mutations,
             mode=protein_mode,
+            config=protein_cfg,
         )
         print("[File] Wrote:", protein_net_path)
 

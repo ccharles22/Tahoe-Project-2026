@@ -492,7 +492,7 @@ def _resolve_color( #determine color values and colormap based on configuration 
             vals = pd.to_numeric(df[mutations_col], errors="coerce").to_numpy()
             if np.isfinite(vals).any():
                 color_vals = vals
-                cbar_label = "Protein mutations"
+                cbar_label = "Mutations vs WT"
                 cmap = cfg.cmap_continuous
 
         if color_vals is None:

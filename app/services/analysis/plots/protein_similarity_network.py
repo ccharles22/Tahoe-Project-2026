@@ -52,7 +52,7 @@ class ProteinNetConfig:
 	mode: NetworkMode = "identity"         # identity = sequence; cooccurrence = shared mutations
 
 	# co-occurrence rule (variant-variant edges from shared protein mutations)
-	cooccur_min_shared_mutations: int = 2
+	cooccur_min_shared_mutations: int = 1
 	cooccur_jaccard_threshold: float | None = None
 	cooccur_weight: Literal["shared", "jaccard"] = "shared"
 
@@ -64,6 +64,9 @@ class ProteinNetConfig:
 	always_include_top10: bool = True
 	neighbors_per_top10: int = 25         # add close neighbors around top10
 	max_nodes_final: int = 350            # hard cap after neighbor expansion
+
+	# co-occurrence presentation
+	cooccur_focus_top10_neighbors: bool = False
 
 
 def _require_networkx() -> None:
@@ -406,6 +409,33 @@ def plot_protein_similarity_network(
 		for u, v, identity in edges.itertuples(index=False):
 			G.add_edge(u, v, weight=identity)
 
+	# top10 mask
+	topmask = pd.to_numeric(sub[top_col], errors="coerce").fillna(0).astype(int)
+	top_ids = set(sub.loc[topmask == 1, id_col].tolist())
+
+	if config.mode == "cooccurrence" and config.cooccur_focus_top10_neighbors:
+		focus_nodes = set(top_ids)
+		for n in list(top_ids):
+			if n in G:
+				focus_nodes.update(G.neighbors(n))
+		if focus_nodes:
+			G = G.subgraph(focus_nodes).copy()
+			sub = sub[sub[id_col].isin(focus_nodes)].copy()
+			topmask = pd.to_numeric(sub[top_col], errors="coerce").fillna(0).astype(int)
+			top_ids = set(sub.loc[topmask == 1, id_col].tolist())
+
+	# Co-occurrence often produces multiple disconnected islands plus isolates.
+	# For the static report, show the connected core so the network reads as one
+	# coherent structure instead of scattered singletons.
+	if config.mode == "cooccurrence" and G.number_of_edges() > 0:
+		components = list(nx.connected_components(G))
+		if len(components) > 1:
+			largest = max(components, key=len)
+			G = G.subgraph(largest).copy()
+			sub = sub[sub[id_col].isin(largest)].copy()
+			topmask = pd.to_numeric(sub[top_col], errors="coerce").fillna(0).astype(int)
+			top_ids = set(sub.loc[topmask == 1, id_col].tolist())
+
 	# Layout (spring = force-directed)
 	pos = nx.spring_layout(
 		G,
@@ -424,10 +454,6 @@ def plot_protein_similarity_network(
 	norm = None
 	if finite.any():
 		norm = Normalize(vmin=float(np.nanmin(act_vals)), vmax=float(np.nanmax(act_vals)))
-
-	# top10 mask
-	topmask = pd.to_numeric(sub[top_col], errors="coerce").fillna(0).astype(int)
-	top_ids = set(sub.loc[topmask == 1, id_col].tolist())
 
 	# Plot
 	fig, ax = plt.subplots(figsize=config.figsize)

@@ -85,8 +85,11 @@ def protein_similarity(experiment_id: int):
 
     preset = request.args.get("preset", "").strip().lower()
     identity_threshold = request.args.get("identity_threshold", "0.95")
-    min_shared = request.args.get("min_shared", "2")
+    min_shared = request.args.get("min_shared", "1")
     jaccard_threshold = request.args.get("jaccard_threshold", "")
+    max_nodes = request.args.get("max_nodes", "40")
+
+    allowed_max_nodes = {20, 30, 40, 50, 80, 120, 250}
 
     try:
         identity_threshold_val = float(identity_threshold)
@@ -96,7 +99,7 @@ def protein_similarity(experiment_id: int):
     try:
         min_shared_val = max(1, int(min_shared))
     except ValueError:
-        min_shared_val = 2
+        min_shared_val = 1
 
     jaccard_threshold_val = None
     if jaccard_threshold.strip():
@@ -104,6 +107,13 @@ def protein_similarity(experiment_id: int):
             jaccard_threshold_val = float(jaccard_threshold)
         except ValueError:
             jaccard_threshold_val = None
+
+    try:
+        max_nodes_val = int(max_nodes)
+    except ValueError:
+        max_nodes_val = 40
+    if max_nodes_val not in allowed_max_nodes:
+        max_nodes_val = 40
 
     if preset in {"sparse", "medium", "dense"}:
         if mode == "identity":
@@ -120,17 +130,22 @@ def protein_similarity(experiment_id: int):
         nodes = fetch_protein_similarity_nodes(conn, experiment_id)
         mutations = fetch_protein_mutations(conn, experiment_id) if mode == "cooccurrence" else None
 
-    suffix = f"{mode}_it{identity_threshold_val:.2f}_ms{min_shared_val}"
+    suffix = f"{mode}_it{identity_threshold_val:.2f}_ms{min_shared_val}_n{max_nodes_val}"
     if jaccard_threshold_val is not None:
         suffix = f"{suffix}_jt{jaccard_threshold_val:.2f}"
     out_path = PLOTS_DIR / f"protein_exp{experiment_id}_{suffix}.png"
 
-    title = "Protein Similarity Network" if mode == "identity" else "Protein Co-Occurrence Network"
+    if mode == "identity":
+        title = f"Protein Similarity Network (Top {max_nodes_val} Variants by Activity)"
+    else:
+        title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
     config = ProteinNetConfig(
         title=title,
         identity_threshold=identity_threshold_val,
         cooccur_min_shared_mutations=min_shared_val,
         cooccur_jaccard_threshold=jaccard_threshold_val,
+        top_n_by_activity=max_nodes_val,
+        max_nodes_final=max_nodes_val,
     )
 
     plot_protein_similarity_network(
@@ -150,5 +165,7 @@ def protein_similarity(experiment_id: int):
         identity_threshold=identity_threshold_val,
         min_shared=min_shared_val,
         jaccard_threshold=jaccard_threshold_val if jaccard_threshold_val is not None else "",
+        max_nodes=max_nodes_val,
+        max_node_options=sorted(allowed_max_nodes),
         cache_buster=int(time.time()),
     )

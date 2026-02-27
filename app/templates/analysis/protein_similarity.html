@@ -52,6 +52,13 @@
         >
     </div>
 
+    <label for="max_nodes">Variants shown</label>
+    <select id="max_nodes" name="max_nodes">
+        {% for option in max_node_options %}
+        <option value="{{ option }}" {% if max_nodes == option %}selected{% endif %}>Top {{ option }}</option>
+        {% endfor %}
+    </select>
+
     <button type="submit">Update</button>
 </form>
 
