@@ -69,10 +69,33 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
             {"eid": experiment_id},
         ).fetchone()
 
+        staged = conn.execute(
+            text("""
+                SELECT field_value
+                FROM public.experiment_metadata
+                WHERE experiment_id = :eid
+                  AND field_name = 'uniprot_staging'
+            """),
+            {"eid": experiment_id},
+        ).fetchone()
+
     if not row:
         raise ValueError(f"No WT reference found for experiment_id={experiment_id}")
 
-    return str(row[0]), str(row[1])
+    wt_protein = str(row[0])
+    wt_plasmid = str(row[1])
+
+    if staged and staged[0]:
+        try:
+            payload = json.loads(staged[0])
+        except json.JSONDecodeError:
+            payload = None
+        if isinstance(payload, dict):
+            staged_protein = payload.get("protein_sequence")
+            if isinstance(staged_protein, str) and staged_protein.strip():
+                wt_protein = staged_protein.strip().upper()
+
+    return wt_protein, wt_plasmid
 
 
 # =============================================================================

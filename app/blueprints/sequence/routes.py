@@ -28,6 +28,7 @@ def stage_wt(experiment_id: int):
         user_id,
         accession,
         wt_protein,
+        overwrite=True,
     )
 
     return jsonify(
