@@ -29,9 +29,9 @@ def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None
     # Short labels keep the rendered table compact and readable.
     rename = {
         "generation_number": "Gen",
-        "plasmid_variant_index": "Variant",
+        "plasmid_variant_index": "Plasmid Variant Index",
         "activity_score": "Activity score",
-        "total_mutations": "Total muts vs WT",
+        "total_mutations": "Total Mutations vs WT",
     }
     t = t.rename(columns={c: rename.get(c, c) for c in t.columns})
 

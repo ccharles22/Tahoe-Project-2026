@@ -50,10 +50,17 @@ SELECT
   g.generation_number,
   v.plasmid_variant_index,
   m.value AS activity_score,
-  COALESCE(tm.total_mut_count, 0) AS total_mutations
+  COALESCE(mt.total_mutations, tm.total_mut_count, 0)::int AS total_mutations
 FROM metrics m
 JOIN variants v ON v.variant_id = m.variant_id
 JOIN generations g ON g.generation_id = v.generation_id
+LEFT JOIN (
+  SELECT variant_id, MAX(value) AS total_mutations
+  FROM metrics
+  WHERE metric_name = 'mutation_total_count'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) mt ON mt.variant_id = v.variant_id
 LEFT JOIN (
   SELECT variant_id, COUNT(*) AS total_mut_count
   FROM mutations
@@ -280,9 +287,16 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
       g.generation_number,
       v.plasmid_variant_index,
       m.value AS activity_score,
-      COALESCE(pm.protein_mutations, 0) AS protein_mutations
+      COALESCE(mt.total_mutations, pm.protein_mutations, 0)::int AS total_mutations
     FROM variants v
     JOIN generations g ON g.generation_id = v.generation_id
+    LEFT JOIN (
+      SELECT variant_id, MAX(value) AS total_mutations
+      FROM metrics
+      WHERE metric_name = 'mutation_total_count'
+        AND metric_type = 'derived'
+      GROUP BY variant_id
+    ) mt ON mt.variant_id = v.variant_id
     LEFT JOIN (
       SELECT variant_id, COUNT(*) AS protein_mutations
       FROM mutations
