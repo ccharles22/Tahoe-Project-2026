@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import threading
+
 from flask import jsonify, request
 
 from app.jobs.sequence.run_sequence_processing import run_sequence_processing
@@ -40,8 +42,21 @@ def stage_wt(experiment_id: int):
 
 @sequence_bp.post("/experiments/<int:experiment_id>/run")
 def run_processing(experiment_id: int):
-    run_sequence_processing(experiment_id)
-    return jsonify({"experiment_id": experiment_id, "status": "ANALYSIS_STARTED"}), 200
+    worker = threading.Thread(
+        target=run_sequence_processing,
+        args=(experiment_id,),
+        kwargs={"force_reprocess": False},
+        daemon=True,
+        name=f"seq-processing-{experiment_id}",
+    )
+    worker.start()
+
+    return jsonify(
+        {
+            "experiment_id": experiment_id,
+            "status": "ANALYSIS_RUNNING",
+        }
+    ), 202
 
 
 @sequence_bp.get("/health")
