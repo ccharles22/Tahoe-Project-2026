@@ -1,27 +1,9 @@
 """
 Sequence Processing Service for Variant Analysis.
 
-This module provides core functionality for processing DNA sequences in directed evolution
-experiments, including:
-    - Wild-type (WT) gene identification in circular plasmids via 6-frame alignment
-    - Variant CDS extraction and translation with quality control
-    - Mutation calling (synonymous, nonsynonymous, indels, frameshifts)
-    - Protein alignment-based indel detection
-
-The pipeline follows a reference-guided approach where the WT protein sequence from UniProt
-is aligned against all 6 reading frames of the plasmid to identify the correct CDS coordinates,
-which are then used to process all variant sequences consistently.
-
-Key Classes:
-    WTMapping: Captures WT gene mapping results (coordinates, strand, frame)
-    VariantSeqResult: Stores per-variant CDS and translation results with QC flags
-    MutationRecord: Represents individual mutations with classification
-    MutationCounts: Aggregated mutation statistics
-
-Algorithm Overview:
-    1. WT mapping: 6-frame translation + BLOSUM62 alignment → CDS coordinates
-    2. Variant processing: Extract CDS using WT coords → translate → QC
-    3. Mutation calling: Codon-by-codon comparison or protein alignment for indels
+Core logic for WT gene mapping, variant CDS extraction, translation/QC,
+and mutation calling. See the project MkDocs for detailed algorithm
+documentation and visualisations.
 """
 from __future__ import annotations
 
@@ -34,7 +16,7 @@ from Bio.Align import substitution_matrices
 from Bio import BiopythonWarning
 
 from app.config import settings
-from .seq_utils import (
+from app.utils.seq_utils import (
     normalise_dna,
     reverse_complement_dna,
     circular_slice,
@@ -225,7 +207,7 @@ def _identity_pct_from_alignment(aln) -> float:
 
 def _gapped_seqs_from_alignment(aln) -> Tuple[str, str]:
     """
-    Reconstruct gapped alignment strings from structured coordinate blocks.
+    Reconstructs gapped alignment strings from structured coordinate blocks.
 
     Uses Biopython's aln.aligned arrays instead of the human-readable
     aln.format() output, which is fragile across Biopython versions and
@@ -318,50 +300,254 @@ def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
     return dna[i0:i1]
 
 
+def _split_codons(dna: str) -> List[str]:
+    """Split a CDS into complete 3-base codons."""
+    return [dna[i : i + 3] for i in range(0, len(dna), 3) if i + 3 <= len(dna)]
+
+
+def _codon_similarity_score(wt_codon: str, var_codon: str) -> int:
+    """
+    Score a codon-vs-codon substitution for global alignment.
+
+    The alignment is codon-aware rather than residue-aware so synonymous
+    substitutions remain visible as mutation events in offset / indel cases.
+    """
+    if wt_codon == var_codon:
+        return 4
+
+    if any(b not in {"A", "T", "C", "G"} for b in wt_codon + var_codon):
+        return 0
+
+    wt_aa = translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+    var_aa = translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+
+    if wt_aa == var_aa:
+        return 2
+    if var_aa == "*":
+        return -3
+    return -2
+
+
+def _align_codons_global(
+    wt_codons: List[str],
+    var_codons: List[str],
+) -> Tuple[List[Optional[str]], List[Optional[str]]]:
+    """
+    Global-align two codon lists using a simple Needleman-Wunsch DP.
+
+    This is intentionally codon-based so the downstream mutation caller can
+    count every changed codon (including synonymous ones) instead of relying on
+    protein-level alignment heuristics.
+    """
+    gap_penalty = -1
+    n = len(wt_codons)
+    m = len(var_codons)
+
+    score = [[0] * (m + 1) for _ in range(n + 1)]
+    trace = [[""] * (m + 1) for _ in range(n + 1)]
+
+    for i in range(1, n + 1):
+        score[i][0] = score[i - 1][0] + gap_penalty
+        trace[i][0] = "U"
+    for j in range(1, m + 1):
+        score[0][j] = score[0][j - 1] + gap_penalty
+        trace[0][j] = "L"
+
+    for i in range(1, n + 1):
+        wt_codon = wt_codons[i - 1]
+        for j in range(1, m + 1):
+            var_codon = var_codons[j - 1]
+            diag = score[i - 1][j - 1] + _codon_similarity_score(wt_codon, var_codon)
+            up = score[i - 1][j] + gap_penalty
+            left = score[i][j - 1] + gap_penalty
+
+            best = diag
+            move = "D"
+            if up > best:
+                best = up
+                move = "U"
+            if left > best:
+                best = left
+                move = "L"
+
+            score[i][j] = best
+            trace[i][j] = move
+
+    aligned_wt: List[Optional[str]] = []
+    aligned_var: List[Optional[str]] = []
+    i = n
+    j = m
+
+    while i > 0 or j > 0:
+        move = trace[i][j] if i >= 0 and j >= 0 else ""
+        if i > 0 and j > 0 and move == "D":
+            aligned_wt.append(wt_codons[i - 1])
+            aligned_var.append(var_codons[j - 1])
+            i -= 1
+            j -= 1
+        elif i > 0 and (j == 0 or move == "U"):
+            aligned_wt.append(wt_codons[i - 1])
+            aligned_var.append(None)
+            i -= 1
+        else:
+            aligned_wt.append(None)
+            aligned_var.append(var_codons[j - 1])
+            j -= 1
+
+    aligned_wt.reverse()
+    aligned_var.reverse()
+    return aligned_wt, aligned_var
+
+
+def _prefer_codon_alignment_for_equal_lengths(wt_cds: str, var_cds: str) -> bool:
+    """
+    Detect equal-length compensating-offset cases that are better explained as
+    indels than as a long series of substitutions.
+    """
+    wt_codons = _split_codons(wt_cds)
+    var_codons = _split_codons(var_cds)
+    if len(wt_codons) != len(var_codons) or not wt_codons:
+        return False
+
+    direct_mismatches = sum(1 for wc, vc in zip(wt_codons, var_codons) if wc != vc)
+    if direct_mismatches < 2:
+        return False
+
+    aligned_wt, aligned_var = _align_codons_global(wt_codons, var_codons)
+    has_gap = any(a is None or b is None for a, b in zip(aligned_wt, aligned_var))
+    if not has_gap:
+        return False
+
+    aligned_events = sum(1 for a, b in zip(aligned_wt, aligned_var) if a != b)
+    return aligned_events <= direct_mismatches
+
+
+def _variant_cds_from_mapping(plasmid: str, mapping: WTMapping) -> str:
+    """Extract CDS from a variant plasmid using the supplied mapping."""
+    start = mapping.cds_start_0based
+    end = mapping.cds_end_0based_excl
+    n = len(plasmid)
+
+    if start == end and len(mapping.wt_cds_dna) >= n:
+        cds_dna = plasmid[start:] + plasmid[:start] if start != 0 else plasmid
+    else:
+        cds_dna = circular_slice(plasmid, start, end)
+
+    if mapping.strand == "MINUS":
+        cds_dna = reverse_complement_dna(cds_dna)
+
+    return cds_dna
+
+
+def _translate_variant_cds(cds_dna: str, wt_protein_aa: str) -> Tuple[Optional[str], QCFlags]:
+    """Translate extracted CDS and return protein plus QC flags."""
+    has_frameshift = (len(cds_dna) % 3 != 0)
+    has_ambig = contains_ambiguous_bases(cds_dna)
+    to_stop = (settings.STOP_POLICY == "truncate")
+
+    protein: Optional[str] = None
+    prem_stop = False
+    notes: Optional[str] = None
+
+    if cds_dna:
+        try:
+            protein = translate_dna(
+                cds_dna,
+                table=settings.GENETIC_CODE_TABLE,
+                to_stop=to_stop,
+            )
+
+            if settings.STOP_POLICY != "truncate" and protein and "*" in protein:
+                prem_stop = True
+                notes = "Stop codon(s) present in translated protein."
+
+            if settings.STOP_POLICY == "truncate" and protein:
+                if len(protein) < len(wt_protein_aa):
+                    prem_stop = True
+                    notes = "Protein truncated due to in-frame stop codon."
+
+        except Exception as e:
+            protein = None
+            notes = f"Translation failed: {type(e).__name__}: {e}"
+
+    qc = QCFlags(
+        has_ambiguous_bases=has_ambig,
+        has_frameshift=has_frameshift,
+        has_premature_stop=prem_stop,
+        notes=notes,
+    )
+    return protein, qc
+
+
+def _needs_variant_remap(protein_aa: Optional[str], wt_protein_aa: str) -> bool:
+    """
+    Detects when fixed-coordinate extraction likely captured the wrong CDS window.
+
+    If a variant's translated protein aligns strongly to the WT only after a
+    substantial leading offset in either sequence, the gene likely sits at a
+    different plasmid coordinate and should be remapped de novo.
+
+    Short, spuriously translated peptides can also produce deceptively "perfect"
+    local alignments over 1-2 residues. Those are not biologically plausible for
+    an 800+ aa polymerase, so we also force a remap when the translated peptide
+    is implausibly short or when the aligned WT coverage is too small.
+    """
+    if not protein_aa:
+        return True
+
+    wt_len = max(1, len(wt_protein_aa))
+    prot_len = len(protein_aa)
+
+    # A tiny translated fragment is almost always the result of slicing the
+    # wrong CDS window and hitting an early stop codon immediately.
+    if prot_len < max(30, wt_len // 4):
+        return True
+
+    aln = _LOCAL_ALIGNER.align(protein_aa, wt_protein_aa)[0]
+    if aln.aligned[0].size == 0 or aln.aligned[1].size == 0:
+        return True
+
+    aligned_wt = sum(
+        int(t1) - int(t0)
+        for t0, t1 in aln.aligned[1]
+    )
+    wt_coverage = aligned_wt / wt_len
+
+    # Even if the local alignment anchor starts near the beginning, poor WT
+    # coverage combined with a shortened protein is a strong signal that the
+    # fixed-coordinate slice still landed on the wrong ORF.
+    if prot_len < max(60, int(0.75 * wt_len)) and wt_coverage < 0.50:
+        return True
+
+    q0 = int(aln.aligned[0][0][0])
+    t0 = int(aln.aligned[1][0][0])
+
+    # A one-sided N-terminal offset (e.g. [0, 879] vs [1, 880]) means the
+    # extracted CDS window is shifted relative to the WT and should be remapped.
+    return q0 != t0
+
+
 # ============================================================================
 # Main Sequence Processing Functions
 # ============================================================================
 
 def map_wt_gene_in_plasmid(wt_protein_aa: str, wt_plasmid_dna: str) -> WTMapping:
     """
-    Locates the wild-type CDS within circular plasmid using 6-frame protein alignment.
-    
-    Performs an exhaustive 6-frame translation search (3 frames x 2 strands) on a
-    circularised plasmid sequence, aligning each translated frame against the
-    reference protein using BLOSUM62. Returns the best-scoring mapping that
-    exceeds the minimum identity threshold.
-    
-    Algorithm:
-        1. Circularise plasmid by concatenating (handles genes spanning origin)
-        2. For each strand (PLUS, MINUS):
-            a. On each frame (0, 1, 2):
-                - Translate to protein
-                - Global align vs reference protein
-                - Calculate percent identity
-                - If identity ≥ WT_MIN_IDENTITY_PCT, validate candidate
-        3. Return candidate with the highest identity (ties broken by score)
-    
-    Validation checks:
-        - Identity must meet WT_MIN_IDENTITY_PCT threshold (config)
-        - CDS length must be multiple of 3
-        - No ambiguous bases (N, R, Y, etc.)
-        - Translated protein ≥ 80% of reference length (tolerance for truncation)
-    
+    Locates the wild-type CDS within a circular plasmid using 6-frame
+    protein alignment. See the project MkDocs (Visualisations > Step 1)
+    for the full algorithm walkthrough and diagrams.
+
     Args:
         wt_protein_aa: Reference protein sequence (amino acids).
         wt_plasmid_dna: Circular plasmid DNA sequence.
-    
+
     Returns:
-        WTMapping: Best mapping with strand, frame, coordinates, sequences, 
+        WTMapping: Best mapping with strand, frame, coordinates, sequences,
                    identity percentage, and alignment score.
-    
+
     Raises:
         ValueError: If plasmid or protein is empty.
         RuntimeError: If no valid mapping found above identity threshold.
-    
-    Note:
-        The 0.8 length threshold (80%) allows flexibility for minor truncations
-        or annotation differences while rejecting short spurious matches.
     """
     wt_protein = wt_protein_aa.strip().upper()
     plasmid = normalise_dna(wt_plasmid_dna)
@@ -488,97 +674,53 @@ def process_variant_plasmid(
         fallback_search: bool,
 ) -> VariantSeqResult:
     """
-    Uses the WT mapping (strand, frame, coordinates) to extract the corresponding
-    CDS from the variant plasmid, translate it, and perform quality control checks.
-    
-    Process:
-        1. Extracts CDS using circular_slice (handles wrap-around coordinates)
-        2. Applies strand orientation (reverse complement if MINUS strand)
-        3. Translates to protein using configured genetic code
-        4. Performs QC checks (frameshifts, ambiguous bases, premature stops)
-    
-    Note on reading frame:
-        The frame offset is already incorporated into cds_start_0based /
-        cds_end_0based_excl during WT mapping, so no trimming is done here.
-    
+    Extracts, translates, and QC-checks the variant CDS using WT mapping
+    coordinates. See the project MkDocs (Visualisations > Steps 2-3) for
+    details.
+
     Args:
         variant_plasmid_dna: Variant plasmid DNA sequence.
         wt_mapping: Wild-type mapping with coordinates and orientation.
-        fallback_search: If True and extraction fails, this performs a de novo search
-                        (currently placeholder - not yet implemented).
-    
+        fallback_search: If True, preserves a QC note when de novo remapping
+                        is attempted but cannot recover a plausible CDS.
+
     Returns:
-        VariantSeqResult: Contains extracted CDS, translated protein, coordinates,
-                         and QC flags indicating any issues detected.
-    
-    Note:
-        STOP_POLICY configuration controls stop codon handling:
-        - "truncate": Stop at first stop codon, flags if the variant protein is shorter than WT
-        - Other: Keep stops in sequence, flags any embedded stop codons
+        VariantSeqResult: Extracted CDS, translated protein, and QC flags.
     """
     plasmid = normalise_dna(variant_plasmid_dna)
-    n = len(plasmid)
+    active_mapping = wt_mapping
+    cds_dna = _variant_cds_from_mapping(plasmid, active_mapping)
+    protein, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
 
-    start = wt_mapping.cds_start_0based
-    end = wt_mapping.cds_end_0based_excl
+    remap_needed = _needs_variant_remap(protein, active_mapping.wt_protein_aa)
 
-    # Handle full-circle CDS (start == end means the gene spans the entire plasmid)
-    if start == end and len(wt_mapping.wt_cds_dna) >= n:
-        cds_dna = plasmid[start:] + plasmid[:start] if start != 0 else plasmid
-    else:
-        cds_dna = circular_slice(plasmid, start, end)
-    
-    if wt_mapping.strand == "MINUS":
-        cds_dna = reverse_complement_dna(cds_dna)
-
-    # Frame offset is already incorporated into cds_start_0based / cds_end_0based_excl
-    # during WT mapping, so no additional trimming is needed here.
-
-    has_frameshift = (len(cds_dna) % 3 != 0)
-    has_ambig = contains_ambiguous_bases(cds_dna)
-
-    to_stop = (settings.STOP_POLICY == "truncate")
-
-    protein: Optional[str] = None
-    prem_stop = False
-    notes: Optional[str] = None
-
-    if cds_dna:
+    if remap_needed:
         try:
-            protein = translate_dna(
-                cds_dna, 
-                table=settings.GENETIC_CODE_TABLE,
-                to_stop=to_stop,)
-
-            if settings.STOP_POLICY != "truncate" and protein and "*" in protein:
-                prem_stop = True
-                notes = "Stop codon(s) present in translated protein."
-
-            if settings.STOP_POLICY == "truncate" and protein:
-                if len(protein) < len(wt_mapping.wt_protein_aa):
-                    prem_stop = True
-                    notes = "Protein truncated due to in-frame stop codon."
-
+            active_mapping = map_wt_gene_in_plasmid(active_mapping.wt_protein_aa, plasmid)
+            cds_dna = active_mapping.wt_cds_dna
+            protein, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
+            note = "Variant remapped de novo due to CDS coordinate drift."
+            qc = QCFlags(
+                has_ambiguous_bases=qc.has_ambiguous_bases,
+                has_frameshift=qc.has_frameshift,
+                has_premature_stop=qc.has_premature_stop,
+                notes=(f"{note} {qc.notes}" if qc.notes else note),
+            )
         except Exception as e:
-            protein = None
-            notes = f"Translation failed: {type(e).__name__}: {e}"
-
-    qc = QCFlags(
-        has_ambiguous_bases=has_ambig,
-        has_frameshift=has_frameshift,
-        has_premature_stop=prem_stop,
-        notes=notes,     
-    )
-    
-    if fallback_search and (protein is None or has_frameshift):
-        # repeat mapping for this variant only
-        pass
+            if fallback_search:
+                note = f"Variant remap failed: {type(e).__name__}: {e}"
+                qc = QCFlags(
+                    has_ambiguous_bases=qc.has_ambiguous_bases,
+                    has_frameshift=qc.has_frameshift,
+                    has_premature_stop=qc.has_premature_stop,
+                    notes=(f"{qc.notes} {note}" if qc.notes else note),
+                )
 
     return VariantSeqResult(
-        cds_start_0based=wt_mapping.cds_start_0based,
-        cds_end_0based_excl=wt_mapping.cds_end_0based_excl,
-        strand=wt_mapping.strand,
-        frame=wt_mapping.frame,
+        cds_start_0based=active_mapping.cds_start_0based,
+        cds_end_0based_excl=active_mapping.cds_end_0based_excl,
+        strand=active_mapping.strand,
+        frame=active_mapping.frame,
         cds_dna=cds_dna,
         protein_aa=protein,
         qc=qc,
@@ -591,60 +733,49 @@ def call_indels_via_protein_alignment(
         var_cds_dna: str, 
 ) -> Tuple[List[MutationRecord], MutationCounts]:
     """
-    Detects mutations using protein-level alignment (indel-aware).
-    
-    Translates both WT and variant CDS to protein, performs global alignment,
-    then walks through aligned columns to detect insertions, deletions, and
-    substitutions for a more robust approach.
-    
-    Algorithm:
-        1. Translates both sequences to protein (keep stop codons as *)
-        2. Performs global protein alignment with BLOSUM62 scoring
-        3. Walks through alignment columns:
-            - WT gap + variant residue → INSERTION
-            - WT residue + variant gap → DELETION
-            - Both residues present:
-                a. Checks if amino acids match (synonymous vs nonsynonymous)
-                b. Retrieves codons from DNA for classification
-                c. Detects nonsense mutations (stop codon introduced)
-    
+    Detect mutations in indel / offset cases using codon-aware global alignment.
+
+    Despite the historical function name, this path now aligns codons directly
+    so every codon-level event remains countable, including synonymous codon
+    substitutions near insertions/deletions.
+
     Args:
         wt_cds_dna: Wild-type CDS DNA sequence.
         var_cds_dna: Variant CDS DNA sequence.
-    
+
     Returns:
-        Tuple containing:
-            - List[MutationRecord]: All detected mutations with coordinates
-            - MutationCounts: Aggregated counts (synonymous, nonsynonymous, total)        
+        Tuple of (List[MutationRecord], MutationCounts).
     """
     wt_cds = normalise_dna(wt_cds_dna)
     var_cds = normalise_dna(var_cds_dna)
 
-    wt_prot = translate_dna(wt_cds, table=settings.GENETIC_CODE_TABLE, to_stop=False)
-    var_prot = translate_dna(var_cds, table=settings.GENETIC_CODE_TABLE, to_stop=False)
-
-    aln = _GLOBAL_ALIGNER.align(wt_prot, var_prot)[0]
-
-    # Use structured coordinate blocks instead of fragile aln.format() text
-    wt_aln, var_aln = _gapped_seqs_from_alignment(aln)
-    if not wt_aln:
+    wt_codons = _split_codons(wt_cds)
+    var_codons = _split_codons(var_cds)
+    if not wt_codons and not var_codons:
         return ([], MutationCounts(synonymous=0, nonsynonymous=0, total=0))
+
+    wt_aln, var_aln = _align_codons_global(wt_codons, var_codons)
 
     muts: List[MutationRecord] = []
     syn = 0
     nonsyn = 0
     total = 0
 
-    wt_pos = 0 # 1-based AA position in WT (advanced when WT char != '-')
-    var_pos = 0 # 1-based AA position in variant (advanced when variant char != '-')
+    wt_pos = 0  # 1-based codon position in WT
+    var_pos = 0  # 1-based codon position in variant
 
-    for wa, va in zip(wt_aln, var_aln):
-        if wa != "-":
+    for wt_codon, var_codon in zip(wt_aln, var_aln):
+        if wt_codon is not None:
             wt_pos += 1
-        if va != "-":
+        if var_codon is not None:
             var_pos += 1
-    
-        if wa == "-" and va != "-":
+
+        if wt_codon is None and var_codon is not None:
+            var_aa = (
+                translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+                if all(b in {"A", "T", "C", "G"} for b in var_codon)
+                else None
+            )
             total += 1
             nonsyn += 1
             muts.append(
@@ -653,15 +784,20 @@ def call_indels_via_protein_alignment(
                     codon_index_1based=var_pos,
                     aa_position_1based=var_pos,
                     wt_codon=None,
-                    var_codon=_safe_codon(var_cds_dna, var_pos),
+                    var_codon=var_codon,
                     wt_aa=None,
-                    var_aa=va,
-                    notes="In-frame insertion (protein alignment).",
+                    var_aa=var_aa,
+                    notes="In-frame codon insertion (codon alignment).",
                 )
             )
             continue
 
-        if wa != "-" and va == "-":
+        if wt_codon is not None and var_codon is None:
+            wt_aa = (
+                translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+                if all(b in {"A", "T", "C", "G"} for b in wt_codon)
+                else None
+            )
             total += 1
             nonsyn += 1
             muts.append(
@@ -669,40 +805,47 @@ def call_indels_via_protein_alignment(
                     mutation_type="DELETION",
                     codon_index_1based=wt_pos,
                     aa_position_1based=wt_pos,
-                    wt_codon=_safe_codon(wt_cds_dna, wt_pos),
+                    wt_codon=wt_codon,
                     var_codon=None,
-                    wt_aa=wa,
+                    wt_aa=wt_aa,
                     var_aa=None,
-                    notes= "In-frame deletion (protein alignment).",
+                    notes="In-frame codon deletion (codon alignment).",
                 )
             )
             continue
 
-        if wa == va:
+        # For aligned residues, compare codons first, not just amino acids.
+        # This preserves synonymous codon substitutions in indel/offset cases.
+        if wt_codon == var_codon:
             continue
 
         total += 1
 
-        wt_codon = _safe_codon(wt_cds_dna, wt_pos)
-        var_codon = _safe_codon(var_cds_dna, var_pos)   
+        if any(b not in {"A", "T", "C", "G"} for b in (wt_codon or "") + (var_codon or "")):
+            muts.append(
+                MutationRecord(
+                    mutation_type="AMBIGUOUS",
+                    codon_index_1based=wt_pos,
+                    aa_position_1based=wt_pos,
+                    wt_codon=wt_codon,
+                    var_codon=var_codon,
+                    wt_aa=None,
+                    var_aa=None,
+                    notes="Ambiguous base(s) in codon-alignment mismatch.",
+                )
+            )
+            continue
 
-        if wt_codon and var_codon:
-            wt_aa = translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
-            var_aa = translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+        wt_aa = translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+        var_aa = translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
 
-            if var_aa == "*":
-                mtype = "NONSENSE"
-                nonsyn += 1
-            elif wt_aa == var_aa:
-                mtype = "SYNONYMOUS"
-                syn += 1
-            else:
-                mtype = "NONSYNONYMOUS"
-                nonsyn += 1
+        if var_aa == "*":
+            mtype = "NONSENSE"
+            nonsyn += 1
+        elif wt_aa == var_aa:
+            mtype = "SYNONYMOUS"
+            syn += 1
         else:
-            # Codon retrieval failed (e.g. near sequence ends), classify as nonsynonymous
-            wt_aa = wa if wa != "-" else None
-            var_aa = va if va != "-" else None
             mtype = "NONSYNONYMOUS"
             nonsyn += 1
 
@@ -713,9 +856,9 @@ def call_indels_via_protein_alignment(
                 aa_position_1based=wt_pos,
                 wt_codon=wt_codon,
                 var_codon=var_codon,
-                wt_aa=wt_aa if wt_codon and var_codon else (wa if wa != "-" else None),
-                var_aa=var_aa if wt_codon and var_codon else (va if va != "-" else None),
-                notes="Protein-alignment mismatch mapped to nearest codon." if not (wt_codon and var_codon) else None,
+                wt_aa=wt_aa,
+                var_aa=var_aa,
+                notes=None,
             )
         )
 
@@ -727,39 +870,16 @@ def call_mutations_against_wt(
         var_cds_dna: str,
 ) -> Tuple[List[MutationRecord], MutationCounts]:
     """
-    Main mutation calling entry point with adaptive strategy selection.
-    
-    Determines the appropriate mutation detection algorithm based on sequence
-    characteristics to optimise accuracy and performance:
-    
-    Strategy selection:
-        1. Frameshift check: If either CDS length not divisible by 3
-           → Returns single FRAMESHIFT record (detailed calling impossible)
-        
-        2. Length mismatch (but both in-frame): If len(WT) ≠ len(variant)
-           → Delegates to protein alignment, which absorbs insertions and
-             deletions into gap characters so surrounding residues stay
-             correctly paired (codon-by-codon would misalign everything
-             downstream of the indel)
-        
-        3. Equal length sequences
-           → Use fast codon-by-codon comparison (most efficient)
-    
-    The codon-by-codon approach compares triplets directly and classifies each:
-        - Identical codon → Skip (no mutation)
-        - Ambiguous bases → AMBIGUOUS classification
-        - Stop codon introduced → NONSENSE (nonsynonymous)
-        - Amino acid remains same → SYNONYMOUS
-        - Amino acid changes → NONSYNONYMOUS
-    
+    Main mutation calling entry point — selects codon-by-codon or protein
+    alignment strategy automatically. See the project MkDocs
+    (Visualisations > Step 4) for the strategy diagram.
+
     Args:
         wt_cds_dna: Wild-type CDS DNA sequence.
         var_cds_dna: Variant CDS DNA sequence.
-    
+
     Returns:
-        Tuple containing:
-            - List[MutationRecord]: All detected mutations with full annotations
-            - MutationCounts: Summary statistics (synonymous, nonsynonymous, total)
+        Tuple of (List[MutationRecord], MutationCounts).
     """
     wt = normalise_dna(wt_cds_dna)
     var = normalise_dna(var_cds_dna)
@@ -782,6 +902,12 @@ def call_mutations_against_wt(
         )
 
     if len(wt) != len(var):
+        return call_indels_via_protein_alignment(wt, var)
+
+    # Equal-length CDS can still hide a compensating internal indel. Use the
+    # same codon-aware alignment logic to decide whether the sequence is better
+    # explained as insertion/deletion events than as a long substitution chain.
+    if _prefer_codon_alignment_for_equal_lengths(wt, var):
         return call_indels_via_protein_alignment(wt, var)
 
     muts: List[MutationRecord] = []
