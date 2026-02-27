@@ -30,6 +30,7 @@ def stage_wt(experiment_id: int):
         wt_protein,
         overwrite=True,
     )
+    db_repo.clear_wt_mapping_cache(engine, experiment_id)
 
     return jsonify(
         {
@@ -43,7 +44,24 @@ def stage_wt(experiment_id: int):
 
 @sequence_bp.post("/experiments/<int:experiment_id>/run")
 def run_processing(experiment_id: int):
-    submit_sequence_processing(experiment_id, force_reprocess=False)
+    engine = get_engine()
+    payload = request.get_json(silent=True) or {}
+
+    current_status = db_repo.get_experiment_status(engine, experiment_id)
+    if current_status == "ANALYSIS_RUNNING":
+        return jsonify(
+            {
+                "experiment_id": experiment_id,
+                "status": current_status,
+                "error": "Sequence processing is already running for this experiment.",
+            }
+        ), 409
+
+    force_reprocess = bool(payload.get("force_reprocess", False))
+    if db_repo.has_uniprot_staging(engine, experiment_id):
+        force_reprocess = True
+
+    submit_sequence_processing(experiment_id, force_reprocess=force_reprocess)
     return jsonify({"experiment_id": experiment_id, "status": "ANALYSIS_RUNNING"}), 202
 
 

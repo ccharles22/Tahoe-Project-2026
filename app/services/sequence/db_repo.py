@@ -131,6 +131,19 @@ def update_experiment_status(engine: Engine, experiment_id: int, status: str) ->
         )
 
 
+def get_experiment_status(engine: Engine, experiment_id: int) -> Optional[str]:
+    with engine.connect() as conn:
+        status = conn.execute(
+            text("""
+                SELECT analysis_status
+                FROM public.experiments
+                WHERE experiment_id = :eid
+            """),
+            {"eid": experiment_id},
+        ).scalar_one_or_none()
+    return str(status) if status is not None else None
+
+
 # =============================================================================
 # Variants
 # =============================================================================
@@ -278,6 +291,31 @@ def upsert_uniprot_staging(
     with engine.begin() as conn:
         _upsert_experiment_metadata(
             conn, experiment_id, "uniprot_staging", payload, overwrite=overwrite
+        )
+
+
+def has_uniprot_staging(engine: Engine, experiment_id: int) -> bool:
+    with engine.connect() as conn:
+        row = conn.execute(
+            text("""
+                SELECT field_value
+                FROM public.experiment_metadata
+                WHERE experiment_id = :eid
+                  AND field_name = 'uniprot_staging'
+            """),
+            {"eid": experiment_id},
+        ).fetchone()
+    return bool(row and row[0])
+
+
+def clear_wt_mapping_cache(engine: Engine, experiment_id: int) -> None:
+    with engine.begin() as conn:
+        _upsert_experiment_metadata(
+            conn,
+            experiment_id,
+            "wt_mapping_json",
+            "",
+            overwrite=True,
         )
 
 

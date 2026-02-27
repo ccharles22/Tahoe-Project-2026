@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import warnings
 from dataclasses import dataclass
+from functools import lru_cache
 from typing import List, Tuple, Optional
 
 from Bio.Align import PairwiseAligner
@@ -302,6 +303,12 @@ def _split_codons(dna: str) -> List[str]:
     return [dna[i : i + 3] for i in range(0, len(dna), 3) if i + 3 <= len(dna)]
 
 
+@lru_cache(maxsize=128)
+def _translate_codon_cached(codon: str) -> str:
+    """Translate a single unambiguous codon, caching the tiny 64-codon space."""
+    return translate_dna(codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+
+
 def _codon_similarity_score(wt_codon: str, var_codon: str) -> int:
     """
     Score a codon-vs-codon substitution for global alignment.
@@ -315,8 +322,8 @@ def _codon_similarity_score(wt_codon: str, var_codon: str) -> int:
     if any(b not in {"A", "T", "C", "G"} for b in wt_codon + var_codon):
         return 0
 
-    wt_aa = translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
-    var_aa = translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+    wt_aa = _translate_codon_cached(wt_codon)
+    var_aa = _translate_codon_cached(var_codon)
 
     if wt_aa == var_aa:
         return 2
@@ -406,8 +413,16 @@ def _prefer_codon_alignment_for_equal_lengths(wt_cds: str, var_cds: str) -> bool
     if len(wt_codons) != len(var_codons) or not wt_codons:
         return False
 
-    direct_mismatches = sum(1 for wc, vc in zip(wt_codons, var_codons) if wc != vc)
-    if direct_mismatches < 2:
+    mismatch_positions = [idx for idx, (wc, vc) in enumerate(zip(wt_codons, var_codons)) if wc != vc]
+    direct_mismatches = len(mismatch_positions)
+    if direct_mismatches < 6:
+        return False
+
+    # Most equal-length variants are simple substitutions. Only pay for the
+    # codon-DP path when mismatches cluster in a way that suggests a shifted
+    # block between a compensating insertion/deletion pair.
+    mismatch_span = mismatch_positions[-1] - mismatch_positions[0] + 1
+    if mismatch_span > direct_mismatches * 3:
         return False
 
     aligned_wt, aligned_var = _align_codons_global(wt_codons, var_codons)
@@ -798,7 +813,7 @@ def call_indels_via_protein_alignment(
 
         if wt_codon is None and var_codon is not None:
             var_aa = (
-                translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+                _translate_codon_cached(var_codon)
                 if all(b in {"A", "T", "C", "G"} for b in var_codon)
                 else None
             )
@@ -820,7 +835,7 @@ def call_indels_via_protein_alignment(
 
         if wt_codon is not None and var_codon is None:
             wt_aa = (
-                translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+                _translate_codon_cached(wt_codon)
                 if all(b in {"A", "T", "C", "G"} for b in wt_codon)
                 else None
             )
@@ -862,8 +877,8 @@ def call_indels_via_protein_alignment(
             )
             continue
 
-        wt_aa = translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
-        var_aa = translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+        wt_aa = _translate_codon_cached(wt_codon)
+        var_aa = _translate_codon_cached(var_codon)
 
         if var_aa == "*":
             mtype = "NONSENSE"
@@ -967,8 +982,8 @@ def call_mutations_against_wt(
             )
             continue
 
-        wt_aa = translate_dna(wt_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
-        var_aa = translate_dna(var_codon, table=settings.GENETIC_CODE_TABLE, to_stop=False)
+        wt_aa = _translate_codon_cached(wt_codon)
+        var_aa = _translate_codon_cached(var_codon)
 
         if var_aa == "*":
             mtype = "NONSENSE"
