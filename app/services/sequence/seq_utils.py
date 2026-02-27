@@ -43,7 +43,6 @@ from Bio.Seq import Seq
 
 
 VALID_DNA: Set[str] = {"A", "C", "G", "T"}
-AMBIGUOUS_BASES: Set[str] = set("NRYWSKMBDHV")
 
 @dataclass(frozen=True)
 class TranslationQC:
@@ -125,6 +124,7 @@ def translate_dna(
         *,
         table: int = 11,
         to_stop: bool = False,
+        strict: bool = False,
     ) -> str:
     """
     Translates DNA sequence into protein using Biopython's 
@@ -135,11 +135,14 @@ def translate_dna(
         dna: DNA sequence to translate (will be normalised automatically).
         table: NCBI genetic code table number (default: 11 = bacterial).
         to_stop: If True, stop translation at first stop codon (default: False).
+        strict: If True, raise ValueError on any non-ACGT base.
     
     Returns:
         str: Translated protein sequence (single-letter amino acid codes).
     """
     dna = normalise_dna(dna)
+    if strict and contains_ambiguous_bases(dna):
+        raise ValueError("Ambiguous/non-ACGT bases present; strict translation refused.")
     return str(Seq(dna).translate(table=table, to_stop=to_stop))
 
 
@@ -192,7 +195,7 @@ def translate_cds_with_qc(
     if len(dna) < min_len_nt:
         qc = TranslationQC(
             normalised_len=len(dna),
-            has_ambiguous_bases=False,
+            has_ambiguous_bases=contains_ambiguous_bases(dna),
             has_stop_codon=False,
             has_frameshift=(len(dna) % 3 != 0),
             is_truncated=False,
@@ -202,11 +205,13 @@ def translate_cds_with_qc(
         return None, qc
 
     
-    has_ambiguous = bool(set(dna) - VALID_DNA)
+    has_ambiguous = contains_ambiguous_bases(dna)
     has_frameshift = (len(dna) % 3 != 0)
 
     if has_frameshift:
         notes.append("CDS length not divisible by 3.")
+    if has_ambiguous:
+        notes.append("Ambiguous/non-ACGT base(s) present.")
 
     # Translates first without truncation to detect internal stop codons consistently.
     try:
@@ -252,7 +257,13 @@ def reverse_complement(dna: str) -> str:
     """Backward-compatible alias for reverse complement."""
     return reverse_complement_dna(dna)
 
-def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
+def circular_slice(
+    dna: str,
+    start_0based: int,
+    end_0based_excl: int,
+    *,
+    on_equal: str = "empty",
+) -> str:
     """
     Extracts the subsequence from plasmid DNA by handling wrap-around coordinates.
     To achieve this, Python-style 0-based indexing with exclusive end coordinate is used.
@@ -260,12 +271,13 @@ def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
     Coordinate interpretation:
         - start < end: Normal linear slice [start:end)
         - start > end: Wrap-around slice [start:] + [:end)
-        - start == end: Empty string (ambiguous - could mean empty or full circle)
+        - start == end: Behaviour controlled by on_equal
     
     Args:
         dna: Circular DNA sequence (will be normalised automatically).
         start_0based: Start position (0-based inclusive).
         end_0based_excl: End position (0-based exclusive).
+        on_equal: Behaviour when start == end: "empty" or "full".
     
     Returns:
         str: Extracted subsequence.
@@ -292,6 +304,8 @@ def circular_slice(dna: str, start_0based: int, end_0based_excl: int) -> str:
         # Wrap-around: take from start to end of sequence, then from beginning to end
         return dna[start:] + dna[:end]
     
-    # Return empty string; caller must handle full-circle case if needed
-    return ""
-
+    if on_equal == "full":
+        return dna
+    if on_equal == "empty":
+        return ""
+    raise ValueError("on_equal must be 'empty' or 'full'")
