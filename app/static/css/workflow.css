@@ -1664,32 +1664,33 @@ a:hover { text-decoration: underline; }
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 22px;
-  height: 22px;
+  width: 2rem;
+  height: 2rem;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--primary);
-  font-size: 12px;
+  border: 0;
+  background: rgba(16, 109, 108, 0.12);
+  color: #106d6c;
+  font-size: 1rem;
   font-weight: 700;
+  font-family: Arial, sans-serif;
   cursor: help;
   flex-shrink: 0;
 }
 
 .analysis-title-info__tip {
   position: absolute;
-  top: calc(100% + 8px);
-  left: 50%;
-  width: min(300px, 72vw);
-  padding: 10px 12px;
-  border-radius: 12px;
+  top: calc(100% + 10px);
+  right: 0;
+  width: min(320px, 78vw);
+  padding: 12px 14px;
+  border-radius: 14px;
   background: #102a43;
   color: #f8fbff;
-  font-size: 12px;
+  font-size: 0.92rem;
   line-height: 1.45;
   box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
   opacity: 0;
-  transform: translate(-50%, -6px);
+  transform: translateY(-6px);
   pointer-events: none;
   transition: opacity 140ms var(--ease), transform 140ms var(--ease);
   z-index: 5;
@@ -1698,7 +1699,7 @@ a:hover { text-decoration: underline; }
 .analysis-title-info:hover .analysis-title-info__tip,
 .analysis-title-info:focus-visible .analysis-title-info__tip {
   opacity: 1;
-  transform: translate(-50%, 0);
+  transform: translateY(0);
 }
 
 .analysis-studio__hint {
