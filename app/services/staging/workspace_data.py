@@ -284,9 +284,11 @@ def load_kpis(experiment_id):
         analysed_count = db.session.execute(
             text(
                 """
-                SELECT COUNT(DISTINCT variant_id)
-                FROM variant_sequence_analysis
-                WHERE experiment_id = :eid
+                SELECT COUNT(DISTINCT vsa.variant_id)
+                FROM variant_sequence_analysis vsa
+                JOIN variants v ON v.variant_id = vsa.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
                 """
             ),
             {'eid': experiment_id},
@@ -294,10 +296,12 @@ def load_kpis(experiment_id):
         mut_count = db.session.execute(
             text(
                 """
-                SELECT COUNT(DISTINCT vsa.variant_id)
-                FROM variant_sequence_analysis vsa
-                JOIN variant_mutations vm ON vm.analysis_id = vsa.analysis_id
-                WHERE vsa.experiment_id = :eid
+                SELECT COUNT(DISTINCT m.variant_id)
+                FROM mutations m
+                JOIN variants v ON v.variant_id = m.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                  AND m.mutation_type = 'protein'
                 """
             ),
             {'eid': experiment_id},
@@ -310,20 +314,17 @@ def load_kpis(experiment_id):
         top_mut_rows = db.session.execute(
             text(
                 """
-                WITH latest AS (
-                  SELECT variant_id, MAX(analysis_id) AS analysis_id
-                  FROM variant_sequence_analysis
-                  WHERE experiment_id = :eid
-                  GROUP BY variant_id
-                )
                 SELECT
-                  CONCAT(vm.wt_aa, vm.aa_position_1based::text, vm.var_aa) AS mutation_label,
+                  CONCAT(m.original, m.position::text, m.mutated) AS mutation_label,
                   COUNT(*) AS mutation_count
-                FROM variant_mutations vm
-                JOIN latest l ON l.analysis_id = vm.analysis_id
-                WHERE vm.wt_aa IS NOT NULL
-                  AND vm.var_aa IS NOT NULL
-                  AND vm.aa_position_1based IS NOT NULL
+                FROM mutations m
+                JOIN variants v ON v.variant_id = m.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                  AND m.mutation_type = 'protein'
+                  AND m.original IS NOT NULL
+                  AND m.mutated IS NOT NULL
+                  AND m.position IS NOT NULL
                 GROUP BY mutation_label
                 ORDER BY mutation_count DESC, mutation_label
                 LIMIT 3
@@ -339,29 +340,18 @@ def load_kpis(experiment_id):
         syn_non_syn = db.session.execute(
             text(
                 """
-                WITH latest AS (
-                  SELECT variant_id, MAX(analysis_id) AS analysis_id
-                  FROM variant_sequence_analysis
-                  WHERE experiment_id = :eid
-                  GROUP BY variant_id
-                )
                 SELECT
                   SUM(
-                    CASE
-                      WHEN LOWER(COALESCE(vm.mutation_type, '')) LIKE '%synonymous%'
-                           AND LOWER(COALESCE(vm.mutation_type, '')) NOT LIKE '%non%'
-                      THEN 1 ELSE 0
-                    END
+                    CASE WHEN m.metric_name = 'mutation_synonymous_count' THEN m.value ELSE 0 END
                   ) AS syn_count,
                   SUM(
-                    CASE
-                      WHEN LOWER(COALESCE(vm.mutation_type, '')) LIKE '%non%synonymous%'
-                           OR LOWER(COALESCE(vm.mutation_type, '')) IN ('missense', 'nonsense', 'frameshift')
-                      THEN 1 ELSE 0
-                    END
+                    CASE WHEN m.metric_name = 'mutation_nonsynonymous_count' THEN m.value ELSE 0 END
                   ) AS non_syn_count
-                FROM variant_mutations vm
-                JOIN latest l ON l.analysis_id = vm.analysis_id
+                FROM metrics m
+                JOIN generations g ON g.generation_id = m.generation_id
+                WHERE g.experiment_id = :eid
+                  AND m.metric_type = 'derived'
+                  AND m.metric_name IN ('mutation_synonymous_count', 'mutation_nonsynonymous_count')
                 """
             ),
             {'eid': experiment_id},

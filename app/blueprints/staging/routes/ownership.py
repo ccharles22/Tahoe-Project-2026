@@ -16,6 +16,7 @@ def get_owned_variant_or_none(variant_id: int):
               v.plasmid_variant_index,
               v.assembled_dna_sequence,
               v.protein_sequence,
+              v.extra_metadata,
               v.parent_variant_id,
               g.generation_number,
               g.experiment_id,

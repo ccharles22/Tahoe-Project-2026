@@ -4,7 +4,7 @@ import csv
 import io
 
 from flask import Response
-from flask_login import current_user, login_required
+from flask_login import login_required
 from sqlalchemy import text
 
 from app.extensions import db
@@ -94,7 +94,7 @@ def download_experiment_mutation_report_csv(experiment_id: int):
     if not experiment_owned_by_current_user(experiment_id):
         return Response('Experiment not found.', status=404)
 
-    rows = db.session.execute(
+    analysis_rows = db.session.execute(
         text(
             """
             SELECT
@@ -102,26 +102,17 @@ def download_experiment_mutation_report_csv(experiment_id: int):
               v.variant_id,
               v.plasmid_variant_index,
               v.parent_variant_id,
-              vsa.analysis_id,
-              vsa.analysed_at,
-              vm.mutation_type,
-              vm.codon_index_1based,
-              vm.aa_position_1based,
-              vm.wt_codon,
-              vm.var_codon,
-              vm.wt_aa,
-              vm.var_aa,
-              vm.notes
+              v.extra_metadata,
+              vsa.vsa_id,
+              COALESCE(vsa.updated_at, vsa.created_at) AS analysed_at
             FROM variant_sequence_analysis vsa
             JOIN variants v ON v.variant_id = vsa.variant_id
             JOIN generations g ON g.generation_id = v.generation_id
-            LEFT JOIN variant_mutations vm ON vm.analysis_id = vsa.analysis_id
-            WHERE vsa.experiment_id = :eid
-              AND vsa.user_id = :uid
-            ORDER BY g.generation_number ASC, v.variant_id ASC, vm.aa_position_1based ASC NULLS LAST, vm.codon_index_1based ASC NULLS LAST
+            WHERE g.experiment_id = :eid
+            ORDER BY g.generation_number ASC, v.variant_id ASC, vsa.vsa_id ASC
             """
         ),
-        {'eid': experiment_id, 'uid': int(current_user.user_id)},
+        {'eid': experiment_id},
     ).mappings().all()
 
     out = io.StringIO()
@@ -133,7 +124,7 @@ def download_experiment_mutation_report_csv(experiment_id: int):
             'variant_id',
             'plasmid_variant_index',
             'parent_variant_id',
-            'analysis_id',
+            'vsa_id',
             'analysed_at',
             'mutation_type',
             'codon_index_1based',
@@ -145,26 +136,55 @@ def download_experiment_mutation_report_csv(experiment_id: int):
             'notes',
         ]
     )
-    for r in rows:
-        writer.writerow(
-            [
-                experiment_id,
-                r['generation_number'],
-                r['variant_id'],
-                r['plasmid_variant_index'],
-                r['parent_variant_id'],
-                r['analysis_id'],
-                r['analysed_at'],
-                r['mutation_type'],
-                r['codon_index_1based'],
-                r['aa_position_1based'],
-                r['wt_codon'],
-                r['var_codon'],
-                r['wt_aa'],
-                r['var_aa'],
-                r['notes'],
-            ]
-        )
+    for r in analysis_rows:
+        extra_metadata = r['extra_metadata'] if isinstance(r['extra_metadata'], dict) else {}
+        seq_payload = extra_metadata.get('sequence_analysis') if isinstance(extra_metadata, dict) else {}
+        payload_mutations = seq_payload.get('mutations') if isinstance(seq_payload, dict) else None
+
+        if not isinstance(payload_mutations, list) or not payload_mutations:
+            writer.writerow(
+                [
+                    experiment_id,
+                    r['generation_number'],
+                    r['variant_id'],
+                    r['plasmid_variant_index'],
+                    r['parent_variant_id'],
+                    r['vsa_id'],
+                    r['analysed_at'],
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                    '',
+                ]
+            )
+            continue
+
+        for m in payload_mutations:
+            if not isinstance(m, dict):
+                continue
+            writer.writerow(
+                [
+                    experiment_id,
+                    r['generation_number'],
+                    r['variant_id'],
+                    r['plasmid_variant_index'],
+                    r['parent_variant_id'],
+                    r['vsa_id'],
+                    r['analysed_at'],
+                    m.get('mutation_type', ''),
+                    m.get('codon_index_1based', ''),
+                    m.get('aa_position_1based', ''),
+                    m.get('wt_codon', ''),
+                    m.get('var_codon', ''),
+                    m.get('wt_aa', ''),
+                    m.get('var_aa', ''),
+                    m.get('notes', ''),
+                ]
+            )
 
     resp = Response(out.getvalue(), mimetype='text/csv')
     resp.headers['Content-Disposition'] = f'attachment; filename=experiment_{experiment_id}_mutation_report.csv'

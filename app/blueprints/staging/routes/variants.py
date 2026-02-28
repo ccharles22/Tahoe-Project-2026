@@ -5,13 +5,82 @@ import io
 import os
 
 from flask import Response, current_app, jsonify, render_template, url_for
-from flask_login import current_user, login_required
+from flask_login import login_required
 from sqlalchemy import text
 
 from app.extensions import db
 
 from .. import staging_bp
 from .ownership import get_owned_variant_or_none
+
+
+def _get_sequence_analysis_payload(row) -> dict:
+    """Return sequence-analysis payload stored on the variant, if present."""
+    extra_metadata = row.get('extra_metadata') if row else None
+    if not isinstance(extra_metadata, dict):
+        return {}
+    payload = extra_metadata.get('sequence_analysis')
+    return payload if isinstance(payload, dict) else {}
+
+
+def _load_mutations_for_variant(variant_id: int, sequence_analysis: dict) -> list[dict]:
+    """Load mutation rows from the embedded payload, with DB fallback."""
+    mutations = []
+
+    payload_mutations = sequence_analysis.get('mutations') if isinstance(sequence_analysis, dict) else None
+    if isinstance(payload_mutations, list):
+        for m in payload_mutations:
+            if not isinstance(m, dict):
+                continue
+            mutations.append(
+                {
+                    'mutation_type': m.get('mutation_type') or '',
+                    'aa_position': m.get('aa_position_1based'),
+                    'codon_index': m.get('codon_index_1based'),
+                    'wt_aa': m.get('wt_aa') or '',
+                    'var_aa': m.get('var_aa') or '',
+                    'wt_codon': m.get('wt_codon') or '',
+                    'var_codon': m.get('var_codon') or '',
+                    'notes': m.get('notes') or '',
+                }
+            )
+
+    if mutations:
+        return mutations
+
+    fallback_rows = db.session.execute(
+        text(
+            """
+            SELECT
+              mutation_type,
+              position,
+              original,
+              mutated,
+              annotation
+            FROM mutations
+            WHERE variant_id = :vid
+              AND mutation_type = 'protein'
+            ORDER BY position ASC
+            """
+        ),
+        {'vid': int(variant_id)},
+    ).mappings().all()
+
+    for m in fallback_rows:
+        mutations.append(
+            {
+                'mutation_type': m['mutation_type'] or '',
+                'aa_position': m['position'],
+                'codon_index': None,
+                'wt_aa': m['original'] or '',
+                'var_aa': m['mutated'] or '',
+                'wt_codon': '',
+                'var_codon': '',
+                'notes': m['annotation'] or '',
+            }
+        )
+
+    return mutations
 
 
 def _load_stage4_qc_for_variant(experiment_id: int, variant_id: int) -> str:
@@ -46,56 +115,9 @@ def _load_variant_payload(variant_id: int):
     if not row:
         return None
 
-    latest_analysis = db.session.execute(
-        text(
-            """
-            SELECT analysis_id, analysis_json
-            FROM variant_sequence_analysis
-            WHERE variant_id = :vid
-              AND user_id = :uid
-            ORDER BY analysed_at DESC, analysis_id DESC
-            LIMIT 1
-            """
-        ),
-        {'vid': variant_id, 'uid': int(current_user.user_id)},
-    ).mappings().first()
-
-    mutations = []
+    sequence_analysis = _get_sequence_analysis_payload(row)
+    mutations = _load_mutations_for_variant(variant_id, sequence_analysis)
     snippet = ''
-    if latest_analysis:
-        mut_rows = db.session.execute(
-            text(
-                """
-                SELECT
-                  mutation_type,
-                  codon_index_1based,
-                  aa_position_1based,
-                  wt_codon,
-                  var_codon,
-                  wt_aa,
-                  var_aa,
-                  notes
-                FROM variant_mutations
-                WHERE analysis_id = :aid
-                ORDER BY aa_position_1based NULLS LAST, codon_index_1based NULLS LAST
-                """
-            ),
-            {'aid': int(latest_analysis['analysis_id'])},
-        ).mappings().all()
-
-        for m in mut_rows:
-            mutations.append(
-                {
-                    'mutation_type': m['mutation_type'] or '',
-                    'aa_position': m['aa_position_1based'],
-                    'codon_index': m['codon_index_1based'],
-                    'wt_aa': m['wt_aa'] or '',
-                    'var_aa': m['var_aa'] or '',
-                    'wt_codon': m['wt_codon'] or '',
-                    'var_codon': m['var_codon'] or '',
-                    'notes': m['notes'] or '',
-                }
-            )
 
     protein_seq = (row['protein_sequence'] or '').strip()
     if protein_seq and mutations:
@@ -213,45 +235,13 @@ def download_variant_protein_fasta(variant_id: int):
 @login_required
 def download_variant_mutation_csv(variant_id: int):
     """Download latest mutation calls for a variant as CSV."""
-    row = get_owned_variant_or_none(variant_id)
-    if not row:
+    payload = _load_variant_payload(variant_id)
+    if not payload:
         return Response('Variant not found.', status=404)
 
-    latest_analysis = db.session.execute(
-        text(
-            """
-            SELECT analysis_id
-            FROM variant_sequence_analysis
-            WHERE variant_id = :vid
-              AND user_id = :uid
-            ORDER BY analysed_at DESC, analysis_id DESC
-            LIMIT 1
-            """
-        ),
-        {'vid': variant_id, 'uid': int(current_user.user_id)},
-    ).scalar()
-    if not latest_analysis:
+    mut_rows = payload.get('mutations') or []
+    if not mut_rows:
         return Response('No mutation analysis available. Run sequence processing first.', status=404)
-
-    mut_rows = db.session.execute(
-        text(
-            """
-            SELECT
-              mutation_type,
-              codon_index_1based,
-              aa_position_1based,
-              wt_codon,
-              var_codon,
-              wt_aa,
-              var_aa,
-              notes
-            FROM variant_mutations
-            WHERE analysis_id = :aid
-            ORDER BY aa_position_1based NULLS LAST, codon_index_1based NULLS LAST
-            """
-        ),
-        {'aid': int(latest_analysis)},
-    ).mappings().all()
 
     out = io.StringIO()
     writer = csv.writer(out)
@@ -271,8 +261,8 @@ def download_variant_mutation_csv(variant_id: int):
         writer.writerow(
             [
                 m['mutation_type'],
-                m['codon_index_1based'],
-                m['aa_position_1based'],
+                m['codon_index'],
+                m['aa_position'],
                 m['wt_codon'],
                 m['var_codon'],
                 m['wt_aa'],
