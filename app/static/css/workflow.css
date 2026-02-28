@@ -1644,8 +1644,10 @@ a:hover { text-decoration: underline; }
 }
 
 .analysis-studio__title--strong {
-  font-size: 14px;
-  font-weight: 800;
+  display: inline-block;
+  font-size: 15px;
+  line-height: 1.2;
+  font-weight: 900;
   letter-spacing: -0.01em;
 }
 
