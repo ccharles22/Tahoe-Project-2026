@@ -16,10 +16,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
         }
 
-        h2 {
+        h2, h3 {
             margin: 0;
         }
 
@@ -61,11 +61,105 @@
             opacity: 1;
         }
 
+        .panel {
+            background: #ffffff;
+            border: 1px solid #d8dde3;
+            border-radius: 14px;
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .panel__header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 720px;
+        }
+
+        th, td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #e5e7eb;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th button {
+            border: 0;
+            background: none;
+            padding: 0;
+            font: inherit;
+            font-weight: 700;
+            color: inherit;
+            cursor: pointer;
+        }
+
+        tbody tr {
+            cursor: pointer;
+        }
+
+        tbody tr:hover,
+        tbody tr.is-active {
+            background: #f2f6ef;
+        }
+
+        .score-cell {
+            min-width: 220px;
+        }
+
+        .score-track {
+            width: 100%;
+            height: 10px;
+            border-radius: 999px;
+            background: #e4eadc;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .score-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg, #45624e, #8ba86b);
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .button-link,
+        .button-copy {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            padding: 0 12px;
+            border-radius: 8px;
+            border: 1px solid #1f2933;
+            background: #ffffff;
+            color: #1f2933;
+            text-decoration: none;
+            cursor: pointer;
+            font: inherit;
+        }
+
         img {
             max-width: 100%;
             height: auto;
             display: block;
-            margin-bottom: 16px;
         }
     </style>
 </head>
@@ -75,14 +169,169 @@
         <button class="info-chip" type="button" aria-label="What this graph shows">
             i
             <span class="info-chip__tip">
-                This graph highlights the top-performing variants by activity score and gives a quick view of how much
-                mutation load the strongest candidates are carrying.
+                This view ranks the highest-activity variants and lets you compare each top hit against its mutation
+                load, so you can quickly spot strong candidates that are either conservative or heavily diverged.
             </span>
         </button>
     </div>
 
-    <img src="{{ url_for('static', filename=top10_png) }}" alt="Top 10 graph for experiment {{ experiment_id }}">
+    <section class="panel">
+        <div class="panel__header">
+            <h3>Interactive Ranking</h3>
+            <div class="toolbar">
+                <button class="button-copy" id="copy-table" type="button">Copy table as CSV</button>
+                <a class="button-link" href="/protein_similarity/{{ experiment_id }}">View protein network</a>
+            </div>
+        </div>
 
-    <a href="/protein_similarity/{{ experiment_id }}">View protein network</a>
+        {% if top10_rows %}
+        <div class="table-wrap">
+            <table id="top10-table">
+                <thead>
+                    <tr>
+                        <th><button type="button" data-sort="rank">Rank</button></th>
+                        <th><button type="button" data-sort="generation_number">Generation</button></th>
+                        <th><button type="button" data-sort="plasmid_variant_index">Variant Index</button></th>
+                        <th><button type="button" data-sort="activity_score">Activity Score</button></th>
+                        <th><button type="button" data-sort="total_mutations">Total Mutations</button></th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in top10_rows %}
+                    <tr data-variant-id="{{ row.variant_id }}">
+                        <td data-value="{{ row.rank }}">{{ row.rank }}</td>
+                        <td data-value="{{ row.generation_number }}">{{ row.generation_number }}</td>
+                        <td data-value="{{ row.plasmid_variant_index }}">{{ row.plasmid_variant_index }}</td>
+                        <td class="score-cell" data-value="{{ row.activity_score }}">
+                            {{ "%.4f"|format(row.activity_score) }}
+                            <div class="score-track">
+                                <div
+                                    class="score-fill"
+                                    style="width: {{ (row.activity_score / top10_max_score * 100) if top10_max_score else 0 }}%;"
+                                ></div>
+                            </div>
+                        </td>
+                        <td data-value="{{ row.total_mutations }}">{{ row.total_mutations }}</td>
+                        <td>
+                            <a
+                                class="button-link"
+                                href="/staging/variant/{{ row.variant_id }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No top-ranked variants were returned for this experiment.</p>
+        {% endif %}
+    </section>
+
+    <section class="panel">
+        <div class="panel__header">
+            <h3>Static Snapshot</h3>
+        </div>
+        <img src="{{ url_for('static', filename=top10_png) }}" alt="Top 10 graph for experiment {{ experiment_id }}">
+    </section>
+
+    <script>
+        const table = document.getElementById("top10-table");
+        const copyButton = document.getElementById("copy-table");
+
+        if (table) {
+            const tbody = table.querySelector("tbody");
+            const sortButtons = table.querySelectorAll("[data-sort]");
+            let activeSort = { key: "rank", asc: true };
+
+            const numericKeys = new Set(["rank", "generation_number", "activity_score", "total_mutations"]);
+
+            function getCellIndex(key) {
+                return {
+                    rank: 0,
+                    generation_number: 1,
+                    plasmid_variant_index: 2,
+                    activity_score: 3,
+                    total_mutations: 4,
+                }[key];
+            }
+
+            function sortRows(key) {
+                const cellIndex = getCellIndex(key);
+                const rows = Array.from(tbody.querySelectorAll("tr"));
+                const asc = activeSort.key === key ? !activeSort.asc : true;
+                activeSort = { key, asc };
+
+                rows.sort((a, b) => {
+                    const aText = a.children[cellIndex].dataset.value;
+                    const bText = b.children[cellIndex].dataset.value;
+
+                    if (numericKeys.has(key)) {
+                        const aVal = Number(aText);
+                        const bVal = Number(bText);
+                        return asc ? aVal - bVal : bVal - aVal;
+                    }
+
+                    return asc
+                        ? String(aText).localeCompare(String(bText), undefined, { numeric: true })
+                        : String(bText).localeCompare(String(aText), undefined, { numeric: true });
+                });
+
+                rows.forEach((row) => tbody.appendChild(row));
+            }
+
+            sortButtons.forEach((button) => {
+                button.addEventListener("click", () => sortRows(button.dataset.sort));
+            });
+
+            tbody.querySelectorAll("tr").forEach((row) => {
+                row.addEventListener("click", (event) => {
+                    if (event.target.closest("a")) {
+                        return;
+                    }
+                    tbody.querySelectorAll("tr").forEach((entry) => entry.classList.remove("is-active"));
+                    row.classList.add("is-active");
+                });
+            });
+
+            if (copyButton) {
+                copyButton.addEventListener("click", async () => {
+                    const rows = [
+                        ["Rank", "Generation", "Variant Index", "Activity Score", "Total Mutations"],
+                    ];
+
+                    tbody.querySelectorAll("tr").forEach((row) => {
+                        rows.push([
+                            row.children[0].innerText.trim(),
+                            row.children[1].innerText.trim(),
+                            row.children[2].innerText.trim(),
+                            row.children[3].childNodes[0].textContent.trim(),
+                            row.children[4].innerText.trim(),
+                        ]);
+                    });
+
+                    const csv = rows
+                        .map((row) => row.map((value) => `"${String(value).replaceAll("\"", "\"\"")}"`).join(","))
+                        .join("\n");
+
+                    try {
+                        await navigator.clipboard.writeText(csv);
+                        copyButton.textContent = "Copied";
+                        window.setTimeout(() => {
+                            copyButton.textContent = "Copy table as CSV";
+                        }, 1200);
+                    } catch (error) {
+                        copyButton.textContent = "Copy failed";
+                        window.setTimeout(() => {
+                            copyButton.textContent = "Copy table as CSV";
+                        }, 1200);
+                    }
+                });
+            }
+        }
+    </script>
 </body>
 </html>

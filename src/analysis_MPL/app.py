@@ -40,10 +40,29 @@ def top10(experiment_id: int):
     out_path = PLOTS_DIR / f"top10_exp{experiment_id}.png"
     plot_top10_table(df, out_path)
 
+    top10_rows = []
+    max_score = 0.0
+    if not df.empty:
+        for idx, row in enumerate(df.itertuples(index=False), start=1):
+            score = float(row.activity_score)
+            max_score = max(max_score, score)
+            top10_rows.append(
+                {
+                    "rank": idx,
+                    "variant_id": int(row.variant_id),
+                    "generation_number": int(row.generation_number),
+                    "plasmid_variant_index": str(row.plasmid_variant_index),
+                    "activity_score": score,
+                    "total_mutations": int(row.total_mutations),
+                }
+            )
+
     return render_template(
         "top10.html",
         experiment_id=experiment_id,
         top10_png=f"plots/top10_exp{experiment_id}.png",
+        top10_rows=top10_rows,
+        top10_max_score=max_score,
     )
 
 

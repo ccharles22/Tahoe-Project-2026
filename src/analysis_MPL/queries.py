@@ -47,6 +47,7 @@ ORDER BY g.generation_number, v.plasmid_variant_index;
 
 TOP10_SQL = """
 SELECT
+  v.variant_id,
   g.generation_number,
   v.plasmid_variant_index,
   m.value AS activity_score,
