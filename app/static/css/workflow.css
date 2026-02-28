@@ -1715,6 +1715,11 @@ a:hover { text-decoration: underline; }
   margin-bottom: 12px;
 }
 
+.analysis-studio__controls--outer {
+  margin: 12px 0 0;
+  padding: 0 0 2px;
+}
+
 .analysis-studio__frame-wrap {
   border: 1px solid var(--border);
   border-radius: var(--radius);
