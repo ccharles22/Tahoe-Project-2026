@@ -10,6 +10,63 @@ from sqlalchemy import text
 from app.extensions import db
 
 
+LATEST_ACTIVITY_SCORE_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS activity_score
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'activity_score'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
+LATEST_MUTATION_TOTAL_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS total_mutations
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'mutation_total_count'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
+LATEST_SYNONYMOUS_COUNTS_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS syn_count
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'mutation_synonymous_count'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
+LATEST_NONSYNONYMOUS_COUNTS_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS non_syn_count
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'mutation_nonsynonymous_count'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
+
 def load_top10_rows(csv_path, experiment_id):
     """Load top-10 rows from generated CSV and attach variant ids when possible."""
     rows = []
@@ -19,7 +76,7 @@ def load_top10_rows(csv_path, experiment_id):
     try:
         db_rows = db.session.execute(
             text(
-                """
+                f"""
                 SELECT
                   v.variant_id,
                   g.generation_number,
@@ -34,18 +91,10 @@ def load_top10_rows(csv_path, experiment_id):
                 FROM variants v
                 JOIN generations g ON g.generation_id = v.generation_id
                 JOIN (
-                  SELECT variant_id, MAX(value) AS activity_score
-                  FROM metrics
-                  WHERE metric_name = 'activity_score'
-                    AND metric_type = 'derived'
-                  GROUP BY variant_id
+                  {LATEST_ACTIVITY_SCORE_SQL}
                 ) act ON act.variant_id = v.variant_id
                 LEFT JOIN (
-                  SELECT variant_id, MAX(value) AS total_mutations
-                  FROM metrics
-                  WHERE metric_name = 'mutation_total_count'
-                    AND metric_type = 'derived'
-                  GROUP BY variant_id
+                  {LATEST_MUTATION_TOTAL_SQL}
                 ) mt ON mt.variant_id = v.variant_id
                 LEFT JOIN (
                   SELECT variant_id, COUNT(*) AS total_mut_count
@@ -257,13 +306,15 @@ def load_kpis(experiment_id):
 
         activity_row = db.session.execute(
             text(
-                """
-                SELECT AVG(m.value) AS mean_score, MAX(m.value) AS best_score
-                FROM metrics m
-                JOIN generations g ON g.generation_id = m.generation_id
+                f"""
+                WITH latest_activity AS (
+                  {LATEST_ACTIVITY_SCORE_SQL}
+                )
+                SELECT AVG(la.activity_score) AS mean_score, MAX(la.activity_score) AS best_score
+                FROM latest_activity la
+                JOIN variants v ON v.variant_id = la.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
                 WHERE g.experiment_id = :eid
-                  AND m.metric_name = 'activity_score'
-                  AND m.metric_type = 'derived'
                 """
             ),
             {'eid': experiment_id},
@@ -276,13 +327,15 @@ def load_kpis(experiment_id):
 
         activity_median = db.session.execute(
             text(
-                """
-                SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY m.value)
-                FROM metrics m
-                JOIN generations g ON g.generation_id = m.generation_id
+                f"""
+                WITH latest_activity AS (
+                  {LATEST_ACTIVITY_SCORE_SQL}
+                )
+                SELECT percentile_cont(0.5) WITHIN GROUP (ORDER BY la.activity_score)
+                FROM latest_activity la
+                JOIN variants v ON v.variant_id = la.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
                 WHERE g.experiment_id = :eid
-                  AND m.metric_name = 'activity_score'
-                  AND m.metric_type = 'derived'
                 """
             ),
             {'eid': experiment_id},
@@ -348,19 +401,21 @@ def load_kpis(experiment_id):
 
         syn_non_syn = db.session.execute(
             text(
-                """
+                f"""
+                WITH latest_syn AS (
+                  {LATEST_SYNONYMOUS_COUNTS_SQL}
+                ),
+                latest_non_syn AS (
+                  {LATEST_NONSYNONYMOUS_COUNTS_SQL}
+                )
                 SELECT
-                  SUM(
-                    CASE WHEN m.metric_name = 'mutation_synonymous_count' THEN m.value ELSE 0 END
-                  ) AS syn_count,
-                  SUM(
-                    CASE WHEN m.metric_name = 'mutation_nonsynonymous_count' THEN m.value ELSE 0 END
-                  ) AS non_syn_count
-                FROM metrics m
-                JOIN generations g ON g.generation_id = m.generation_id
+                  COALESCE(SUM(ls.syn_count), 0) AS syn_count,
+                  COALESCE(SUM(ln.non_syn_count), 0) AS non_syn_count
+                FROM generations g
+                LEFT JOIN variants v ON v.generation_id = g.generation_id
+                LEFT JOIN latest_syn ls ON ls.variant_id = v.variant_id
+                LEFT JOIN latest_non_syn ln ON ln.variant_id = v.variant_id
                 WHERE g.experiment_id = :eid
-                  AND m.metric_type = 'derived'
-                  AND m.metric_name IN ('mutation_synonymous_count', 'mutation_nonsynonymous_count')
                 """
             ),
             {'eid': experiment_id},

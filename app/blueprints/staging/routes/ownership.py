@@ -6,11 +6,26 @@ from sqlalchemy import text
 from app.extensions import db
 
 
+LATEST_ACTIVITY_SCORE_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS activity_score
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'activity_score'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
+
 def get_owned_variant_or_none(variant_id: int):
     """Return variant row if it belongs to current user, else None."""
     row = db.session.execute(
         text(
-            """
+            f"""
             SELECT
               v.variant_id,
               v.plasmid_variant_index,
@@ -26,11 +41,7 @@ def get_owned_variant_or_none(variant_id: int):
             JOIN generations g ON g.generation_id = v.generation_id
             JOIN experiments e ON e.experiment_id = g.experiment_id
             LEFT JOIN (
-              SELECT variant_id, MAX(value) AS activity_score
-              FROM metrics
-              WHERE metric_name = 'activity_score'
-                AND metric_type = 'derived'
-              GROUP BY variant_id
+              {LATEST_ACTIVITY_SCORE_SQL}
             ) act ON act.variant_id = v.variant_id
             WHERE v.variant_id = :vid
             LIMIT 1

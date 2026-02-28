@@ -9,6 +9,34 @@ warnings.filterwarnings(
     category=UserWarning,
 )
 
+LATEST_ACTIVITY_SCORE_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS activity_score
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'activity_score'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
+LATEST_MUTATION_TOTAL_SQL = """
+SELECT
+  m.variant_id,
+  m.value AS total_mutations
+FROM metrics m
+JOIN (
+  SELECT variant_id, MAX(metric_id) AS metric_id
+  FROM metrics
+  WHERE metric_name = 'mutation_total_count'
+    AND metric_type = 'derived'
+  GROUP BY variant_id
+) latest ON latest.metric_id = m.metric_id
+"""
+
 WT_BASELINE_SQL = """
 SELECT
   m.generation_id,
@@ -45,7 +73,7 @@ GROUP BY v.variant_id, v.generation_id, g.generation_number, v.plasmid_variant_i
 ORDER BY g.generation_number, v.plasmid_variant_index;
 """
 
-TOP10_SQL = """
+TOP10_SQL = f"""
 SELECT
   v.variant_id,
   g.generation_number,
@@ -60,18 +88,10 @@ SELECT
 FROM variants v
 JOIN generations g ON g.generation_id = v.generation_id
 JOIN (
-  SELECT variant_id, MAX(value) AS activity_score
-  FROM metrics
-  WHERE metric_name = 'activity_score'
-    AND metric_type = 'derived'
-  GROUP BY variant_id
+  {LATEST_ACTIVITY_SCORE_SQL}
 ) act ON act.variant_id = v.variant_id
 LEFT JOIN (
-  SELECT variant_id, MAX(value) AS total_mutations
-  FROM metrics
-  WHERE metric_name = 'mutation_total_count'
-    AND metric_type = 'derived'
-  GROUP BY variant_id
+  {LATEST_MUTATION_TOTAL_SQL}
 ) mt ON mt.variant_id = v.variant_id
 LEFT JOIN (
   SELECT variant_id, COUNT(*) AS total_mut_count
@@ -83,24 +103,20 @@ ORDER BY act.activity_score DESC
 LIMIT 10;
 """
 
-DISTRIBUTION_SQL = """
+DISTRIBUTION_SQL = f"""
 SELECT
   g.generation_number,
   act.activity_score
 FROM variants v
 JOIN generations g ON g.generation_id = v.generation_id
 JOIN (
-  SELECT variant_id, MAX(value) AS activity_score
-  FROM metrics
-  WHERE metric_name = 'activity_score'
-    AND metric_type = 'derived'
-  GROUP BY variant_id
+  {LATEST_ACTIVITY_SCORE_SQL}
 ) act ON act.variant_id = v.variant_id
 WHERE g.experiment_id = %s
 ORDER BY g.generation_number;
 """
 
-PROTEIN_SIMILARITY_NODES_SQL = """
+PROTEIN_SIMILARITY_NODES_SQL = f"""
 WITH scores AS (
   SELECT
     v.variant_id,
@@ -109,11 +125,7 @@ WITH scores AS (
   FROM variants v
   JOIN generations g ON g.generation_id = v.generation_id
   LEFT JOIN (
-    SELECT variant_id, MAX(value) AS activity_score
-    FROM metrics
-    WHERE metric_name = 'activity_score'
-      AND metric_type = 'derived'
-    GROUP BY variant_id
+    {LATEST_ACTIVITY_SCORE_SQL}
   ) act ON act.variant_id = v.variant_id
   WHERE g.experiment_id = %s
 ),
@@ -153,7 +165,7 @@ WHERE g.experiment_id = %s
   AND m.mutation_type = 'protein';
 """
 
-LINEAGE_NODES_SQL = """
+LINEAGE_NODES_SQL = f"""
 WITH scores AS (
   SELECT
     v.variant_id,
@@ -162,11 +174,7 @@ WITH scores AS (
   FROM variants v
   JOIN generations g ON g.generation_id = v.generation_id
   LEFT JOIN (
-    SELECT variant_id, MAX(value) AS activity_score
-    FROM metrics
-    WHERE metric_name = 'activity_score'
-      AND metric_type = 'derived'
-    GROUP BY variant_id
+    {LATEST_ACTIVITY_SCORE_SQL}
   ) act ON act.variant_id = v.variant_id
   WHERE g.experiment_id = %s
 ),
@@ -283,7 +291,7 @@ def fetch_protein_mutations(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(PROTEIN_MUTATIONS_SQL, conn, params=(experiment_id,))
 
 def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
-    q = """
+    q = f"""
     SELECT
       v.variant_id,
       g.generation_number,
@@ -298,11 +306,7 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
     FROM variants v
     JOIN generations g ON g.generation_id = v.generation_id
     LEFT JOIN (
-      SELECT variant_id, MAX(value) AS total_mutations
-      FROM metrics
-      WHERE metric_name = 'mutation_total_count'
-        AND metric_type = 'derived'
-      GROUP BY variant_id
+      {LATEST_MUTATION_TOTAL_SQL}
     ) mt ON mt.variant_id = v.variant_id
     LEFT JOIN (
       SELECT variant_id, COUNT(*) AS protein_mutations
@@ -311,11 +315,7 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
       GROUP BY variant_id
     ) pm ON pm.variant_id = v.variant_id
     LEFT JOIN (
-      SELECT variant_id, MAX(value) AS activity_score
-      FROM metrics
-      WHERE metric_name = 'activity_score'
-        AND metric_type = 'derived'
-      GROUP BY variant_id
+      {LATEST_ACTIVITY_SCORE_SQL}
     ) act ON act.variant_id = v.variant_id
     WHERE g.experiment_id = %s;
     """
