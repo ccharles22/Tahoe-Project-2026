@@ -277,25 +277,6 @@ def create_experiment():
                 'exists': os.path.exists(bonus_fingerprint_path),
             },
         }
-        bonus_views = []
-        for key in (
-            'bonus_landscape',
-            'bonus_trajectory',
-            'bonus_domain_heatmap',
-            'bonus_domain_generation',
-            'bonus_fingerprint',
-            'bonus_surface',
-        ):
-            item = analysis_outputs.get(key) or {}
-            if item.get('exists') and item.get('url'):
-                bonus_views.append(
-                    {
-                        'key': key,
-                        'label': item.get('label', key.replace('_', ' ').title()),
-                        'url': item['url'],
-                    }
-                )
-        analysis_outputs['bonus_views'] = bonus_views
         top10_rows = load_top10_rows(top10_csv_path, int(experiment_id))
         kpis = load_kpis(int(experiment_id))
         methods_panel['records'] = int(kpis.get('total_records') or 0)

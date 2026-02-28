@@ -812,10 +812,9 @@
               (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
               (analysis_outputs.lineage and analysis_outputs.lineage.exists) or
               (analysis_outputs.protein_network and analysis_outputs.protein_network.exists) or
-              (analysis_outputs.bonus_views and analysis_outputs.bonus_views|length > 0)
+              (analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists)
           )) %}
           {% set interactive_default_url = '' %}
-          {% set bonus_default_url = '' %}
           {% if analysis_outputs and analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
             {% set interactive_default_url = analysis_outputs.top10_png.view_url %}
           {% elif analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
@@ -824,9 +823,6 @@
             {% set interactive_default_url = analysis_outputs.lineage.view_url %}
           {% elif analysis_outputs and analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
             {% set interactive_default_url = analysis_outputs.protein_network.view_url %}
-          {% endif %}
-          {% if analysis_outputs and analysis_outputs.bonus_views and analysis_outputs.bonus_views|length > 0 %}
-            {% set bonus_default_url = analysis_outputs.bonus_views[0].url %}
           {% endif %}
 
           {% if has_any_graph %}
@@ -858,31 +854,6 @@
                   name="analysisExplorerFrame"
                   src="{{ interactive_default_url }}"
                   title="Interactive analysis explorer"
-                  loading="lazy"
-                ></iframe>
-              </div>
-            </div>
-            {% endif %}
-
-            {% if bonus_default_url %}
-            <div class="analysis-studio">
-              <div class="analysis-studio__header">
-                <div>
-                  <div class="analysis-studio__title">Bonus Explorer</div>
-                  <p class="analysis-studio__hint">Advanced bonus outputs are grouped here so they stay visible without duplicating the main graph cards below.</p>
-                </div>
-              </div>
-              <div class="analysis-studio__controls">
-                {% for bonus_view in analysis_outputs.bonus_views %}
-                  <a class="btn btn--sm" href="{{ bonus_view.url }}" target="bonusExplorerFrame" rel="noopener">{{ bonus_view.label }}</a>
-                {% endfor %}
-              </div>
-              <div class="analysis-studio__frame-wrap">
-                <iframe
-                  class="analysis-studio__frame"
-                  name="bonusExplorerFrame"
-                  src="{{ bonus_default_url }}"
-                  title="Bonus analysis explorer"
                   loading="lazy"
                 ></iframe>
               </div>
@@ -945,6 +916,16 @@
                 <p class="analysis-caption">Protein network groups close variants by sequence similarity.</p>
               </div>
               {% endif %}
+
+              {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
+              <div class="analysis-card" data-plot="bonus-surface">
+                <div class="analysis-card__title">Bonus Activity Surface (PCA)</div>
+                <a href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.bonus_surface.url }}" alt="Bonus activity surface">
+                </a>
+                <p class="analysis-caption">Smoothed 3D surface from PCA activity landscape.</p>
+              </div>
+              {% endif %}
             </div>
           {% else %}
             <div class="empty">
@@ -981,6 +962,22 @@
               <span class="downloads-group__hint">
                 {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Compute mutations (DNA&#8594;Protein) first.' }}
               </span>
+            {% endif %}
+
+            {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_landscape.url }}" target="_blank" rel="noopener">Bonus landscape (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_trajectory.url }}" target="_blank" rel="noopener">Bonus trajectory (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="_blank" rel="noopener">Bonus domain heatmap (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="_blank" rel="noopener">Bonus domain by generation (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="_blank" rel="noopener">Bonus mutation fingerprint (HTML)</a>
             {% endif %}
           </div>
         </section>
