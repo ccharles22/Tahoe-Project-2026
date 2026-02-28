@@ -21,7 +21,7 @@
 
       body {
         margin: 0;
-        padding: 14px;
+        padding: 10px;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
         background:
@@ -33,32 +33,32 @@
         max-width: 1200px;
         margin: 0 auto;
         display: grid;
-        gap: 12px;
+        gap: 10px;
       }
 
       .hero {
         display: grid;
-        gap: 6px;
+        gap: 4px;
       }
 
       .hero__title {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 10px;
         flex-wrap: wrap;
       }
 
       .hero h1 {
         margin: 0;
-        font-size: clamp(2rem, 4vw, 3.2rem);
-        line-height: 0.95;
+        font-size: clamp(1.4rem, 3vw, 2.2rem);
+        line-height: 1;
       }
 
       .hero p {
         margin: 0;
         max-width: 760px;
         color: var(--muted);
-        font-size: 1rem;
+        font-size: 0.88rem;
       }
 
       .panel {
@@ -73,44 +73,45 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: 16px;
-        padding: 14px 16px 0;
+        gap: 12px;
+        padding: 10px 12px 0;
         flex-wrap: wrap;
       }
 
       .panel__title {
         margin: 0;
-        font-size: 1.25rem;
+        font-size: 1.05rem;
       }
 
       .panel__meta {
         color: var(--muted);
-        font-size: 0.92rem;
+        font-size: 0.82rem;
       }
 
       .panel__body {
-        padding: 10px 14px 14px;
+        padding: 8px 10px 10px;
       }
 
       .toolbar {
         display: flex;
-        gap: 12px;
+        gap: 8px;
         align-items: center;
         flex-wrap: wrap;
       }
 
       .toolbar__hint {
         color: var(--muted);
-        font-size: 0.9rem;
+        font-size: 0.82rem;
       }
 
       .btn {
         border: 0;
         border-radius: 999px;
-        padding: 10px 14px;
+        padding: 8px 12px;
         background: var(--ink);
         color: #fff;
         font: inherit;
+        font-size: 0.9rem;
         cursor: pointer;
       }
 
@@ -169,18 +170,18 @@
       table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 740px;
+        min-width: 680px;
       }
 
       th, td {
-        padding: 8px 10px;
+        padding: 6px 8px;
         border-bottom: 1px solid var(--line);
         vertical-align: middle;
       }
 
       th {
         text-align: left;
-        font-size: 0.82rem;
+        font-size: 0.76rem;
         letter-spacing: 0.08em;
         text-transform: uppercase;
         color: var(--muted);
@@ -212,21 +213,22 @@
 
       .rank-pill {
         display: inline-flex;
-        min-width: 2rem;
+        min-width: 1.8rem;
         justify-content: center;
-        padding: 4px 10px;
+        padding: 3px 8px;
         border-radius: 999px;
         background: var(--paper);
+        font-size: 0.86rem;
         font-weight: 700;
       }
 
       .score-cell {
-        min-width: 200px;
+        min-width: 170px;
       }
 
       .score-stack {
         display: grid;
-        gap: 8px;
+        gap: 6px;
       }
 
       .score-value {
@@ -236,7 +238,7 @@
 
       .score-bar {
         width: 100%;
-        height: 10px;
+        height: 8px;
         border-radius: 999px;
         background: #e6edf2;
         overflow: hidden;
@@ -251,10 +253,11 @@
 
       .mut-chip {
         display: inline-flex;
-        padding: 4px 10px;
+        padding: 3px 8px;
         border-radius: 999px;
         background: var(--warn-soft);
         color: var(--warn);
+        font-size: 0.86rem;
         font-weight: 700;
         font-variant-numeric: tabular-nums;
       }
@@ -267,9 +270,10 @@
       .row-link {
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 4px;
         text-decoration: none;
         color: var(--accent);
+        font-size: 0.88rem;
         font-weight: 700;
       }
 
