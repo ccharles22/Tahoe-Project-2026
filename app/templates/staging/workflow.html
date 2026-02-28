@@ -548,14 +548,11 @@
               </div>
 
               <div class="note">
-                <strong>UniProt context</strong><br>
-                {{ wt_insights.annotation_summary }}
                 {% if wt_insights.feature_highlights %}
-                  <br><br>
                   <strong>Highlights:</strong>
                   {{ wt_insights.feature_highlights|join(' · ') }}
+                  <br><br>
                 {% endif %}
-                <br><br>
                 Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
               </div>
             </div>
