@@ -175,21 +175,25 @@ def create_experiment():
         analysis_outputs = {
             'plot': {
                 'url': _static_url_with_mtime(f'{sub}/activity_distribution.png', plot_path),
+                'view_url': url_for('distribution', experiment_id=int(experiment_id)),
                 'label': 'Activity Score Distribution',
                 'exists': os.path.exists(plot_path),
             },
             'top10_png': {
                 'url': _static_url_with_mtime(f'{sub}/top10_variants.png', top10_png_path),
+                'view_url': url_for('top10', experiment_id=int(experiment_id)),
                 'label': 'Top 10 Variants',
                 'exists': os.path.exists(top10_png_path),
             },
             'lineage': {
                 'url': _static_url_with_mtime(f'{sub}/lineage.png', lineage_path),
+                'view_url': url_for('lineage', experiment_id=int(experiment_id)),
                 'label': 'Variant Lineage',
                 'exists': os.path.exists(lineage_path),
             },
             'protein_network': {
                 'url': _static_url_with_mtime(f'{sub}/protein_similarity.png', protein_network_path),
+                'view_url': url_for('protein_similarity', experiment_id=int(experiment_id)),
                 'label': 'Protein Similarity Network',
                 'exists': os.path.exists(protein_network_path),
             },

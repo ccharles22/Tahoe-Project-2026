@@ -657,15 +657,77 @@
               (analysis_outputs.protein_network and analysis_outputs.protein_network.exists) or
               (analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists)
           )) %}
+          {% set interactive_default_url = '' %}
+          {% if analysis_outputs and analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+            {% set interactive_default_url = analysis_outputs.top10_png.view_url %}
+          {% elif analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
+            {% set interactive_default_url = analysis_outputs.plot.view_url %}
+          {% elif analysis_outputs and analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+            {% set interactive_default_url = analysis_outputs.lineage.view_url %}
+          {% elif analysis_outputs and analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
+            {% set interactive_default_url = analysis_outputs.protein_network.view_url %}
+          {% endif %}
 
           {% if has_any_graph %}
+            {% if interactive_default_url %}
+            <div class="analysis-studio">
+              <div class="analysis-studio__header">
+                <div>
+                  <div class="analysis-studio__title">Interactive Explorer</div>
+                  <p class="analysis-studio__hint">Open the interactive analysis pages directly here. The static previews remain below for quick scanning.</p>
+                </div>
+              </div>
+              <div class="analysis-studio__controls">
+                {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+                  <a class="btn btn--sm" href="{{ analysis_outputs.top10_png.view_url }}" target="analysisExplorerFrame" rel="noopener">Top 10 Explorer</a>
+                {% endif %}
+                {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
+                  <a class="btn btn--sm" href="{{ analysis_outputs.plot.view_url }}" target="analysisExplorerFrame" rel="noopener">Distribution</a>
+                {% endif %}
+                {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+                  <a class="btn btn--sm" href="{{ analysis_outputs.lineage.view_url }}" target="analysisExplorerFrame" rel="noopener">Lineage</a>
+                {% endif %}
+                {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
+                  <a class="btn btn--sm" href="{{ analysis_outputs.protein_network.view_url }}" target="analysisExplorerFrame" rel="noopener">Protein Similarity</a>
+                {% endif %}
+              </div>
+              <div class="analysis-studio__frame-wrap">
+                <iframe
+                  class="analysis-studio__frame"
+                  name="analysisExplorerFrame"
+                  src="{{ interactive_default_url }}"
+                  title="Interactive analysis explorer"
+                  loading="lazy"
+                ></iframe>
+              </div>
+            </div>
+            {% endif %}
+
             <div class="analysis-gallery">
+              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+              <div class="analysis-card" data-plot="top10">
+                <div class="analysis-card__title">Top 10 Variants</div>
+                <a href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.top10_png.url }}" alt="Top 10 variant table">
+                </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
+                <p class="analysis-caption">Sortable activity rankings with direct variant links.</p>
+              </div>
+              {% endif %}
+
               {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
               <div class="analysis-card" data-plot="distribution">
                 <div class="analysis-card__title">Activity Score Distribution</div>
-                <a href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">
+                <a href="{{ analysis_outputs.plot.view_url }}" target="_blank" rel="noopener">
                   <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution">
                 </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.plot.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
                 <p class="analysis-caption">Distribution shows how activity varies across generations.</p>
               </div>
               {% endif %}
@@ -673,9 +735,13 @@
               {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
               <div class="analysis-card" data-plot="lineage">
                 <div class="analysis-card__title">Variant Lineage</div>
-                <a href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">
+                <a href="{{ analysis_outputs.lineage.view_url }}" target="_blank" rel="noopener">
                   <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
                 </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.lineage.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
                 <p class="analysis-caption">Lineage shows parent-child relationships.</p>
               </div>
               {% endif %}
@@ -683,9 +749,13 @@
               {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
               <div class="analysis-card" data-plot="protein-network">
                 <div class="analysis-card__title">Protein Similarity Network</div>
-                <a href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">
+                <a href="{{ analysis_outputs.protein_network.view_url }}" target="_blank" rel="noopener">
                   <img class="analysis-img" src="{{ analysis_outputs.protein_network.url }}" alt="Protein similarity network">
                 </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.protein_network.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
                 <p class="analysis-caption">Protein network groups close variants by sequence similarity.</p>
               </div>
               {% endif %}
@@ -1040,4 +1110,3 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
-
