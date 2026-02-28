@@ -333,6 +333,29 @@ if (variantModal) {
 
 initTopResultsControls();
 
+// Keep iframe explorer labels in sync with the currently selected view.
+function initExplorerLabels() {
+  const links = document.querySelectorAll('.js-explorer-label-link[data-explorer-title-target]');
+  if (!links.length) return;
+
+  links.forEach((link) => {
+    link.addEventListener('click', () => {
+      const titleTargetId = link.getAttribute('data-explorer-title-target');
+      const descriptionTargetId = link.getAttribute('data-explorer-description-target');
+      const title = link.getAttribute('data-explorer-title') || link.textContent.trim();
+      const description = link.getAttribute('data-explorer-description') || '';
+
+      const titleTarget = titleTargetId ? document.getElementById(titleTargetId) : null;
+      const descriptionTarget = descriptionTargetId ? document.getElementById(descriptionTargetId) : null;
+
+      if (titleTarget) titleTarget.textContent = title;
+      if (descriptionTarget) descriptionTarget.textContent = description;
+    });
+  });
+}
+
+initExplorerLabels();
+
 // Trigger Plotly's built-in PNG export inside same-origin analysis iframes.
 function initIframePlotDownloads() {
   const buttons = document.querySelectorAll('.js-download-iframe-plot[data-frame-name]');
@@ -544,4 +567,3 @@ function initWarningInsights() {
 }
 
 initWarningInsights();
-
