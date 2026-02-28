@@ -17,7 +17,7 @@
 
       body {
         margin: 0;
-        padding: 18px;
+        padding: 12px;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
         background:
@@ -29,7 +29,7 @@
         max-width: 1080px;
         margin: 0 auto;
         display: grid;
-        gap: 16px;
+        gap: 10px;
       }
 
       .panel {
@@ -44,7 +44,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 16px 18px 0;
+        padding: 12px 14px 0;
       }
 
       h1 {
@@ -54,9 +54,9 @@
       }
 
       .panel__body {
-        padding: 14px 18px 18px;
+        padding: 10px 14px 14px;
         display: grid;
-        gap: 14px;
+        gap: 10px;
       }
 
       .panel__sub {
@@ -66,7 +66,7 @@
 
       .plot-image {
         width: 100%;
-        max-height: calc(100vh - 150px);
+        max-height: calc(100vh - 95px);
         height: auto;
         border-radius: 18px;
         border: 1px solid var(--line);
@@ -76,7 +76,7 @@
 
       .actions {
         display: flex;
-        gap: 12px;
+        gap: 8px;
         flex-wrap: wrap;
       }
 
@@ -84,12 +84,13 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        padding: 10px 14px;
+        padding: 7px 11px;
         border-radius: 999px;
         border: 1px solid var(--line);
         text-decoration: none;
         color: var(--ink);
         background: #fff;
+        font-size: 0.88rem;
       }
 
       .info-chip {
@@ -133,7 +134,7 @@
       }
 
       @media (max-width: 720px) {
-        body { padding: 18px; }
+        body { padding: 12px; }
         .panel__head,
         .panel__body { padding-left: 16px; padding-right: 16px; }
       }

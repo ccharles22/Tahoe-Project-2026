@@ -17,7 +17,7 @@
 
       body {
         margin: 0;
-        padding: 18px;
+        padding: 12px;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
         background:
@@ -29,7 +29,7 @@
         max-width: 1080px;
         margin: 0 auto;
         display: grid;
-        gap: 16px;
+        gap: 10px;
       }
 
       .panel {
@@ -44,7 +44,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 16px 18px 0;
+        padding: 12px 14px 0;
       }
 
       h1 {
@@ -54,9 +54,9 @@
       }
 
       .panel__body {
-        padding: 14px 18px 18px;
+        padding: 10px 14px 14px;
         display: grid;
-        gap: 14px;
+        gap: 10px;
       }
 
       .panel__sub {
@@ -66,10 +66,10 @@
 
       form {
         display: grid;
-        gap: 10px;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 8px;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
         align-items: end;
-        padding: 14px;
+        padding: 10px;
         border-radius: 18px;
         background: rgba(245, 247, 250, 0.9);
         border: 1px solid var(--line);
@@ -77,8 +77,8 @@
 
       label {
         display: grid;
-        gap: 6px;
-        font-size: 0.9rem;
+        gap: 4px;
+        font-size: 0.82rem;
         color: var(--muted);
       }
 
@@ -86,7 +86,7 @@
       input,
       button {
         width: 100%;
-        padding: 10px 12px;
+        padding: 8px 10px;
         border-radius: 12px;
         border: 1px solid var(--line);
         font: inherit;
@@ -103,12 +103,12 @@
         margin: 0;
         grid-column: 1 / -1;
         color: var(--muted);
-        font-size: 0.88rem;
+        font-size: 0.8rem;
       }
 
       .plot-image {
         width: 100%;
-        max-height: calc(100vh - 250px);
+        max-height: calc(100vh - 170px);
         height: auto;
         border-radius: 18px;
         border: 1px solid var(--line);
@@ -157,7 +157,7 @@
       }
 
       @media (max-width: 720px) {
-        body { padding: 18px; }
+        body { padding: 12px; }
         .panel__head,
         .panel__body { padding-left: 16px; padding-right: 16px; }
       }
