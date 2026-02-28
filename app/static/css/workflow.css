@@ -1643,6 +1643,12 @@ a:hover { text-decoration: underline; }
   color: var(--text);
 }
 
+.analysis-studio__title--strong {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
 .analysis-studio__hint {
   margin-top: 4px;
   font-size: 12px;
