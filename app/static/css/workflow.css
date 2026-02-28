@@ -1169,16 +1169,19 @@ a:hover { text-decoration: underline; }
 .page-header__context {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
+  gap: 8px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
   color: var(--text-secondary);
   margin-left: auto;
 }
 
 .page-header__exp { color: var(--text); }
-.page-header__sep { color: var(--border); }
-.page-header__protein { color: var(--primary); }
+.page-header__sep { color: #b8c7da; }
+.page-header__protein { color: var(--primary-dark); }
 
 .back-btn {
   display: flex;
