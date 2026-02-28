@@ -1656,55 +1656,6 @@ a:hover { text-decoration: underline; }
   margin-bottom: 12px;
 }
 
-.analysis-control-item {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.analysis-info {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--primary);
-  font-size: 12px;
-  font-weight: 700;
-  cursor: help;
-  flex-shrink: 0;
-}
-
-.analysis-info__tip {
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
-  width: min(280px, 72vw);
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: #102a43;
-  color: #f8fbff;
-  font-size: 12px;
-  line-height: 1.45;
-  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
-  opacity: 0;
-  transform: translateY(-6px);
-  pointer-events: none;
-  transition: opacity 140ms var(--ease), transform 140ms var(--ease);
-  z-index: 5;
-}
-
-.analysis-info:hover .analysis-info__tip,
-.analysis-info:focus-visible .analysis-info__tip {
-  opacity: 1;
-  transform: translateY(0);
-}
-
 .analysis-studio__frame-wrap {
   border: 1px solid var(--border);
   border-radius: var(--radius);
