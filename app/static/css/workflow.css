@@ -730,8 +730,8 @@ a:hover { text-decoration: underline; }
 }
 
 .stepper__step--done .stepper__circle {
-  background: #edf5ff;
-  border-color: rgba(24, 92, 179, 0.34);
+  background: var(--success-light);
+  border-color: rgba(5, 150, 105, 0.28);
   color: transparent;
   box-shadow: none;
   position: relative;
@@ -739,7 +739,7 @@ a:hover { text-decoration: underline; }
 
 .stepper__step--done .stepper__circle::after {
   content: "\2713";
-  color: var(--primary-dark);
+  color: var(--success);
   font-size: 11px;
   font-weight: 700;
   position: absolute;
