@@ -13,90 +13,161 @@ from app.extensions import db
 def load_top10_rows(csv_path, experiment_id):
     """Load top-10 rows from generated CSV and attach variant ids when possible."""
     rows = []
-    if not os.path.exists(csv_path):
-        return rows
 
+    # Prefer live DB data so the staging table reflects the latest mutation
+    # counts immediately after sequence processing, even if the CSV is stale.
     try:
-        with open(csv_path, 'r', encoding='utf-8') as fh:
-            reader = csv.DictReader(fh)
-            for idx, row in enumerate(reader, start=1):
-                if idx > 10:
-                    break
-                activity_raw = row.get('activity_score') or row.get('Activity score') or ''
-                mut_raw = row.get('protein_mutations') or row.get('Protein muts') or ''
-                try:
-                    activity_value = float(str(activity_raw).strip())
-                except Exception:
-                    activity_value = None
-                try:
-                    mutation_count = int(float(str(mut_raw).strip()))
-                except Exception:
-                    mutation_count = 0
+        db_rows = db.session.execute(
+            text(
+                """
+                SELECT
+                  v.variant_id,
+                  g.generation_number,
+                  v.plasmid_variant_index,
+                  m.value AS activity_score,
+                  COALESCE(mt.total_mutations, tm.total_mut_count, 0)::int AS total_mutations
+                FROM metrics m
+                JOIN variants v ON v.variant_id = m.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
+                LEFT JOIN (
+                  SELECT variant_id, MAX(value) AS total_mutations
+                  FROM metrics
+                  WHERE metric_name = 'mutation_total_count'
+                    AND metric_type = 'derived'
+                  GROUP BY variant_id
+                ) mt ON mt.variant_id = v.variant_id
+                LEFT JOIN (
+                  SELECT variant_id, COUNT(*) AS total_mut_count
+                  FROM mutations
+                  GROUP BY variant_id
+                ) tm ON tm.variant_id = v.variant_id
+                WHERE m.metric_name = 'activity_score'
+                  AND m.metric_type = 'derived'
+                  AND g.experiment_id = :eid
+                ORDER BY m.value DESC
+                LIMIT 10
+                """
+            ),
+            {'eid': experiment_id},
+        ).mappings().all()
 
-                rows.append(
-                    {
-                        'rank': idx,
-                        'generation_number': row.get('generation_number') or row.get('Gen') or '',
-                        'variant_index': row.get('plasmid_variant_index') or row.get('Variant') or '',
-                        'activity_score': (
-                            f'{activity_value:.3f}' if activity_value is not None else (activity_raw or '')
-                        ),
-                        'activity_score_value': activity_value,
-                        'protein_mutations': mutation_count,
-                        'variant_id': None,
-                        'is_mutant': mutation_count > 0,
-                        'qc_flagged': False,
-                    }
-                )
-    except Exception:
-        return []
+        for idx, row in enumerate(db_rows, start=1):
+            activity_value = None
+            if row['activity_score'] is not None:
+                activity_value = float(row['activity_score'])
 
-    keys = []
-    for row in rows:
-        try:
-            gen_num = int(str(row['generation_number']).strip())
-            var_idx = str(row['variant_index']).strip()
-            keys.append((gen_num, var_idx))
-        except Exception:
-            continue
-
-    if not keys:
-        return rows
-
-    clauses = []
-    params = {'eid': experiment_id}
-    for i, (gen_num, var_idx) in enumerate(keys):
-        clauses.append(f'(g.generation_number = :g{i} AND v.plasmid_variant_index = :v{i})')
-        params[f'g{i}'] = gen_num
-        params[f'v{i}'] = var_idx
-
-    try:
-        sql = f"""
-            SELECT
-              g.generation_number,
-              v.plasmid_variant_index,
-              MAX(v.variant_id) AS variant_id
-            FROM variants v
-            JOIN generations g ON g.generation_id = v.generation_id
-            WHERE g.experiment_id = :eid
-              AND ({' OR '.join(clauses)})
-            GROUP BY g.generation_number, v.plasmid_variant_index
-        """
-        found = db.session.execute(text(sql), params).mappings().all()
-        id_map = {
-            (int(row['generation_number']), str(row['plasmid_variant_index'])): int(row['variant_id'])
-            for row in found
-        }
-        for row in rows:
-            try:
-                key = (int(str(row['generation_number']).strip()), str(row['variant_index']).strip())
-                row['variant_id'] = id_map.get(key)
-            except Exception:
-                row['variant_id'] = None
+            mutation_count = int(row['total_mutations'] or 0)
+            rows.append(
+                {
+                    'rank': idx,
+                    'generation_number': int(row['generation_number']),
+                    'variant_index': str(row['plasmid_variant_index']),
+                    'activity_score': (
+                        f'{activity_value:.3f}' if activity_value is not None else ''
+                    ),
+                    'activity_score_value': activity_value,
+                    'protein_mutations': mutation_count,
+                    'variant_id': int(row['variant_id']),
+                    'is_mutant': mutation_count > 0,
+                    'qc_flagged': False,
+                }
+            )
     except Exception:
         db.session.rollback()
+        rows = []
+
+    if not rows and not os.path.exists(csv_path):
+        return rows
+
+    if not rows:
+        try:
+            with open(csv_path, 'r', encoding='utf-8') as fh:
+                reader = csv.DictReader(fh)
+                for idx, row in enumerate(reader, start=1):
+                    if idx > 10:
+                        break
+                    activity_raw = row.get('activity_score') or row.get('Activity score') or ''
+                    mut_raw = (
+                        row.get('total_mutations')
+                        or row.get('Total Mutations vs WT')
+                        or row.get('protein_mutations')
+                        or row.get('Protein muts')
+                        or ''
+                    )
+                    try:
+                        activity_value = float(str(activity_raw).strip())
+                    except Exception:
+                        activity_value = None
+                    try:
+                        mutation_count = int(float(str(mut_raw).strip()))
+                    except Exception:
+                        mutation_count = 0
+
+                    rows.append(
+                        {
+                            'rank': idx,
+                            'generation_number': row.get('generation_number') or row.get('Gen') or '',
+                            'variant_index': row.get('plasmid_variant_index') or row.get('Variant') or '',
+                            'activity_score': (
+                                f'{activity_value:.3f}' if activity_value is not None else (activity_raw or '')
+                            ),
+                            'activity_score_value': activity_value,
+                            'protein_mutations': mutation_count,
+                            'variant_id': None,
+                            'is_mutant': mutation_count > 0,
+                            'qc_flagged': False,
+                        }
+                    )
+        except Exception:
+            return []
+
+    if any(row.get('variant_id') is None for row in rows):
+        keys = []
         for row in rows:
-            row['variant_id'] = None
+            try:
+                gen_num = int(str(row['generation_number']).strip())
+                var_idx = str(row['variant_index']).strip()
+                keys.append((gen_num, var_idx))
+            except Exception:
+                continue
+
+        if not keys:
+            return rows
+
+        clauses = []
+        params = {'eid': experiment_id}
+        for i, (gen_num, var_idx) in enumerate(keys):
+            clauses.append(f'(g.generation_number = :g{i} AND v.plasmid_variant_index = :v{i})')
+            params[f'g{i}'] = gen_num
+            params[f'v{i}'] = var_idx
+
+        try:
+            sql = f"""
+                SELECT
+                  g.generation_number,
+                  v.plasmid_variant_index,
+                  MAX(v.variant_id) AS variant_id
+                FROM variants v
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                  AND ({' OR '.join(clauses)})
+                GROUP BY g.generation_number, v.plasmid_variant_index
+            """
+            found = db.session.execute(text(sql), params).mappings().all()
+            id_map = {
+                (int(row['generation_number']), str(row['plasmid_variant_index'])): int(row['variant_id'])
+                for row in found
+            }
+            for row in rows:
+                try:
+                    key = (int(str(row['generation_number']).strip()), str(row['variant_index']).strip())
+                    row['variant_id'] = id_map.get(key)
+                except Exception:
+                    row['variant_id'] = None
+        except Exception:
+            db.session.rollback()
+            for row in rows:
+                row['variant_id'] = None
 
     qc_path = os.path.join(
         os.path.dirname(csv_path),

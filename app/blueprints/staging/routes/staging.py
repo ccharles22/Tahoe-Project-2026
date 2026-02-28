@@ -24,6 +24,18 @@ from app.services.staging.workspace_data import infer_scoring_metadata, load_kpi
 from .. import staging_bp
 
 
+def _static_url_with_mtime(filename: str, abs_path: str) -> str:
+    """Return a cache-busted static URL for generated assets when present."""
+    version = None
+    try:
+        version = int(os.path.getmtime(abs_path))
+    except OSError:
+        version = None
+    if version is None:
+        return url_for('static', filename=filename)
+    return url_for('static', filename=filename, v=version)
+
+
 @staging_bp.get('/')
 def create_experiment():
     """Render staging UI for the selected experiment (or latest experiment)."""
@@ -162,32 +174,32 @@ def create_experiment():
         sub = f'generated/{experiment_id}'
         analysis_outputs = {
             'plot': {
-                'url': url_for('static', filename=f'{sub}/activity_distribution.png'),
+                'url': _static_url_with_mtime(f'{sub}/activity_distribution.png', plot_path),
                 'label': 'Activity Score Distribution',
                 'exists': os.path.exists(plot_path),
             },
             'top10_png': {
-                'url': url_for('static', filename=f'{sub}/top10_variants.png'),
+                'url': _static_url_with_mtime(f'{sub}/top10_variants.png', top10_png_path),
                 'label': 'Top 10 Variants',
                 'exists': os.path.exists(top10_png_path),
             },
             'lineage': {
-                'url': url_for('static', filename=f'{sub}/lineage.png'),
+                'url': _static_url_with_mtime(f'{sub}/lineage.png', lineage_path),
                 'label': 'Variant Lineage',
                 'exists': os.path.exists(lineage_path),
             },
             'protein_network': {
-                'url': url_for('static', filename=f'{sub}/protein_similarity.png'),
+                'url': _static_url_with_mtime(f'{sub}/protein_similarity.png', protein_network_path),
                 'label': 'Protein Similarity Network',
                 'exists': os.path.exists(protein_network_path),
             },
             'top10': {
-                'url': url_for('static', filename=f'{sub}/top10_variants.csv'),
+                'url': _static_url_with_mtime(f'{sub}/top10_variants.csv', top10_csv_path),
                 'label': 'Top 10 variants (CSV)',
                 'exists': os.path.exists(top10_csv_path),
             },
             'qc': {
-                'url': url_for('static', filename=f'{sub}/stage4_qc_debug.csv'),
+                'url': _static_url_with_mtime(f'{sub}/stage4_qc_debug.csv', qc_path),
                 'label': 'Stage 4 QC debug (CSV)',
                 'exists': os.path.exists(qc_path),
             },
@@ -205,28 +217,43 @@ def create_experiment():
                 ),
             },
             'bonus_surface': {
-                'url': url_for('static', filename=f'{sub}/bonus/activity_surface_pca.png'),
+                'url': _static_url_with_mtime(
+                    f'{sub}/bonus/activity_surface_pca.png',
+                    bonus_surface_path,
+                ),
                 'label': 'Bonus activity surface (PNG)',
                 'exists': os.path.exists(bonus_surface_path),
             },
             'bonus_landscape': {
-                'url': url_for('static', filename=f'{sub}/bonus/activity_landscape_pca_surface.html'),
+                'url': _static_url_with_mtime(
+                    f'{sub}/bonus/activity_landscape_pca_surface.html',
+                    bonus_landscape_path,
+                ),
                 'label': 'Bonus activity landscape (HTML)',
                 'exists': os.path.exists(bonus_landscape_path),
             },
             'bonus_trajectory': {
-                'url': url_for('static', filename=f'{sub}/bonus/mutation_trajectory_top10.html'),
+                'url': _static_url_with_mtime(
+                    f'{sub}/bonus/mutation_trajectory_top10.html',
+                    bonus_trajectory_path,
+                ),
                 'label': 'Bonus mutation trajectory (HTML)',
                 'exists': os.path.exists(bonus_trajectory_path),
             },
             'bonus_domain_heatmap': {
-                'url': url_for('static', filename=f'{sub}/bonus/domain_enrichment_heatmap.html'),
+                'url': _static_url_with_mtime(
+                    f'{sub}/bonus/domain_enrichment_heatmap.html',
+                    bonus_domain_heatmap_path,
+                ),
                 'label': 'Bonus domain enrichment heatmap (HTML)',
                 'exists': os.path.exists(bonus_domain_heatmap_path),
             },
             'bonus_domain_generation': {
                 'url': (
-                    url_for('static', filename=f'{sub}/bonus/{bonus_domain_generation_file}')
+                    _static_url_with_mtime(
+                        f'{sub}/bonus/{bonus_domain_generation_file}',
+                        bonus_domain_generation_path,
+                    )
                     if bonus_domain_generation_file
                     else ''
                 ),
@@ -235,7 +262,10 @@ def create_experiment():
             },
             'bonus_fingerprint': {
                 'url': (
-                    url_for('static', filename=f'{sub}/bonus/{bonus_fingerprint_file}')
+                    _static_url_with_mtime(
+                        f'{sub}/bonus/{bonus_fingerprint_file}',
+                        bonus_fingerprint_path,
+                    )
                     if bonus_fingerprint_file
                     else ''
                 ),
@@ -304,4 +334,3 @@ def create_experiment():
         selected_experiment_name=selected_experiment_name,
         methods_panel=methods_panel,
     )
-
