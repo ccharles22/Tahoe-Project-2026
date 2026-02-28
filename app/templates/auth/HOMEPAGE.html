@@ -126,11 +126,27 @@
   </section>
 
   <section class="home-container home-results-preview" aria-label="Results preview">
-    <h2 class="home-section-title">What Results You Can Get</h2>
+    <div class="home-results-intro">
+      <p class="home-results-intro__eyebrow">Results Preview</p>
+      <div class="home-results-intro__copy">
+        <h2 class="home-section-title">What Results You Can Get</h2>
+        <p class="home-results-intro__text">
+          The platform turns each experiment into ranked outputs, interpretable plots,
+          and evolutionary views that make it easier to compare performance and mutation burden.
+        </p>
+      </div>
+    </div>
     <div class="home-results-grid">
-      <article class="home-results-card">
-        <p class="home-results-card__kicker">Top Variants</p>
+      <article class="home-results-card home-results-card--table">
+        <div class="home-results-card__header">
+          <p class="home-results-card__kicker">Top Variants</p>
+          <span class="home-results-card__badge">Ranked output</span>
+        </div>
         <h3 class="home-results-card__title">Top 10 Performers</h3>
+        <p class="home-results-card__text">
+          Rank the strongest variants across the experiment and compare activity scores
+          alongside mutation counts at a glance.
+        </p>
         <div class="home-results-table-wrap" aria-label="Example ranked activity score table">
           <table class="home-results-table">
             <thead>
@@ -145,89 +161,103 @@
                         <tbody>
               <tr>
                 <td>#1</td>
-                <td>5</td>
-                <td>V-123</td>
+                <td>10</td>
+                <td>V-273</td>
                 <td>1.408</td>
-                <td>0</td>
+                <td>27</td>
               </tr>
               <tr>
                 <td>#2</td>
-                <td>6</td>
-                <td>V-151</td>
+                <td>10</td>
+                <td>V-281</td>
                 <td>1.391</td>
-                <td>0</td>
+                <td>31</td>
               </tr>
               <tr>
                 <td>#3</td>
-                <td>6</td>
-                <td>V-154</td>
+                <td>9</td>
+                <td>V-254</td>
                 <td>1.384</td>
-                <td>0</td>
+                <td>24</td>
               </tr>
               <tr>
                 <td>#4</td>
-                <td>1</td>
-                <td>V-7</td>
+                <td>8</td>
+                <td>V-228</td>
                 <td>1.357</td>
-                <td>0</td>
+                <td>22</td>
               </tr>
               <tr>
                 <td>#5</td>
-                <td>4</td>
-                <td>V-92</td>
+                <td>7</td>
+                <td>V-191</td>
                 <td>1.339</td>
-                <td>0</td>
+                <td>25</td>
               </tr>
               <tr>
                 <td>#6</td>
-                <td>4</td>
-                <td>V-96</td>
+                <td>6</td>
+                <td>V-155</td>
                 <td>1.313</td>
-                <td>0</td>
+                <td>18</td>
               </tr>
               <tr>
                 <td>#7</td>
                 <td>6</td>
-                <td>V-155</td>
+                <td>V-151</td>
                 <td>1.283</td>
-                <td>0</td>
+                <td>17</td>
               </tr>
               <tr>
                 <td>#8</td>
-                <td>10</td>
-                <td>V-273</td>
+                <td>5</td>
+                <td>V-123</td>
                 <td>1.269</td>
-                <td>0</td>
+                <td>14</td>
               </tr>
               <tr>
                 <td>#9</td>
                 <td>7</td>
                 <td>V-187</td>
                 <td>1.256</td>
-                <td>0</td>
+                <td>19</td>
               </tr>
               <tr>
                 <td>#10</td>
                 <td>4</td>
                 <td>V-95</td>
                 <td>1.235</td>
-                <td>0</td>
+                <td>13</td>
               </tr>
             </tbody>
           </table>
         </div>
       </article>
       <article class="home-results-card">
-        <p class="home-results-card__kicker">Trend Analysis</p>
-        <h3 class="home-results-card__title">Activity across generations</h3>
-        <div class="home-results-graph-wrap" aria-label="Example activity across generations graph">
+        <div class="home-results-card__header">
+          <p class="home-results-card__kicker">Lineage</p>
+          <span class="home-results-card__badge">Evolutionary view</span>
+        </div>
+        <h3 class="home-results-card__title">Variant Lineage</h3>
+        <p class="home-results-card__text">
+          Follow parent-child relationships across generations to see which
+          branches persist, expand, or disappear over time.
+        </p>
+        <div class="home-results-graph-wrap" aria-label="Example variant lineage graph">
           <img class="home-results-graph" src="{{ url_for('static', filename='generated/80/lineage.png') }}" alt="Variant lineage graph example">
         </div>
       </article>
       <article class="home-results-card">
-        <p class="home-results-card__kicker">Distribution</p>
-        <h3 class="home-results-card__title">Activity Score Distribution by Generation</h3>
-        <div class="home-results-graph-wrap home-results-graph-wrap--right" aria-label="Example activity score distribution graph">
+        <div class="home-results-card__header">
+          <p class="home-results-card__kicker">Distribution</p>
+          <span class="home-results-card__badge">Population view</span>
+        </div>
+        <h3 class="home-results-card__title">Activity Distribution</h3>
+        <p class="home-results-card__text">
+          Compare how activity is distributed across the population and spot
+          shifts in spread, consistency, and standout performers.
+        </p>
+        <div class="home-results-graph-wrap" aria-label="Example activity score distribution graph">
           <img class="home-results-graph" src="{{ url_for('static', filename='generated/80/activity_distribution.png') }}" alt="Activity score distribution by generation">
         </div>
       </article>
@@ -403,8 +433,6 @@
   {% endif %}
 </body>
 </html>
-
-
 
 
 
