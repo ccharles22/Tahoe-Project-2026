@@ -130,6 +130,9 @@ def create_app():
     from .blueprints.sequence import sequence_bp
     app.register_blueprint(sequence_bp)
 
+    from .services.analysis.app import register_analysis_routes
+    register_analysis_routes(app)
+
     # Serve built MkDocs site (unified docs site output).
     # Routes are always registered so docs work after a build without requiring
     # the app to have seen `site/` at startup time.
@@ -153,4 +156,3 @@ def create_app():
         abort(404)
 
     return app
-
