@@ -18,7 +18,7 @@
 
       body {
         margin: 0;
-        padding: 12px;
+        padding: 10px;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
         background:
@@ -30,7 +30,7 @@
         max-width: 1080px;
         margin: 0 auto;
         display: grid;
-        gap: 10px;
+        gap: 8px;
       }
 
       .panel {
@@ -45,7 +45,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 12px 14px 0;
+        padding: 10px 12px 0;
       }
 
       h1 {
@@ -55,17 +55,18 @@
       }
 
       .panel__body {
-        padding: 10px 14px 14px;
+        padding: 8px 12px 12px;
       }
 
       .panel__sub {
         margin: 0;
         color: var(--muted);
+        font-size: 0.92rem;
       }
 
       .plot-image {
         width: 100%;
-        max-height: calc(100vh - 80px);
+        max-height: min(64vh, calc(100vh - 140px));
         height: auto;
         border-radius: 18px;
         border: 1px solid var(--line);
@@ -114,7 +115,7 @@
       }
 
       @media (max-width: 720px) {
-        body { padding: 12px; }
+        body { padding: 10px; }
         .panel__head,
         .panel__body { padding-left: 16px; padding-right: 16px; }
       }
