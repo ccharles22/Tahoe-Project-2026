@@ -1716,7 +1716,7 @@ a:hover { text-decoration: underline; }
 .analysis-studio__frame {
   display: block;
   width: 100%;
-  height: clamp(520px, 68vh, 760px);
+  height: clamp(620px, 76vh, 940px);
   border: 0;
   background: var(--surface);
 }
@@ -1821,7 +1821,7 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 960px) {
   .analysis-studio__frame {
-    height: clamp(460px, 64vh, 680px);
+    height: clamp(560px, 72vh, 820px);
   }
 }
 
@@ -1831,7 +1831,7 @@ a:hover { text-decoration: underline; }
   }
 
   .analysis-studio__frame {
-    height: clamp(420px, 60vh, 560px);
+    height: clamp(500px, 68vh, 720px);
   }
 }
 
