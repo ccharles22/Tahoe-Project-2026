@@ -9,17 +9,17 @@
 :root {
   --ui-scale: 0.9;
   /* Neutrals */
-  --bg: #ebf4ff;
+  --bg: #f4f9ff;
   --surface: #ffffff;
-  --surface-alt: #e3efff;
+  --surface-alt: #edf5ff;
   --text: #1a1a2e;
   --text-secondary: #6b7280;
-  --border: #cdddf0;
-  --border-light: #e2ecf8;
+  --border: #d9e6f4;
+  --border-light: #edf4fb;
 
   /* Brand */
   --primary: #2a7de1;
-  --primary-light: #d3e7ff;
+  --primary-light: #dfeeff;
   --primary-dark: #185cb3;
 
   /* Semantic */
@@ -57,8 +57,8 @@ body {
   line-height: 1.6;
   color: var(--text);
   background:
-    radial-gradient(circle at top right, rgba(199, 225, 255, 0.86), transparent 32%),
-    linear-gradient(180deg, #f3f9ff 0%, var(--bg) 52%, #e1edff 100%);
+    radial-gradient(circle at top right, rgba(219, 238, 255, 0.8), transparent 32%),
+    linear-gradient(180deg, #f9fcff 0%, var(--bg) 52%, #eef5ff 100%);
 }
 
 a { color: var(--primary); text-decoration: none; }
