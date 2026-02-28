@@ -51,16 +51,26 @@ def plot_activity_surface_matplotlib(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     with get_connection() as conn:
+        x_metric = f"{method}_x"
+        y_metric = f"{method}_y"
         df = pd.read_sql_query(
             """
-            SELECT activity_score, x, y
-            FROM mv_activity_landscape
-            WHERE generation_id = %s
-              AND method = %s
-              AND activity_score IS NOT NULL
+            SELECT
+              MAX(CASE WHEN m.metric_name = %s THEN m.value END) AS x,
+              MAX(CASE WHEN m.metric_name = %s THEN m.value END) AS y,
+              MAX(CASE WHEN m.metric_name = 'activity_score' THEN m.value END) AS activity_score
+            FROM variants v
+            LEFT JOIN metrics m
+              ON m.variant_id = v.variant_id
+             AND m.generation_id = v.generation_id
+             AND m.metric_type = 'derived'
+             AND m.metric_name IN (%s, %s, 'activity_score')
+            WHERE v.generation_id = %s
+            GROUP BY v.variant_id
+            HAVING MAX(CASE WHEN m.metric_name = 'activity_score' THEN m.value END) IS NOT NULL
             """,
             conn,
-            params=(generation_id, method),
+            params=(x_metric, y_metric, x_metric, y_metric, generation_id),
         )
 
     xcol, ycol = ("x", "y")

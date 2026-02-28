@@ -59,27 +59,52 @@ def plot_activity_landscape_plotly(
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
     with get_connection() as conn:
+        x_metric = f"{method}_x"
+        y_metric = f"{method}_y"
         df = pd.read_sql_query(
             """
+            WITH coords AS (
+                SELECT
+                  v.variant_id,
+                  v.plasmid_variant_index,
+                  MAX(CASE WHEN m.metric_name = %s THEN m.value END) AS x,
+                  MAX(CASE WHEN m.metric_name = %s THEN m.value END) AS y,
+                  MAX(CASE WHEN m.metric_name = 'activity_score' THEN m.value END) AS activity_score
+                FROM variants v
+                LEFT JOIN metrics m
+                  ON m.variant_id = v.variant_id
+                 AND m.generation_id = v.generation_id
+                 AND m.metric_type = 'derived'
+                 AND m.metric_name IN (%s, %s, 'activity_score')
+                WHERE v.generation_id = %s
+                GROUP BY v.variant_id, v.plasmid_variant_index
+            ),
+            prot_mut AS (
+                SELECT variant_id, COUNT(*) AS protein_mutations
+                FROM mutations
+                WHERE mutation_type = 'protein'
+                  AND is_synonymous IS FALSE
+                  AND variant_id IN (SELECT variant_id FROM variants WHERE generation_id = %s)
+                GROUP BY variant_id
+            )
             SELECT
-              plasmid_variant_index,
-              activity_score,
-              x,
-              y,
-              protein_mutations
-            FROM mv_activity_landscape
-            WHERE generation_id = %s
-              AND method = %s
-              AND activity_score IS NOT NULL
+              c.plasmid_variant_index,
+              c.activity_score,
+              c.x,
+              c.y,
+              COALESCE(pm.protein_mutations, 0) AS protein_mutations
+            FROM coords c
+            LEFT JOIN prot_mut pm ON pm.variant_id = c.variant_id
+            WHERE c.activity_score IS NOT NULL
             """,
             conn,
-            params=(generation_id, method),
+            params=(x_metric, y_metric, x_metric, y_metric, generation_id, generation_id),
         )
 
     if df.empty:
         raise RuntimeError(
-            "No rows found in mv_activity_landscape. "
-            "Have you computed embeddings and refreshed the MV?"
+            f"No rows found for {method.upper()} embedding metrics in this generation. "
+            "Have you computed embeddings and activity scores?"
         )
 
     xcol, ycol = ("x", "y")
