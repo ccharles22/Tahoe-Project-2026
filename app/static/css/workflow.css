@@ -1670,7 +1670,7 @@ a:hover { text-decoration: underline; }
   border: 0;
   background: rgba(16, 109, 108, 0.12);
   color: #106d6c;
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
   font-family: Arial, sans-serif;
   cursor: help;
