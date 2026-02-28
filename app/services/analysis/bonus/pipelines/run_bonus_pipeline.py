@@ -9,6 +9,7 @@ from app.services.analysis.bonus.embeddings.precompute_embeddings import precomp
 
 from app.services.analysis.bonus.visualisations.plot_activity_landscape import plot_activity_landscape_plotly
 from app.services.analysis.bonus.visualisations.plot_activity_surface_matplotlib import plot_activity_surface_matplotlib
+from app.services.analysis.bonus.visualisations.plot_mutation_frequency import plot_mutation_frequency
 from app.services.analysis.bonus.visualisations.plot_mutation_fingerprint import plot_mutation_fingerprint
 from app.services.analysis.bonus.visualisations.plot_mutation_trajectory import plot_mutation_trajectory
 from app.services.analysis.bonus.visualisations.plot_domain_enrichment import plot_domain_enrichment
@@ -218,6 +219,11 @@ def run_pipeline(
         out_path=outputs_dir / f"domain_enrichment_gen{generation_id}.html",
     )
 
+    out_mutation_frequency = plot_mutation_frequency(
+        generation_id=generation_id,
+        out_path=outputs_dir / "mutation_frequency_by_position.html",
+    )
+
     # Use top-activity variant if none specified
     vid = fingerprint_variant_id or get_top_variant_id(generation_id)
     out_fingerprint = None
@@ -234,6 +240,7 @@ def run_pipeline(
     print(f"- Trajectory: {out_traj}")
     print(f"- Domain heatmap: {out_domain_heat}")
     print(f"- Domain (gen bar): {out_domain_bar}")
+    print(f"- Mutation frequency: {out_mutation_frequency}")
     if out_fingerprint:
         print(f"- Fingerprint: {out_fingerprint}")
     else:

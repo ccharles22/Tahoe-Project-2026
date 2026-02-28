@@ -159,6 +159,7 @@ def create_experiment():
         bonus_surface_path = os.path.join(bonus_dir, 'activity_surface_pca.png')
         bonus_landscape_path = os.path.join(bonus_dir, 'activity_landscape_pca_surface.html')
         bonus_trajectory_path = os.path.join(bonus_dir, 'mutation_trajectory_top10.html')
+        bonus_mutation_frequency_path = os.path.join(bonus_dir, 'mutation_frequency_by_position.html')
         bonus_domain_heatmap_path = os.path.join(bonus_dir, 'domain_enrichment_heatmap.html')
         bonus_domain_generation_matches = glob.glob(os.path.join(bonus_dir, 'domain_enrichment_gen*.html'))
         bonus_domain_generation_matches.sort(key=os.path.getmtime, reverse=True)
@@ -243,6 +244,14 @@ def create_experiment():
                 ),
                 'label': 'Bonus mutation trajectory (HTML)',
                 'exists': os.path.exists(bonus_trajectory_path),
+            },
+            'bonus_mutation_frequency': {
+                'url': _static_url_with_mtime(
+                    f'{sub}/bonus/mutation_frequency_by_position.html',
+                    bonus_mutation_frequency_path,
+                ),
+                'label': 'Bonus mutation frequency (HTML)',
+                'exists': os.path.exists(bonus_mutation_frequency_path),
             },
             'bonus_domain_heatmap': {
                 'url': _static_url_with_mtime(
