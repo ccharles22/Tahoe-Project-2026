@@ -820,7 +820,7 @@ a:hover { text-decoration: underline; }
 
 .home-results-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 24px;
   align-items: stretch;
 }
@@ -871,6 +871,14 @@ a:hover { text-decoration: underline; }
   line-height: 1.65;
 }
 
+.home-results-intro__micro {
+  margin: 0;
+  color: rgba(12, 28, 53, 0.52);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .02em;
+}
+
 .home-results-card__header {
   display: flex;
   align-items: center;
@@ -918,50 +926,6 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
   line-height: 1.65;
   color: rgba(12, 28, 53, 0.68);
-}
-
-.home-results-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-  border: 1px solid rgba(217, 230, 244, 0.95);
-  border-radius: 16px;
-  background: #fff;
-  margin: 0;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
-}
-
-.home-results-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 100%;
-}
-
-.home-results-table th,
-.home-results-table td {
-  text-align: left;
-  padding: 9px 11px;
-  font-size: 12px;
-  border-bottom: 1px solid var(--border-light);
-  white-space: nowrap;
-  font-variant-numeric: tabular-nums;
-}
-
-.home-results-table th {
-  font-weight: 700;
-  color: var(--text);
-  background: #f6faff;
-}
-
-.home-results-table td {
-  color: rgba(12, 28, 53, 0.72);
-}
-
-.home-results-table tbody tr:last-child td {
-  border-bottom: 0;
-}
-
-.home-results-table tbody tr:nth-child(odd) td {
-  background: rgba(247, 251, 255, 0.72);
 }
 
 .home-results-graph-wrap {
@@ -1496,7 +1460,18 @@ a:hover { text-decoration: underline; }
     line-height: 1.25;
   }
   .home-results-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(82vw, 360px);
+    overflow-x: auto;
+    gap: 16px;
+    padding: 2px 4px 10px;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .home-results-card {
+    scroll-snap-align: start;
   }
   .auth-sheet__panel {
     height: 100vh;
@@ -1516,5 +1491,4 @@ a:hover { text-decoration: underline; }
   }
   .auth-sheet .text-link { font-size: 11px; }
 }
-
 

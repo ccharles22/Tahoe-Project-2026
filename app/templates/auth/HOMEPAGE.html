@@ -131,112 +131,31 @@
       <div class="home-results-intro__copy">
         <h2 class="home-section-title">What Results You Can Get</h2>
         <p class="home-results-intro__text">
-          The platform turns each experiment into ranked outputs, interpretable plots,
-          and evolutionary views that make it easier to compare performance and mutation burden.
+          These previews use experiment 103 outputs to show how the platform turns
+          a run into ranked results, population views, and network-style analysis.
         </p>
+        <p class="home-results-intro__micro">On mobile and narrow screens, swipe across the cards. Bonus previews can be added here once experiment 103 bonus image exports are available.</p>
       </div>
     </div>
     <div class="home-results-grid">
-      <article class="home-results-card home-results-card--table">
+      <article class="home-results-card">
         <div class="home-results-card__header">
           <p class="home-results-card__kicker">Top Variants</p>
-          <span class="home-results-card__badge">Ranked output</span>
+          <span class="home-results-card__badge">Experiment 103</span>
         </div>
         <h3 class="home-results-card__title">Top 10 Performers</h3>
         <p class="home-results-card__text">
-          Rank the strongest variants across the experiment and compare activity scores
-          alongside mutation counts at a glance.
+          Ranked activity output with mutation counts, showing the strongest
+          performers in the experiment at a glance.
         </p>
-        <div class="home-results-table-wrap" aria-label="Example ranked activity score table">
-          <table class="home-results-table">
-            <thead>
-              <tr>
-                <th>Rank</th>
-                <th>Generation</th>
-                <th>Variant</th>
-                <th>Activity Score</th>
-                <th>Mutations</th>
-              </tr>
-            </thead>
-                        <tbody>
-              <tr>
-                <td>#1</td>
-                <td>10</td>
-                <td>V-273</td>
-                <td>1.408</td>
-                <td>27</td>
-              </tr>
-              <tr>
-                <td>#2</td>
-                <td>10</td>
-                <td>V-281</td>
-                <td>1.391</td>
-                <td>31</td>
-              </tr>
-              <tr>
-                <td>#3</td>
-                <td>9</td>
-                <td>V-254</td>
-                <td>1.384</td>
-                <td>24</td>
-              </tr>
-              <tr>
-                <td>#4</td>
-                <td>8</td>
-                <td>V-228</td>
-                <td>1.357</td>
-                <td>22</td>
-              </tr>
-              <tr>
-                <td>#5</td>
-                <td>7</td>
-                <td>V-191</td>
-                <td>1.339</td>
-                <td>25</td>
-              </tr>
-              <tr>
-                <td>#6</td>
-                <td>6</td>
-                <td>V-155</td>
-                <td>1.313</td>
-                <td>18</td>
-              </tr>
-              <tr>
-                <td>#7</td>
-                <td>6</td>
-                <td>V-151</td>
-                <td>1.283</td>
-                <td>17</td>
-              </tr>
-              <tr>
-                <td>#8</td>
-                <td>5</td>
-                <td>V-123</td>
-                <td>1.269</td>
-                <td>14</td>
-              </tr>
-              <tr>
-                <td>#9</td>
-                <td>7</td>
-                <td>V-187</td>
-                <td>1.256</td>
-                <td>19</td>
-              </tr>
-              <tr>
-                <td>#10</td>
-                <td>4</td>
-                <td>V-95</td>
-                <td>1.235</td>
-                <td>13</td>
-              </tr>
-            </tbody>
-          </table>
+        <div class="home-results-graph-wrap" aria-label="Experiment 103 top 10 preview">
+          <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_103_top10_variants.png') }}" alt="Top 10 variants preview from experiment 103">
         </div>
       </article>
       <article class="home-results-card">
         <div class="home-results-card__header">
           <p class="home-results-card__kicker">Lineage</p>
-          <span class="home-results-card__badge">Evolutionary view</span>
+          <span class="home-results-card__badge">Experiment 103</span>
         </div>
         <h3 class="home-results-card__title">Variant Lineage</h3>
         <p class="home-results-card__text">
@@ -244,13 +163,13 @@
           branches persist, expand, or disappear over time.
         </p>
         <div class="home-results-graph-wrap" aria-label="Example variant lineage graph">
-          <img class="home-results-graph" src="{{ url_for('static', filename='generated/80/lineage.png') }}" alt="Variant lineage graph example">
+          <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_103_lineage.png') }}" alt="Variant lineage graph from experiment 103">
         </div>
       </article>
       <article class="home-results-card">
         <div class="home-results-card__header">
           <p class="home-results-card__kicker">Distribution</p>
-          <span class="home-results-card__badge">Population view</span>
+          <span class="home-results-card__badge">Experiment 103</span>
         </div>
         <h3 class="home-results-card__title">Activity Distribution</h3>
         <p class="home-results-card__text">
@@ -258,7 +177,21 @@
           shifts in spread, consistency, and standout performers.
         </p>
         <div class="home-results-graph-wrap" aria-label="Example activity score distribution graph">
-          <img class="home-results-graph" src="{{ url_for('static', filename='generated/80/activity_distribution.png') }}" alt="Activity score distribution by generation">
+          <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_103_activity_distribution.png') }}" alt="Activity score distribution by generation from experiment 103">
+        </div>
+      </article>
+      <article class="home-results-card">
+        <div class="home-results-card__header">
+          <p class="home-results-card__kicker">Protein Similarity</p>
+          <span class="home-results-card__badge">Experiment 103</span>
+        </div>
+        <h3 class="home-results-card__title">Protein Network</h3>
+        <p class="home-results-card__text">
+          Explore sequence-level relationships and clustering patterns between
+          variants using the protein similarity network view.
+        </p>
+        <div class="home-results-graph-wrap" aria-label="Example protein similarity graph">
+          <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_103_protein_similarity_cooccurrence.png') }}" alt="Protein similarity network from experiment 103">
         </div>
       </article>
     </div>
@@ -433,7 +366,5 @@
   {% endif %}
 </body>
 </html>
-
-
 
 
