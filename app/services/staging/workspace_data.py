@@ -24,16 +24,22 @@ def load_top10_rows(csv_path, experiment_id):
                   v.variant_id,
                   g.generation_number,
                   v.plasmid_variant_index,
-                  m.value AS activity_score,
+                  act.activity_score,
                   COALESCE(
                     mt.total_mutations,
                     CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
                     tm.total_mut_count,
                     0
                   )::int AS total_mutations
-                FROM metrics m
-                JOIN variants v ON v.variant_id = m.variant_id
+                FROM variants v
                 JOIN generations g ON g.generation_id = v.generation_id
+                JOIN (
+                  SELECT variant_id, MAX(value) AS activity_score
+                  FROM metrics
+                  WHERE metric_name = 'activity_score'
+                    AND metric_type = 'derived'
+                  GROUP BY variant_id
+                ) act ON act.variant_id = v.variant_id
                 LEFT JOIN (
                   SELECT variant_id, MAX(value) AS total_mutations
                   FROM metrics
@@ -46,10 +52,8 @@ def load_top10_rows(csv_path, experiment_id):
                   FROM mutations
                   GROUP BY variant_id
                 ) tm ON tm.variant_id = v.variant_id
-                WHERE m.metric_name = 'activity_score'
-                  AND m.metric_type = 'derived'
-                  AND g.experiment_id = :eid
-                ORDER BY m.value DESC
+                WHERE g.experiment_id = :eid
+                ORDER BY act.activity_score DESC
                 LIMIT 10
                 """
             ),

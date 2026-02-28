@@ -21,14 +21,17 @@ def get_owned_variant_or_none(variant_id: int):
               g.generation_number,
               g.experiment_id,
               e.user_id,
-              m.value AS activity_score
+              act.activity_score
             FROM variants v
             JOIN generations g ON g.generation_id = v.generation_id
             JOIN experiments e ON e.experiment_id = g.experiment_id
-            LEFT JOIN metrics m
-              ON m.variant_id = v.variant_id
-             AND m.metric_name = 'activity_score'
-             AND m.metric_type = 'derived'
+            LEFT JOIN (
+              SELECT variant_id, MAX(value) AS activity_score
+              FROM metrics
+              WHERE metric_name = 'activity_score'
+                AND metric_type = 'derived'
+              GROUP BY variant_id
+            ) act ON act.variant_id = v.variant_id
             WHERE v.variant_id = :vid
             LIMIT 1
             """
