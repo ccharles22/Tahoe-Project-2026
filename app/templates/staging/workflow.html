@@ -914,6 +914,16 @@
               Bonus Visualisations
             </div>
             <div class="panel__actions">
+              {% if has_bonus_html_outputs %}
+                <button
+                  class="btn btn--sm btn--ghost js-download-iframe-plot"
+                  type="button"
+                  data-frame-name="bonusExplorerFrame"
+                  data-filename="bonus-visualisation"
+                >
+                  Current Bonus PNG
+                </button>
+              {% endif %}
               {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
                 <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">Bonus Surface PNG</a>
               {% endif %}

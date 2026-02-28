@@ -333,6 +333,49 @@ if (variantModal) {
 
 initTopResultsControls();
 
+// Trigger Plotly's built-in PNG export inside same-origin analysis iframes.
+function initIframePlotDownloads() {
+  const buttons = document.querySelectorAll('.js-download-iframe-plot[data-frame-name]');
+  if (!buttons.length) return;
+
+  buttons.forEach((button) => {
+    button.addEventListener('click', async () => {
+      const frameName = button.getAttribute('data-frame-name');
+      if (!frameName) return;
+
+      const frame = document.querySelector(`iframe[name="${frameName}"]`);
+      if (!frame) return;
+
+      try {
+        const frameWindow = frame.contentWindow;
+        const frameDoc = frame.contentDocument || (frameWindow && frameWindow.document);
+        if (!frameDoc || !frameWindow) return;
+
+        const modebarBtn = frameDoc.querySelector(
+          '.modebar-btn[data-title*="Download plot as"], .modebar-btn[aria-label*="Download"]'
+        );
+        if (modebarBtn) {
+          modebarBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+          return;
+        }
+
+        const plotRoot = frameDoc.querySelector('.js-plotly-plot');
+        if (plotRoot && frameWindow.Plotly && typeof frameWindow.Plotly.downloadImage === 'function') {
+          const filename = button.getAttribute('data-filename') || 'plot';
+          await frameWindow.Plotly.downloadImage(plotRoot, {
+            format: 'png',
+            filename,
+          });
+        }
+      } catch (_) {
+        // Ignore export failures; the iframe content remains usable.
+      }
+    });
+  });
+}
+
+initIframePlotDownloads();
+
 // Warning drill-down: summary + classification + filters
 // Normalize warning text into structured metadata for summary and filtering.
 function classifyWarning(text) {
@@ -501,5 +544,4 @@ function initWarningInsights() {
 }
 
 initWarningInsights();
-
 
