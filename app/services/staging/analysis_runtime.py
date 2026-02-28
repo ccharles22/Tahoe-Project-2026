@@ -11,6 +11,11 @@ from flask import current_app
 
 logger = logging.getLogger(__name__)
 
+_BONUS_VIEW_NAMES = (
+    'mv_activity_landscape',
+    'mv_domain_mutation_enrichment',
+)
+
 
 def generate_protein_network_plot(experiment_id: int) -> tuple[bool, str]:
     """Generate protein similarity network PNG for one experiment."""
@@ -74,6 +79,32 @@ def _get_latest_generation_id(experiment_id: int) -> int | None:
         return None
 
 
+def _missing_bonus_views() -> list[str] | None:
+    """Return missing bonus materialized views, or None when the check cannot run."""
+    try:
+        from app.services.analysis.database import get_conn
+    except Exception:
+        return None
+
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    SELECT matviewname
+                    FROM pg_matviews
+                    WHERE schemaname = current_schema()
+                      AND matviewname = ANY(%s)
+                    """,
+                    (list(_BONUS_VIEW_NAMES),),
+                )
+                existing = {str(row[0]) for row in cur.fetchall()}
+    except Exception:
+        return None
+
+    return [name for name in _BONUS_VIEW_NAMES if name not in existing]
+
+
 def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool, str]:
     """Run bonus analysis pipeline for the latest generation in this experiment."""
     generation_id = _get_latest_generation_id(experiment_id)
@@ -81,7 +112,14 @@ def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool
         return False, 'Bonus outputs skipped: no generation found.'
 
     repo_root = os.path.dirname(app_obj.root_path)
-    sql_dir = os.path.join(app_obj.root_path, 'services', 'analysis', 'bonus', 'sql')
+    missing_views = _missing_bonus_views()
+    if missing_views:
+        missing_csv = ', '.join(missing_views)
+        return (
+            False,
+            'Bonus outputs skipped: required bonus materialized views are missing '
+            f'({missing_csv}). Create them once, then rerun analysis.',
+        )
     out_dir = os.path.join(app_obj.root_path, 'static', 'generated', str(experiment_id), 'bonus')
     os.makedirs(out_dir, exist_ok=True)
 
@@ -94,14 +132,13 @@ def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool
             str(generation_id),
             '--outputs-dir',
             out_dir,
-            '--sql-dir',
-            sql_dir,
             '--landscape-method',
             'pca',
             '--landscape-mode',
             'surface',
             '--top-n',
             '10',
+            '--skip-create-views',
         ],
         cwd=repo_root,
         env=os.environ.copy(),
