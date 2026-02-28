@@ -478,8 +478,12 @@
             <div class="run-summary__grid">
               <div class="run-summary__item"><span>Experiment</span><strong>{{ display_experiment_name }} #{{ experiment_id }}</strong></div>
               <div class="run-summary__item"><span>Accession</span><strong>{{ wt.uniprot_id if wt else 'N/A' }}</strong></div>
+              <div class="run-summary__item"><span>WT Protein</span><strong>{{ wt_insights.protein_name }}</strong></div>
+              <div class="run-summary__item"><span>Organism</span><strong>{{ wt_insights.organism }}</strong></div>
               <div class="run-summary__item"><span>Records</span><strong>{{ total_records }} total / {{ inserted_count }} inserted / {{ updated_count }} updated / {{ skipped_count }} skipped</strong></div>
               <div class="run-summary__item"><span>Warnings</span><strong>{{ warnings_count }}</strong></div>
+              <div class="run-summary__item"><span>Reference Size</span><strong>{{ wt_insights.sequence_summary }}</strong></div>
+              <div class="run-summary__item"><span>UniProt Annotations</span><strong>{{ wt_insights.annotation_summary }}</strong></div>
               <div class="run-summary__item run-summary__item--wide">
                 <span>Sequence Processing</span>
                 {% if step_e_done %}
@@ -490,6 +494,12 @@
                   <strong>Not run</strong>
                 {% endif %}
               </div>
+              {% if wt_insights.feature_highlights %}
+              <div class="run-summary__item run-summary__item--wide">
+                <span>UniProt Highlights</span>
+                <strong>{{ wt_insights.feature_highlights|join(' · ') }}</strong>
+              </div>
+              {% endif %}
             </div>
           {% endif %}
         </section>
@@ -517,11 +527,22 @@
             <div class="grid2">
               <div class="kv">
                 <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_id }}</strong></div>
-                <div class="kv__row"><span>Length</span><strong>{{ wt.sequence_length if wt.sequence_length else "—" }} aa</strong></div>
+                <div class="kv__row"><span>Protein</span><strong>{{ wt_insights.protein_name }}</strong></div>
+                <div class="kv__row"><span>Organism</span><strong>{{ wt_insights.organism }}</strong></div>
+                <div class="kv__row"><span>Reference size</span><strong>{{ wt_insights.sequence_summary }}</strong></div>
+                <div class="kv__row"><span>UniProt annotations</span><strong>{{ wt_insights.annotation_summary }}</strong></div>
                 <div class="kv__row"><span>Status</span><strong class="text-success">Stored</strong></div>
               </div>
 
               <div class="note">
+                <strong>UniProt context</strong><br>
+                {{ wt_insights.annotation_summary }}
+                {% if wt_insights.feature_highlights %}
+                  <br><br>
+                  <strong>Highlights:</strong>
+                  {{ wt_insights.feature_highlights|join(' · ') }}
+                {% endif %}
+                <br><br>
                 Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
               </div>
             </div>

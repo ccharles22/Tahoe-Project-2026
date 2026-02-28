@@ -1,5 +1,6 @@
 ﻿"""Staging workspace page route and view-level orchestration."""
 
+from collections import Counter
 import glob
 import os
 import secrets
@@ -34,6 +35,73 @@ def _static_url_with_mtime(filename: str, abs_path: str) -> str:
     if version is None:
         return url_for('static', filename=filename)
     return url_for('static', filename=filename, v=version)
+
+
+def _build_wt_insights(wt: WildtypeProtein | None, exp: Experiment | None) -> dict:
+    """Build a small WT / UniProt summary for the workspace panels."""
+    if not wt:
+        return {
+            'protein_name': 'N/A',
+            'organism': 'N/A',
+            'sequence_summary': 'N/A',
+            'annotation_summary': 'No UniProt annotations available yet.',
+            'feature_highlights': [],
+        }
+
+    exp_meta = exp.extra_metadata if exp and isinstance(exp.extra_metadata, dict) else {}
+    plasmid_sequence = str(exp_meta.get('wt_plasmid_sequence') or wt.plasmid_sequence or '').strip()
+    feature_rows = list(getattr(wt, 'features', []) or [])
+    feature_counter = Counter()
+    for feature in feature_rows:
+        feature_type = str(getattr(feature, 'feature_type', '') or '').strip()
+        if feature_type:
+            feature_counter[feature_type] += 1
+
+    feature_labels = [
+        f"{name} ({count})" if count > 1 else name
+        for name, count in feature_counter.most_common(3)
+    ]
+    if feature_rows:
+        if feature_labels:
+            annotation_summary = (
+                f"{len(feature_rows)} annotations across {', '.join(feature_labels)}."
+            )
+        else:
+            annotation_summary = f"{len(feature_rows)} UniProt annotations stored."
+    else:
+        annotation_summary = 'No UniProt annotations stored yet.'
+
+    feature_highlights: list[str] = []
+    for feature in feature_rows:
+        feature_type = str(getattr(feature, 'feature_type', '') or '').strip() or 'Feature'
+        description = str(getattr(feature, 'description', '') or '').strip()
+        label = description or feature_type
+        start = getattr(feature, 'start_position', None)
+        end = getattr(feature, 'end_position', None)
+        location = ''
+        if isinstance(start, int) and start > 0 and isinstance(end, int) and end > 0:
+            location = f"{start}" if start == end else f"{start}-{end}"
+        elif isinstance(start, int) and start > 0:
+            location = f"{start}+"
+        highlight = f"{label} ({location})" if location else label
+        if highlight not in feature_highlights:
+            feature_highlights.append(highlight)
+        if len(feature_highlights) >= 3:
+            break
+
+    sequence_parts = []
+    if wt.sequence_length:
+        sequence_parts.append(f"{wt.sequence_length} aa")
+    if plasmid_sequence:
+        sequence_parts.append(f"{len(plasmid_sequence)} nt plasmid template")
+
+    return {
+        'protein_name': wt.protein_name or 'Unnamed reference protein',
+        'organism': wt.organism or 'Organism not recorded',
+        'sequence_summary': ' / '.join(sequence_parts) if sequence_parts else 'N/A',
+        'annotation_summary': annotation_summary,
+        'feature_highlights': feature_highlights,
+    }
 
 
 @staging_bp.get('/')
@@ -79,6 +147,7 @@ def create_experiment():
     }
     sequence_status = None
     selected_experiment_name = None
+    wt_insights = _build_wt_insights(None, None)
     methods_panel = {
         'wt_accession': 'N/A',
         'records': 0,
@@ -105,6 +174,7 @@ def create_experiment():
             wt = WildtypeProtein.query.get(exp.wt_id)
             if wt and wt.uniprot_id:
                 methods_panel['wt_accession'] = wt.uniprot_id
+        wt_insights = _build_wt_insights(wt, exp)
 
         val_dict = get_validation_from_session(experiment_id)
         if val_dict:
@@ -346,4 +416,5 @@ def create_experiment():
         experiments=experiments,
         selected_experiment_name=selected_experiment_name,
         methods_panel=methods_panel,
+        wt_insights=wt_insights,
     )
