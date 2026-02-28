@@ -40,6 +40,11 @@ def get_validation_from_session(experiment_id):
     return flask_session.get(key)
 
 
+def clear_validation_from_session(experiment_id):
+    """Remove only the saved validation payload for one experiment."""
+    flask_session.pop(f'validation_{experiment_id}', None)
+
+
 def save_validation_to_session(experiment_id, result):
     """Persist plasmid validation results in session storage."""
     key = f'validation_{experiment_id}'

@@ -5,6 +5,7 @@ from flask_login import current_user, login_required
 
 from app.extensions import db
 from app.models import Experiment, ProteinFeature, WildtypeProtein
+from app.services.sequence import db_repo as sequence_db_repo
 from app.services.sequence.uniprot_service import (
     UniProtRetrievalError,
     acquire_uniprot_entry_with_features,
@@ -13,6 +14,7 @@ from app.services.staging.backtranslate import backtranslate
 from app.services.staging.parse_fasta import parse_fasta
 from app.services.staging.plasmid_validator import validate_plasmid
 from app.services.staging.session_state import (
+    clear_validation_from_session,
     clear_sequence_status_from_session,
     save_validation_to_session,
 )
@@ -142,13 +144,32 @@ def fetch_uniprot():
                 wt_message=f'Database error: {exc}',
             )
         )
+    exp_id_int = int(experiment_id)
+    sync_warning = None
+    try:
+        sequence_db_repo.upsert_uniprot_staging(
+            db.engine,
+            exp_id_int,
+            int(current_user.user_id),
+            accession,
+            sequence,
+            overwrite=True,
+        )
+        sequence_db_repo.clear_wt_mapping_cache(db.engine, exp_id_int)
+    except Exception as exc:
+        sync_warning = (
+            "Fetched WT sequence, but failed to sync sequence-processing metadata: "
+            f"{exc}"
+        )
     clear_sequence_status_from_session(experiment_id)
+    if previous_accession and previous_accession != accession:
+        clear_validation_from_session(experiment_id)
 
     return redirect(
         url_for(
             'staging.create_experiment',
             experiment_id=experiment_id,
-            wt_message='Fetched WT sequence + features successfully.',
+            wt_message=sync_warning or 'Fetched WT sequence + features successfully.',
         )
     )
 
@@ -212,12 +233,20 @@ def upload_plasmid():
                 wt_message='Database error while saving plasmid upload.',
             )
         )
+    cache_warning = None
+    try:
+        sequence_db_repo.clear_wt_mapping_cache(db.engine, exp_id_int)
+    except Exception as exc:
+        cache_warning = f'Plasmid validated, but WT mapping cache was not cleared: {exc}'
     clear_sequence_status_from_session(experiment_id)
 
     return redirect(
         url_for(
             'staging.create_experiment',
             experiment_id=experiment_id,
-            wt_message='Plasmid validated.' if result.is_valid else 'Plasmid invalid (see details).',
+            wt_message=(
+                cache_warning
+                or ('Plasmid validated.' if result.is_valid else 'Plasmid invalid (see details).')
+            ),
         )
     )

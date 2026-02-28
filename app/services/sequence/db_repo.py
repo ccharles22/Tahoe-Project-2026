@@ -60,7 +60,7 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     with engine.connect() as conn:
         row = conn.execute(
             text("""
-                SELECT w.amino_acid_sequence, w.plasmid_sequence
+                SELECT w.amino_acid_sequence, w.plasmid_sequence, e.extra_metadata
                 FROM public.experiments e
                 JOIN public.wild_type_proteins w
                   ON w.wt_id = e.wt_id
@@ -84,6 +84,23 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
 
     wt_protein = str(row[0])
     wt_plasmid = str(row[1])
+    exp_meta_raw = row[2]
+
+    exp_meta: Optional[Dict[str, Any]] = None
+    if isinstance(exp_meta_raw, dict):
+        exp_meta = exp_meta_raw
+    elif isinstance(exp_meta_raw, str) and exp_meta_raw.strip():
+        try:
+            loaded = json.loads(exp_meta_raw)
+        except json.JSONDecodeError:
+            loaded = None
+        if isinstance(loaded, dict):
+            exp_meta = loaded
+
+    if exp_meta:
+        plasmid_override = exp_meta.get("wt_plasmid_sequence")
+        if isinstance(plasmid_override, str) and plasmid_override.strip():
+            wt_plasmid = "".join(plasmid_override.split()).upper()
 
     if staged and staged[0]:
         try:
