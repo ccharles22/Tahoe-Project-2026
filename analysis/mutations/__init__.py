@@ -1,3 +1,3 @@
 """
-Mutation analytics: fingerprinting support, lineage trajectory, domain enrichment.
+Mutation analytics: fingerprinting support, domain enrichment.
 """

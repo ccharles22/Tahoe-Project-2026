@@ -39,6 +39,10 @@ def _build_dsn() -> str:
     """
     database_url = os.getenv("DATABASE_URL")
     if database_url:
+        # Strip SQLAlchemy dialect suffixes (e.g. postgresql+psycopg://)
+        # that psycopg2 doesn't understand.
+        if database_url.startswith("postgresql+"):
+            database_url = "postgresql" + database_url[database_url.index("://"):]
         return database_url
 
     host = os.getenv("PGHOST")

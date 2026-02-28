@@ -4,11 +4,10 @@ set -euo pipefail
 GEN="${1:-1}"
 MODE="${2:-surface}"       # scatter | surface
 METHOD="${3:-pca}"         # pca | tsne
-GRID="${4:-70}"            # surface resolution
-TOPN="${5:-5}"             # trajectory top N
-INCLUDE_TSNE="${6:-0}"     # 0 | 1
+GRID="${4:-60}"            # surface resolution (matches pipeline default)
+INCLUDE_TSNE="${5:-0}"     # 0 | 1
 
-OUTDIR="outputs/gen_${GEN}"
+OUTDIR="outputs"
 
 # If method is tsne, tsne coordinates must be computed
 if [[ "${METHOD}" == "tsne" ]]; then
@@ -20,9 +19,14 @@ echo "Generation:  ${GEN}"
 echo "Mode:        ${MODE}"
 echo "Method:      ${METHOD}"
 echo "Grid:        ${GRID}"
-echo "TopN:        ${TOPN}"
 echo "IncludeTSNE: ${INCLUDE_TSNE}"
 echo "Outdir:      ${OUTDIR}"
+echo
+echo "Outputs:"
+echo "  - Activity landscape (all gens)"
+echo "  - Domain enrichment heatmap (all gens)"
+echo "  - Mutation fingerprint (interactive selector)"
+echo "  - Mutation frequency by position"
 echo
 
 ARGS=(
@@ -31,15 +35,18 @@ ARGS=(
   --landscape-mode "${MODE}"
   --landscape-method "${METHOD}"
   --grid-size "${GRID}"
-  --top-n "${TOPN}"
 )
 
 if [[ "${INCLUDE_TSNE}" == "1" ]]; then
   ARGS+=( --include-tsne )
 fi
 
-# Skip view creation if MVs already exist:
-# ARGS+=( --skip-create-views )
+# Views already exist in the shared DB (created by the owner).
+# Skip CREATE to avoid permission / schema drift issues.
+ARGS+=( --skip-create-views )
+
+# Skip REFRESH if your DB role lacks refresh privileges on the MVs.
+ARGS+=( --skip-refresh-views )
 
 python -m analysis.pipelines.run_bonus_pipeline "${ARGS[@]}"
 
