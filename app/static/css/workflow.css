@@ -433,7 +433,6 @@ a:hover { text-decoration: underline; }
 
 
 /* ---------- UTILITIES ---------- */
-/* ---------- UTILITIES ---------- */
 .text-center { text-align: center; }
 .ml-auto { margin-left: auto; }
 .text-danger { color: var(--danger); }
@@ -465,16 +464,6 @@ a:hover { text-decoration: underline; }
 
 
 /* ---------- LAYOUT: SIDEBAR + WORKSPACE ---------- */
-.app-shell {
-  min-height: calc(100vh - 56px);
-  display: grid;
-  grid-template-columns: 320px 1fr;
-}
-
-@media (max-width: 860px) {
-  .app-shell { grid-template-columns: 1fr; }
-  .sidebar { border-right: none !important; border-bottom: 1px solid var(--border); }
-}
 
 .sidebar {
   border-right: 1px solid var(--border);

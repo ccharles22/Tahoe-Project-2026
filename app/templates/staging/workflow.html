@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Experiment Workflow</title>
 
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
   </head>
@@ -61,7 +62,7 @@
     <!-- PAGE HEADER -->
     <header class="page-header">
       <a href="{{ url_for('auth.homepage') }}" class="back-btn">
-        <span class="back-btn__icon">?</span>
+        <span class="back-btn__icon" aria-hidden="true">&#x2190;</span>
         <span class="back-btn__text">Back to Homepage</span>
       </a>
       {% if experiment_id %}
@@ -106,11 +107,11 @@
       <!-- LEFT TASKBAR -->
       <nav class="taskbar">
         <a href="#experiments" class="taskbar__item" data-section="experiments">
-          <span class="taskbar__icon">??</span>
+          <span class="taskbar__icon" aria-hidden="true">&#x1F4C1;</span>
           <span class="taskbar__label">Experiments</span>
         </a>
         <a href="#tools" class="taskbar__item" data-section="tools">
-          <span class="taskbar__icon">??</span>
+          <span class="taskbar__icon" aria-hidden="true">&#x1F6E0;&#xFE0F;</span>
           <span class="taskbar__label">Tools</span>
         </a>
       </nav>
@@ -129,7 +130,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--a">1</div>
             <div class="task__title">Fetch WT (UniProt)</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
             {% if wt %}
               <span class="badge badge--ok">Complete</span>
             {% else %}
@@ -172,7 +173,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--b">2</div>
             <div class="task__title">Validate Plasmid</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
             {% if validation %}
               {% if validation.is_valid %}
                 <span class="badge badge--ok">Complete</span>
@@ -220,7 +221,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--c">3</div>
             <div class="task__title">Upload Parsing Data</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
             {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
               {% if warning_meta.critical > 0 %}
                 <span class="badge badge--warn">{{ warning_meta.advisory }} advisory warnings ({{ warning_meta.critical }} critical)</span>
@@ -287,7 +288,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--d">4</div>
             <div class="task__title">Process Sequences</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
             {% if step_e_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
@@ -319,7 +320,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--e">5</div>
             <div class="task__title">Run Analysis</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
             {% if step_d_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
@@ -364,7 +365,10 @@
             {% if experiments %}
               {% for exp in experiments %}
               <div class="experiment-item {% if experiment_id and exp.experiment_id|string == experiment_id|string %}experiment-item--active{% endif %}"
-                   data-open-url="{{ url_for('staging.create_experiment', experiment_id=exp.experiment_id) }}">
+                   data-open-url="{{ url_for('staging.create_experiment', experiment_id=exp.experiment_id) }}"
+                   role="button"
+                   tabindex="0"
+                   aria-label="Open experiment {{ exp.name or 'Unnamed' }} number {{ exp.experiment_id }}">
                 <div class="experiment-item__id">#{{ exp.experiment_id }}</div>
                 <div class="experiment-item__info">
                   <div class="experiment-item__name" title="Double-click to rename">{{ exp.name or 'Unnamed' }}</div>
@@ -495,7 +499,7 @@
           <!-- NO EXPERIMENT SELECTED -->
           <section class="panel panel--welcome">
             <div class="empty-hero">
-              <div class="empty-hero__icon">??</div>
+              <div class="empty-hero__icon" aria-hidden="true">&#x1F9EA;</div>
               <h2 class="empty-hero__title">No experiment selected</h2>
               <p class="empty-hero__text">Use <strong>Step A</strong> in the sidebar to fetch a wild-type protein and create an experiment, or open an existing one from the <strong>Experiments</strong> tab.</p>
             </div>
@@ -590,7 +594,7 @@
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">??</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F4E5;</div>
               Top results are not available yet.
               <div class="empty__sub">Run Step D to generate top-10 outputs.</div>
             </div>
@@ -698,7 +702,7 @@
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">??</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F9EA;</div>
               No analysis visuals yet.
               <div class="empty__sub">Run Step D to generate plots.</div>
             </div>
@@ -818,7 +822,7 @@
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">??</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F4CB;</div>
               Waiting for WT fetch…
               <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
             </div>
@@ -863,7 +867,7 @@
             </details>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">??</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F4C8;</div>
               No validation run yet.
               <div class="empty__sub">Upload a plasmid FASTA in Step B. (Optional — you can skip to Step C.)</div>
             </div>
@@ -1001,7 +1005,7 @@
 
           {% else %}
             <div class="empty">
-              <div class="empty__icon">??</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
               No data uploaded yet.
               <div class="empty__sub">Upload a TSV, CSV, or JSON file in Step C.</div>
             </div>
@@ -1021,7 +1025,7 @@
             <div class="note">{{ sequence_message }}</div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon">??</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
               No sequence processing run yet.
               <div class="empty__sub">Use Step E on the left.</div>
             </div>

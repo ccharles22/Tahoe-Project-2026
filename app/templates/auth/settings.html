@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Settings — Direct Evolution Monitoring</title>
+    <title>Settings &mdash; Direct Evolution Monitoring</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}">
   </head>
@@ -143,7 +144,7 @@
 
             <div class="form-actions">
               {{ form.submit(class_='btn btn--primary', id='submit-btn') }}
-              <a href="{{ url_for('auth.homepage') }}" class="btn btn--ghost">← Back to dashboard</a>
+              <a href="{{ url_for('auth.homepage') }}" class="btn btn--ghost">&larr; Back to dashboard</a>
             </div>
           </form>
         </div>
@@ -152,7 +153,7 @@
           <div class="card panel">
             <h2 class="panel__title">Security tips</h2>
             <ul class="panel__list">
-              <li>Use a strong, unique password — at least 12 characters mixing letters, numbers, and symbols.</li>
+              <li>Use a strong, unique password &mdash; at least 12 characters mixing letters, numbers, and symbols.</li>
               <li>Change your password periodically and never reuse old passwords.</li>
               <li>Contact your admin to manage team access or transfer ownership.</li>
             </ul>
@@ -161,7 +162,7 @@
           <div class="card panel">
             <h2 class="panel__title">Profile info</h2>
             <dl class="kv">
-              <div class="kv__row"><dt>Member since</dt><dd><time datetime="{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else '' }}">{{ current_user.created_at.strftime('%b %d, %Y') if current_user.created_at else '—' }}</time></dd></div>
+              <div class="kv__row"><dt>Member since</dt><dd><time datetime="{{ current_user.created_at.strftime('%Y-%m-%d') if current_user.created_at else '' }}">{{ current_user.created_at.strftime('%b %d, %Y') if current_user.created_at else '&mdash;' }}</time></dd></div>
               <div class="kv__row"><dt>User ID</dt><dd><code>{{ current_user.user_id }}</code></dd></div>
             </dl>
           </div>

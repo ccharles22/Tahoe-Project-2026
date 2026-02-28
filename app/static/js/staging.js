@@ -118,138 +118,29 @@ document.querySelectorAll('.btn--submit').forEach(btn => {
   }
 });
 
-// New Experiment button functionality
-const newExpBtn = document.getElementById('newExperimentBtn');
-if (newExpBtn) {
-  newExpBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    
-    // Set the active section to 'tools' so it opens on the Tools section after redirect
-    localStorage.setItem('activeSidebarSection', 'tools');
-    
-    // Disable button and show loading state
-    newExpBtn.disabled = true;
-    newExpBtn.textContent = 'Creating...';
-    
-    // Create a form and submit it to create a new experiment
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/staging/experiment/new';
-    document.body.appendChild(form);
-    form.submit();
-  });
-}
-
-// Experiment card menu actions (rename/delete)
-const experimentMenus = document.querySelectorAll('.experiment-menu');
-
-// Enforce a single open menu to avoid overlapping popovers.
-function closeAllExperimentMenus() {
-  experimentMenus.forEach(menu => menu.classList.remove('is-open'));
-}
-
-experimentMenus.forEach(menu => {
-  const toggle = menu.querySelector('.experiment-menu__toggle');
-  if (!toggle) return;
-
-  toggle.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const isOpen = menu.classList.contains('is-open');
-    closeAllExperimentMenus();
-    if (!isOpen) {
-      menu.classList.add('is-open');
-    }
-  });
-});
-
-document.addEventListener('click', function() {
-  closeAllExperimentMenus();
-});
-
-document.querySelectorAll('.experiment-menu__item').forEach(actionBtn => {
-  actionBtn.addEventListener('click', function(e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const action = this.getAttribute('data-action');
-    const expId = this.getAttribute('data-exp-id');
-    const expName = this.getAttribute('data-exp-name') || '';
-    const currentId = this.getAttribute('data-current-id') || '';
-
-    if (!expId) return;
-
-    if (action === 'rename') {
-      const newName = window.prompt('Rename experiment:', expName);
-      if (!newName) return;
-
-      const trimmedName = newName.trim();
-      if (!trimmedName) return;
-
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/staging/experiment/rename';
-
-      const expIdInput = document.createElement('input');
-      expIdInput.type = 'hidden';
-      expIdInput.name = 'experiment_id';
-      expIdInput.value = expId;
-      form.appendChild(expIdInput);
-
-      const currentIdInput = document.createElement('input');
-      currentIdInput.type = 'hidden';
-      currentIdInput.name = 'current_experiment_id';
-      currentIdInput.value = currentId;
-      form.appendChild(currentIdInput);
-
-      const nameInput = document.createElement('input');
-      nameInput.type = 'hidden';
-      nameInput.name = 'name';
-      nameInput.value = trimmedName;
-      form.appendChild(nameInput);
-
-      document.body.appendChild(form);
-      form.submit();
-    }
-
-    if (action === 'delete') {
-      const confirmed = window.confirm(`Delete experiment "${expName}"? This cannot be undone.`);
-      if (!confirmed) return;
-
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/staging/experiment/delete';
-
-      const expIdInput = document.createElement('input');
-      expIdInput.type = 'hidden';
-      expIdInput.name = 'experiment_id';
-      expIdInput.value = expId;
-      form.appendChild(expIdInput);
-
-      const currentIdInput = document.createElement('input');
-      currentIdInput.type = 'hidden';
-      currentIdInput.name = 'current_experiment_id';
-      currentIdInput.value = currentId;
-      form.appendChild(currentIdInput);
-
-      document.body.appendChild(form);
-      form.submit();
-    }
-  });
-});
-
 // Click experiment card to open
 document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
-  card.addEventListener('click', function(e) {
-    if (e.target.closest('.experiment-menu, .experiment-item__actions, .experiment-item__rename-form, a, button, input, select, textarea, label, form')) {
-      return;
-    }
-
-    const openUrl = this.getAttribute('data-open-url');
+  const openCard = () => {
+    const openUrl = card.getAttribute('data-open-url');
     if (openUrl) {
       window.location.href = openUrl;
     }
+  };
+
+  card.addEventListener('click', function(e) {
+    if (e.target.closest('.experiment-item__actions, .experiment-item__rename-form, a, button, input, select, textarea, label, form')) {
+      return;
+    }
+    openCard();
+  });
+
+  card.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    if (e.target.closest('.experiment-item__actions, .experiment-item__rename-form, a, button, input, select, textarea, label, form')) {
+      return;
+    }
+    e.preventDefault();
+    openCard();
   });
 });
 

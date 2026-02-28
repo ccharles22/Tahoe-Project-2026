@@ -21,12 +21,19 @@
     }
 
     pipelineItems.forEach((item) => {
-      item.addEventListener("click", () => {
+      const activateItem = () => {
         const stageId = item.dataset.stage;
         const card = document.querySelector(`.home-stage__card[data-stage="${stageId}"]`);
         if (!card) return;
         card.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
         setActiveStage(stageId);
+      };
+
+      item.addEventListener("click", activateItem);
+      item.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        event.preventDefault();
+        activateItem();
       });
     });
 
