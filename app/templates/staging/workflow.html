@@ -928,99 +928,6 @@
 
             </div>
 
-            <div class="analysis-studio">
-              <div class="analysis-studio__header">
-                <div>
-                  <div class="analysis-studio__title">Bonus Visualisations</div>
-                  <p class="analysis-studio__hint">Advanced exploratory outputs are grouped here in the same gallery format as the core visualisations.</p>
-                </div>
-              </div>
-
-              {% if has_bonus_outputs %}
-              <div class="analysis-gallery">
-                {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
-                <div class="analysis-card" data-plot="bonus-surface">
-                  <div class="analysis-card__title">Activity Surface (PCA)</div>
-                  <a href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">
-                    <img class="analysis-img" src="{{ analysis_outputs.bonus_surface.url }}" alt="Bonus activity surface">
-                  </a>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">PNG</a>
-                  </div>
-                  <p class="analysis-caption">Smoothed 3D surface from the PCA activity landscape.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
-                <div class="analysis-card" data-plot="bonus-landscape">
-                  <div class="analysis-card__title">Activity Landscape</div>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.bonus_landscape.url }}" target="_blank" rel="noopener">Open HTML</a>
-                  </div>
-                  <p class="analysis-caption">Interactive 3D activity landscape built from generation embedding metrics.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists %}
-                <div class="analysis-card" data-plot="bonus-mutation-frequency">
-                  <div class="analysis-card__title">Mutation Frequency</div>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.bonus_mutation_frequency.url }}" target="_blank" rel="noopener">Open HTML</a>
-                  </div>
-                  <p class="analysis-caption">Shows where non-synonymous protein mutations accumulate across the experiment.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
-                <div class="analysis-card" data-plot="bonus-trajectory">
-                  <div class="analysis-card__title">Mutation Trajectory</div>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.bonus_trajectory.url }}" target="_blank" rel="noopener">Open HTML</a>
-                  </div>
-                  <p class="analysis-caption">Tracks mutation accumulation for the top variants over the evolutionary run.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
-                <div class="analysis-card" data-plot="bonus-domain-heatmap">
-                  <div class="analysis-card__title">Domain Heatmap</div>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="_blank" rel="noopener">Open HTML</a>
-                  </div>
-                  <p class="analysis-caption">Summarises protein-domain mutation density across the experiment.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
-                <div class="analysis-card" data-plot="bonus-domain-generation">
-                  <div class="analysis-card__title">Domain by Generation</div>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="_blank" rel="noopener">Open HTML</a>
-                  </div>
-                  <p class="analysis-caption">Breaks domain enrichment out for the latest generation.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
-                <div class="analysis-card" data-plot="bonus-fingerprint">
-                  <div class="analysis-card__title">Mutation Fingerprint</div>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="_blank" rel="noopener">Open HTML</a>
-                  </div>
-                  <p class="analysis-caption">Highlights the mutation profile of the top-ranked variant.</p>
-                </div>
-                {% endif %}
-              </div>
-              {% else %}
-              <div class="analysis-card" data-plot="bonus-empty">
-                <div class="analysis-card__title">Bonus Visualisations</div>
-                <p class="analysis-caption">No bonus outputs are available yet. Run analysis again after the main plots complete.</p>
-                {% if analysis_message and ('bonus' in (analysis_message|lower)) %}
-                  <p class="analysis-caption">{{ analysis_message }}</p>
-                {% endif %}
-              </div>
-              {% endif %}
-            </div>
           {% else %}
             <div class="empty">
               <div class="empty__icon" aria-hidden="true">&#x1F9EA;</div>
@@ -1029,6 +936,107 @@
             </div>
           {% endif %}
 
+        </section>
+
+        <section class="panel visuals-panel panel--primary" data-panel="F">
+          <div class="panel__header">
+            <span class="panel__step">6</span>
+            Bonus Visualisations
+          </div>
+
+          <div class="analysis-studio">
+            <div class="analysis-studio__header">
+              <div>
+                <div class="analysis-studio__title">Bonus Visualisations</div>
+                <p class="analysis-studio__hint">Advanced exploratory outputs are grouped here as a separate sixth section.</p>
+              </div>
+            </div>
+
+            {% if has_bonus_outputs %}
+            <div class="analysis-gallery">
+              {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
+              <div class="analysis-card" data-plot="bonus-surface">
+                <div class="analysis-card__title">Activity Surface (PCA)</div>
+                <a href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.bonus_surface.url }}" alt="Bonus activity surface">
+                </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
+                <p class="analysis-caption">Smoothed 3D surface from the PCA activity landscape.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
+              <div class="analysis-card" data-plot="bonus-landscape">
+                <div class="analysis-card__title">Activity Landscape</div>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_landscape.url }}" target="_blank" rel="noopener">Open HTML</a>
+                </div>
+                <p class="analysis-caption">Interactive 3D activity landscape built from generation embedding metrics.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists %}
+              <div class="analysis-card" data-plot="bonus-mutation-frequency">
+                <div class="analysis-card__title">Mutation Frequency</div>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_mutation_frequency.url }}" target="_blank" rel="noopener">Open HTML</a>
+                </div>
+                <p class="analysis-caption">Shows where non-synonymous protein mutations accumulate across the experiment.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
+              <div class="analysis-card" data-plot="bonus-trajectory">
+                <div class="analysis-card__title">Mutation Trajectory</div>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_trajectory.url }}" target="_blank" rel="noopener">Open HTML</a>
+                </div>
+                <p class="analysis-caption">Tracks mutation accumulation for the top variants over the evolutionary run.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
+              <div class="analysis-card" data-plot="bonus-domain-heatmap">
+                <div class="analysis-card__title">Domain Heatmap</div>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="_blank" rel="noopener">Open HTML</a>
+                </div>
+                <p class="analysis-caption">Summarises protein-domain mutation density across the experiment.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
+              <div class="analysis-card" data-plot="bonus-domain-generation">
+                <div class="analysis-card__title">Domain by Generation</div>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="_blank" rel="noopener">Open HTML</a>
+                </div>
+                <p class="analysis-caption">Breaks domain enrichment out for the latest generation.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
+              <div class="analysis-card" data-plot="bonus-fingerprint">
+                <div class="analysis-card__title">Mutation Fingerprint</div>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="_blank" rel="noopener">Open HTML</a>
+                </div>
+                <p class="analysis-caption">Highlights the mutation profile of the top-ranked variant.</p>
+              </div>
+              {% endif %}
+            </div>
+            {% else %}
+            <div class="analysis-card" data-plot="bonus-empty">
+              <div class="analysis-card__title">Bonus Visualisations</div>
+              <p class="analysis-caption">No bonus outputs are available yet. Run analysis again after the main plots complete.</p>
+              {% if analysis_message and ('bonus' in (analysis_message|lower)) %}
+                <p class="analysis-caption">{{ analysis_message }}</p>
+              {% endif %}
+            </div>
+            {% endif %}
+          </div>
         </section>
 
         {% if analysis_outputs %}
