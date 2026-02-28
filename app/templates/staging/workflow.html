@@ -951,16 +951,14 @@
             </div>
           </div>
 
+          {% if has_bonus_html_outputs and bonus_default_url %}
           <div class="analysis-studio">
             <div class="analysis-studio__header">
               <div>
-                <div class="analysis-studio__title">Bonus Visualisations</div>
-                <p class="analysis-studio__hint">Advanced exploratory outputs are grouped here as a separate sixth section, with interactive views embedded directly below.</p>
+                <div class="analysis-studio__title">Interactive Explorer</div>
+                <p class="analysis-studio__hint">Use the explorer buttons to switch between the interactive bonus visualisations.</p>
               </div>
             </div>
-
-            {% if has_bonus_html_outputs %}
-            {% if has_bonus_html_outputs and bonus_default_url %}
             <div class="analysis-studio__controls">
               {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
                 <div class="analysis-control-item">
@@ -1026,17 +1024,17 @@
                 loading="lazy"
               ></iframe>
             </div>
-            {% endif %}
-            {% else %}
-            <div class="analysis-card" data-plot="bonus-empty">
-              <div class="analysis-card__title">Bonus Visualisations</div>
-              <p class="analysis-caption">No bonus outputs are available yet. Run analysis again after the main plots complete.</p>
+          </div>
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon" aria-hidden="true">&#x2728;</div>
+              No bonus outputs are available yet.
+              <div class="empty__sub">Run analysis again after the main plots complete.</div>
               {% if analysis_message and ('bonus' in (analysis_message|lower)) %}
-                <p class="analysis-caption">{{ analysis_message }}</p>
+                <div class="empty__sub">{{ analysis_message }}</div>
               {% endif %}
             </div>
-            {% endif %}
-          </div>
+          {% endif %}
         </section>
 
         {% if analysis_outputs %}
