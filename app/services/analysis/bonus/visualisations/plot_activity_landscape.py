@@ -64,15 +64,16 @@ def plot_activity_landscape_plotly(
             SELECT
               plasmid_variant_index,
               activity_score,
-              pca_x, pca_y,
-              tsne_x, tsne_y,
+              x,
+              y,
               protein_mutations
             FROM mv_activity_landscape
             WHERE generation_id = %s
+              AND method = %s
               AND activity_score IS NOT NULL
             """,
             conn,
-            params=(generation_id,),
+            params=(generation_id, method),
         )
 
     if df.empty:
@@ -81,7 +82,7 @@ def plot_activity_landscape_plotly(
             "Have you computed embeddings and refreshed the MV?"
         )
 
-    xcol, ycol = ("pca_x", "pca_y") if method == "pca" else ("tsne_x", "tsne_y")
+    xcol, ycol = ("x", "y")
     df = df.dropna(subset=[xcol, ycol, "activity_score"])
 
     if df.empty:
@@ -127,8 +128,8 @@ def plot_activity_landscape_plotly(
             marker=dict(size=4),
             hovertemplate=(
                 "Variant: %{text}<br>"
-                f"{xcol}: %{{x:.3f}}<br>"
-                f"{ycol}: %{{y:.3f}}<br>"
+                f"{method.upper()}1: %{{x:.3f}}<br>"
+                f"{method.upper()}2: %{{y:.3f}}<br>"
                 "Activity: %{z:.3f}<br>"
                 "Protein muts: %{customdata}<extra></extra>"
             ),

@@ -53,15 +53,17 @@ def plot_activity_surface_matplotlib(
     with get_connection() as conn:
         df = pd.read_sql_query(
             """
-            SELECT activity_score, pca_x, pca_y, tsne_x, tsne_y
+            SELECT activity_score, x, y
             FROM mv_activity_landscape
-            WHERE generation_id = %s AND activity_score IS NOT NULL
+            WHERE generation_id = %s
+              AND method = %s
+              AND activity_score IS NOT NULL
             """,
             conn,
-            params=(generation_id,),
+            params=(generation_id, method),
         )
 
-    xcol, ycol = ("pca_x", "pca_y") if method == "pca" else ("tsne_x", "tsne_y")
+    xcol, ycol = ("x", "y")
     df = df.dropna(subset=[xcol, ycol, "activity_score"])
     if df.empty:
         raise RuntimeError("No data available for surface plot (missing coords or activity_score).")
