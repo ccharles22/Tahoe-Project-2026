@@ -1643,37 +1643,6 @@ a:hover { text-decoration: underline; }
   color: var(--text);
 }
 
-.analysis-studio__meta {
-  min-width: min(320px, 100%);
-  max-width: 420px;
-  padding: 10px 12px;
-  border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.78);
-}
-
-.analysis-studio__eyebrow {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-}
-
-.analysis-studio__current {
-  margin-top: 4px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.analysis-studio__detail {
-  margin: 5px 0 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: var(--text-secondary);
-}
-
 .analysis-studio__hint {
   margin-top: 4px;
   font-size: 12px;
@@ -1859,12 +1828,6 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .analysis-studio {
     padding: 12px;
-  }
-
-  .analysis-studio__meta {
-    min-width: 0;
-    max-width: none;
-    width: 100%;
   }
 
   .analysis-studio__frame {
