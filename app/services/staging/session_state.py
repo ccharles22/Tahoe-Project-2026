@@ -129,6 +129,11 @@ def get_sequence_status_from_session(experiment_id):
     return flask_session.get(key)
 
 
+def clear_sequence_status_from_session(experiment_id):
+    """Remove only the saved sequence status for one experiment."""
+    flask_session.pop(f'sequence_status_{experiment_id}', None)
+
+
 def clear_experiment_session_state(experiment_id: int):
     """Remove all staging session keys tied to one experiment."""
     flask_session.pop(f'validation_{experiment_id}', None)

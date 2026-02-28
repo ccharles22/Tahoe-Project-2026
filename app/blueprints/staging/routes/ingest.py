@@ -12,7 +12,10 @@ from app.services.sequence.uniprot_service import (
 from app.services.staging.backtranslate import backtranslate
 from app.services.staging.parse_fasta import parse_fasta
 from app.services.staging.plasmid_validator import validate_plasmid
-from app.services.staging.session_state import save_validation_to_session
+from app.services.staging.session_state import (
+    clear_sequence_status_from_session,
+    save_validation_to_session,
+)
 
 from .. import staging_bp
 
@@ -139,6 +142,7 @@ def fetch_uniprot():
                 wt_message=f'Database error: {exc}',
             )
         )
+    clear_sequence_status_from_session(experiment_id)
 
     return redirect(
         url_for(
@@ -208,6 +212,7 @@ def upload_plasmid():
                 wt_message='Database error while saving plasmid upload.',
             )
         )
+    clear_sequence_status_from_session(experiment_id)
 
     return redirect(
         url_for(
