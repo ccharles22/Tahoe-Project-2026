@@ -81,6 +81,7 @@ def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool
         return False, 'Bonus outputs skipped: no generation found.'
 
     repo_root = os.path.dirname(app_obj.root_path)
+    sql_dir = os.path.join(app_obj.root_path, 'services', 'analysis', 'bonus', 'sql')
     out_dir = os.path.join(app_obj.root_path, 'static', 'generated', str(experiment_id), 'bonus')
     os.makedirs(out_dir, exist_ok=True)
 
@@ -94,7 +95,7 @@ def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool
             '--outputs-dir',
             out_dir,
             '--sql-dir',
-            'sql',
+            sql_dir,
             '--landscape-method',
             'pca',
             '--landscape-mode',
@@ -117,7 +118,7 @@ def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool
             proc.returncode,
             details,
         )
-        return False, 'Bonus outputs failed to generate.'
+        return False, f'Bonus outputs failed to generate: {details}'
 
     return True, 'Bonus outputs generated.'
 
