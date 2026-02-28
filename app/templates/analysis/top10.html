@@ -21,7 +21,7 @@
 
       body {
         margin: 0;
-        padding: 32px;
+        padding: 18px;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
         background:
@@ -30,10 +30,10 @@
       }
 
       .page {
-        max-width: 1120px;
+        max-width: 1200px;
         margin: 0 auto;
         display: grid;
-        gap: 24px;
+        gap: 16px;
       }
 
       .hero {
@@ -74,7 +74,7 @@
         justify-content: space-between;
         align-items: center;
         gap: 16px;
-        padding: 20px 24px 0;
+        padding: 16px 18px 0;
         flex-wrap: wrap;
       }
 
@@ -89,7 +89,7 @@
       }
 
       .panel__body {
-        padding: 20px 24px 24px;
+        padding: 14px 18px 18px;
       }
 
       .toolbar {
@@ -160,6 +160,10 @@
 
       .table-wrap {
         overflow-x: auto;
+        overflow-y: auto;
+        max-height: min(58vh, 520px);
+        border: 1px solid var(--line);
+        border-radius: 18px;
       }
 
       table {
@@ -169,7 +173,7 @@
       }
 
       th, td {
-        padding: 14px 12px;
+        padding: 10px 10px;
         border-bottom: 1px solid var(--line);
         vertical-align: middle;
       }
@@ -217,7 +221,7 @@
       }
 
       .score-cell {
-        min-width: 240px;
+        min-width: 200px;
       }
 
       .score-stack {
@@ -294,6 +298,7 @@
         .panel__head,
         .panel__body { padding-left: 16px; padding-right: 16px; }
         .score-cell { min-width: 180px; }
+        .table-wrap { max-height: min(56vh, 440px); }
       }
     </style>
   </head>
@@ -386,17 +391,6 @@
         </div>
       </section>
 
-      <section class="panel">
-        <div class="panel__head">
-          <div>
-            <h2 class="panel__title">Static Snapshot</h2>
-            <div class="panel__meta">The original plot is still available for export and comparison.</div>
-          </div>
-        </div>
-        <div class="panel__body image-shell">
-          <img class="plot-image" src="{{ url_for('static', filename=top10_png) }}?v={{ experiment_id }}" alt="Top 10 plot for experiment {{ experiment_id }}">
-        </div>
-      </section>
     </main>
 
     <script>

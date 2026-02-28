@@ -1652,7 +1652,7 @@ a:hover { text-decoration: underline; }
 .analysis-studio__frame {
   display: block;
   width: 100%;
-  min-height: 760px;
+  height: clamp(420px, 58vh, 620px);
   border: 0;
   background: var(--surface);
 }
@@ -1757,7 +1757,7 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 960px) {
   .analysis-studio__frame {
-    min-height: 620px;
+    height: clamp(400px, 54vh, 540px);
   }
 }
 
@@ -1767,7 +1767,7 @@ a:hover { text-decoration: underline; }
   }
 
   .analysis-studio__frame {
-    min-height: 520px;
+    height: clamp(360px, 50vh, 460px);
   }
 }
 
@@ -2141,4 +2141,3 @@ a:hover { text-decoration: underline; }
   .stats { grid-template-columns: repeat(2, 1fr); }
   .kpi-panel .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-

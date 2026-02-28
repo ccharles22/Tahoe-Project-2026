@@ -17,7 +17,7 @@
 
       body {
         margin: 0;
-        padding: 32px;
+        padding: 18px;
         font-family: Georgia, "Times New Roman", serif;
         color: var(--ink);
         background:
@@ -29,7 +29,7 @@
         max-width: 1080px;
         margin: 0 auto;
         display: grid;
-        gap: 24px;
+        gap: 16px;
       }
 
       .panel {
@@ -44,7 +44,7 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding: 22px 24px 0;
+        padding: 16px 18px 0;
       }
 
       h1 {
@@ -54,9 +54,9 @@
       }
 
       .panel__body {
-        padding: 20px 24px 24px;
+        padding: 14px 18px 18px;
         display: grid;
-        gap: 20px;
+        gap: 14px;
       }
 
       .panel__sub {
@@ -66,10 +66,10 @@
 
       form {
         display: grid;
-        gap: 14px;
+        gap: 10px;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
         align-items: end;
-        padding: 18px;
+        padding: 14px;
         border-radius: 18px;
         background: rgba(245, 247, 250, 0.9);
         border: 1px solid var(--line);
@@ -108,10 +108,12 @@
 
       .plot-image {
         width: 100%;
+        max-height: calc(100vh - 340px);
         height: auto;
         border-radius: 18px;
         border: 1px solid var(--line);
         background: #fff;
+        object-fit: contain;
       }
 
       .info-chip {
