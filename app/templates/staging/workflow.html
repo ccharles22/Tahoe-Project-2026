@@ -506,97 +506,251 @@
           </section>
         {% else %}
 
-        {% if sequence_failed %}
-        <section class="panel sequence-callout panel--left-danger">
-          <div class="panel__header">Mutations Not Computed</div>
-          <p class="sequence-callout__impact">Mutation calling is pending. Run now to generate mutation annotations.</p>
-          <div class="sequence-callout__actions">
-            <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
-              <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
-              <button class="btn btn--primary" type="submit">Run now</button>
-            </form>
-            {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
-              <a class="btn" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download debug CSV</a>
-            {% endif %}
+        <section class="panel" data-panel="A">
+          <div class="panel__header">
+            <span class="panel__step">1</span>
+            WT (UniProt) Output
+            {% if wt %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
           </div>
-          <details class="details">
-            <summary>Show technical details</summary>
-            <pre class="mono pre-line">{{ sequence_technical if sequence_technical else sequence_message }}</pre>
-          </details>
-        </section>
-        {% endif %}
 
-        <section class="panel insights-panel panel--primary">
-          <div class="panel__header">Top Variants</div>
-          {% if top10_rows %}
-            <div class="top-results__toolbar">
-              <label class="label" for="topResultsGenFilter">Generation range</label>
-              <input id="topResultsGenFilter" class="input input--sm top-results__filter" type="text" placeholder="e.g., 0-4">
-              <label class="label" for="topResultsSort">Sort by</label>
-              <select id="topResultsSort" class="input input--sm top-results__filter">
-                <option value="activity_desc">Activity (high to low)</option>
-                <option value="generation_asc">Generation (low to high)</option>
-                <option value="mutations_desc">Mutations (high to low)</option>
-              </select>
-              <label class="checkbox-inline">
-                <input type="checkbox" id="topResultsMutantsOnly">
-                Show only mutants
-              </label>
-              <label class="checkbox-inline">
-                <input type="checkbox" id="topResultsAboveBaseline">
-                Show only above baseline
-              </label>
-              <label class="checkbox-inline">
-                <input type="checkbox" id="topResultsQcFlagged">
-                Show only flagged QC rows
-              </label>
-            </div>
-            <div class="top-results__table-wrap">
-              <table class="top-results__table">
-                <thead>
-                  <tr>
-                    <th>Rank</th>
-                    <th>Generation</th>
-                    <th>Variant</th>
-                    <th>Activity Score</th>
-                    <th>Mutations</th>
-                    <th>QC</th>
-                  </tr>
-                </thead>
-                <tbody id="topResultsBody">
-                  {% for row in top10_rows %}
-                    <tr
-                      class="js-variant-row {% if row.rank <= 3 %}top-results__row--top{{ row.rank }}{% endif %}"
-                      data-generation="{{ row.generation_number }}"
-                      data-activity-value="{{ row.activity_score_value if row.activity_score_value is not none else '' }}"
-                      data-mutation-count="{{ row.protein_mutations }}"
-                      data-is-mutant="{{ '1' if row.is_mutant else '0' }}"
-                      data-qc-flagged="{{ '1' if row.qc_flagged else '0' }}"
-                      data-qc-note="{{ row.qc_note if row.qc_note is defined else '' }}"
-                      data-variant-id="{{ row.variant_id if row.variant_id else '' }}"
-                      data-rank="{{ row.rank }}"
-                      data-generation-value="{{ row.generation_number }}"
-                      data-variant="{{ row.variant_index }}"
-                      data-activity="{{ row.activity_score }}"
-                      data-mutations="{{ row.protein_mutations }}"
-                      {% if row.variant_id %}tabindex="0" role="button"{% endif %}
-                    >
-                      <td>#{{ row.rank }}</td>
-                      <td>{{ row.generation_number }}</td>
-                      <td>{{ row.variant_index }}</td>
-                      <td>{{ row.activity_score }}</td>
-                      <td>{{ row.protein_mutations }}</td>
-                      <td>{% if row.qc_flagged %}<span class="text-warning">flagged</span>{% else %}<span>ok</span>{% endif %}</td>
-                    </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
+          {% if wt %}
+            <div class="grid2">
+              <div class="kv">
+                <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_id }}</strong></div>
+                <div class="kv__row"><span>Length</span><strong>{{ wt.sequence_length if wt.sequence_length else "—" }} aa</strong></div>
+                <div class="kv__row"><span>Status</span><strong class="text-success">Stored</strong></div>
+              </div>
+
+              <div class="note">
+                Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
+              </div>
             </div>
           {% else %}
             <div class="empty">
-              <div class="empty__icon" aria-hidden="true">&#x1F4E5;</div>
-              Top results are not available yet.
-              <div class="empty__sub">Run Step D to generate top-10 outputs.</div>
+              <div class="empty__icon" aria-hidden="true">&#x1F4CB;</div>
+              Waiting for WT fetch…
+              <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
+            </div>
+          {% endif %}
+        </section>
+
+        {% if validation or step_a_done %}
+        <section class="panel" data-panel="B">
+          <div class="panel__header">
+            <span class="panel__step">2</span>
+            Plasmid Validation
+            {% if validation %}
+              {% if validation.is_valid %}
+                <span class="badge badge--ok ml-auto">Complete</span>
+              {% else %}
+                <span class="badge badge--bad ml-auto">Error</span>
+              {% endif %}
+            {% endif %}
+          </div>
+
+          {% if validation %}
+            <div class="statusline">
+              {% if validation.is_valid %}
+                <span class="badge badge--ok">Complete</span>
+              {% else %}
+                <span class="badge badge--bad">Error</span>
+              {% endif %}
+              <span>{{ validation.message }}</span>
+            </div>
+
+            <details class="details">
+              <summary>View technical details</summary>
+              <ul class="mono">
+                <li>Identity: {{ validation.identity }}</li>
+                <li>Coverage: {{ validation.coverage }}</li>
+                <li>Strand: {{ validation.strand }}</li>
+                <li>Start_nt: {{ validation.start_nt }}</li>
+                <li>End_nt: {{ validation.end_nt }}</li>
+                <li>Wraps: {{ validation.wraps }}</li>
+              </ul>
+            </details>
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon" aria-hidden="true">&#x1F4C8;</div>
+              No validation run yet.
+              <div class="empty__sub">Upload a plasmid FASTA in Step B. (Optional — you can skip to Step C.)</div>
+            </div>
+          {% endif %}
+        </section>
+        {% endif %}
+
+        {% if parsing_result or step_a_done %}
+        <details class="panel panel--quiet panel--collapsible" data-panel="C" {% if parsing_result and ((parsing_result.errors and parsing_result.errors|length > 0) or (parsing_result.warnings and parsing_result.warnings|length > 0)) %}open{% endif %}>
+          <summary class="panel__header panel__header--summary">
+            <span class="panel__step">3</span>
+            Data QC (Upload & Validation)
+            {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
+              {% if warning_meta.critical > 0 %}
+                <span class="badge badge--warn ml-auto">{{ warning_meta.advisory }} advisory warnings ({{ warning_meta.critical }} critical)</span>
+              {% else %}
+                <span class="badge badge--neutral ml-auto">{{ warning_meta.advisory }} advisory warnings (0 critical)</span>
+              {% endif %}
+            {% elif step_c_done %}
+              <span class="badge badge--ok ml-auto">Complete</span>
+            {% elif step_c_fail %}
+              <span class="badge badge--bad ml-auto">Error</span>
+            {% endif %}
+          </summary>
+
+          {% if parsing_result %}
+            {% if parsing_result.success %}
+              <div class="message-box success">
+                <h3>Upload Successful</h3>
+                <p>Your data has been parsed, validated, and stored in the database.</p>
+              </div>
+
+              <div class="stats">
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.total_records }}</div>
+                  <div class="label">Total Records</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.inserted_count }}</div>
+                  <div class="label">Inserted</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.updated_count }}</div>
+                  <div class="label">Updated</div>
+                </div>
+                <div class="stat-card">
+                  <div class="value">{{ parsing_result.warnings_count }}</div>
+                  <div class="label">Warnings</div>
+                </div>
+              </div>
+
+              {% if parsing_result.detected_fields %}
+                <div class="form-group">
+                  <label class="label">Detected Fields</label>
+                  <div class="field-list">
+                    {% for field in parsing_result.detected_fields %}
+                      <span class="field-tag">{{ field }}</span>
+                    {% endfor %}
+                  </div>
+                </div>
+              {% endif %}
+
+            {% else %}
+              <div class="message-box error">
+                <h3>Upload Failed</h3>
+                <p>{{ parsing_result.error_message }}</p>
+              </div>
+            {% endif %}
+
+            {% if parsing_result.errors and parsing_result.errors|length > 0 %}
+              <details open class="details">
+                <summary>Errors ({{ parsing_result.errors|length }})</summary>
+                <ul class="mono">
+                  {% for error in parsing_result.errors %}
+                    <li class="text-danger">{{ error }}</li>
+                  {% endfor %}
+                </ul>
+              </details>
+            {% endif %}
+
+            {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
+              <details class="details warning-insights" {% if not parsing_result.success %}open{% endif %}>
+                <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
+                <div class="warning-insights__actions">
+                  {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
+                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC report</a>
+                  {% else %}
+                    <span class="btn btn--sm btn--ghost btn--disabled" aria-disabled="true">Download QC report</span>
+                  {% endif %}
+                </div>
+                <div class="warning-insights__summary" data-warning-summary>
+                  {{ parsing_result.warnings|length }} warnings detected.
+                </div>
+                <div class="warning-insights__filters">
+                  <button type="button" class="warning-chip js-warning-filter is-active" data-filter="critical">Critical</button>
+                  <button type="button" class="warning-chip js-warning-filter" data-filter="advisory">Advisory</button>
+                  <button type="button" class="warning-chip js-warning-filter" data-filter="all">All</button>
+                  <label class="checkbox-inline warning-insights__group-toggle">
+                    <input type="checkbox" id="warningGroupByField">
+                    Group by field
+                  </label>
+                </div>
+                <div class="warning-insights__groups is-hidden" id="warningGroups"></div>
+                <div class="warning-insights__table-wrap">
+                  <table class="warning-insights__table">
+                    <thead>
+                      <tr>
+                        <th>Severity</th>
+                        <th>Row</th>
+                        <th>Field</th>
+                        <th>Issue</th>
+                        <th>Why this matters</th>
+                        <th>Fix suggestion</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {% for warning in parsing_result.warnings %}
+                        <tr class="js-warning-row" data-warning-text="{{ warning|e }}">
+                          <td data-col="severity">-</td>
+                          <td data-col="row">-</td>
+                          <td data-col="field">-</td>
+                          <td data-col="issue">{{ warning }}</td>
+                          <td data-col="why">-</td>
+                          <td data-col="fix">Review data and retry.</td>
+                          <td data-col="action"><button type="button" class="btn btn--sm btn--ghost js-go-record" disabled title="Record view is not available in this workspace.">Go to record</button></td>
+                        </tr>
+                      {% endfor %}
+                    </tbody>
+                  </table>
+                </div>
+              </details>
+            {% endif %}
+
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
+              No data uploaded yet.
+              <div class="empty__sub">Upload a TSV, CSV, or JSON file in Step C.</div>
+            </div>
+          {% endif %}
+        </details>
+        {% endif %}
+
+        <section class="panel" data-panel="D">
+          <div class="panel__header">
+            <span class="panel__step">4</span>
+            Sequence Processing
+            {% if step_e_done %}<span class="badge badge--ok ml-auto">Complete</span>{% elif sequence_failed %}<span class="badge badge--bad ml-auto">Error</span>{% endif %}
+          </div>
+
+          {% if step_e_done %}
+            <div class="note">{{ sequence_message if sequence_message else 'Sequence processing completed. Mutation outputs were refreshed.' }}</div>
+          {% elif sequence_failed %}
+            <div class="note note--danger">{{ sequence_message if sequence_message else 'Sequence processing failed.' }}</div>
+            <div class="sequence-callout__actions">
+              <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
+                <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+                <button class="btn btn--primary" type="submit">Run now</button>
+              </form>
+              {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
+                <a class="btn" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download debug CSV</a>
+              {% endif %}
+            </div>
+            <details class="details">
+              <summary>Show technical details</summary>
+              <pre class="mono pre-line">{{ sequence_technical if sequence_technical else sequence_message }}</pre>
+            </details>
+          {% elif step_c_done %}
+            <div class="empty">
+              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
+              No sequence processing run yet.
+              <div class="empty__sub">Use Step D on the left.</div>
+            </div>
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
+              Sequence processing is locked until Step 3 completes.
+              <div class="empty__sub">Upload and validate data first.</div>
             </div>
           {% endif %}
         </section>
@@ -648,8 +802,11 @@
           </div>
         </div>
 
-        <section class="panel visuals-panel panel--primary">
-          <div class="panel__header">Results Visualisation</div>
+        <section class="panel visuals-panel panel--primary" data-panel="E">
+          <div class="panel__header">
+            <span class="panel__step">5</span>
+            Results Visualisation
+          </div>
           {% set has_any_graph = (analysis_outputs and (
               (analysis_outputs.plot and analysis_outputs.plot.exists) or
               (analysis_outputs.top10_png and analysis_outputs.top10_png.exists) or
@@ -669,6 +826,83 @@
           {% endif %}
 
           {% if has_any_graph %}
+            <div class="analysis-block">
+              <div class="downloads-group">
+                <div class="downloads-group__title">Top Variants</div>
+                {% if top10_rows %}
+                  <div class="top-results__toolbar">
+                    <label class="label" for="topResultsGenFilter">Generation range</label>
+                    <input id="topResultsGenFilter" class="input input--sm top-results__filter" type="text" placeholder="e.g., 0-4">
+                    <label class="label" for="topResultsSort">Sort by</label>
+                    <select id="topResultsSort" class="input input--sm top-results__filter">
+                      <option value="activity_desc">Activity (high to low)</option>
+                      <option value="generation_asc">Generation (low to high)</option>
+                      <option value="mutations_desc">Mutations (high to low)</option>
+                    </select>
+                    <label class="checkbox-inline">
+                      <input type="checkbox" id="topResultsMutantsOnly">
+                      Show only mutants
+                    </label>
+                    <label class="checkbox-inline">
+                      <input type="checkbox" id="topResultsAboveBaseline">
+                      Show only above baseline
+                    </label>
+                    <label class="checkbox-inline">
+                      <input type="checkbox" id="topResultsQcFlagged">
+                      Show only flagged QC rows
+                    </label>
+                  </div>
+                  <div class="top-results__table-wrap">
+                    <table class="top-results__table">
+                      <thead>
+                        <tr>
+                          <th>Rank</th>
+                          <th>Generation</th>
+                          <th>Variant</th>
+                          <th>Activity Score</th>
+                          <th>Mutations</th>
+                          <th>QC</th>
+                        </tr>
+                      </thead>
+                      <tbody id="topResultsBody">
+                        {% for row in top10_rows %}
+                          <tr
+                            class="js-variant-row {% if row.rank <= 3 %}top-results__row--top{{ row.rank }}{% endif %}"
+                            data-generation="{{ row.generation_number }}"
+                            data-activity-value="{{ row.activity_score_value if row.activity_score_value is not none else '' }}"
+                            data-mutation-count="{{ row.protein_mutations }}"
+                            data-is-mutant="{{ '1' if row.is_mutant else '0' }}"
+                            data-qc-flagged="{{ '1' if row.qc_flagged else '0' }}"
+                            data-qc-note="{{ row.qc_note if row.qc_note is defined else '' }}"
+                            data-variant-id="{{ row.variant_id if row.variant_id else '' }}"
+                            data-rank="{{ row.rank }}"
+                            data-generation-value="{{ row.generation_number }}"
+                            data-variant="{{ row.variant_index }}"
+                            data-activity="{{ row.activity_score }}"
+                            data-mutations="{{ row.protein_mutations }}"
+                            {% if row.variant_id %}tabindex="0" role="button"{% endif %}
+                          >
+                            <td>#{{ row.rank }}</td>
+                            <td>{{ row.generation_number }}</td>
+                            <td>{{ row.variant_index }}</td>
+                            <td>{{ row.activity_score }}</td>
+                            <td>{{ row.protein_mutations }}</td>
+                            <td>{% if row.qc_flagged %}<span class="text-warning">flagged</span>{% else %}<span>ok</span>{% endif %}</td>
+                          </tr>
+                        {% endfor %}
+                      </tbody>
+                    </table>
+                  </div>
+                {% else %}
+                  <div class="empty">
+                    <div class="empty__icon" aria-hidden="true">&#x1F4E5;</div>
+                    Top results are not available yet.
+                    <div class="empty__sub">Run Step E to generate top-10 outputs.</div>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+
             {% if interactive_default_url %}
             <div class="analysis-studio">
               <div class="analysis-studio__header">
@@ -869,239 +1103,6 @@
             </div>
           </div>
         </section>
-
-        <!-- WT OUTPUT -->
-        <section class="panel" data-panel="A">
-          <div class="panel__header">
-            <span class="panel__step">1</span>
-            WT (UniProt) Output
-            {% if wt %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
-          </div>
-
-          {% if wt %}
-            <div class="grid2">
-              <div class="kv">
-                <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_id }}</strong></div>
-                <div class="kv__row"><span>Length</span><strong>{{ wt.sequence_length if wt.sequence_length else "—" }} aa</strong></div>
-                <div class="kv__row"><span>Status</span><strong class="text-success">Stored</strong></div>
-              </div>
-
-              <div class="note">
-                Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
-              </div>
-            </div>
-          {% else %}
-            <div class="empty">
-              <div class="empty__icon" aria-hidden="true">&#x1F4CB;</div>
-              Waiting for WT fetch…
-              <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
-            </div>
-          {% endif %}
-        </section>
-
-        <!-- VALIDATION OUTPUT -->
-        {% if validation or step_a_done %}
-        <section class="panel" data-panel="B">
-          <div class="panel__header">
-            <span class="panel__step">2</span>
-            Plasmid Validation
-            {% if validation %}
-              {% if validation.is_valid %}
-                <span class="badge badge--ok ml-auto">Complete</span>
-              {% else %}
-                <span class="badge badge--bad ml-auto">Error</span>
-              {% endif %}
-            {% endif %}
-          </div>
-
-          {% if validation %}
-            <div class="statusline">
-              {% if validation.is_valid %}
-                <span class="badge badge--ok">Complete</span>
-              {% else %}
-                <span class="badge badge--bad">Error</span>
-              {% endif %}
-              <span>{{ validation.message }}</span>
-            </div>
-
-            <details class="details">
-              <summary>View technical details</summary>
-              <ul class="mono">
-                <li>Identity: {{ validation.identity }}</li>
-                <li>Coverage: {{ validation.coverage }}</li>
-                <li>Strand: {{ validation.strand }}</li>
-                <li>Start_nt: {{ validation.start_nt }}</li>
-                <li>End_nt: {{ validation.end_nt }}</li>
-                <li>Wraps: {{ validation.wraps }}</li>
-              </ul>
-            </details>
-          {% else %}
-            <div class="empty">
-              <div class="empty__icon" aria-hidden="true">&#x1F4C8;</div>
-              No validation run yet.
-              <div class="empty__sub">Upload a plasmid FASTA in Step B. (Optional — you can skip to Step C.)</div>
-            </div>
-          {% endif %}
-        </section>
-        {% endif %}
-
-        <!-- Data QC (Upload & Validation) -->
-        {% if parsing_result or step_a_done %}
-        <details class="panel panel--quiet panel--collapsible" data-panel="C" {% if parsing_result and ((parsing_result.errors and parsing_result.errors|length > 0) or (parsing_result.warnings and parsing_result.warnings|length > 0)) %}open{% endif %}>
-          <summary class="panel__header panel__header--summary">
-            <span class="panel__step">3</span>
-            Data QC (Upload & Validation)
-            {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
-              {% if warning_meta.critical > 0 %}
-                <span class="badge badge--warn ml-auto">{{ warning_meta.advisory }} advisory warnings ({{ warning_meta.critical }} critical)</span>
-              {% else %}
-                <span class="badge badge--neutral ml-auto">{{ warning_meta.advisory }} advisory warnings (0 critical)</span>
-              {% endif %}
-            {% elif step_c_done %}
-              <span class="badge badge--ok ml-auto">Complete</span>
-            {% elif step_c_fail %}
-              <span class="badge badge--bad ml-auto">Error</span>
-            {% endif %}
-          </summary>
-
-          {% if parsing_result %}
-            {% if parsing_result.success %}
-              <div class="message-box success">
-                <h3>Upload Successful</h3>
-                <p>Your data has been parsed, validated, and stored in the database.</p>
-              </div>
-
-              <div class="stats">
-                <div class="stat-card">
-                  <div class="value">{{ parsing_result.total_records }}</div>
-                  <div class="label">Total Records</div>
-                </div>
-                <div class="stat-card">
-                  <div class="value">{{ parsing_result.inserted_count }}</div>
-                  <div class="label">Inserted</div>
-                </div>
-                <div class="stat-card">
-                  <div class="value">{{ parsing_result.updated_count }}</div>
-                  <div class="label">Updated</div>
-                </div>
-                <div class="stat-card">
-                  <div class="value">{{ parsing_result.warnings_count }}</div>
-                  <div class="label">Warnings</div>
-                </div>
-              </div>
-
-              {% if parsing_result.detected_fields %}
-                <div class="form-group">
-                  <label class="label">Detected Fields</label>
-                  <div class="field-list">
-                    {% for field in parsing_result.detected_fields %}
-                      <span class="field-tag">{{ field }}</span>
-                    {% endfor %}
-                  </div>
-                </div>
-              {% endif %}
-
-            {% else %}
-              <div class="message-box error">
-                <h3>Upload Failed</h3>
-                <p>{{ parsing_result.error_message }}</p>
-              </div>
-            {% endif %}
-
-            {% if parsing_result.errors and parsing_result.errors|length > 0 %}
-              <details open class="details">
-                <summary>Errors ({{ parsing_result.errors|length }})</summary>
-                <ul class="mono">
-                  {% for error in parsing_result.errors %}
-                    <li class="text-danger">{{ error }}</li>
-                  {% endfor %}
-                </ul>
-              </details>
-            {% endif %}
-
-            {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
-              <details class="details warning-insights" {% if not parsing_result.success %}open{% endif %}>
-                <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
-                <div class="warning-insights__actions">
-                  {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC report</a>
-                  {% else %}
-                    <span class="btn btn--sm btn--ghost btn--disabled" aria-disabled="true">Download QC report</span>
-                  {% endif %}
-                </div>
-                <div class="warning-insights__summary" data-warning-summary>
-                  {{ parsing_result.warnings|length }} warnings detected.
-                </div>
-                <div class="warning-insights__filters">
-                  <button type="button" class="warning-chip js-warning-filter is-active" data-filter="critical">Critical</button>
-                  <button type="button" class="warning-chip js-warning-filter" data-filter="advisory">Advisory</button>
-                  <button type="button" class="warning-chip js-warning-filter" data-filter="all">All</button>
-                  <label class="checkbox-inline warning-insights__group-toggle">
-                    <input type="checkbox" id="warningGroupByField">
-                    Group by field
-                  </label>
-                </div>
-                <div class="warning-insights__groups is-hidden" id="warningGroups"></div>
-                <div class="warning-insights__table-wrap">
-                  <table class="warning-insights__table">
-                    <thead>
-                      <tr>
-                        <th>Severity</th>
-                        <th>Row</th>
-                        <th>Field</th>
-                        <th>Issue</th>
-                        <th>Why this matters</th>
-                        <th>Fix suggestion</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {% for warning in parsing_result.warnings %}
-                        <tr class="js-warning-row" data-warning-text="{{ warning|e }}">
-                          <td data-col="severity">-</td>
-                          <td data-col="row">-</td>
-                          <td data-col="field">-</td>
-                          <td data-col="issue">{{ warning }}</td>
-                          <td data-col="why">-</td>
-                          <td data-col="fix">Review data and retry.</td>
-                          <td data-col="action"><button type="button" class="btn btn--sm btn--ghost js-go-record" disabled title="Record view is not available in this workspace.">Go to record</button></td>
-                        </tr>
-                      {% endfor %}
-                    </tbody>
-                  </table>
-                </div>
-              </details>
-            {% endif %}
-
-          {% else %}
-            <div class="empty">
-              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
-              No data uploaded yet.
-              <div class="empty__sub">Upload a TSV, CSV, or JSON file in Step C.</div>
-            </div>
-          {% endif %}
-        </details>
-        {% endif %}
-        <!-- SEQUENCE PROCESSING RESULTS -->
-        {% if step_e_done or (step_c_done and sequence_message) %}
-        <section class="panel" data-panel="E">
-          <div class="panel__header">
-            <span class="panel__step">5</span>
-            Sequence Processing
-            {% if step_e_done %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
-          </div>
-
-          {% if sequence_message %}
-            <div class="note">{{ sequence_message }}</div>
-          {% else %}
-            <div class="empty">
-              <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
-              No sequence processing run yet.
-              <div class="empty__sub">Use Step E on the left.</div>
-            </div>
-          {% endif %}
-        </section>
-        {% endif %}
 
         {% endif %}
       </main>
