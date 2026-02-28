@@ -932,22 +932,58 @@
             {% if has_bonus_html_outputs and bonus_default_url %}
             <div class="analysis-studio__controls">
               {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
-                <a class="btn btn--sm" href="{{ analysis_outputs.bonus_landscape.url }}" target="bonusExplorerFrame" rel="noopener">Activity Landscape</a>
+                <div class="analysis-control-item">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_landscape.url }}" target="bonusExplorerFrame" rel="noopener">Activity Landscape</a>
+                  <button class="analysis-info" type="button" aria-label="What Activity Landscape shows">
+                    i
+                    <span class="analysis-info__tip">Maps variants in a 3D activity landscape using embedding coordinates, so you can spot clusters, outliers, and high-performing regions.</span>
+                  </button>
+                </div>
               {% endif %}
               {% if analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists %}
-                <a class="btn btn--sm" href="{{ analysis_outputs.bonus_mutation_frequency.url }}" target="bonusExplorerFrame" rel="noopener">Mutation Frequency</a>
+                <div class="analysis-control-item">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_mutation_frequency.url }}" target="bonusExplorerFrame" rel="noopener">Mutation Frequency</a>
+                  <button class="analysis-info" type="button" aria-label="What Mutation Frequency shows">
+                    i
+                    <span class="analysis-info__tip">Shows where non-synonymous protein mutations occur most often across the experiment, helping identify mutation hotspots and conserved regions.</span>
+                  </button>
+                </div>
               {% endif %}
               {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
-                <a class="btn btn--sm" href="{{ analysis_outputs.bonus_trajectory.url }}" target="bonusExplorerFrame" rel="noopener">Mutation Trajectory</a>
+                <div class="analysis-control-item">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_trajectory.url }}" target="bonusExplorerFrame" rel="noopener">Mutation Trajectory</a>
+                  <button class="analysis-info" type="button" aria-label="What Mutation Trajectory shows">
+                    i
+                    <span class="analysis-info__tip">Tracks how mutation load changes across the top variants over generations, so you can see whether improvement comes with gradual or abrupt divergence.</span>
+                  </button>
+                </div>
               {% endif %}
               {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
-                <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="bonusExplorerFrame" rel="noopener">Domain Heatmap</a>
+                <div class="analysis-control-item">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="bonusExplorerFrame" rel="noopener">Domain Heatmap</a>
+                  <button class="analysis-info" type="button" aria-label="What Domain Heatmap shows">
+                    i
+                    <span class="analysis-info__tip">Summarises mutation density by protein feature or domain across the experiment, highlighting which structural regions are mutating most strongly.</span>
+                  </button>
+                </div>
               {% endif %}
               {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
-                <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="bonusExplorerFrame" rel="noopener">Domain by Generation</a>
+                <div class="analysis-control-item">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="bonusExplorerFrame" rel="noopener">Domain by Generation</a>
+                  <button class="analysis-info" type="button" aria-label="What Domain by Generation shows">
+                    i
+                    <span class="analysis-info__tip">Focuses the domain enrichment view on the latest generation, making it easier to see where the most recent evolutionary pressure has concentrated.</span>
+                  </button>
+                </div>
               {% endif %}
               {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
-                <a class="btn btn--sm" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="bonusExplorerFrame" rel="noopener">Mutation Fingerprint</a>
+                <div class="analysis-control-item">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="bonusExplorerFrame" rel="noopener">Mutation Fingerprint</a>
+                  <button class="analysis-info" type="button" aria-label="What Mutation Fingerprint shows">
+                    i
+                    <span class="analysis-info__tip">Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant’s sequence signature.</span>
+                  </button>
+                </div>
               {% endif %}
             </div>
             <div class="analysis-studio__frame-wrap">
