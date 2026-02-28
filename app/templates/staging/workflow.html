@@ -826,89 +826,12 @@
           {% endif %}
 
           {% if has_any_graph %}
-            <div class="analysis-block">
-              <div class="downloads-group">
-                <div class="downloads-group__title">Top Variants</div>
-                {% if top10_rows %}
-                  <div class="top-results__toolbar">
-                    <label class="label" for="topResultsGenFilter">Generation range</label>
-                    <input id="topResultsGenFilter" class="input input--sm top-results__filter" type="text" placeholder="e.g., 0-4">
-                    <label class="label" for="topResultsSort">Sort by</label>
-                    <select id="topResultsSort" class="input input--sm top-results__filter">
-                      <option value="activity_desc">Activity (high to low)</option>
-                      <option value="generation_asc">Generation (low to high)</option>
-                      <option value="mutations_desc">Mutations (high to low)</option>
-                    </select>
-                    <label class="checkbox-inline">
-                      <input type="checkbox" id="topResultsMutantsOnly">
-                      Show only mutants
-                    </label>
-                    <label class="checkbox-inline">
-                      <input type="checkbox" id="topResultsAboveBaseline">
-                      Show only above baseline
-                    </label>
-                    <label class="checkbox-inline">
-                      <input type="checkbox" id="topResultsQcFlagged">
-                      Show only flagged QC rows
-                    </label>
-                  </div>
-                  <div class="top-results__table-wrap">
-                    <table class="top-results__table">
-                      <thead>
-                        <tr>
-                          <th>Rank</th>
-                          <th>Generation</th>
-                          <th>Variant</th>
-                          <th>Activity Score</th>
-                          <th>Mutations</th>
-                          <th>QC</th>
-                        </tr>
-                      </thead>
-                      <tbody id="topResultsBody">
-                        {% for row in top10_rows %}
-                          <tr
-                            class="js-variant-row {% if row.rank <= 3 %}top-results__row--top{{ row.rank }}{% endif %}"
-                            data-generation="{{ row.generation_number }}"
-                            data-activity-value="{{ row.activity_score_value if row.activity_score_value is not none else '' }}"
-                            data-mutation-count="{{ row.protein_mutations }}"
-                            data-is-mutant="{{ '1' if row.is_mutant else '0' }}"
-                            data-qc-flagged="{{ '1' if row.qc_flagged else '0' }}"
-                            data-qc-note="{{ row.qc_note if row.qc_note is defined else '' }}"
-                            data-variant-id="{{ row.variant_id if row.variant_id else '' }}"
-                            data-rank="{{ row.rank }}"
-                            data-generation-value="{{ row.generation_number }}"
-                            data-variant="{{ row.variant_index }}"
-                            data-activity="{{ row.activity_score }}"
-                            data-mutations="{{ row.protein_mutations }}"
-                            {% if row.variant_id %}tabindex="0" role="button"{% endif %}
-                          >
-                            <td>#{{ row.rank }}</td>
-                            <td>{{ row.generation_number }}</td>
-                            <td>{{ row.variant_index }}</td>
-                            <td>{{ row.activity_score }}</td>
-                            <td>{{ row.protein_mutations }}</td>
-                            <td>{% if row.qc_flagged %}<span class="text-warning">flagged</span>{% else %}<span>ok</span>{% endif %}</td>
-                          </tr>
-                        {% endfor %}
-                      </tbody>
-                    </table>
-                  </div>
-                {% else %}
-                  <div class="empty">
-                    <div class="empty__icon" aria-hidden="true">&#x1F4E5;</div>
-                    Top results are not available yet.
-                    <div class="empty__sub">Run Step E to generate top-10 outputs.</div>
-                  </div>
-                {% endif %}
-              </div>
-            </div>
-
             {% if interactive_default_url %}
             <div class="analysis-studio">
               <div class="analysis-studio__header">
                 <div>
                   <div class="analysis-studio__title">Interactive Explorer</div>
-                  <p class="analysis-studio__hint">Open the interactive analysis pages directly here. The static previews remain below for quick scanning.</p>
+                  <p class="analysis-studio__hint">Top 10 opens here by default. Use the explorer buttons to switch views; the static previews remain below for quick scanning.</p>
                 </div>
               </div>
               <div class="analysis-studio__controls">
