@@ -986,6 +986,21 @@ a:hover { text-decoration: underline; }
   gap: 8px;
 }
 
+.panel__header-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.panel__actions {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .panel--collapsible > summary.panel__header {
   cursor: pointer;
   list-style: none;

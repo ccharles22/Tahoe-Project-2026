@@ -804,8 +804,24 @@
 
         <section class="panel visuals-panel panel--primary" data-panel="E">
           <div class="panel__header">
-            <span class="panel__step">5</span>
-            Results Visualisation
+            <div class="panel__header-main">
+              <span class="panel__step">5</span>
+              Results Visualisation
+            </div>
+            <div class="panel__actions">
+              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+                <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">Top 10 PNG</a>
+              {% endif %}
+              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
+                <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">Distribution PNG</a>
+              {% endif %}
+              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+                <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">Lineage PNG</a>
+              {% endif %}
+              {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
+                <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">Protein PNG</a>
+              {% endif %}
+            </div>
           </div>
           {% set has_any_graph = (analysis_outputs and (
               (analysis_outputs.plot and analysis_outputs.plot.exists) or
@@ -893,8 +909,15 @@
 
         <section class="panel visuals-panel panel--primary" data-panel="F">
           <div class="panel__header">
-            <span class="panel__step">6</span>
-            Bonus Visualisations
+            <div class="panel__header-main">
+              <span class="panel__step">6</span>
+              Bonus Visualisations
+            </div>
+            <div class="panel__actions">
+              {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
+                <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">Bonus Surface PNG</a>
+              {% endif %}
+            </div>
           </div>
 
           <div class="analysis-studio">
@@ -975,42 +998,6 @@
                 {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Compute mutations (DNA&#8594;Protein) first.' }}
               </span>
             {% endif %}
-          </div>
-
-          <div class="downloads-group">
-            <div class="downloads-group__title">Static Graph Snapshots</div>
-            <div class="downloads-group__list">
-              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">Top 10 PNG</a>
-              {% else %}
-                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 PNG</span>
-              {% endif %}
-
-              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">Distribution PNG</a>
-              {% else %}
-                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Distribution PNG</span>
-              {% endif %}
-
-              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">Lineage PNG</a>
-              {% else %}
-                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Lineage PNG</span>
-              {% endif %}
-
-              {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">Protein Similarity PNG</a>
-              {% else %}
-                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Protein Similarity PNG</span>
-              {% endif %}
-
-              {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">Bonus Activity Surface PNG</a>
-              {% else %}
-                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Bonus Activity Surface PNG</span>
-              {% endif %}
-            </div>
-            <div class="downloads-group__hint">Static snapshots are downloadable here only and are no longer shown in the page layout.</div>
           </div>
         </section>
         {% endif %}
