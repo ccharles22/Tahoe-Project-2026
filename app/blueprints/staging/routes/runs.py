@@ -43,10 +43,13 @@ def run_sequence():
 
     exp_id_int = int(experiment_id)
     try:
-        from app.jobs.sequence.run_sequence_processing import run_sequence_processing
+        from app.jobs.run_sequence_processing import run_sequence_processing
 
-        run_sequence_processing(exp_id_int)
-        message = 'Sequence processing completed. Outputs are stored in the database.'
+        # This action is explicitly for computing/refreshing mutation outputs.
+        # Force a full reprocess so variants with existing protein_sequence are
+        # not skipped when mutation rows need to be regenerated.
+        run_sequence_processing(exp_id_int, force_reprocess=True)
+        message = 'Sequence processing completed. Mutation outputs were refreshed in the database.'
         save_sequence_status_to_session(
             exp_id_int,
             {
