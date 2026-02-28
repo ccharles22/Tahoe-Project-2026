@@ -24,6 +24,19 @@
   {% set step_d_done = analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
   {% set step_e_done = sequence_completed %}
   {% set done_count = [step_a_done, step_b_done, step_c_done, step_d_done, step_e_done]|select|list|length %}
+  {% if not step_a_done %}
+    {% set current_step = 'A' %}
+  {% elif not step_b_done %}
+    {% set current_step = 'B' %}
+  {% elif not step_c_done %}
+    {% set current_step = 'C' %}
+  {% elif not step_e_done %}
+    {% set current_step = 'D' %}
+  {% elif not step_d_done %}
+    {% set current_step = 'E' %}
+  {% else %}
+    {% set current_step = 'E' %}
+  {% endif %}
   {% set total_records = (parsing_result.total_records|default(0, true)) if parsing_result else 0 %}
   {% set inserted_count = (parsing_result.inserted_count|default(0, true)) if parsing_result else 0 %}
   {% set updated_count = (parsing_result.updated_count|default(0, true)) if parsing_result else 0 %}
@@ -87,7 +100,7 @@
           ('D', 'Process Sequences', step_e_done),
           ('E', 'Run Analysis', step_d_done)
         ] %}
-          <div class="stepper__step {% if done %}stepper__step--done{% endif %}" title="Step {{ letter }}: {{ label }}">
+          <div class="stepper__step {% if done %}stepper__step--done{% endif %} {% if letter == current_step %}stepper__step--active{% endif %}" title="Step {{ letter }}: {{ label }}">
             <div class="stepper__circle">{{ loop.index }}</div>
             <div class="stepper__label">{{ label }}</div>
           </div>
