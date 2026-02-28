@@ -9,18 +9,18 @@
 :root {
   --ui-scale: 0.9;
   /* Neutrals */
-  --bg: #f8f9fb;
+  --bg: #f4f9ff;
   --surface: #ffffff;
-  --surface-alt: #f1f3f5;
+  --surface-alt: #edf5ff;
   --text: #1a1a2e;
   --text-secondary: #6b7280;
-  --border: #e2e5ea;
-  --border-light: #f0f1f3;
+  --border: #d9e6f4;
+  --border-light: #edf4fb;
 
   /* Brand */
-  --primary: #1e90ff;
-  --primary-light: #e3f2fd;
-  --primary-dark: #1565c0;
+  --primary: #2a7de1;
+  --primary-light: #dfeeff;
+  --primary-dark: #185cb3;
 
   /* Semantic */
   --success: #059669;
@@ -56,7 +56,9 @@ body {
   font-size: 14px;
   line-height: 1.6;
   color: var(--text);
-  background: var(--bg);
+  background:
+    radial-gradient(circle at top right, rgba(219, 238, 255, 0.8), transparent 32%),
+    linear-gradient(180deg, #f9fcff 0%, var(--bg) 52%, #eef5ff 100%);
 }
 
 a { color: var(--primary); text-decoration: none; }
