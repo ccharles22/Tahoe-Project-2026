@@ -83,8 +83,8 @@
           ('A', 'Fetch Wild-Type', step_a_done),
           ('B', 'Validate Plasmid', step_b_done),
           ('C', 'Upload Data', step_c_done),
-          ('D', 'Run Analysis', step_d_done),
-          ('E', 'Process Sequences', step_e_done)
+          ('D', 'Process Sequences', step_e_done),
+          ('E', 'Run Analysis', step_d_done)
         ] %}
           <div class="stepper__step {% if done %}stepper__step--done{% endif %}" title="Step {{ letter }}: {{ label }}">
             <div class="stepper__circle">{{ loop.index }}</div>
@@ -281,43 +281,11 @@
           </div>
         </div>
 
-        <!-- STEP D (ANALYSIS) -->
+        <!-- STEP D (SEQUENCE PROCESSING) -->
         <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="D"
-             data-status="{{ 'done' if step_d_done else 'pending' }}">
-          <div class="task__top">
-            <div class="task__step-badge task__step-badge--d">4</div>
-            <div class="task__title">Run Analysis</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
-            {% if step_d_done %}
-              <span class="badge badge--ok">Complete</span>
-            {% elif step_c_done %}
-              <span class="badge badge--neutral">Pending</span>
-            {% else %}
-              <span class="badge badge--neutral">Pending</span>
-            {% endif %}
-          </div>
-
-          <div class="task__body">
-            {% if not step_c_done %}
-              <p class="task__locked-msg">Upload data in Step C first.</p>
-            {% else %}
-              <form class="task__form" action="{{ url_for('staging.run_analysis') }}" method="post">
-                <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
-                <button class="btn btn--primary btn--submit" type="submit">
-                  <span class="btn__text">Run Analysis</span>
-                  <span class="btn__spinner"></span>
-                </button>
-              </form>
-              <p class="task__hint">Calculates activity metrics, top-10 variants, and generates lineage/protein network plots.</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- STEP E (SEQUENCE PROCESSING) -->
-        <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="E"
              data-status="{{ 'done' if step_e_done else 'pending' }}">
           <div class="task__top">
-            <div class="task__step-badge task__step-badge--e">5</div>
+            <div class="task__step-badge task__step-badge--d">4</div>
             <div class="task__title">Process Sequences</div>
             <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
             {% if step_e_done %}
@@ -340,7 +308,39 @@
                   <span class="btn__spinner"></span>
                 </button>
               </form>
-              <p class="task__hint">Translates DNA?protein and computes alignment against the WT.</p>
+              <p class="task__hint">Translates DNA&#8594;protein and computes mutation calls against the WT reference.</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- STEP E (ANALYSIS) -->
+        <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="E"
+             data-status="{{ 'done' if step_d_done else 'pending' }}">
+          <div class="task__top">
+            <div class="task__step-badge task__step-badge--e">5</div>
+            <div class="task__title">Run Analysis</div>
+            <button class="task__toggle" type="button" aria-label="Toggle step">?</button>
+            {% if step_d_done %}
+              <span class="badge badge--ok">Complete</span>
+            {% elif step_c_done %}
+              <span class="badge badge--neutral">Pending</span>
+            {% else %}
+              <span class="badge badge--neutral">Pending</span>
+            {% endif %}
+          </div>
+
+          <div class="task__body">
+            {% if not step_c_done %}
+              <p class="task__locked-msg">Upload data in Step C first.</p>
+            {% else %}
+              <form class="task__form" action="{{ url_for('staging.run_analysis') }}" method="post">
+                <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
+                <button class="btn btn--primary btn--submit" type="submit">
+                  <span class="btn__text">Run Analysis</span>
+                  <span class="btn__spinner"></span>
+                </button>
+              </form>
+              <p class="task__hint">Runs sequence processing first, then refreshes activity metrics and generates plots.</p>
             {% endif %}
           </div>
         </div>
@@ -432,24 +432,24 @@
         {% endwith %}
 
         {% if experiment_id and run_summary_status %}
-        {% set actionable_partial = (run_summary_status == 'partial' and step_d_done and not step_e_done and not sequence_failed and not analysis_failed) %}
+        {% set actionable_partial = (run_summary_status == 'partial' and step_e_done and not step_d_done and not sequence_failed and not analysis_failed) %}
         <section class="run-summary run-summary--{{ 'success' if actionable_partial else run_summary_status }} run-summary--primary">
           <div class="run-summary__header">
             <span class="run-summary__badge">
-              Status: {{ 'Analysis complete' if actionable_partial else ('Success' if run_summary_status == 'success' else ('Partial success' if run_summary_status == 'partial' else 'Failed')) }}
+              Status: {{ 'Sequence complete' if actionable_partial else ('Success' if run_summary_status == 'success' else ('Partial success' if run_summary_status == 'partial' else 'Failed')) }}
             </span>
             {% if run_summary_status == 'success' %}
               <p class="run-summary__headline">
                 Analysis complete - {{ total_records }} records processed ({{ inserted_count }} inserted, {{ updated_count }} updated, {{ skipped_count }} skipped).
               </p>
             {% elif run_summary_status == 'partial' %}
-              {% if sequence_failed and step_d_done %}
-                <p class="run-summary__headline">Analysis complete, but sequence processing failed - mutations not computed.</p>
-              {% elif analysis_failed and step_c_done %}
-                <p class="run-summary__headline">Data upload completed, but analysis failed.</p>
+              {% if sequence_failed %}
+                <p class="run-summary__headline">Sequence processing failed - analysis was not run.</p>
+              {% elif analysis_failed and step_e_done %}
+                <p class="run-summary__headline">Sequence processing completed, but analysis failed.</p>
               {% elif actionable_partial %}
-                <p class="run-summary__headline">Analysis complete</p>
-                <p class="run-summary__headline">Mutations not computed</p>
+                <p class="run-summary__headline">Sequence processing completed.</p>
+                <p class="run-summary__headline">Run analysis to generate plots and reports.</p>
               {% elif warnings_count > 0 and step_c_done %}
                 <p class="run-summary__headline">Analysis complete with warnings - review flagged records.</p>
               {% else %}
@@ -464,11 +464,11 @@
 
           {% if actionable_partial %}
             <div class="run-summary__actions">
-              <form action="{{ url_for('staging.run_sequence') }}" method="post" class="form--inline">
+              <form action="{{ url_for('staging.run_analysis') }}" method="post" class="form--inline">
                 <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
-                <button class="btn btn--primary" type="submit">Compute mutations (DNA&#8594;Protein)</button>
+                <button class="btn btn--primary" type="submit">Run Analysis</button>
               </form>
-              <p class="run-summary__note">Required for mutation counts in Top Variants + mutation report.</p>
+              <p class="run-summary__note">Final step: generates activity outputs, Top Variants, lineage, and network plots.</p>
             </div>
           {% else %}
             <div class="run-summary__grid">
@@ -1036,7 +1036,4 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
-
-
-
 
