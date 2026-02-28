@@ -562,29 +562,29 @@ a:hover { text-decoration: underline; }
   justify-content: center;
   font-size: 10px;
   font-weight: 600;
-  color: var(--primary-dark);
-  border: 1px solid rgba(42, 125, 225, 0.28);
-  background: rgba(223, 238, 255, 0.92);
+  color: var(--text);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
   flex-shrink: 0;
 }
 
 .task--current .task__step-badge {
   border-color: var(--primary);
-  color: var(--primary);
+  color: var(--text);
   background: #f4f9ff;
 }
 
 .task__title {
   font-size: 14px;
   font-weight: 700;
-  color: var(--primary-dark);
+  color: var(--text);
   flex: 1;
 }
 
 .task__toggle {
   background: none;
   border: none;
-  color: var(--text-secondary);
+  color: var(--text);
   font-size: 13px;
   cursor: pointer;
   padding: 2px 4px;
@@ -602,7 +602,7 @@ a:hover { text-decoration: underline; }
   border-radius: 4px;
   border: 1px solid var(--border);
   background: var(--surface-alt);
-  color: var(--text-secondary);
+  color: var(--text);
   font-size: 10px;
   font-weight: 600;
   letter-spacing: .01em;
@@ -612,7 +612,7 @@ a:hover { text-decoration: underline; }
 .task__state--done,
 .task__state--pending,
 .task__state--locked {
-  color: var(--text-secondary);
+  color: var(--text);
   border-color: var(--border);
   background: var(--surface-alt);
 }
@@ -624,7 +624,7 @@ a:hover { text-decoration: underline; }
 }
 
 .task--current .task__state {
-  color: #1f4f7d;
+  color: var(--text);
   border-color: #bfdcff;
   background: #eef6ff;
 }
@@ -653,7 +653,7 @@ a:hover { text-decoration: underline; }
 .task__hint {
   margin-top: 8px;
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--text);
 }
 
 .task__locked-msg {
@@ -670,19 +670,19 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
   font-weight: 600;
   background: var(--surface-alt);
-  color: var(--text-secondary);
+  color: var(--text);
   border-left: 3px solid var(--border);
 }
 
 .task__done-summary--ok {
   background: var(--surface-alt);
-  color: var(--text-secondary);
+  color: var(--text);
   border-left-color: #c7d4e5;
 }
 
 .task__done-summary--bad {
   background: var(--danger-light);
-  color: #991b1b;
+  color: var(--text);
   border-left-color: var(--danger);
 }
 
