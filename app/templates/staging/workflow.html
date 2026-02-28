@@ -862,7 +862,7 @@
               <div class="analysis-studio__header">
                 <div>
                   <div class="analysis-studio__title">Interactive Explorer</div>
-                  <p class="analysis-studio__hint">Top 10 opens here by default. Use the explorer buttons to switch views; the static previews remain below for quick scanning.</p>
+                  <p class="analysis-studio__hint">Top 10 opens here by default. Use the explorer buttons to switch views; the remaining plots stay below for quick scanning.</p>
                 </div>
               </div>
               <div class="analysis-studio__controls">
@@ -892,20 +892,6 @@
             {% endif %}
 
             <div class="analysis-gallery">
-              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
-              <div class="analysis-card" data-plot="top10">
-                <div class="analysis-card__title">Top 10 Variants</div>
-                <a href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">
-                  <img class="analysis-img" src="{{ analysis_outputs.top10_png.url }}" alt="Top 10 variant table">
-                </a>
-                <div class="analysis-card__actions">
-                  <a class="btn btn--sm" href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">Interactive view</a>
-                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">PNG</a>
-                </div>
-                <p class="analysis-caption">Sortable activity rankings with direct variant links.</p>
-              </div>
-              {% endif %}
-
               {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
               <div class="analysis-card" data-plot="distribution">
                 <div class="analysis-card__title">Activity Score Distribution</div>
