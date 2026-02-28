@@ -1,6 +1,165 @@
-<h2>Lineage – Experiment {{ experiment_id }}</h2>
-<img src="{{ url_for('static', filename=lineage_png) }}" style="max-width:100%; height:auto;">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lineage – Experiment {{ experiment_id }}</title>
+    <style>
+      :root {
+        --ink: #122033;
+        --muted: #5f7085;
+        --line: #d9e2ec;
+        --panel: rgba(255, 255, 255, 0.94);
+        --accent: #106d6c;
+      }
 
-<a href="/lineage/{{ experiment_id }}">View lineage</a>
+      * { box-sizing: border-box; }
 
-<a href="/protein_similarity/{{ experiment_id }}">View protein network</a>
+      body {
+        margin: 0;
+        padding: 32px;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, #e7f5f0, transparent 35%),
+          linear-gradient(180deg, #fafbfc 0%, #edf2f7 100%);
+      }
+
+      .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(217, 226, 236, 0.9);
+        border-radius: 24px;
+        box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+      }
+
+      .panel__head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 22px 24px 0;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 0.95;
+      }
+
+      .panel__body {
+        padding: 20px 24px 24px;
+        display: grid;
+        gap: 18px;
+      }
+
+      .panel__sub {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .plot-image {
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .link-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        text-decoration: none;
+        color: var(--ink);
+        background: #fff;
+      }
+
+      .info-chip {
+        position: relative;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(16, 109, 108, 0.12);
+        color: var(--accent);
+        font-weight: 700;
+        font-family: Arial, sans-serif;
+        cursor: help;
+      }
+
+      .info-chip__tip {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: min(320px, 78vw);
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #102a43;
+        color: #f8fbff;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+        transition: opacity 140ms ease, transform 140ms ease;
+      }
+
+      .info-chip:hover .info-chip__tip,
+      .info-chip:focus-visible .info-chip__tip {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 720px) {
+        body { padding: 18px; }
+        .panel__head,
+        .panel__body { padding-left: 16px; padding-right: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="panel">
+        <div class="panel__head">
+          <h1>Lineage</h1>
+          <button class="info-chip" type="button" aria-label="What this graph shows">
+            i
+            <span class="info-chip__tip">
+              This graph shows parent-to-child relationships between variants
+              across generations, so you can trace how successful variants
+              branch and which lines persist over time.
+            </span>
+          </button>
+        </div>
+        <div class="panel__body">
+          <p class="panel__sub">Experiment {{ experiment_id }}</p>
+          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}" alt="Lineage graph for experiment {{ experiment_id }}">
+          <div class="actions">
+            <a class="link-btn" href="/lineage/{{ experiment_id }}">Refresh lineage</a>
+            <a class="link-btn" href="/protein_similarity/{{ experiment_id }}">Open protein network</a>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

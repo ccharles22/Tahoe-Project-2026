@@ -1,2 +1,485 @@
-<h2>Top 10 – Experiment {{ experiment_id }}</h2>
-<img class="plot-image" src="{{ url_for('static', filename=top10_png) }}">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Top 10 – Experiment {{ experiment_id }}</title>
+    <style>
+      :root {
+        --ink: #122033;
+        --muted: #5f7085;
+        --line: #d9e2ec;
+        --paper: #f5f7fa;
+        --panel: #ffffff;
+        --accent: #106d6c;
+        --accent-soft: #d8f0ef;
+        --warn: #8a5d1d;
+        --warn-soft: #f9e9c8;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 32px;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, #e7f5f0, transparent 35%),
+          linear-gradient(180deg, #fafbfc 0%, #edf2f7 100%);
+      }
+
+      .page {
+        max-width: 1120px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 8px;
+      }
+
+      .hero__title {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        line-height: 0.95;
+      }
+
+      .hero p {
+        margin: 0;
+        max-width: 760px;
+        color: var(--muted);
+        font-size: 1rem;
+      }
+
+      .panel {
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(217, 226, 236, 0.9);
+        border-radius: 24px;
+        box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+      }
+
+      .panel__head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px 0;
+        flex-wrap: wrap;
+      }
+
+      .panel__title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+
+      .panel__meta {
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .panel__body {
+        padding: 20px 24px 24px;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .toolbar__hint {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .btn {
+        border: 0;
+        border-radius: 999px;
+        padding: 10px 14px;
+        background: var(--ink);
+        color: #fff;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .btn:hover {
+        opacity: 0.92;
+      }
+
+      .info-chip {
+        position: relative;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(16, 109, 108, 0.12);
+        color: var(--accent);
+        font-weight: 700;
+        font-family: Arial, sans-serif;
+        cursor: help;
+      }
+
+      .info-chip__tip {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: min(340px, 80vw);
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #102a43;
+        color: #f8fbff;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+        transition: opacity 140ms ease, transform 140ms ease;
+      }
+
+      .info-chip:hover .info-chip__tip,
+      .info-chip:focus-visible .info-chip__tip {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .table-wrap {
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 740px;
+      }
+
+      th, td {
+        padding: 14px 12px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+      }
+
+      th {
+        text-align: left;
+        font-size: 0.82rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--muted);
+        background: rgba(245, 247, 250, 0.9);
+        position: sticky;
+        top: 0;
+        z-index: 1;
+      }
+
+      th button {
+        border: 0;
+        padding: 0;
+        background: none;
+        font: inherit;
+        letter-spacing: inherit;
+        text-transform: inherit;
+        color: inherit;
+        cursor: pointer;
+      }
+
+      tbody tr {
+        transition: background-color 140ms ease, transform 140ms ease;
+      }
+
+      tbody tr:hover,
+      tbody tr.is-active {
+        background: rgba(216, 240, 239, 0.5);
+      }
+
+      .rank-pill {
+        display: inline-flex;
+        min-width: 2rem;
+        justify-content: center;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--paper);
+        font-weight: 700;
+      }
+
+      .score-cell {
+        min-width: 240px;
+      }
+
+      .score-stack {
+        display: grid;
+        gap: 8px;
+      }
+
+      .score-value {
+        font-variant-numeric: tabular-nums;
+        font-weight: 700;
+      }
+
+      .score-bar {
+        width: 100%;
+        height: 10px;
+        border-radius: 999px;
+        background: #e6edf2;
+        overflow: hidden;
+      }
+
+      .score-bar > span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--accent) 0%, #59b7a9 100%);
+      }
+
+      .mut-chip {
+        display: inline-flex;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--warn-soft);
+        color: var(--warn);
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .actions {
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .row-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        color: var(--accent);
+        font-weight: 700;
+      }
+
+      .image-shell {
+        display: grid;
+        gap: 14px;
+      }
+
+      .plot-image {
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .empty {
+        padding: 28px;
+        border-radius: 18px;
+        background: var(--paper);
+        color: var(--muted);
+      }
+
+      @media (max-width: 720px) {
+        body { padding: 18px; }
+        .panel__head,
+        .panel__body { padding-left: 16px; padding-right: 16px; }
+        .score-cell { min-width: 180px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div class="hero__title">
+          <h1>Top 10 Variants</h1>
+          <button class="info-chip" type="button" aria-label="What this graph shows">
+            i
+            <span class="info-chip__tip">
+              This view ranks the highest-activity variants in the experiment
+              and pairs activity with mutation counts, so you can quickly spot
+              whether the strongest performers are also highly diverged.
+            </span>
+          </button>
+        </div>
+        <p>
+          Experiment {{ experiment_id }}. Sort the live table, compare activity bars,
+          and copy the current rows as CSV without leaving the page.
+        </p>
+      </header>
+
+      <section class="panel">
+        <div class="panel__head">
+          <div>
+            <h2 class="panel__title">Interactive Ranking</h2>
+            <div class="panel__meta">
+              {% if top10_rows %}
+                {{ top10_rows|length }} variants shown · click a header to sort
+              {% else %}
+                No ranked variants available yet
+              {% endif %}
+            </div>
+          </div>
+          <div class="toolbar">
+            <button class="btn" type="button" id="copyCsvBtn">Copy table as CSV</button>
+            <span class="toolbar__hint" id="copyHint">Ready</span>
+          </div>
+        </div>
+        <div class="panel__body">
+          {% if top10_rows %}
+            <div class="table-wrap">
+              <table id="top10Table" aria-label="Top 10 variants">
+                <thead>
+                  <tr>
+                    <th><button type="button" data-sort-key="rank">Rank</button></th>
+                    <th><button type="button" data-sort-key="generation">Generation</button></th>
+                    <th><button type="button" data-sort-key="index">Variant Index</button></th>
+                    <th><button type="button" data-sort-key="score">Activity Score</button></th>
+                    <th><button type="button" data-sort-key="mutations">Total Mutations</button></th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for row in top10_rows %}
+                    {% set bar_width = (row.activity_score / top10_max_score * 100) if top10_max_score else 0 %}
+                    <tr
+                      data-rank="{{ row.rank }}"
+                      data-generation="{{ row.generation_number }}"
+                      data-index="{{ row.plasmid_variant_index }}"
+                      data-score="{{ '%.12f'|format(row.activity_score) }}"
+                      data-mutations="{{ row.total_mutations }}"
+                    >
+                      <td><span class="rank-pill">#{{ row.rank }}</span></td>
+                      <td>{{ row.generation_number }}</td>
+                      <td>{{ row.plasmid_variant_index }}</td>
+                      <td class="score-cell">
+                        <div class="score-stack">
+                          <span class="score-value">{{ '%.3f'|format(row.activity_score) }}</span>
+                          <span class="score-bar"><span style="width: {{ '%.2f'|format(bar_width) }}%;"></span></span>
+                        </div>
+                      </td>
+                      <td><span class="mut-chip">{{ row.total_mutations }}</span></td>
+                      <td class="actions">
+                        <a class="row-link" href="/staging/variant/{{ row.variant_id }}" target="_blank" rel="noopener">
+                          View
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <div class="empty">
+              The Top 10 query returned no rows. Run the report pipeline first, then refresh.
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__head">
+          <div>
+            <h2 class="panel__title">Static Snapshot</h2>
+            <div class="panel__meta">The original plot is still available for export and comparison.</div>
+          </div>
+        </div>
+        <div class="panel__body image-shell">
+          <img class="plot-image" src="{{ url_for('static', filename=top10_png) }}?v={{ experiment_id }}" alt="Top 10 plot for experiment {{ experiment_id }}">
+        </div>
+      </section>
+    </main>
+
+    <script>
+      (function () {
+        const table = document.getElementById("top10Table");
+        const copyBtn = document.getElementById("copyCsvBtn");
+        const copyHint = document.getElementById("copyHint");
+        if (!table) {
+          if (copyBtn) copyBtn.disabled = true;
+          return;
+        }
+
+        const tbody = table.querySelector("tbody");
+        const rows = Array.from(tbody.querySelectorAll("tr"));
+        let currentSort = { key: "rank", direction: "asc" };
+
+        const compare = {
+          rank: (row) => Number(row.dataset.rank),
+          generation: (row) => Number(row.dataset.generation),
+          index: (row) => {
+            const raw = row.dataset.index || "";
+            const num = Number(raw);
+            return Number.isFinite(num) ? num : raw.toLowerCase();
+          },
+          score: (row) => Number(row.dataset.score),
+          mutations: (row) => Number(row.dataset.mutations),
+        };
+
+        function sortRows(key) {
+          const nextDirection =
+            currentSort.key === key && currentSort.direction === "asc" ? "desc" : "asc";
+          currentSort = { key, direction: nextDirection };
+
+          rows.sort((a, b) => {
+            const av = compare[key](a);
+            const bv = compare[key](b);
+            let result = 0;
+            if (typeof av === "string" || typeof bv === "string") {
+              result = String(av).localeCompare(String(bv), undefined, { numeric: true });
+            } else {
+              result = av - bv;
+            }
+            return nextDirection === "asc" ? result : -result;
+          });
+
+          rows.forEach((row) => tbody.appendChild(row));
+        }
+
+        table.querySelectorAll("[data-sort-key]").forEach((btn) => {
+          btn.addEventListener("click", () => sortRows(btn.dataset.sortKey));
+        });
+
+        rows.forEach((row) => {
+          row.addEventListener("click", (event) => {
+            if (event.target.closest("a")) return;
+            rows.forEach((other) => other.classList.remove("is-active"));
+            row.classList.add("is-active");
+          });
+        });
+
+        async function copyCsv() {
+          const header = ["rank", "generation_number", "plasmid_variant_index", "activity_score", "total_mutations"];
+          const body = rows.map((row) => [
+            row.dataset.rank,
+            row.dataset.generation,
+            row.dataset.index,
+            row.dataset.score,
+            row.dataset.mutations,
+          ]);
+          const csv = [header, ...body]
+            .map((cols) => cols.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
+            .join("\n");
+
+          try {
+            await navigator.clipboard.writeText(csv);
+            copyHint.textContent = "Copied";
+          } catch (_) {
+            copyHint.textContent = "Copy failed";
+          }
+        }
+
+        copyBtn.addEventListener("click", copyCsv);
+      })();
+    </script>
+  </body>
+</html>

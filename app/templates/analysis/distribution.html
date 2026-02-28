@@ -1,2 +1,142 @@
-<h2>Distribution – Experiment {{ experiment_id }}</h2>
-<img class="plot-image" src="{{ url_for('static', filename=dist_png) }}">
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Distribution – Experiment {{ experiment_id }}</title>
+    <style>
+      :root {
+        --ink: #122033;
+        --muted: #5f7085;
+        --line: #d9e2ec;
+        --paper: #f5f7fa;
+        --panel: rgba(255, 255, 255, 0.94);
+        --accent: #106d6c;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        padding: 32px;
+        font-family: Georgia, "Times New Roman", serif;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at top right, #e7f5f0, transparent 35%),
+          linear-gradient(180deg, #fafbfc 0%, #edf2f7 100%);
+      }
+
+      .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        display: grid;
+        gap: 24px;
+      }
+
+      .panel {
+        background: var(--panel);
+        border: 1px solid rgba(217, 226, 236, 0.9);
+        border-radius: 24px;
+        box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+      }
+
+      .panel__head {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 22px 24px 0;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 4vw, 3rem);
+        line-height: 0.95;
+      }
+
+      .panel__body {
+        padding: 20px 24px 24px;
+      }
+
+      .panel__sub {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .plot-image {
+        width: 100%;
+        height: auto;
+        border-radius: 18px;
+        border: 1px solid var(--line);
+        background: #fff;
+      }
+
+      .info-chip {
+        position: relative;
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(16, 109, 108, 0.12);
+        color: var(--accent);
+        font-weight: 700;
+        font-family: Arial, sans-serif;
+        cursor: help;
+      }
+
+      .info-chip__tip {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        width: min(320px, 78vw);
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #102a43;
+        color: #f8fbff;
+        font-size: 0.92rem;
+        line-height: 1.45;
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+        transition: opacity 140ms ease, transform 140ms ease;
+      }
+
+      .info-chip:hover .info-chip__tip,
+      .info-chip:focus-visible .info-chip__tip {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      @media (max-width: 720px) {
+        body { padding: 18px; }
+        .panel__head,
+        .panel__body { padding-left: 16px; padding-right: 16px; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="panel">
+        <div class="panel__head">
+          <h1>Distribution</h1>
+          <button class="info-chip" type="button" aria-label="What this graph shows">
+            i
+            <span class="info-chip__tip">
+              This chart shows the spread of activity scores across generations,
+              so you can quickly see whether activity is clustering tightly or
+              widening as the experiment evolves.
+            </span>
+          </button>
+        </div>
+        <div class="panel__body">
+          <p class="panel__sub">Experiment {{ experiment_id }}</p>
+          <img class="plot-image" src="{{ url_for('static', filename=dist_png) }}" alt="Activity distribution for experiment {{ experiment_id }}">
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
