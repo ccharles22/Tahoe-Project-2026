@@ -547,43 +547,16 @@
                 <div class="kv__row"><span>Status</span><strong class="text-success">Stored</strong></div>
               </div>
 
-              <div class="wt-reference">
-                {% if wt_structure.enabled %}
-                  <div
-                    class="wt-structure"
-                    data-wt-structure
-                    data-model-url="{{ wt_structure.model_url }}"
-                    data-accession="{{ wt_structure.accession }}"
-                  >
-                    <div class="wt-structure__header">
-                      <div>
-                        <div class="wt-structure__title">Reference Structure</div>
-                        <div class="wt-structure__subtitle">{{ wt_structure.source_label }}</div>
-                      </div>
-                      <div class="wt-structure__links">
-                        <a class="btn btn--sm btn--ghost" href="{{ wt_structure.uniprot_url }}" target="_blank" rel="noopener">UniProt</a>
-                        <a class="btn btn--sm btn--ghost" href="{{ wt_structure.alphafold_url }}" target="_blank" rel="noopener">AlphaFold</a>
-                      </div>
-                    </div>
-                    <div class="wt-structure__viewer" data-wt-structure-canvas>
-                      <div class="wt-structure__status" data-wt-structure-status>
-                        Loading interactive WT structure…
-                      </div>
-                    </div>
-                  </div>
-                {% endif %}
-
-                <div class="note">
-                  <strong>UniProt context</strong><br>
-                  {{ wt_insights.annotation_summary }}
-                  {% if wt_insights.feature_highlights %}
-                    <br><br>
-                    <strong>Highlights:</strong>
-                    {{ wt_insights.feature_highlights|join(' · ') }}
-                  {% endif %}
+              <div class="note">
+                <strong>UniProt context</strong><br>
+                {{ wt_insights.annotation_summary }}
+                {% if wt_insights.feature_highlights %}
                   <br><br>
-                  Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
-                </div>
+                  <strong>Highlights:</strong>
+                  {{ wt_insights.feature_highlights|join(' · ') }}
+                {% endif %}
+                <br><br>
+                Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
               </div>
             </div>
           {% else %}
