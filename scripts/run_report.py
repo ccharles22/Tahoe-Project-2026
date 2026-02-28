@@ -4,6 +4,8 @@ import matplotlib
 matplotlib.use("Agg")
 
 import os
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +37,13 @@ OUTPUT_DIR = Path("app/static/generated")
 SCORE_TOL = 1e-9
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    val = os.getenv(name)
+    if val is None:
+        return default
+    return val.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
     """Returns (all_activity_scores, this_experiment_activity_scores)."""
     with conn.cursor() as cur:
@@ -64,6 +73,140 @@ def db_count_activity_scores(conn, experiment_id: int) -> tuple[int, int]:
         exp_n = int(cur.fetchone()[0])
 
     return all_n, exp_n
+
+
+def _sequence_state(experiment_id: int) -> dict[str, Any]:
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            """
+            SELECT
+              e.analysis_status,
+              COUNT(v.variant_id) AS variant_count,
+              COUNT(vsa.vsa_id) AS vsa_rows,
+              COUNT(*) FILTER (
+                WHERE v.variant_id IS NOT NULL
+                  AND NULLIF(BTRIM(COALESCE(v.protein_sequence, '')), '') IS NOT NULL
+              ) AS protein_ready_count
+            FROM public.experiments e
+            LEFT JOIN public.generations g
+              ON g.experiment_id = e.experiment_id
+            LEFT JOIN public.variants v
+              ON v.generation_id = g.generation_id
+            LEFT JOIN public.variant_sequence_analysis vsa
+              ON vsa.variant_id = v.variant_id
+             AND vsa.analysis_version = 'v1'
+            WHERE e.experiment_id = %s
+            GROUP BY e.analysis_status
+            """,
+            (experiment_id,),
+        )
+        row = cur.fetchone()
+
+    if row is None:
+        raise SystemExit(f"[Sequence] Experiment {experiment_id} not found.")
+
+    return {
+        "analysis_status": row[0],
+        "variant_count": int(row[1] or 0),
+        "vsa_rows": int(row[2] or 0),
+        "protein_ready_count": int(row[3] or 0),
+    }
+
+
+def _needs_sequence_backfill(state: dict[str, Any], *, force: bool) -> bool:
+    if force:
+        return True
+
+    if state["variant_count"] == 0:
+        return False
+
+    if state["analysis_status"] in {None, "FAILED"}:
+        return True
+
+    if state["vsa_rows"] < state["variant_count"]:
+        return True
+
+    if state["protein_ready_count"] == 0:
+        return True
+
+    return False
+
+
+def _run_sequence_processing(experiment_id: int) -> None:
+    worktree = Path(
+        os.getenv("SEQUENCE_PROCESSING_WORKTREE", "/tmp/ui_test_worktree")
+    )
+    if not worktree.exists():
+        raise SystemExit(
+            "[Sequence] UI_test worktree not found at "
+            f"{worktree}. Set SEQUENCE_PROCESSING_WORKTREE to the correct path."
+        )
+
+    env = os.environ.copy()
+    env.setdefault("FALLBACK_SEARCH", "true")
+    env.setdefault("PYTHONUNBUFFERED", "1")
+
+    python_exe = os.getenv("SEQUENCE_PROCESSING_PYTHON", sys.executable)
+    cmd = [
+        python_exe,
+        "-c",
+        (
+            "import logging; "
+            "logging.basicConfig(level=logging.INFO, "
+            "format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'); "
+            "from app.jobs.run_sequence_processing import run_sequence_processing; "
+            f"run_sequence_processing({experiment_id}, force_reprocess=True)"
+        ),
+    ]
+
+    print(
+        "[Sequence] Running UI_test sequence processing first "
+        f"(experiment {experiment_id})..."
+    )
+    subprocess.run(cmd, cwd=worktree, env=env, check=True)
+
+
+def ensure_sequence_processing_ready(experiment_id: int) -> None:
+    auto_run = _env_bool("AUTO_RUN_SEQUENCE_PROCESSING", True)
+    force_run = _env_bool("FORCE_SEQUENCE_PROCESSING", False)
+
+    state = _sequence_state(experiment_id)
+    if state["analysis_status"] == "ANALYSIS_RUNNING":
+        raise SystemExit(
+            "[Sequence] Sequence processing is already running for "
+            f"experiment {experiment_id}. Wait for it to finish before "
+            "running the report."
+        )
+
+    if not _needs_sequence_backfill(state, force=force_run):
+        print(
+            "[Sequence] Existing sequence outputs look usable; "
+            "skipping pre-run."
+        )
+        return
+
+    if not auto_run and not force_run:
+        raise SystemExit(
+            "[Sequence] Sequence outputs are missing or incomplete for "
+            f"experiment {experiment_id}. Re-run with "
+            "AUTO_RUN_SEQUENCE_PROCESSING=true or run UI_test sequence "
+            "processing manually first."
+        )
+
+    _run_sequence_processing(experiment_id)
+
+    refreshed = _sequence_state(experiment_id)
+    if _needs_sequence_backfill(refreshed, force=False):
+        raise SystemExit(
+            "[Sequence] Sequence processing finished, but outputs still look "
+            f"incomplete for experiment {experiment_id}: {refreshed}"
+        )
+
+    print(
+        "[Sequence] Sequence outputs are ready: "
+        f"{refreshed['vsa_rows']}/{refreshed['variant_count']} analysed, "
+        f"{refreshed['protein_ready_count']} proteins available."
+    )
 
 
 def _validate_stage4_formula(df_with_qc: pd.DataFrame) -> None:
@@ -298,6 +441,8 @@ def main() -> None:
     experiment_id = int(os.getenv("EXPERIMENT_ID", "0"))
     if experiment_id <= 0:
         raise SystemExit("Set EXPERIMENT_ID (e.g. export EXPERIMENT_ID=1)")
+
+    ensure_sequence_processing_ready(experiment_id)
 
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
