@@ -976,6 +976,42 @@
               </span>
             {% endif %}
           </div>
+
+          <div class="downloads-group">
+            <div class="downloads-group__title">Static Graph Snapshots</div>
+            <div class="downloads-group__list">
+              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">Top 10 PNG</a>
+              {% else %}
+                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 PNG</span>
+              {% endif %}
+
+              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">Distribution PNG</a>
+              {% else %}
+                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Distribution PNG</span>
+              {% endif %}
+
+              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">Lineage PNG</a>
+              {% else %}
+                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Lineage PNG</span>
+              {% endif %}
+
+              {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">Protein Similarity PNG</a>
+              {% else %}
+                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Protein Similarity PNG</span>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
+                <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">Bonus Activity Surface PNG</a>
+              {% else %}
+                <span class="btn btn--ghost btn--disabled" aria-disabled="true">Bonus Activity Surface PNG</span>
+              {% endif %}
+            </div>
+            <div class="downloads-group__hint">Static snapshots are downloadable here only and are no longer shown in the page layout.</div>
+          </div>
         </section>
         {% endif %}
 
