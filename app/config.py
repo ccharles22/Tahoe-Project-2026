@@ -59,7 +59,9 @@ class Settings:
     WT_MIN_IDENTITY_PCT: float = 60.0
     MAX_ALIGNMENT_GAP_PENALTY: float = -10.0
 
-    FALLBACK_SEARCH: bool = _get_bool("FALLBACK_SEARCH", False)
+    # Default to de novo remap fallback so future experiments keep working
+    # when fixed-coordinate extraction drifts.
+    FALLBACK_SEARCH: bool = _get_bool("FALLBACK_SEARCH", True)
 
 
 # Global settings instance

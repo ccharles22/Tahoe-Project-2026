@@ -1,5 +1,8 @@
-"""Unit tests for WT reference loading from sequence DB repository."""
+"""Unit tests for WT reference loading from the sequence repository."""
 
+from __future__ import annotations
+
+import json
 from unittest.mock import MagicMock
 
 import pytest
@@ -7,42 +10,60 @@ import pytest
 from app.services.sequence.db_repo import get_wt_reference
 
 
-def _mock_engine_with_row(row):
+def _mock_engine(sequence_row, staged_row=None):
     engine = MagicMock()
     conn_ctx = MagicMock()
     conn = MagicMock()
-    result = MagicMock()
 
     engine.connect.return_value = conn_ctx
     conn_ctx.__enter__.return_value = conn
-    conn.execute.return_value = result
-    result.fetchone.return_value = row
+
+    seq_result = MagicMock()
+    seq_result.fetchone.return_value = sequence_row
+
+    staged_result = MagicMock()
+    staged_result.fetchone.return_value = staged_row
+
+    conn.execute.side_effect = [seq_result, staged_result]
     return engine
 
 
-def test_get_wt_reference_uses_experiment_plasmid_override_dict():
-    engine = _mock_engine_with_row(("MKT", "ATGAAAACC", {"wt_plasmid_sequence": "TTTAAACCC"}))
+def test_get_wt_reference_uses_experiment_wt_when_no_staging():
+    engine = _mock_engine(("MKT", "ATGAAAACC"), None)
+
     wt_protein, wt_plasmid = get_wt_reference(engine, experiment_id=1)
+
     assert wt_protein == "MKT"
-    assert wt_plasmid == "TTTAAACCC"
+    assert wt_plasmid == "ATGAAAACC"
 
 
-def test_get_wt_reference_uses_experiment_plasmid_override_json_string():
-    engine = _mock_engine_with_row(("MKT", "ATGAAAACC", '{"wt_plasmid_sequence":"gggcccaaa"}'))
+def test_get_wt_reference_uses_staged_protein_override():
+    payload = json.dumps(
+        {
+            "user_id": 7,
+            "accession": "P12345",
+            "protein_sequence": "mktaa",
+        }
+    )
+    engine = _mock_engine(("MKT", "ATGAAAACC"), (payload,))
+
     wt_protein, wt_plasmid = get_wt_reference(engine, experiment_id=1)
-    assert wt_protein == "MKT"
-    assert wt_plasmid == "GGGCCCAAA"
+
+    assert wt_protein == "MKTAA"
+    assert wt_plasmid == "ATGAAAACC"
 
 
-def test_get_wt_reference_falls_back_to_wt_plasmid():
-    engine = _mock_engine_with_row(("MKT", "ATGAAAACC", {}))
+def test_get_wt_reference_ignores_invalid_staging_payload():
+    engine = _mock_engine(("MKT", "ATGAAAACC"), ("not-json",))
+
     wt_protein, wt_plasmid = get_wt_reference(engine, experiment_id=1)
+
     assert wt_protein == "MKT"
     assert wt_plasmid == "ATGAAAACC"
 
 
 def test_get_wt_reference_raises_on_missing_row():
-    engine = _mock_engine_with_row(None)
+    engine = _mock_engine(None, None)
+
     with pytest.raises(ValueError, match="No WT reference found"):
         get_wt_reference(engine, experiment_id=1)
-

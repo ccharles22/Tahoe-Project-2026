@@ -392,6 +392,23 @@ class TestRunSequenceProcessingDirect:
         with pytest.raises(ValueError, match="positive integer"):
             run_sequence_processing(-1)
 
+    def test_force_reprocess_overwrites_existing_results(self):
+        """Forced reruns must overwrite old sequence-analysis outputs."""
+        patches = _patch_pipeline()
+        mocks = {k: p.start() for k, p in patches.items()}
+
+        try:
+            from app.jobs.run_sequence_processing import run_sequence_processing
+
+            run_sequence_processing(FAKE_EXPERIMENT_ID, force_reprocess=True)
+
+            mocks["list_processed"].assert_not_called()
+            assert mocks["batch_insert"].called
+            assert mocks["batch_insert"].call_args.kwargs["overwrite"] is True
+        finally:
+            for p in patches.values():
+                p.stop()
+
 
 class TestProcessVariantNonZeroFrame:
     """Verify that non-zero reading frames are handled correctly.
@@ -406,6 +423,7 @@ class TestProcessVariantNonZeroFrame:
     def test_frame_1_extracts_correct_cds(self):
         """With frame=1, CDS extracted from coordinates should be exact — no double trim."""
         from app.services.sequence.sequence_service import process_variant_plasmid
+        from unittest.mock import patch
 
         wt_mapping = WTMapping(
             strand="PLUS",
@@ -418,11 +436,15 @@ class TestProcessVariantNonZeroFrame:
             alignment_score=100.0,
         )
 
-        result = process_variant_plasmid(
-            self._PLASMID_FRAME1,
-            wt_mapping,
-            fallback_search=False,
-        )
+        with patch(
+            "app.services.sequence.sequence_service._needs_variant_remap",
+            return_value=False,
+        ):
+            result = process_variant_plasmid(
+                self._PLASMID_FRAME1,
+                wt_mapping,
+                fallback_search=False,
+            )
 
         assert result.cds_dna == "ATGGCTGCC"
         assert result.protein_aa is not None
@@ -432,6 +454,7 @@ class TestProcessVariantNonZeroFrame:
     def test_frame_2_extracts_correct_cds(self):
         """With frame=2, same logic — coordinates already account for frame."""
         from app.services.sequence.sequence_service import process_variant_plasmid
+        from unittest.mock import patch
 
         # 2 junk bases, then ATG AAA GCC = M K A, then padding
         plasmid = "GG" + "ATGAAAGCC" + "T" * 19
@@ -447,11 +470,15 @@ class TestProcessVariantNonZeroFrame:
             alignment_score=100.0,
         )
 
-        result = process_variant_plasmid(
-            plasmid,
-            wt_mapping,
-            fallback_search=False,
-        )
+        with patch(
+            "app.services.sequence.sequence_service._needs_variant_remap",
+            return_value=False,
+        ):
+            result = process_variant_plasmid(
+                plasmid,
+                wt_mapping,
+                fallback_search=False,
+            )
 
         assert result.cds_dna == "ATGAAAGCC"
         assert result.protein_aa is not None

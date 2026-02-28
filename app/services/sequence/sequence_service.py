@@ -415,13 +415,31 @@ def _prefer_codon_alignment_for_equal_lengths(wt_cds: str, var_cds: str) -> bool
 
     mismatch_positions = [idx for idx, (wc, vc) in enumerate(zip(wt_codons, var_codons)) if wc != vc]
     direct_mismatches = len(mismatch_positions)
+    if direct_mismatches < 2:
+        return False
+
+    start = mismatch_positions[0]
+    end = mismatch_positions[-1]
+    mismatch_span = end - start + 1
+
+    # Cheap check for a compact shifted block (for example, a single codon
+    # insertion plus a compensating deletion) without paying for whole-CDS DP.
+    if mismatch_span <= min(12, direct_mismatches + 4):
+        wt_block = wt_codons[start : end + 1]
+        var_block = var_codons[start : end + 1]
+        max_shift = min(3, len(wt_block) - 1)
+        for shift in range(1, max_shift + 1):
+            if wt_block[shift:] == var_block[:-shift]:
+                return True
+            if wt_block[:-shift] == var_block[shift:]:
+                return True
+
     if direct_mismatches < 6:
         return False
 
     # Most equal-length variants are simple substitutions. Only pay for the
     # codon-DP path when mismatches cluster in a way that suggests a shifted
     # block between a compensating insertion/deletion pair.
-    mismatch_span = mismatch_positions[-1] - mismatch_positions[0] + 1
     if mismatch_span > direct_mismatches * 3:
         return False
 
