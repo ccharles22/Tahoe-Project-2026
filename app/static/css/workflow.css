@@ -730,8 +730,8 @@ a:hover { text-decoration: underline; }
 }
 
 .stepper__step--done .stepper__circle {
-  background: #f3f4f6;
-  border-color: #d1d5db;
+  background: #edf5ff;
+  border-color: rgba(24, 92, 179, 0.34);
   color: transparent;
   box-shadow: none;
   position: relative;
@@ -739,7 +739,7 @@ a:hover { text-decoration: underline; }
 
 .stepper__step--done .stepper__circle::after {
   content: "\2713";
-  color: #9ca3af;
+  color: var(--primary-dark);
   font-size: 11px;
   font-weight: 700;
   position: absolute;
@@ -753,7 +753,7 @@ a:hover { text-decoration: underline; }
 }
 
 .stepper__step--done .stepper__label {
-  color: var(--text-secondary);
+  color: var(--primary-dark);
   font-weight: 600;
 }
 
@@ -769,7 +769,7 @@ a:hover { text-decoration: underline; }
 }
 
 .stepper__line--done {
-  background: #d1d5db;
+  background: var(--primary-dark);
 }
 
 .stepper__step--done:not(.stepper__step--active) {
@@ -777,13 +777,13 @@ a:hover { text-decoration: underline; }
 }
 
 .stepper__step--active .stepper__circle {
-  border-color: var(--primary);
-  color: var(--primary);
-  background: #f8fbff;
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+  background: #edf5ff;
 }
 
 .stepper__step--active .stepper__label {
-  color: #6b7280;
+  color: var(--primary-dark);
   font-weight: 600;
 }
 
@@ -799,7 +799,7 @@ a:hover { text-decoration: underline; }
 
 .stepper-bar__fill {
   height: 100%;
-  background: #c5ccd8;
+  background: var(--primary-dark);
   border-radius: 2px;
   transition: width .5s var(--ease);
 }
