@@ -529,8 +529,11 @@ a:hover { text-decoration: underline; }
 }
 
 .task[data-status='done'] {
-  opacity: 0.62;
-  filter: saturate(0.85);
+  opacity: 1;
+  filter: none;
+  border-color: rgba(5, 150, 105, 0.28);
+  background: linear-gradient(180deg, #f8fdfb 0%, #effaf4 100%);
+  box-shadow: 0 0 0 1px rgba(5, 150, 105, 0.08), var(--shadow-sm);
 }
 
 .task[data-status='fail'] {
