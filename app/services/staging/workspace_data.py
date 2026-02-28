@@ -25,7 +25,12 @@ def load_top10_rows(csv_path, experiment_id):
                   g.generation_number,
                   v.plasmid_variant_index,
                   m.value AS activity_score,
-                  COALESCE(mt.total_mutations, tm.total_mut_count, 0)::int AS total_mutations
+                  COALESCE(
+                    mt.total_mutations,
+                    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
+                    tm.total_mut_count,
+                    0
+                  )::int AS total_mutations
                 FROM metrics m
                 JOIN variants v ON v.variant_id = m.variant_id
                 JOIN generations g ON g.generation_id = v.generation_id
