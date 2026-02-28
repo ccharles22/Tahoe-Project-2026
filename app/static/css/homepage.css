@@ -820,9 +820,17 @@ a:hover { text-decoration: underline; }
 
 .home-results-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(320px, calc((100% - 48px) / 3));
   gap: 24px;
   align-items: stretch;
+  overflow-x: auto;
+  padding: 2px 4px 12px;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(42, 125, 225, 0.32) transparent;
 }
 
 .home-results-card {
@@ -836,6 +844,7 @@ a:hover { text-decoration: underline; }
   padding: 20px;
   box-shadow: 0 18px 32px rgba(21, 62, 111, 0.08);
   min-height: 100%;
+  scroll-snap-align: start;
 }
 
 .home-results-intro {
@@ -1399,6 +1408,13 @@ a:hover { text-decoration: underline; }
   min-height: 100vh;
 }
 
+@media (max-width: 960px) {
+  .home-results-grid {
+    grid-auto-columns: minmax(320px, calc((100% - 24px) / 2));
+    gap: 18px;
+  }
+}
+
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav__name { display: none; }
@@ -1460,18 +1476,9 @@ a:hover { text-decoration: underline; }
     line-height: 1.25;
   }
   .home-results-grid {
-    grid-template-columns: none;
-    grid-auto-flow: column;
     grid-auto-columns: minmax(82vw, 360px);
-    overflow-x: auto;
     gap: 16px;
     padding: 2px 4px 10px;
-    scroll-snap-type: x mandatory;
-    overscroll-behavior-x: contain;
-    scrollbar-width: thin;
-  }
-  .home-results-card {
-    scroll-snap-align: start;
   }
   .auth-sheet__panel {
     height: 100vh;
@@ -1491,4 +1498,3 @@ a:hover { text-decoration: underline; }
   }
   .auth-sheet .text-link { font-size: 11px; }
 }
-
