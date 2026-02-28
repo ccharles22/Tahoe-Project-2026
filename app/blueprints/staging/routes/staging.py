@@ -104,6 +104,29 @@ def _build_wt_insights(wt: WildtypeProtein | None, exp: Experiment | None) -> di
     }
 
 
+def _build_wt_structure(wt: WildtypeProtein | None) -> dict:
+    """Build a lightweight WT structure-view payload for the staging UI."""
+    if not wt or not wt.uniprot_id:
+        return {
+            'enabled': False,
+            'accession': '',
+            'model_url': '',
+            'alphafold_url': '',
+            'uniprot_url': '',
+            'source_label': 'No structure source available',
+        }
+
+    accession = str(wt.uniprot_id).strip().upper()
+    return {
+        'enabled': True,
+        'accession': accession,
+        'model_url': f'https://alphafold.ebi.ac.uk/files/AF-{accession}-F1-model_v4.pdb',
+        'alphafold_url': f'https://alphafold.ebi.ac.uk/entry/{accession}',
+        'uniprot_url': f'https://www.uniprot.org/uniprotkb/{accession}/entry',
+        'source_label': 'AlphaFold predicted reference model',
+    }
+
+
 @staging_bp.get('/')
 def create_experiment():
     """Render staging UI for the selected experiment (or latest experiment)."""
@@ -148,6 +171,7 @@ def create_experiment():
     sequence_status = None
     selected_experiment_name = None
     wt_insights = _build_wt_insights(None, None)
+    wt_structure = _build_wt_structure(None)
     methods_panel = {
         'wt_accession': 'N/A',
         'records': 0,
@@ -175,6 +199,7 @@ def create_experiment():
             if wt and wt.uniprot_id:
                 methods_panel['wt_accession'] = wt.uniprot_id
         wt_insights = _build_wt_insights(wt, exp)
+        wt_structure = _build_wt_structure(wt)
 
         val_dict = get_validation_from_session(experiment_id)
         if val_dict:
@@ -417,4 +442,5 @@ def create_experiment():
         selected_experiment_name=selected_experiment_name,
         methods_panel=methods_panel,
         wt_insights=wt_insights,
+        wt_structure=wt_structure,
     )
