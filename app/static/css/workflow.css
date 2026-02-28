@@ -1212,7 +1212,7 @@ a:hover { text-decoration: underline; }
 .appShell {
   min-height: calc(100vh - 72px - 48px);
   display: grid;
-  grid-template-columns: 76px 312px minmax(0, 1fr);
+  grid-template-columns: 112px 312px minmax(0, 1fr);
   gap: 0;
 }
 
@@ -1248,18 +1248,18 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 14px 8px;
+  padding: 16px 10px;
   border-radius: var(--radius);
   text-decoration: none;
   color: var(--text);
   font-weight: 600;
-  font-size: 11px;
+  font-size: 12px;
   transition: all .2s var(--ease);
   border: 1px solid transparent;
   cursor: pointer;
   width: 100%;
   text-align: center;
-  min-height: 82px;
+  min-height: 90px;
 }
 
 .taskbar__item:hover {
@@ -1269,9 +1269,10 @@ a:hover { text-decoration: underline; }
 }
 
 .taskbar__item--active {
-  background: var(--surface);
-  border-color: var(--border);
-  box-shadow: var(--shadow-sm);
+  background: rgba(59, 130, 246, 0.14);
+  border-color: rgba(59, 130, 246, 0.32);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.14), var(--shadow-sm);
+  color: #1d4ed8;
 }
 
 .taskbar__icon {
@@ -1281,8 +1282,10 @@ a:hover { text-decoration: underline; }
 }
 
 .taskbar__label {
-  word-break: break-word;
   width: 100%;
+  white-space: nowrap;
+  word-break: normal;
+  line-height: 1.15;
 }
 
 
@@ -2207,7 +2210,7 @@ a:hover { text-decoration: underline; }
 /* ---------- RESPONSIVE: collapse 4-col to 2 or 1 ---------- */
 @media (max-width: 1100px) {
   .appShell {
-    grid-template-columns: 70px 1fr;
+    grid-template-columns: 112px 1fr;
   }
   .sidebar { display: none; }
 }
