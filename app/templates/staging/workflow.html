@@ -526,34 +526,6 @@
         </section>
         {% endif %}
 
-        <section class="panel" data-panel="A">
-          <div class="panel__header">
-            <span class="panel__step">1</span>
-            WT (UniProt) Output
-            {% if wt %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
-          </div>
-
-          {% if wt %}
-            <div class="grid2">
-              <div class="kv">
-                <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_id }}</strong></div>
-                <div class="kv__row"><span>Length</span><strong>{{ wt.sequence_length if wt.sequence_length else "—" }} aa</strong></div>
-                <div class="kv__row"><span>Status</span><strong class="text-success">Stored</strong></div>
-              </div>
-
-              <div class="note">
-                Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
-              </div>
-            </div>
-          {% else %}
-            <div class="empty">
-              <div class="empty__icon" aria-hidden="true">&#x1F4CB;</div>
-              Waiting for WT fetch…
-              <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
-            </div>
-          {% endif %}
-        </section>
-
         <section class="panel insights-panel panel--primary">
           <div class="panel__header">Top Variants</div>
           {% if top10_rows %}
@@ -697,52 +669,6 @@
           {% endif %}
 
           {% if has_any_graph %}
-            <div class="output-timeline">
-              <section class="output-stage">
-                <div class="output-stage__eyebrow">Step 4</div>
-                <div class="output-stage__title">Sequence Outputs</div>
-                <p class="output-stage__text">Sequence processing computes translations and mutation calls first. These are the mutation-aware artifacts that analysis builds on.</p>
-                <div class="output-stage__actions">
-                  {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
-                    <a class="btn btn--sm" href="{{ analysis_outputs.mutation_report.url }}" target="_blank" rel="noopener">Mutation report CSV</a>
-                  {% else %}
-                    <span class="btn btn--sm btn--disabled" aria-disabled="true">Mutation report CSV</span>
-                  {% endif %}
-                  {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
-                  {% endif %}
-                </div>
-              </section>
-
-              <section class="output-stage">
-                <div class="output-stage__eyebrow">Step 5</div>
-                <div class="output-stage__title">Core Analysis Outputs</div>
-                <p class="output-stage__text">Analysis regenerates the ranked views and graphs in a fixed order: top variants, distribution, lineage, then protein similarity.</p>
-                <div class="output-stage__actions">
-                  {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
-                    <a class="btn btn--sm" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
-                  {% endif %}
-                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.results.url }}" target="_blank" rel="noopener">Results CSV</a>
-                </div>
-              </section>
-
-              {% set has_bonus_links = (
-                (analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists) or
-                (analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists) or
-                (analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists) or
-                (analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists) or
-                (analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists) or
-                (analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists)
-              ) %}
-              {% if has_bonus_links %}
-              <section class="output-stage">
-                <div class="output-stage__eyebrow">Step 5B</div>
-                <div class="output-stage__title">Extended / Bonus Outputs</div>
-                <p class="output-stage__text">Optional bonus views are generated after the core analysis and should be treated as secondary exploratory outputs.</p>
-              </section>
-              {% endif %}
-            </div>
-
             {% if interactive_default_url %}
             <div class="analysis-studio">
               <div class="analysis-studio__header">
@@ -777,88 +703,73 @@
             </div>
             {% endif %}
 
-            <div class="analysis-gallery-group">
-              <div class="analysis-gallery-group__title">Core plots in run order</div>
-              <div class="analysis-gallery">
-                {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
-                <div class="analysis-card" data-plot="top10">
-                  <div class="analysis-card__step">1</div>
-                  <div class="analysis-card__title">Top 10 Variants</div>
-                  <a href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">
-                    <img class="analysis-img" src="{{ analysis_outputs.top10_png.url }}" alt="Top 10 variant table">
-                  </a>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">Interactive view</a>
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">PNG</a>
-                  </div>
-                  <p class="analysis-caption">Sortable activity rankings with direct variant links.</p>
+            <div class="analysis-gallery">
+              {% if analysis_outputs.top10_png and analysis_outputs.top10_png.exists %}
+              <div class="analysis-card" data-plot="top10">
+                <div class="analysis-card__title">Top 10 Variants</div>
+                <a href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.top10_png.url }}" alt="Top 10 variant table">
+                </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.top10_png.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">PNG</a>
                 </div>
-                {% endif %}
-
-                {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
-                <div class="analysis-card" data-plot="distribution">
-                  <div class="analysis-card__step">2</div>
-                  <div class="analysis-card__title">Activity Score Distribution</div>
-                  <a href="{{ analysis_outputs.plot.view_url }}" target="_blank" rel="noopener">
-                    <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution">
-                  </a>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.plot.view_url }}" target="_blank" rel="noopener">Interactive view</a>
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">PNG</a>
-                  </div>
-                  <p class="analysis-caption">Distribution shows how activity varies across generations.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
-                <div class="analysis-card" data-plot="lineage">
-                  <div class="analysis-card__step">3</div>
-                  <div class="analysis-card__title">Variant Lineage</div>
-                  <a href="{{ analysis_outputs.lineage.view_url }}" target="_blank" rel="noopener">
-                    <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
-                  </a>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.lineage.view_url }}" target="_blank" rel="noopener">Interactive view</a>
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">PNG</a>
-                  </div>
-                  <p class="analysis-caption">Lineage shows parent-child relationships.</p>
-                </div>
-                {% endif %}
-
-                {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
-                <div class="analysis-card" data-plot="protein-network">
-                  <div class="analysis-card__step">4</div>
-                  <div class="analysis-card__title">Protein Similarity Network</div>
-                  <a href="{{ analysis_outputs.protein_network.view_url }}" target="_blank" rel="noopener">
-                    <img class="analysis-img" src="{{ analysis_outputs.protein_network.url }}" alt="Protein similarity network">
-                  </a>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm" href="{{ analysis_outputs.protein_network.view_url }}" target="_blank" rel="noopener">Interactive view</a>
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">PNG</a>
-                  </div>
-                  <p class="analysis-caption">Protein network groups close variants by sequence similarity.</p>
-                </div>
-                {% endif %}
+                <p class="analysis-caption">Sortable activity rankings with direct variant links.</p>
               </div>
-            </div>
+              {% endif %}
 
-            {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
-            <div class="analysis-gallery-group">
-              <div class="analysis-gallery-group__title">Bonus plots (after core analysis)</div>
-              <div class="analysis-gallery">
-                <div class="analysis-card" data-plot="bonus-surface">
-                  <div class="analysis-card__title">Bonus Activity Surface (PCA)</div>
-                  <a href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">
-                    <img class="analysis-img" src="{{ analysis_outputs.bonus_surface.url }}" alt="Bonus activity surface">
-                  </a>
-                  <div class="analysis-card__actions">
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">PNG</a>
-                  </div>
-                  <p class="analysis-caption">Smoothed 3D surface from PCA activity landscape.</p>
+              {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
+              <div class="analysis-card" data-plot="distribution">
+                <div class="analysis-card__title">Activity Score Distribution</div>
+                <a href="{{ analysis_outputs.plot.view_url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.plot.url }}" alt="Activity distribution">
+                </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.plot.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">PNG</a>
                 </div>
+                <p class="analysis-caption">Distribution shows how activity varies across generations.</p>
               </div>
+              {% endif %}
+
+              {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
+              <div class="analysis-card" data-plot="lineage">
+                <div class="analysis-card__title">Variant Lineage</div>
+                <a href="{{ analysis_outputs.lineage.view_url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage graph">
+                </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.lineage.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
+                <p class="analysis-caption">Lineage shows parent-child relationships.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
+              <div class="analysis-card" data-plot="protein-network">
+                <div class="analysis-card__title">Protein Similarity Network</div>
+                <a href="{{ analysis_outputs.protein_network.view_url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.protein_network.url }}" alt="Protein similarity network">
+                </a>
+                <div class="analysis-card__actions">
+                  <a class="btn btn--sm" href="{{ analysis_outputs.protein_network.view_url }}" target="_blank" rel="noopener">Interactive view</a>
+                  <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">PNG</a>
+                </div>
+                <p class="analysis-caption">Protein network groups close variants by sequence similarity.</p>
+              </div>
+              {% endif %}
+
+              {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
+              <div class="analysis-card" data-plot="bonus-surface">
+                <div class="analysis-card__title">Bonus Activity Surface (PCA)</div>
+                <a href="{{ analysis_outputs.bonus_surface.url }}" target="_blank" rel="noopener">
+                  <img class="analysis-img" src="{{ analysis_outputs.bonus_surface.url }}" alt="Bonus activity surface">
+                </a>
+                <p class="analysis-caption">Smoothed 3D surface from PCA activity landscape.</p>
+              </div>
+              {% endif %}
             </div>
-            {% endif %}
           {% else %}
             <div class="empty">
               <div class="empty__icon" aria-hidden="true">&#x1F9EA;</div>
@@ -872,68 +783,44 @@
         {% if analysis_outputs %}
         <section class="panel panel--primary">
           <div class="panel__header">Downloads</div>
-          <div class="downloads-stack">
-            <div class="downloads-section">
-              <div class="downloads-section__title">Step 4 · Sequence processing</div>
-              <div class="downloads-group__list">
-                {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.mutation_report.url }}" target="_blank" rel="noopener">Mutation report CSV</a>
-                {% else %}
-                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">Mutation report CSV</span>
-                  <span class="downloads-group__hint">
-                    {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Compute mutations (DNA&#8594;Protein) first.' }}
-                  </span>
-                {% endif %}
+          <div class="downloads-group__list">
+            <a class="btn btn--ghost" href="{{ analysis_outputs.results.url }}" target="_blank" rel="noopener">Results CSV (all processed rows)</a>
 
-                {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
-                {% else %}
-                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">QC debug CSV</span>
-                {% endif %}
-              </div>
-            </div>
+            {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
+            {% else %}
+              <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 CSV</span>
+            {% endif %}
 
-            <div class="downloads-section">
-              <div class="downloads-section__title">Step 5 · Core analysis</div>
-              <div class="downloads-group__list">
-                <a class="btn btn--ghost" href="{{ analysis_outputs.results.url }}" target="_blank" rel="noopener">Results CSV (all processed rows)</a>
+            {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
+            {% else %}
+              <span class="btn btn--ghost btn--disabled" aria-disabled="true">QC debug CSV</span>
+            {% endif %}
 
-                {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
-                {% else %}
-                  <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 CSV</span>
-                {% endif %}
-              </div>
-            </div>
+            {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.mutation_report.url }}" target="_blank" rel="noopener">Mutation report CSV</a>
+            {% else %}
+              <span class="btn btn--ghost btn--disabled" aria-disabled="true">Mutation report CSV</span>
+              <span class="downloads-group__hint">
+                {{ analysis_outputs.mutation_report.disabled_reason if analysis_outputs.mutation_report and analysis_outputs.mutation_report.disabled_reason else 'Compute mutations (DNA&#8594;Protein) first.' }}
+              </span>
+            {% endif %}
 
-            {% set has_bonus_downloads = (
-              (analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists) or
-              (analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists) or
-              (analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists) or
-              (analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists) or
-              (analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists)
-            ) %}
-            {% if has_bonus_downloads %}
-            <div class="downloads-section">
-              <div class="downloads-section__title">Step 5B · Bonus outputs</div>
-              <div class="downloads-group__list">
-                {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_landscape.url }}" target="_blank" rel="noopener">Bonus landscape (HTML)</a>
-                {% endif %}
-                {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_trajectory.url }}" target="_blank" rel="noopener">Bonus trajectory (HTML)</a>
-                {% endif %}
-                {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="_blank" rel="noopener">Bonus domain heatmap (HTML)</a>
-                {% endif %}
-                {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="_blank" rel="noopener">Bonus domain by generation (HTML)</a>
-                {% endif %}
-                {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
-                  <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="_blank" rel="noopener">Bonus mutation fingerprint (HTML)</a>
-                {% endif %}
-              </div>
-            </div>
+            {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_landscape.url }}" target="_blank" rel="noopener">Bonus landscape (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_trajectory.url }}" target="_blank" rel="noopener">Bonus trajectory (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_domain_heatmap.url }}" target="_blank" rel="noopener">Bonus domain heatmap (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_domain_generation.url }}" target="_blank" rel="noopener">Bonus domain by generation (HTML)</a>
+            {% endif %}
+            {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
+              <a class="btn btn--ghost" href="{{ analysis_outputs.bonus_fingerprint.url }}" target="_blank" rel="noopener">Bonus mutation fingerprint (HTML)</a>
             {% endif %}
           </div>
         </section>
@@ -981,6 +868,35 @@
               <div class="label">Warnings</div>
             </div>
           </div>
+        </section>
+
+        <!-- WT OUTPUT -->
+        <section class="panel" data-panel="A">
+          <div class="panel__header">
+            <span class="panel__step">1</span>
+            WT (UniProt) Output
+            {% if wt %}<span class="badge badge--ok ml-auto">Complete</span>{% endif %}
+          </div>
+
+          {% if wt %}
+            <div class="grid2">
+              <div class="kv">
+                <div class="kv__row"><span>Accession</span><strong>{{ wt.uniprot_id }}</strong></div>
+                <div class="kv__row"><span>Length</span><strong>{{ wt.sequence_length if wt.sequence_length else "—" }} aa</strong></div>
+                <div class="kv__row"><span>Status</span><strong class="text-success">Stored</strong></div>
+              </div>
+
+              <div class="note">
+                Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
+              </div>
+            </div>
+          {% else %}
+            <div class="empty">
+              <div class="empty__icon" aria-hidden="true">&#x1F4CB;</div>
+              Waiting for WT fetch…
+              <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
+            </div>
+          {% endif %}
         </section>
 
         <!-- VALIDATION OUTPUT -->
