@@ -1649,6 +1649,54 @@ a:hover { text-decoration: underline; }
   letter-spacing: -0.01em;
 }
 
+.analysis-studio__title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.analysis-title-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.analysis-title-info__tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  width: min(300px, 72vw);
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #102a43;
+  color: #f8fbff;
+  font-size: 12px;
+  line-height: 1.45;
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+  opacity: 0;
+  transform: translate(-50%, -6px);
+  pointer-events: none;
+  transition: opacity 140ms var(--ease), transform 140ms var(--ease);
+  z-index: 5;
+}
+
+.analysis-title-info:hover .analysis-title-info__tip,
+.analysis-title-info:focus-visible .analysis-title-info__tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
 .analysis-studio__hint {
   margin-top: 4px;
   font-size: 12px;

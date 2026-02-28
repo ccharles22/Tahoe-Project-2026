@@ -342,14 +342,17 @@ function initExplorerLabels() {
     link.addEventListener('click', () => {
       const titleTargetId = link.getAttribute('data-explorer-title-target');
       const descriptionTargetId = link.getAttribute('data-explorer-description-target');
+      const tooltipTargetId = link.getAttribute('data-explorer-tooltip-target');
       const title = link.getAttribute('data-explorer-title') || link.textContent.trim();
       const description = link.getAttribute('data-explorer-description') || '';
 
       const titleTarget = titleTargetId ? document.getElementById(titleTargetId) : null;
       const descriptionTarget = descriptionTargetId ? document.getElementById(descriptionTargetId) : null;
+      const tooltipTarget = tooltipTargetId ? document.getElementById(tooltipTargetId) : null;
 
       if (titleTarget) titleTarget.textContent = title;
       if (descriptionTarget) descriptionTarget.textContent = description;
+      if (tooltipTarget) tooltipTarget.textContent = description;
     });
   });
 }
