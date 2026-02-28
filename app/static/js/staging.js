@@ -359,12 +359,48 @@ function initExplorerLabels() {
 
 initExplorerLabels();
 
+async function exportPlotFromFrame(frame, filename) {
+  try {
+    const frameWindow = frame.contentWindow;
+    const frameDoc = frame.contentDocument || (frameWindow && frameWindow.document);
+    if (!frameDoc || !frameWindow) return false;
+
+    const modebarBtn = frameDoc.querySelector(
+      '.modebar-btn[data-title*="Download plot as"], .modebar-btn[aria-label*="Download"]'
+    );
+    if (modebarBtn) {
+      modebarBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+      return true;
+    }
+
+    const plotRoot = frameDoc.querySelector('.js-plotly-plot');
+    if (plotRoot && frameWindow.Plotly && typeof frameWindow.Plotly.downloadImage === 'function') {
+      await frameWindow.Plotly.downloadImage(plotRoot, {
+        format: 'png',
+        filename,
+      });
+      return true;
+    }
+  } catch (_) {
+    // Ignore export failures; the iframe content remains usable.
+  }
+
+  return false;
+}
+
+function waitForFrameLoad(frame) {
+  return new Promise((resolve) => {
+    frame.addEventListener('load', () => resolve(), { once: true });
+  });
+}
+
 // Trigger Plotly's built-in PNG export inside same-origin analysis iframes.
 function initIframePlotDownloads() {
-  const buttons = document.querySelectorAll('.js-download-iframe-plot[data-frame-name]');
-  if (!buttons.length) return;
+  const currentButtons = document.querySelectorAll('.js-download-iframe-plot[data-frame-name]');
+  const specificButtons = document.querySelectorAll('.js-download-specific-iframe-plot[data-frame-name][data-export-src]');
+  if (!currentButtons.length && !specificButtons.length) return;
 
-  buttons.forEach((button) => {
+  currentButtons.forEach((button) => {
     button.addEventListener('click', async () => {
       const frameName = button.getAttribute('data-frame-name');
       if (!frameName) return;
@@ -372,29 +408,38 @@ function initIframePlotDownloads() {
       const frame = document.querySelector(`iframe[name="${frameName}"]`);
       if (!frame) return;
 
+      const filename = button.getAttribute('data-filename') || 'plot';
+      await exportPlotFromFrame(frame, filename);
+    });
+  });
+
+  specificButtons.forEach((button) => {
+    button.addEventListener('click', async () => {
+      const frameName = button.getAttribute('data-frame-name');
+      const exportSrc = button.getAttribute('data-export-src');
+      if (!frameName || !exportSrc) return;
+
+      const frame = document.querySelector(`iframe[name="${frameName}"]`);
+      if (!frame) return;
+
+      const filename = button.getAttribute('data-filename') || 'plot';
+      const currentSrc = frame.getAttribute('src') || '';
+      const currentAbs = currentSrc ? new URL(currentSrc, window.location.href).toString() : '';
+      const exportAbs = new URL(exportSrc, window.location.href).toString();
+      const needsNavigation = currentAbs !== exportAbs;
+
       try {
-        const frameWindow = frame.contentWindow;
-        const frameDoc = frame.contentDocument || (frameWindow && frameWindow.document);
-        if (!frameDoc || !frameWindow) return;
-
-        const modebarBtn = frameDoc.querySelector(
-          '.modebar-btn[data-title*="Download plot as"], .modebar-btn[aria-label*="Download"]'
-        );
-        if (modebarBtn) {
-          modebarBtn.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-          return;
+        if (needsNavigation) {
+          const loadPromise = waitForFrameLoad(frame);
+          frame.src = exportSrc;
+          await loadPromise;
         }
 
-        const plotRoot = frameDoc.querySelector('.js-plotly-plot');
-        if (plotRoot && frameWindow.Plotly && typeof frameWindow.Plotly.downloadImage === 'function') {
-          const filename = button.getAttribute('data-filename') || 'plot';
-          await frameWindow.Plotly.downloadImage(plotRoot, {
-            format: 'png',
-            filename,
-          });
+        await exportPlotFromFrame(frame, filename);
+      } finally {
+        if (needsNavigation && currentSrc) {
+          frame.src = currentSrc;
         }
-      } catch (_) {
-        // Ignore export failures; the iframe content remains usable.
       }
     });
   });

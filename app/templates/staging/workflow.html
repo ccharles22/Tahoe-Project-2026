@@ -949,14 +949,70 @@
               Bonus Visualisations
             </div>
             <div class="panel__actions">
-              {% if has_bonus_html_outputs %}
+              {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
                 <button
-                  class="btn btn--sm btn--ghost js-download-iframe-plot"
+                  class="btn btn--sm btn--ghost js-download-specific-iframe-plot"
                   type="button"
                   data-frame-name="bonusExplorerFrame"
-                  data-filename="bonus-visualisation"
+                  data-export-src="{{ analysis_outputs.bonus_landscape.url }}"
+                  data-filename="bonus-activity-landscape"
                 >
-                  Current Bonus PNG
+                  Landscape PNG
+                </button>
+              {% endif %}
+              {% if analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists %}
+                <button
+                  class="btn btn--sm btn--ghost js-download-specific-iframe-plot"
+                  type="button"
+                  data-frame-name="bonusExplorerFrame"
+                  data-export-src="{{ analysis_outputs.bonus_mutation_frequency.url }}"
+                  data-filename="bonus-mutation-frequency"
+                >
+                  Frequency PNG
+                </button>
+              {% endif %}
+              {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
+                <button
+                  class="btn btn--sm btn--ghost js-download-specific-iframe-plot"
+                  type="button"
+                  data-frame-name="bonusExplorerFrame"
+                  data-export-src="{{ analysis_outputs.bonus_trajectory.url }}"
+                  data-filename="bonus-mutation-trajectory"
+                >
+                  Trajectory PNG
+                </button>
+              {% endif %}
+              {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
+                <button
+                  class="btn btn--sm btn--ghost js-download-specific-iframe-plot"
+                  type="button"
+                  data-frame-name="bonusExplorerFrame"
+                  data-export-src="{{ analysis_outputs.bonus_domain_heatmap.url }}"
+                  data-filename="bonus-domain-heatmap"
+                >
+                  Heatmap PNG
+                </button>
+              {% endif %}
+              {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
+                <button
+                  class="btn btn--sm btn--ghost js-download-specific-iframe-plot"
+                  type="button"
+                  data-frame-name="bonusExplorerFrame"
+                  data-export-src="{{ analysis_outputs.bonus_domain_generation.url }}"
+                  data-filename="bonus-domain-by-generation"
+                >
+                  Domain PNG
+                </button>
+              {% endif %}
+              {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
+                <button
+                  class="btn btn--sm btn--ghost js-download-specific-iframe-plot"
+                  type="button"
+                  data-frame-name="bonusExplorerFrame"
+                  data-export-src="{{ analysis_outputs.bonus_fingerprint.url }}"
+                  data-filename="bonus-mutation-fingerprint"
+                >
+                  Fingerprint PNG
                 </button>
               {% endif %}
               {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
