@@ -265,24 +265,6 @@ def fetch_protein_mutations(conn, experiment_id: int) -> pd.DataFrame:
 
 def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
     q = """
-    WITH exp_variants AS (
-      SELECT v.variant_id
-      FROM variants v
-      JOIN generations g ON g.generation_id = v.generation_id
-      WHERE g.experiment_id = %s
-    ),
-    needed_parents AS (
-      SELECT DISTINCT v.parent_variant_id AS variant_id
-      FROM variants v
-      JOIN generations g ON g.generation_id = v.generation_id
-      WHERE g.experiment_id = %s
-        AND v.parent_variant_id IS NOT NULL
-    ),
-    all_needed AS (
-      SELECT variant_id FROM exp_variants
-      UNION
-      SELECT variant_id FROM needed_parents
-    )
     SELECT
       v.variant_id,
       g.generation_number,
@@ -308,10 +290,9 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
       ON m.variant_id = v.variant_id
      AND m.metric_name = 'activity_score'
      AND m.metric_type = 'derived'
-    -- Include external parent nodes when needed so lineage edges remain drawable.
-    WHERE v.variant_id IN (SELECT variant_id FROM all_needed);
+    WHERE g.experiment_id = %s;
     """
-    return pd.read_sql(q, conn, params=(experiment_id, experiment_id))
+    return pd.read_sql(q, conn, params=(experiment_id,))
 
 def fetch_lineage_edges(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(LINEAGE_EDGES_SQL, conn, params=(experiment_id, experiment_id))
