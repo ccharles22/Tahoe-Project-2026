@@ -23,7 +23,13 @@ def load_top10_rows(csv_path, experiment_id):
                 if idx > 10:
                     break
                 activity_raw = row.get('activity_score') or row.get('Activity score') or ''
-                mut_raw = row.get('protein_mutations') or row.get('Protein muts') or ''
+                mut_raw = (
+                    row.get('total_mutations')
+                    or row.get('Total Mutations vs WT')
+                    or row.get('protein_mutations')
+                    or row.get('Protein muts')
+                    or ''
+                )
                 try:
                     activity_value = float(str(activity_raw).strip())
                 except Exception:
