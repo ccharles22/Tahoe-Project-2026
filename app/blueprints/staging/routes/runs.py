@@ -11,15 +11,57 @@ from app.services.staging.session_state import save_sequence_status_to_session
 from .. import staging_bp
 
 
+def _run_sequence_processing_for_experiment(experiment_id: int) -> tuple[bool, str]:
+    """Run sequence processing synchronously and persist UI status text."""
+    try:
+        from app.jobs.run_sequence_processing import run_sequence_processing
+
+        # These staging actions are explicitly about refreshing downstream
+        # mutation-aware outputs, so always force a full reprocess.
+        run_sequence_processing(experiment_id, force_reprocess=True)
+        message = 'Sequence processing completed. Mutation outputs were refreshed in the database.'
+        save_sequence_status_to_session(
+            experiment_id,
+            {
+                'status': 'success',
+                'summary': message,
+                'technical_details': '',
+            },
+        )
+        return True, message
+    except Exception as exc:
+        message = f'Sequence processing failed: {exc}'
+        save_sequence_status_to_session(
+            experiment_id,
+            {
+                'status': 'failed',
+                'summary': str(exc),
+                'technical_details': traceback.format_exc(),
+            },
+        )
+        return False, message
+
+
 @staging_bp.post('/analysis/run')
 @login_required
 def run_analysis():
-    """Run analysis for the experiment and redirect back to staging."""
+    """Run sequence processing first, then analysis, and redirect back to staging."""
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
+    seq_ok, sequence_message = _run_sequence_processing_for_experiment(exp_id_int)
+    if not seq_ok:
+        return redirect(
+            url_for(
+                'staging.create_experiment',
+                experiment_id=experiment_id,
+                sequence_message=sequence_message,
+                analysis_message='Analysis skipped because sequence processing failed.',
+            )
+        )
+
     ok, analysis_message = run_analysis_for_experiment(exp_id_int, current_app._get_current_object())
     if not ok and not analysis_message:
         analysis_message = 'Analysis failed.'
@@ -28,6 +70,7 @@ def run_analysis():
         url_for(
             'staging.create_experiment',
             experiment_id=experiment_id,
+            sequence_message=sequence_message,
             analysis_message=analysis_message,
         )
     )
@@ -42,31 +85,6 @@ def run_sequence():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
-    try:
-        from app.jobs.run_sequence_processing import run_sequence_processing
-
-        # This action is explicitly for computing/refreshing mutation outputs.
-        # Force a full reprocess so variants with existing protein_sequence are
-        # not skipped when mutation rows need to be regenerated.
-        run_sequence_processing(exp_id_int, force_reprocess=True)
-        message = 'Sequence processing completed. Mutation outputs were refreshed in the database.'
-        save_sequence_status_to_session(
-            exp_id_int,
-            {
-                'status': 'success',
-                'summary': message,
-                'technical_details': '',
-            },
-        )
-    except Exception as exc:
-        message = f'Sequence processing failed: {exc}'
-        save_sequence_status_to_session(
-            exp_id_int,
-            {
-                'status': 'failed',
-                'summary': str(exc),
-                'technical_details': traceback.format_exc(),
-            },
-        )
+    _, message = _run_sequence_processing_for_experiment(exp_id_int)
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
