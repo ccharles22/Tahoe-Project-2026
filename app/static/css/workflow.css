@@ -468,16 +468,16 @@ a:hover { text-decoration: underline; }
 .sidebar {
   border-right: 1px solid var(--border);
   background: var(--surface);
-  padding: 20px 16px;
+  padding: 24px 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .sidebar__header { padding-bottom: 4px; }
 
 .sidebar__title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: .06em;
@@ -485,9 +485,9 @@ a:hover { text-decoration: underline; }
 }
 
 .sidebar__subtitle {
-  margin-top: 2px;
+  margin-top: 4px;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 /* Sidebar task cards */
@@ -495,7 +495,7 @@ a:hover { text-decoration: underline; }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 14px;
+  padding: 16px;
   transition: border-color .25s var(--ease), box-shadow .25s var(--ease), opacity .2s var(--ease), filter .2s var(--ease);
 }
 
@@ -547,18 +547,18 @@ a:hover { text-decoration: underline; }
 .task__top {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 9px;
   cursor: pointer;
 }
 
 .task__step-badge {
-  width: 18px;
-  height: 18px;
-  border-radius: 5px;
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 600;
   color: var(--text-secondary);
   border: 1px solid var(--border);
@@ -573,7 +573,7 @@ a:hover { text-decoration: underline; }
 }
 
 .task__title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   color: var(--text);
   flex: 1;
@@ -583,7 +583,7 @@ a:hover { text-decoration: underline; }
   background: none;
   border: none;
   color: var(--text-secondary);
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   padding: 2px 4px;
   transition: transform .2s var(--ease);
@@ -628,7 +628,7 @@ a:hover { text-decoration: underline; }
 }
 
 .task__body {
-  margin-top: 10px;
+  margin-top: 12px;
   transition: max-height .3s var(--ease), opacity .2s var(--ease);
   max-height: 600px;
   opacity: 1;
@@ -645,17 +645,17 @@ a:hover { text-decoration: underline; }
 .task__form {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .task__hint {
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
 }
 
 .task__locked-msg {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--text-secondary);
   font-style: italic;
   padding: 8px 0;
@@ -663,9 +663,9 @@ a:hover { text-decoration: underline; }
 
 .task__done-summary {
   margin-top: 10px;
-  padding: 8px 12px;
+  padding: 10px 12px;
   border-radius: var(--radius);
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   background: var(--surface-alt);
   color: var(--text-secondary);
@@ -1212,7 +1212,7 @@ a:hover { text-decoration: underline; }
 .appShell {
   min-height: calc(100vh - 72px - 48px);
   display: grid;
-  grid-template-columns: 70px 260px minmax(0, 1fr);
+  grid-template-columns: 76px 312px minmax(0, 1fr);
   gap: 0;
 }
 
@@ -1248,18 +1248,18 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 12px 8px;
+  padding: 14px 8px;
   border-radius: var(--radius);
   text-decoration: none;
   color: var(--text);
   font-weight: 600;
-  font-size: 10px;
+  font-size: 11px;
   transition: all .2s var(--ease);
   border: 1px solid transparent;
   cursor: pointer;
   width: 100%;
   text-align: center;
-  min-height: 70px;
+  min-height: 82px;
 }
 
 .taskbar__item:hover {
@@ -1275,7 +1275,7 @@ a:hover { text-decoration: underline; }
 }
 
 .taskbar__icon {
-  font-size: 20px;
+  font-size: 22px;
   display: inline-flex;
   align-items: center;
 }
