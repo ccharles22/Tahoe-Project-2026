@@ -1,109 +1,203 @@
-<h2>Protein Network – Experiment {{ experiment_id }}</h2>
-
-<form method="get" action="/protein_similarity/{{ experiment_id }}">
-    <label for="mode">Mode</label>
-    <select name="mode" id="mode">
-        <option value="identity" {% if mode == 'identity' %}selected{% endif %}>Sequence identity</option>
-        <option value="cooccurrence" {% if mode == 'cooccurrence' %}selected{% endif %}>Mutation co-occurrence</option>
-    </select>
-
-    <label for="preset">Preset</label>
-    <select name="preset" id="preset">
-        <option value="" {% if not preset %}selected{% endif %}>Custom</option>
-        <option value="sparse" {% if preset == 'sparse' %}selected{% endif %}>Sparse</option>
-        <option value="medium" {% if preset == 'medium' %}selected{% endif %}>Medium</option>
-        <option value="dense" {% if preset == 'dense' %}selected{% endif %}>Dense</option>
-    </select>
-    <small>Presets auto-fill thresholds to change network density.</small>
-
-    <div data-mode="identity">
-        <label for="identity_threshold">Identity threshold</label>
-        <input
-            type="number"
-            id="identity_threshold"
-            name="identity_threshold"
-            step="0.01"
-            min="0"
-            max="1"
-            value="{{ identity_threshold }}"
-        >
-    </div>
-
-    <div data-mode="cooccurrence">
-        <label for="min_shared">Min shared mutations</label>
-        <input
-            type="number"
-            id="min_shared"
-            name="min_shared"
-            min="1"
-            step="1"
-            value="{{ min_shared }}"
-        >
-
-        <label for="jaccard_threshold">Jaccard threshold</label>
-        <input
-            type="number"
-            id="jaccard_threshold"
-            name="jaccard_threshold"
-            step="0.01"
-            min="0"
-            max="1"
-            value="{{ jaccard_threshold }}"
-        >
-    </div>
-
-    <label for="max_nodes">Variants shown</label>
-    <select id="max_nodes" name="max_nodes">
-        {% for option in max_node_options %}
-        <option value="{{ option }}" {% if max_nodes == option %}selected{% endif %}>Top {{ option }}</option>
-        {% endfor %}
-    </select>
-
-    <button type="submit">Update</button>
-</form>
-
-<img src="{{ url_for('static', filename=protein_png) }}?v={{ cache_buster }}" style="max-width:100%; height:auto;">
-
-<script>
-    const modeSelect = document.getElementById("mode");
-    const presetSelect = document.getElementById("preset");
-    const identityInput = document.getElementById("identity_threshold");
-    const minSharedInput = document.getElementById("min_shared");
-    const jaccardInput = document.getElementById("jaccard_threshold");
-    const modeSections = document.querySelectorAll("[data-mode]");
-
-    function applyMode() {
-        const mode = modeSelect.value;
-        modeSections.forEach((section) => {
-            section.style.display = section.getAttribute("data-mode") === mode ? "block" : "none";
-        });
-    }
-
-    function applyPreset() {
-        const preset = presetSelect.value;
-        const mode = modeSelect.value;
-        if (!preset) {
-            return;
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Protein Network - Experiment {{ experiment_id }}</title>
+    <style>
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            margin: 24px;
+            color: #1f2933;
+            background: #f6f7f4;
         }
 
-        if (mode === "identity") {
-            const identityMap = { sparse: 0.98, medium: 0.95, dense: 0.90 };
-            identityInput.value = identityMap[preset] ?? identityInput.value;
-        } else {
-            const cooccurMap = {
-                sparse: { minShared: 4, jaccard: 0.20 },
-                medium: { minShared: 2, jaccard: 0.10 },
-                dense: { minShared: 1, jaccard: "" },
-            };
-            const values = cooccurMap[preset];
-            if (values) {
-                minSharedInput.value = values.minShared;
-                jaccardInput.value = values.jaccard;
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+        .info-chip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px solid #1f2933;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #1f2933;
+            font-weight: 700;
+            cursor: help;
+        }
+
+        .info-chip__tip {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(340px, 75vw);
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #1f2933;
+            color: #ffffff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            z-index: 1;
+        }
+
+        .info-chip:hover .info-chip__tip,
+        .info-chip:focus-visible .info-chip__tip {
+            opacity: 1;
+        }
+
+        form {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 18px;
+            max-width: 560px;
+        }
+
+        label,
+        small {
+            display: block;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Protein Network - Experiment {{ experiment_id }}</h2>
+        <button class="info-chip" type="button" aria-label="What this graph shows">
+            i
+            <span class="info-chip__tip">
+                This graph groups variants by sequence identity or shared mutation patterns, so you can see which
+                proteins cluster together and how dense the similarity network is.
+            </span>
+        </button>
+    </div>
+
+    <form method="get" action="/protein_similarity/{{ experiment_id }}">
+        <label for="mode">Mode</label>
+        <select name="mode" id="mode">
+            <option value="identity" {% if mode == 'identity' %}selected{% endif %}>Sequence identity</option>
+            <option value="cooccurrence" {% if mode == 'cooccurrence' %}selected{% endif %}>Mutation co-occurrence</option>
+        </select>
+
+        <label for="preset">Preset</label>
+        <select name="preset" id="preset">
+            <option value="" {% if not preset %}selected{% endif %}>Custom</option>
+            <option value="sparse" {% if preset == 'sparse' %}selected{% endif %}>Sparse</option>
+            <option value="medium" {% if preset == 'medium' %}selected{% endif %}>Medium</option>
+            <option value="dense" {% if preset == 'dense' %}selected{% endif %}>Dense</option>
+        </select>
+        <small>Presets auto-fill thresholds to change network density.</small>
+
+        <div data-mode="identity">
+            <label for="identity_threshold">Identity threshold</label>
+            <input
+                type="number"
+                id="identity_threshold"
+                name="identity_threshold"
+                step="0.01"
+                min="0"
+                max="1"
+                value="{{ identity_threshold }}"
+            >
+        </div>
+
+        <div data-mode="cooccurrence">
+            <label for="min_shared">Min shared mutations</label>
+            <input
+                type="number"
+                id="min_shared"
+                name="min_shared"
+                min="1"
+                step="1"
+                value="{{ min_shared }}"
+            >
+
+            <label for="jaccard_threshold">Jaccard threshold</label>
+            <input
+                type="number"
+                id="jaccard_threshold"
+                name="jaccard_threshold"
+                step="0.01"
+                min="0"
+                max="1"
+                value="{{ jaccard_threshold }}"
+            >
+        </div>
+
+        <label for="max_nodes">Variants shown</label>
+        <select id="max_nodes" name="max_nodes">
+            {% for option in max_node_options %}
+            <option value="{{ option }}" {% if max_nodes == option %}selected{% endif %}>Top {{ option }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit">Update</button>
+    </form>
+
+    <img src="{{ url_for('static', filename=protein_png) }}?v={{ cache_buster }}" alt="Protein similarity graph for experiment {{ experiment_id }}">
+
+    <script>
+        const modeSelect = document.getElementById("mode");
+        const presetSelect = document.getElementById("preset");
+        const identityInput = document.getElementById("identity_threshold");
+        const minSharedInput = document.getElementById("min_shared");
+        const jaccardInput = document.getElementById("jaccard_threshold");
+        const modeSections = document.querySelectorAll("[data-mode]");
+
+        function applyMode() {
+            const mode = modeSelect.value;
+            modeSections.forEach((section) => {
+                section.style.display = section.getAttribute("data-mode") === mode ? "block" : "none";
+            });
+        }
+
+        function applyPreset() {
+            const preset = presetSelect.value;
+            const mode = modeSelect.value;
+            if (!preset) {
+                return;
+            }
+
+            if (mode === "identity") {
+                const identityMap = { sparse: 0.98, medium: 0.95, dense: 0.90 };
+                identityInput.value = identityMap[preset] ?? identityInput.value;
+            } else {
+                const cooccurMap = {
+                    sparse: { minShared: 4, jaccard: 0.20 },
+                    medium: { minShared: 2, jaccard: 0.10 },
+                    dense: { minShared: 1, jaccard: "" },
+                };
+                const values = cooccurMap[preset];
+                if (values) {
+                    minSharedInput.value = values.minShared;
+                    jaccardInput.value = values.jaccard;
+                }
             }
         }
-    }
 
-    modeSelect.addEventListener("change", applyMode);
-    presetSelect.addEventListener("change", applyPreset);
-    applyMode();
-</script>
+        modeSelect.addEventListener("change", applyMode);
+        presetSelect.addEventListener("change", applyPreset);
+        applyMode();
+    </script>
+</body>
+</html>

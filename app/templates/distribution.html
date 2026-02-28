@@ -1,4 +1,88 @@
-<h2>Distribution – Experiment {{ experiment_id }}</h2>
-<img src="{{ url_for('static', filename=dist_png) }}" style="max-width:100%; height:auto;">
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Distribution - Experiment {{ experiment_id }}</title>
+    <style>
+        body {
+            font-family: Georgia, "Times New Roman", serif;
+            margin: 24px;
+            color: #1f2933;
+            background: #f6f7f4;
+        }
 
-<a href="/protein_similarity/{{ experiment_id }}">View protein network</a>
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            margin: 0;
+        }
+
+        .info-chip {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border: 1px solid #1f2933;
+            border-radius: 999px;
+            background: #ffffff;
+            color: #1f2933;
+            font-weight: 700;
+            cursor: help;
+        }
+
+        .info-chip__tip {
+            position: absolute;
+            top: calc(100% + 10px);
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(300px, 70vw);
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: #1f2933;
+            color: #ffffff;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s ease;
+            z-index: 1;
+        }
+
+        .info-chip:hover .info-chip__tip,
+        .info-chip:focus-visible .info-chip__tip {
+            opacity: 1;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin-bottom: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Distribution - Experiment {{ experiment_id }}</h2>
+        <button class="info-chip" type="button" aria-label="What this graph shows">
+            i
+            <span class="info-chip__tip">
+                This graph shows how activity scores are distributed across the variants in the experiment, so you can
+                quickly see whether the results cluster tightly or spread across low and high performers.
+            </span>
+        </button>
+    </div>
+
+    <img src="{{ url_for('static', filename=dist_png) }}" alt="Activity distribution graph for experiment {{ experiment_id }}">
+
+    <a href="/protein_similarity/{{ experiment_id }}">View protein network</a>
+</body>
+</html>
