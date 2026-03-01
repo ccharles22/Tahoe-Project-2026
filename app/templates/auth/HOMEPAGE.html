@@ -14,11 +14,11 @@
   <!-- Top navigation -->
   <nav class="home-nav">
     <div class="home-nav__brand home-nav__brand--portal">
-      <span class="home-nav__logo home-nav__logo--portal" aria-hidden="true">DE</span>
-      <span class="home-nav__brand-copy">
-        <span class="home-nav__name home-nav__name--portal">Direct Evolution Monitoring Portal</span>
-        <span class="home-nav__tagline">Team Tahoe 2025-2026</span>
-      </span>
+      <img
+        class="home-nav__portal-image"
+        src="{{ url_for('static', filename='img/team_tahoe_logo.png') }}"
+        alt="Direct Evolution Monitoring Portal logo"
+      >
     </div>
     <div class="home-nav__right">
       <a href="/docs/parsing_qc/guide/getting-started/index.html" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
