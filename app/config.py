@@ -54,7 +54,7 @@ class Settings:
     MIN_MAPPING_IDENTITY_PCT: float = _get_float("MIN_MAPPING_IDENTITY_PCT", 95.0)
     MAX_X_FRACTION: float = _get_float("MAX_X_FRACTION", 0.05)
     LOG_EVERY_N: int = _get_int("LOG_EVERY_N", 10)
-    DB_BATCH_SIZE: int = _get_int("DB_BATCH_SIZE", 50)
+    DB_BATCH_SIZE: int = _get_int("DB_BATCH_SIZE", 100)
 
     WT_MIN_IDENTITY_PCT: float = 60.0
     MAX_ALIGNMENT_GAP_PENALTY: float = -10.0
