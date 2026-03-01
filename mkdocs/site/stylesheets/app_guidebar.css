@@ -212,7 +212,30 @@
     inset 0 -1px 0 rgba(10, 34, 56, 0.18);
 }
 
+.md-tabs__inner {
+  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+.md-tabs__list {
+  display: flex !important;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 56px;
+}
+
+.md-tabs__item {
+  height: auto;
+}
+
 .md-tabs__link {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 14px 14px 11px;
+  margin-top: 0;
+  white-space: nowrap;
   color: rgba(236, 248, 255, 0.8) !important;
   font-weight: 700;
 }
@@ -251,6 +274,11 @@
 @media (max-width: 900px) {
   .app-guidebar-dna-rail {
     display: none;
+  }
+
+  .md-tabs__inner {
+    max-width: min(100vw - 24px, 76rem);
+    padding: 0 10px;
   }
 
   .md-grid {
