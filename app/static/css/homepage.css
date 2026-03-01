@@ -452,7 +452,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: flex-start;
   padding: 0 28px;
-  height: 136px;
+  height: 128px;
   background: linear-gradient(180deg, rgba(236, 245, 255, 0.97) 0%, rgba(228, 241, 255, 0.95) 100%);
   border-bottom: 1px solid rgba(180, 206, 235, 0.78);
   box-shadow: 0 10px 22px rgba(18, 56, 93, 0.08);
@@ -480,9 +480,9 @@ a:hover { text-decoration: underline; }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(560px, 58vw, 900px);
+  width: clamp(530px, 56vw, 860px);
   max-width: 100%;
-  height: clamp(118px, 11.2vw, 138px);
+  height: clamp(112px, 10.6vw, 130px);
   object-fit: contain;
   object-position: left center;
   filter: drop-shadow(0 10px 16px rgba(18, 56, 93, 0.06));
@@ -1760,13 +1760,13 @@ a:hover { text-decoration: underline; }
     border-radius: 24px;
   }
   .home-nav {
-    height: 100px;
+    height: 94px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(250px, 60vw, 360px);
+    width: clamp(235px, 58vw, 340px);
     max-width: calc(100% - 120px);
-    height: 84px;
+    height: 78px;
   }
   .home-nav__right {
     right: 16px;
