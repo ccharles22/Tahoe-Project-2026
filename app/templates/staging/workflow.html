@@ -77,6 +77,13 @@
     <header class="page-header">
       <div class="page-header__left">
         <a href="{{ url_for('auth.homepage') }}" class="page-header__home-pill" aria-current="page">Home</a>
+        <a
+          href="{{ url_for('staging.create_experiment', experiment_id=experiment_id) if experiment_id else url_for('staging.create_experiment') }}"
+          class="page-header__workspace-pill"
+          aria-current="page"
+        >
+          Workspace
+        </a>
         {% if experiment_id %}
           <div class="page-header__context">
             <span class="page-header__exp">{{ display_experiment_name }} #{{ experiment_id }}</span>
@@ -1302,4 +1309,3 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
-

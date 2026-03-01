@@ -1364,7 +1364,8 @@ a:hover { text-decoration: underline; }
 .page-header__sep { color: #b8c7da; }
 .page-header__protein { color: var(--primary-dark); }
 
-.page-header__home-pill {
+.page-header__home-pill,
+.page-header__workspace-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1384,6 +1385,17 @@ a:hover { text-decoration: underline; }
 .page-header__home-pill:hover {
   background: #f8fbff;
   border-color: rgba(42, 125, 225, 0.32);
+  text-decoration: none;
+}
+
+.page-header__workspace-pill {
+  background: rgba(42, 125, 225, 0.1);
+  border-color: rgba(42, 125, 225, 0.28);
+}
+
+.page-header__workspace-pill:hover {
+  background: rgba(42, 125, 225, 0.14);
+  border-color: rgba(42, 125, 225, 0.36);
   text-decoration: none;
 }
 
@@ -1495,7 +1507,8 @@ a:hover { text-decoration: underline; }
     padding: 4px 6px;
     gap: 6px;
   }
-  .page-header__home-pill {
+  .page-header__home-pill,
+  .page-header__workspace-pill {
     padding: 5px 9px;
   }
   .page-header__iconlink {

@@ -23,6 +23,12 @@
     </div>
     <div class="home-nav__right home-nav__right--capsule">
       <span class="home-nav__home-pill" aria-current="page">Home</span>
+      <a
+        href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('staging.create_experiment') }}"
+        class="home-nav__workspace-pill"
+      >
+        Workspace
+      </a>
       <a href="/docs/parsing_qc/guide/getting-started/index.html" class="home-nav__iconlink" aria-label="User Guide" title="User Guide">
         <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18.5v-13Z"></path>

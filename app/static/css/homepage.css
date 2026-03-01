@@ -562,7 +562,8 @@ a:hover { text-decoration: underline; }
     0 8px 18px rgba(18, 56, 93, 0.05);
 }
 
-.home-nav__home-pill {
+.home-nav__home-pill,
+.home-nav__workspace-pill {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -575,6 +576,13 @@ a:hover { text-decoration: underline; }
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-decoration: none;
+}
+
+.home-nav__workspace-pill:hover {
+  background: #f8fbff;
+  border-color: rgba(42, 125, 225, 0.32);
+  text-decoration: none;
 }
 
 .home-nav__iconlink {
@@ -1845,7 +1853,8 @@ a:hover { text-decoration: underline; }
   .home-nav__right--capsule {
     padding: 4px 8px;
   }
-  .home-nav__home-pill {
+  .home-nav__home-pill,
+  .home-nav__workspace-pill {
     display: none;
   }
   .home-nav__iconlink {
