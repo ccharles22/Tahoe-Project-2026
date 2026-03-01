@@ -55,6 +55,15 @@
       });
     });
 
+    stageCards.forEach((card) => {
+      card.addEventListener("click", (event) => {
+        if (event.target.closest("a, button")) return;
+        const stageId = card.dataset.stage;
+        if (!stageId) return;
+        setActiveStage(stageId);
+      });
+    });
+
     if (stageCards.length) {
       setActiveStage(stageCards[0].dataset.stage);
     }
