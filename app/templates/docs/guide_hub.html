@@ -7,12 +7,12 @@
     <style>
       :root {
         color-scheme: light;
-        --guide-bg: #f3f8ff;
+        --guide-bg: #e9f6fb;
         --guide-card: rgba(255, 255, 255, 0.94);
-        --guide-border: #d5e6f6;
-        --guide-primary: #1d4f91;
-        --guide-muted: #5d738c;
-        --guide-accent: linear-gradient(135deg, rgba(46, 186, 202, 0.14), rgba(29, 79, 145, 0.08));
+        --guide-border: rgba(175, 211, 233, 0.92);
+        --guide-primary: #163d63;
+        --guide-muted: #587089;
+        --guide-accent: linear-gradient(135deg, rgba(31, 200, 195, 0.14), rgba(30, 144, 255, 0.09));
       }
 
       * {
@@ -25,22 +25,101 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        padding: 32px;
-        font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+        padding: 20px;
+        position: relative;
+        overflow-x: hidden;
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         color: #17324a;
         background:
-          radial-gradient(circle at top right, rgba(46, 186, 202, 0.14), transparent 34%),
-          radial-gradient(circle at bottom left, rgba(59, 130, 246, 0.1), transparent 32%),
-          linear-gradient(180deg, #f9fcff 0%, var(--guide-bg) 100%);
+          linear-gradient(122deg, rgba(20, 52, 79, 0.92) 0%, rgba(24, 86, 136, 0.86) 44%, rgba(23, 184, 179, 0.72) 100%),
+          radial-gradient(ellipse 76% 66% at 16% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
+          radial-gradient(circle at 82% 20%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
+      }
+
+      .guide-dna {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+        pointer-events: none;
+        opacity: 0.3;
+        z-index: 0;
+      }
+
+      .guide-dna::before,
+      .guide-dna::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+      }
+
+      .guide-dna::before {
+        background:
+          radial-gradient(circle at 18% 22%, rgba(29, 211, 200, 0.12) 0%, transparent 34%),
+          radial-gradient(circle at 78% 26%, rgba(30, 144, 255, 0.1) 0%, transparent 28%),
+          radial-gradient(circle at 52% 82%, rgba(123, 245, 170, 0.1) 0%, transparent 34%);
+      }
+
+      .guide-dna::after {
+        background:
+          linear-gradient(180deg, rgba(16, 43, 66, 0.72) 0%, rgba(16, 43, 66, 0.14) 18%, rgba(16, 43, 66, 0.04) 50%, rgba(16, 43, 66, 0.18) 82%, rgba(16, 43, 66, 0.68) 100%);
+      }
+
+      .guide-dna__track {
+        position: absolute;
+        inset: -10% -4%;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+        padding: 24px 0 40px;
+        transform: rotate(-3deg) scale(1.02);
+        font-family: "SF Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        font-size: clamp(12px, 1vw, 15px);
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        animation: guideDnaScroll 28s linear infinite;
+        will-change: transform;
+      }
+
+      .guide-dna__row {
+        display: block;
+        white-space: nowrap;
+        opacity: 0.9;
+        text-shadow:
+          0 0 10px rgba(90, 126, 160, 0.2),
+          0 0 18px rgba(90, 126, 160, 0.12);
+      }
+
+      .guide-dna__row:nth-child(4n) { opacity: 0.72; }
+      .guide-dna__row:nth-child(3n) { opacity: 0.82; }
+
+      .guide-dna__base--A { color: rgba(142, 238, 188, 0.92); }
+      .guide-dna__base--C { color: rgba(125, 221, 255, 0.92); }
+      .guide-dna__base--G { color: rgba(98, 236, 218, 0.92); }
+      .guide-dna__base--T { color: rgba(154, 204, 255, 0.92); }
+
+      @keyframes guideDnaScroll {
+        from {
+          transform: rotate(-3deg) scale(1.02) translateY(0);
+        }
+        to {
+          transform: rotate(-3deg) scale(1.02) translateY(-50%);
+        }
       }
 
       .guide-shell {
-        width: min(100%, 1760px);
+        width: min(100%, 1680px);
         border: 1px solid var(--guide-border);
         border-radius: 28px;
-        padding: clamp(28px, 4vw, 42px);
-        background: var(--guide-card);
-        box-shadow: 0 20px 46px rgba(16, 42, 68, 0.08);
+        padding: clamp(48px, 5vw, 64px) clamp(18px, 2.3vw, 24px);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 251, 255, 0.94) 100%);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.72),
+          0 20px 46px rgba(16, 42, 68, 0.12);
+        position: relative;
+        z-index: 1;
       }
 
       .guide-kicker {
@@ -54,33 +133,35 @@
 
       .guide-title {
         margin: 0;
-        font-family: Georgia, "Times New Roman", serif;
-        font-size: clamp(2.4rem, 5vw, 4rem);
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-size: clamp(1.68rem, 3.15vw, 2.58rem);
         line-height: 1;
+        font-weight: 800;
+        letter-spacing: -0.03em;
         color: #14304f;
       }
 
       .guide-subtitle {
-        max-width: 980px;
-        margin: 16px 0 0;
-        font-size: 1.06rem;
-        line-height: 1.7;
+        max-width: 1080px;
+        margin: 10px 0 0;
+        font-size: 0.88rem;
+        line-height: 1.48;
         color: var(--guide-muted);
       }
 
       .guide-grid {
         display: grid;
-        grid-template-columns: repeat(6, minmax(0, 1fr));
-        gap: 14px;
-        margin-top: 30px;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-top: 18px;
       }
 
       .guide-card {
         display: flex;
         flex-direction: column;
-        gap: 12px;
-        padding: 18px;
-        border-radius: 24px;
+        gap: 9px;
+        padding: 14px;
+        border-radius: 18px;
         border: 1px solid var(--guide-border);
         background: var(--guide-accent), rgba(255, 255, 255, 0.88);
         text-decoration: none;
@@ -99,63 +180,71 @@
 
       .guide-card__eyebrow {
         margin: 0;
-        font-size: 11px;
+        font-size: 10px;
         font-weight: 800;
-        letter-spacing: 0.18em;
+        letter-spacing: 0.16em;
         text-transform: uppercase;
         color: #2f7cc8;
       }
 
       .guide-card__title {
         margin: 0;
-        font-size: clamp(1.35rem, 2vw, 1.85rem);
-        line-height: 1.02;
-        font-family: Georgia, "Times New Roman", serif;
+        font-size: clamp(1.08rem, 1.45vw, 1.4rem);
+        line-height: 1.04;
+        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-weight: 760;
+        letter-spacing: -0.02em;
         color: var(--guide-primary);
       }
 
       .guide-card__body {
         margin: 0;
-        font-size: 0.92rem;
-        line-height: 1.62;
+        font-size: 0.77rem;
+        line-height: 1.45;
         color: var(--guide-muted);
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        line-clamp: 4;
+        -webkit-line-clamp: 4;
+        overflow: hidden;
       }
 
       .guide-card__cta {
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.84rem;
+        font-size: 0.74rem;
         font-weight: 700;
         color: var(--guide-primary);
       }
 
-      @media (max-width: 1500px) {
+      @media (max-width: 1280px) {
         .guide-shell {
           width: min(100%, 1200px);
+          padding: 40px 18px;
         }
 
         .guide-grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 18px;
+          gap: 14px;
         }
 
         .guide-card {
-          gap: 14px;
-          padding: 22px;
+          gap: 11px;
+          padding: 18px;
         }
 
         .guide-card__title {
-          font-size: clamp(1.45rem, 2.4vw, 1.95rem);
+          font-size: clamp(1.25rem, 2vw, 1.65rem);
         }
 
         .guide-card__body {
-          font-size: 0.92rem;
-          line-height: 1.65;
+          font-size: 0.84rem;
+          line-height: 1.55;
         }
 
         .guide-card__cta {
-          font-size: 0.88rem;
+          font-size: 0.8rem;
         }
       }
 
@@ -167,12 +256,22 @@
 
       @media (max-width: 760px) {
         body {
-          padding: 18px;
+          padding: 14px;
+        }
+
+        .guide-dna {
+          opacity: 0.22;
+        }
+
+        .guide-dna__track {
+          gap: 8px;
+          letter-spacing: 0.16em;
+          font-size: 11px;
         }
 
         .guide-shell {
           border-radius: 22px;
-          padding: 22px;
+          padding: 32px 18px;
         }
 
         .guide-grid {
@@ -182,6 +281,9 @@
     </style>
   </head>
   <body>
+    <div class="guide-dna" aria-hidden="true">
+      <div class="guide-dna__track" data-guide-dna-track></div>
+    </div>
     <main class="guide-shell">
       <p class="guide-kicker">User Guide</p>
       <h1 class="guide-title">Choose a documentation path</h1>
@@ -262,7 +364,55 @@
           </p>
           <span class="guide-card__cta">Open ownership docs &rarr;</span>
         </a>
+
+        <a class="guide-card" href="https://github.com/ccharles22/Tahoe-Project-2026" target="_blank" rel="noopener noreferrer">
+          <p class="guide-card__eyebrow">Code</p>
+          <h2 class="guide-card__title">Group Repository</h2>
+          <p class="guide-card__body">
+            Open the shared Team Tahoe GitHub repository to review the source code, branch history,
+            and collaboration work for the platform.
+          </p>
+          <span class="guide-card__cta">Open GitHub &rarr;</span>
+        </a>
       </section>
     </main>
+
+    <script>
+      (() => {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const dnaTrack = document.querySelector("[data-guide-dna-track]");
+        if (!dnaTrack) return;
+
+        const buildDnaBackground = () => {
+          const dnaRowHeight = window.innerWidth <= 760 ? 19 : 22;
+          const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.35) / dnaRowHeight));
+          const baseCount = Math.max(110, Math.ceil(window.innerWidth / 12) + 30);
+          const bases = ["A", "C", "G", "T"];
+
+          const createRow = () => {
+            let row = "";
+            for (let idx = 0; idx < baseCount; idx += 1) {
+              const base = bases[Math.floor(Math.random() * bases.length)];
+              row += `<span class="guide-dna__base--${base}">${base}</span>`;
+            }
+            return `<span class="guide-dna__row">${row}</span>`;
+          };
+
+          let firstSet = "";
+          for (let idx = 0; idx < rowCount; idx += 1) {
+            firstSet += createRow();
+          }
+
+          dnaTrack.innerHTML = `${firstSet}${firstSet}`;
+          if (reduceMotion) {
+            dnaTrack.style.animation = "none";
+            dnaTrack.style.transform = "rotate(-3deg) scale(1.02)";
+          }
+        };
+
+        buildDnaBackground();
+        window.addEventListener("resize", buildDnaBackground);
+      })();
+    </script>
   </body>
 </html>
