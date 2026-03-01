@@ -1,6 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const container = document.querySelector(".md-container");
-  if (!container || container.querySelector(".app-guidebar")) {
+  const header = document.querySelector(".md-header");
+  if (!header || document.querySelector(".app-guidebar")) {
     return;
   }
 
@@ -24,5 +24,5 @@ document.addEventListener("DOMContentLoaded", () => {
     </div>
   `;
 
-  container.prepend(guideBar);
+  header.before(guideBar);
 });

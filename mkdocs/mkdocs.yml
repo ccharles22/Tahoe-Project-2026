@@ -1,5 +1,5 @@
-site_name: BIO727P Documentation
-site_description: Unified docs for Parsing/QC and PostgreSQL Visualization
+site_name: Direct Evolution Monitoring Portal
+site_description: Unified docs for parsing, metrics, visualisation, and bonus workflows
 site_author: BIO727P Group Project Team
 
 theme:
