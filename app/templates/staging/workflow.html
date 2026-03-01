@@ -22,8 +22,8 @@
   {% set sequence_completed = (sequence_status and sequence_status.status == 'success') or (sequence_message and ('sequence processing completed' in (sequence_message|lower))) %}
   {% set sequence_technical = sequence_status.technical_details if sequence_status and sequence_status.technical_details else '' %}
   {% set sequence_failure_reason = sequence_status.summary if sequence_status and sequence_status.summary else (sequence_message|replace('Sequence processing failed: ', '')) %}
-  {% set step_d_done = analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
-  {% set step_e_done = sequence_completed %}
+  {% set step_d_done = sequence_completed %}
+  {% set step_e_done = analysis_outputs and analysis_outputs.plot and analysis_outputs.plot.exists %}
   {% set done_count = [step_a_done, step_b_done, step_c_done, step_d_done, step_e_done]|select|list|length %}
   {% if not step_a_done %}
     {% set current_step = 'A' %}
@@ -31,9 +31,9 @@
     {% set current_step = 'B' %}
   {% elif not step_c_done %}
     {% set current_step = 'C' %}
-  {% elif not step_e_done %}
-    {% set current_step = 'D' %}
   {% elif not step_d_done %}
+    {% set current_step = 'D' %}
+  {% elif not step_e_done %}
     {% set current_step = 'E' %}
   {% else %}
     {% set current_step = 'E' %}
@@ -1031,7 +1031,7 @@
             <div class="empty">
               <div class="empty__icon" aria-hidden="true">&#x1F9EA;</div>
               No analysis visuals yet.
-              <div class="empty__sub">Run Step D to generate plots.</div>
+              <div class="empty__sub">Run Step E to generate plots.</div>
             </div>
           {% endif %}
 
