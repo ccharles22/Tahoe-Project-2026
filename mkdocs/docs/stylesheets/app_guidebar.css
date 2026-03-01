@@ -27,9 +27,9 @@
 
 .app-guidebar__brand img {
   display: block;
-  height: clamp(50px, 5.4vw, 72px);
+  height: clamp(60px, 6.2vw, 86px);
   width: auto;
-  max-width: min(58vw, 640px);
+  max-width: min(64vw, 760px);
   object-fit: contain;
 }
 
@@ -50,9 +50,9 @@
   align-items: center;
   justify-content: center;
   min-height: 2.35rem;
-  padding: 0.45rem 0.95rem;
+  padding: 0.4rem 0.85rem;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.78rem;
   font-weight: 700;
   color: #355067;
   line-height: 1;
@@ -98,7 +98,7 @@
 
 @media (max-width: 600px) {
   .app-guidebar__link {
-    font-size: 0.8rem;
-    padding: 0.42rem 0.8rem;
+    font-size: 0.72rem;
+    padding: 0.38rem 0.72rem;
   }
 }
