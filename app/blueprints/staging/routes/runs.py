@@ -141,26 +141,6 @@ def run_sequence():
     exp_id_int = int(experiment_id)
     explicit_force = request.form.get('force_reprocess', '').strip().lower() in {'1', 'true', 'yes', 'on'}
     force_reprocess = explicit_force or is_sequence_reprocess_required(exp_id_int)
-    if not force_reprocess and _has_sequence_outputs(exp_id_int):
-        message = 'Sequence outputs are already up to date. Reusing existing mutation results.'
-        save_sequence_status_to_session(
-            exp_id_int,
-            {
-                'status': 'success',
-                'summary': message,
-                'technical_details': '',
-                'completed_at_epoch': int(time.time()),
-            },
-        )
-        if is_xhr:
-            return jsonify({'state': 'completed', 'message': message}), 200
-        return redirect(
-            url_for(
-                'staging.create_experiment',
-                experiment_id=experiment_id,
-                sequence_message=message,
-            )
-        )
     ok, message = _run_sequence_processing_for_experiment(
         exp_id_int,
         force_reprocess=force_reprocess,
