@@ -46,8 +46,8 @@ nav:
           - Architecture: parsing_qc/architecture.md
           - Parsing & QC Manual: parsing_qc/parsing_qc_manual.md
   - Metric Computations:
-      - Metrics Overview: /metrics/
-      - Activity Score Calculations: /activity_score_calculations/
+      - Metrics Overview: postgresql_visualization/metrics.md
+      - Activity Score Calculations: postgresql_visualization/activity_score_calculations.md
   - Visualisation Guide:
       - Overview: postgresql_visualization/index.md
       - Database:
@@ -66,12 +66,14 @@ nav:
           - PostgreSQL Tailscale Methodology: postgresql_visualization/postgresql_tailscale_methodology.md
           - Git Workflow: postgresql_visualization/git_workflow.md
   - Bonus Visualisations:
-      - Guide Overview: /bonus_visualisations/
-      - Activity Landscape: /bonus_visualisations/visualisations/activity-landscape/
-      - Mutation Fingerprinting: /bonus_visualisations/visualisations/mutation-fingerprint/
-      - Domain Enrichment Heatmap: /bonus_visualisations/visualisations/domain-enrichment/
-      - Mutation Frequency: /bonus_visualisations/visualisations/mutation-frequency/
-      - Pipeline Usage: /bonus_visualisations/pipeline/usage/
+      - Guide Overview: bonus_visualisations/index.md
+      - Activity Landscape: bonus_visualisations/visualisations/activity-landscape.md
+      - Mutation Fingerprinting: bonus_visualisations/visualisations/mutation-fingerprint.md
+      - Domain Enrichment Heatmap: bonus_visualisations/visualisations/domain-enrichment.md
+      - Mutation Frequency: bonus_visualisations/visualisations/mutation-frequency.md
+      - Pipeline Usage: bonus_visualisations/pipeline/usage.md
+      - CLI Reference: bonus_visualisations/pipeline/cli-reference.md
+      - Database Notes: bonus_visualisations/database/connection.md
   - Ownership Notes:
       - Parsing & QC Ownership: parsing_qc/OWNERS.md
       - PostgreSQL & Visualization Ownership: postgresql_visualization/OWNERS.md

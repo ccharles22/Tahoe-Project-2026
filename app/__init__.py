@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, render_template, send_from_directory, abort
+from flask import Flask, render_template, send_from_directory, abort, redirect
 from dotenv import load_dotenv
 from sqlalchemy.exc import OperationalError, DatabaseError
 
@@ -218,19 +218,26 @@ def create_app():
     @app.route("/metrics/")
     @app.route("/metrics/<path:filename>")
     def docs_metrics(filename: str = "index.html"):
-        target = os.path.join("metrics", filename)
-        return _serve_metrics_docs_target(target)
+        target = "/docs/postgresql_visualization/metrics/"
+        if filename != "index.html":
+            target = f"{target}{filename}"
+        return redirect(target)
 
     @app.route("/activity_score_calculations/")
     @app.route("/activity_score_calculations/<path:filename>")
     def docs_activity_score(filename: str = "index.html"):
-        target = os.path.join("activity_score_calculations", filename)
-        return _serve_metrics_docs_target(target)
+        target = "/docs/postgresql_visualization/activity_score_calculations/"
+        if filename != "index.html":
+            target = f"{target}{filename}"
+        return redirect(target)
 
     @app.route("/bonus_visualisations/")
     @app.route("/bonus_visualisations/<path:filename>")
     def docs_bonus_visualisations(filename: str = "index.html"):
-        return _serve_bonus_docs_target(filename)
+        target = "/docs/bonus_visualisations/"
+        if filename != "index.html":
+            target = f"{target}{filename}"
+        return redirect(target)
 
     # The metrics-only guide links back to a shared set of PostgreSQL
     # documentation pages at root-level paths. Mirror those URLs so cross-links

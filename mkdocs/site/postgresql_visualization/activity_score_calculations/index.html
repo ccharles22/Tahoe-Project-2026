@@ -13,6 +13,10 @@
       
       
       
+        <link rel="prev" href="../metrics/">
+      
+      
+        <link rel="next" href="../">
       
       
         
@@ -246,11 +250,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/metrics/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../metrics/" class="md-tabs__link">
           
   
   
@@ -290,7 +296,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/bonus_visualisations/" class="md-tabs__link">
+        <a href="../../bonus_visualisations/" class="md-tabs__link">
           
   
   
@@ -1003,28 +1009,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
-        
-          
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -1042,7 +1051,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1060,7 +1069,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/metrics/" class="md-nav__link">
+      <a href="../metrics/" class="md-nav__link">
         
   
   
@@ -1085,10 +1094,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/activity_score_calculations/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Activity Score Calculations
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1104,6 +1140,275 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unified-activity-metric-concept" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unified activity metric concept
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-metric-is-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this metric is used
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inputs
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notation-used-in-this-page" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Notation used in this page
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#primary-method-wt-based-normalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Primary method: WT-based normalization
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Primary method: WT-based normalization">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#wt-baseline-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WT baseline source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wt-based-worked-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        WT-based worked example
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#full-algorithm-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full algorithm flow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quality-control-qc-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quality control (QC) behavior
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quality control (QC) behavior">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-qc-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key QC rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qc-warning-to-show-in-reports" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QC warning to show in reports
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#qc-code-mapping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        QC code mapping
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stored-output-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stored output metrics
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#database-persistence-details" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Database persistence details
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#validation-query" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Validation query
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Validation query">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#additional-validation-checks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Additional validation checks
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#execution-reminder" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Execution reminder
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#historical-results-note" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Historical results note
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#practical-interpretation-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Practical interpretation guidance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#supporting-references" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Supporting references
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1788,7 +2093,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/bonus_visualisations/" class="md-nav__link">
+      <a href="../../bonus_visualisations/" class="md-nav__link">
         
   
   
@@ -1816,7 +2121,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/bonus_visualisations/visualisations/activity-landscape/" class="md-nav__link">
+      <a href="../../bonus_visualisations/visualisations/activity-landscape/" class="md-nav__link">
         
   
   
@@ -1844,7 +2149,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/bonus_visualisations/visualisations/mutation-fingerprint/" class="md-nav__link">
+      <a href="../../bonus_visualisations/visualisations/mutation-fingerprint/" class="md-nav__link">
         
   
   
@@ -1872,7 +2177,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/bonus_visualisations/visualisations/domain-enrichment/" class="md-nav__link">
+      <a href="../../bonus_visualisations/visualisations/domain-enrichment/" class="md-nav__link">
         
   
   
@@ -1900,7 +2205,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/bonus_visualisations/visualisations/mutation-frequency/" class="md-nav__link">
+      <a href="../../bonus_visualisations/visualisations/mutation-frequency/" class="md-nav__link">
         
   
   
@@ -1928,7 +2233,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/bonus_visualisations/pipeline/usage/" class="md-nav__link">
+      <a href="../../bonus_visualisations/pipeline/usage/" class="md-nav__link">
         
   
   
@@ -1936,6 +2241,62 @@
     
   
     Pipeline Usage
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bonus_visualisations/pipeline/cli-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CLI Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../bonus_visualisations/database/connection/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Database Notes
   
 
     
