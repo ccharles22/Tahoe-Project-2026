@@ -187,6 +187,45 @@
         color: var(--guide-muted);
       }
 
+      .guide-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        margin: 0 -24px 18px;
+        padding: 0 20px;
+        border-top: 1px solid rgba(175, 211, 233, 0.72);
+        border-bottom: 1px solid rgba(175, 211, 233, 0.72);
+        background: linear-gradient(180deg, rgba(241, 248, 255, 0.92) 0%, rgba(231, 242, 252, 0.88) 100%);
+      }
+
+      .guide-tab {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 44px;
+        padding: 0 14px;
+        color: #36536d;
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-decoration: none;
+        border-bottom: 2px solid transparent;
+        transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+      }
+
+      .guide-tab:hover,
+      .guide-tab:focus-visible {
+        color: #17324a;
+        background: rgba(255, 255, 255, 0.48);
+        text-decoration: none;
+        outline: none;
+      }
+
+      .guide-tab--active {
+        color: #11406f;
+        border-bottom-color: #2f7cc8;
+        background: rgba(255, 255, 255, 0.36);
+      }
+
       .guide-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -262,6 +301,12 @@
           padding: 30px 18px;
         }
 
+        .guide-tabs {
+          margin-left: -18px;
+          margin-right: -18px;
+          padding: 0 14px;
+        }
+
         .guide-grid {
           grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 14px;
@@ -323,6 +368,16 @@
           padding: 24px 18px;
         }
 
+        .guide-tabs {
+          margin-top: -2px;
+        }
+
+        .guide-tab {
+          min-height: 40px;
+          padding: 0 11px;
+          font-size: 0.76rem;
+        }
+
         .guide-grid {
           grid-template-columns: 1fr;
         }
@@ -341,6 +396,15 @@
           <a class="guide-navlink" href="{{ url_for('staging.create_experiment') }}">Workspace</a>
         </div>
       </div>
+      <nav class="guide-tabs" aria-label="Documentation sections">
+        <a class="guide-tab guide-tab--active" href="/guide/" aria-current="page">Guide Home</a>
+        <a class="guide-tab" href="/docs/parsing_qc/">Parsing &amp; QC</a>
+        <a class="guide-tab" href="/docs/database/">Database &amp; Schema</a>
+        <a class="guide-tab" href="/docs/postgresql_visualization/metrics/">Metric Computations</a>
+        <a class="guide-tab" href="/docs/postgresql_visualization/">Visualisation Guide</a>
+        <a class="guide-tab" href="/docs/bonus_visualisations/">Bonus Visualisations</a>
+        <a class="guide-tab" href="/docs/parsing_qc/OWNERS/">Ownership Notes</a>
+      </nav>
       <h1 class="guide-title">Choose a documentation path</h1>
       <p class="guide-subtitle">
         Start from the main guide home, jump into parsing and QC, review database and schema
@@ -350,7 +414,7 @@
       </p>
 
       <section class="guide-grid" aria-label="Guide sections">
-        <a class="guide-card" href="/docs/">
+        <a class="guide-card" href="/guide/">
           <p class="guide-card__eyebrow">Overview</p>
           <h2 class="guide-card__title">Guide Home</h2>
           <p class="guide-card__body">
@@ -370,7 +434,7 @@
           <span class="guide-card__cta">Open parsing docs &rarr;</span>
         </a>
 
-        <a class="guide-card" href="/docs/database_notes/">
+        <a class="guide-card" href="/docs/database/">
           <p class="guide-card__eyebrow">Database</p>
           <h2 class="guide-card__title">Database &amp; Schema</h2>
           <p class="guide-card__body">
@@ -410,7 +474,7 @@
           <span class="guide-card__cta">Open bonus docs &rarr;</span>
         </a>
 
-        <a class="guide-card" href="/OWNERS/">
+        <a class="guide-card" href="/docs/parsing_qc/OWNERS/">
           <p class="guide-card__eyebrow">Ownership</p>
           <h2 class="guide-card__title">Ownership Notes</h2>
           <p class="guide-card__body">
