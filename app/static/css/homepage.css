@@ -480,9 +480,9 @@ a:hover { text-decoration: underline; }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(480px, 50vw, 780px);
+  width: clamp(560px, 58vw, 900px);
   max-width: 100%;
-  height: clamp(104px, 9.8vw, 124px);
+  height: clamp(118px, 11.2vw, 138px);
   object-fit: contain;
   object-position: left center;
   filter: drop-shadow(0 10px 16px rgba(18, 56, 93, 0.06));
@@ -1764,9 +1764,9 @@ a:hover { text-decoration: underline; }
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(220px, 54vw, 320px);
-    max-width: calc(100% - 132px);
-    height: 76px;
+    width: clamp(250px, 60vw, 360px);
+    max-width: calc(100% - 120px);
+    height: 84px;
   }
   .home-nav__right {
     right: 16px;
