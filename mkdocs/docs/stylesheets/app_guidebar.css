@@ -267,6 +267,10 @@
   opacity: 1 !important;
   transform: none !important;
   font-weight: 700;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease,
+    opacity 0.16s ease;
 }
 
 .md-tabs__link:hover,

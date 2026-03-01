@@ -59,9 +59,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!track) return;
 
     const railWidth = track.parentElement ? track.parentElement.getBoundingClientRect().width : 120;
-    const dnaRowHeight = 18;
-    const rowCount = Math.max(20, Math.ceil((window.innerHeight * 1.35) / dnaRowHeight));
-    const baseCount = Math.max(14, Math.ceil(railWidth / 8) + 10);
+    const dnaRowHeight = 20;
+    const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.12) / dnaRowHeight));
+    const baseCount = Math.max(12, Math.ceil(railWidth / 10) + 8);
     const bases = ["A", "C", "G", "T"];
 
     const createRow = () => {
@@ -91,6 +91,17 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  let resizeFrame = null;
+  const scheduleRebuild = () => {
+    if (resizeFrame !== null) {
+      window.cancelAnimationFrame(resizeFrame);
+    }
+    resizeFrame = window.requestAnimationFrame(() => {
+      resizeFrame = null;
+      rebuildDnaRails();
+    });
+  };
+
   rebuildDnaRails();
-  window.addEventListener("resize", rebuildDnaRails);
+  window.addEventListener("resize", scheduleRebuild, { passive: true });
 });
