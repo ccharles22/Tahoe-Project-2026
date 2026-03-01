@@ -665,9 +665,9 @@ a:hover { text-decoration: underline; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(120deg, rgba(20, 52, 79, .86) 0%, rgba(29, 82, 118, .8) 48%, rgba(84, 165, 236, .64) 100%),
-    radial-gradient(ellipse 78% 68% at 16% 14%, rgba(255, 255, 255, .16) 0%, transparent 68%),
-    radial-gradient(circle at 82% 20%, rgba(145, 211, 255, .12) 0%, transparent 26%);
+    linear-gradient(122deg, rgba(18, 47, 76, .88) 0%, rgba(24, 86, 136, .82) 44%, rgba(23, 184, 179, .68) 100%),
+    radial-gradient(ellipse 76% 66% at 16% 14%, rgba(95, 216, 255, .14) 0%, transparent 66%),
+    radial-gradient(circle at 82% 20%, rgba(56, 221, 204, .14) 0%, transparent 28%);
   z-index: 0;
 }
 
@@ -676,7 +676,7 @@ a:hover { text-decoration: underline; }
   inset: 0;
   overflow: hidden;
   pointer-events: none;
-  opacity: .4;
+  opacity: .46;
 }
 
 .home-hero__dna::before,
@@ -720,11 +720,12 @@ a:hover { text-decoration: underline; }
 .home-hero__dna-row {
   display: block;
   white-space: nowrap;
-  opacity: .78;
+  opacity: .86;
+  text-shadow: 0 0 8px rgba(12, 44, 72, .22);
 }
 
-.home-hero__dna-row:nth-child(4n) { opacity: .52; }
-.home-hero__dna-row:nth-child(3n) { opacity: .66; }
+.home-hero__dna-row:nth-child(4n) { opacity: .62; }
+.home-hero__dna-row:nth-child(3n) { opacity: .74; }
 
 .home-hero__dna-base--A { color: rgba(121, 224, 176, .92); }
 .home-hero__dna-base--C { color: rgba(103, 211, 255, .92); }
