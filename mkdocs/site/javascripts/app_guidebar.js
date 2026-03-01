@@ -54,59 +54,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   header.before(guideBar);
 
-  const docsTabsGrid = document.querySelector(".md-tabs .md-grid");
-  if (docsTabsGrid && !docsTabsGrid.querySelector(".app-docs-switcher")) {
-    const sections = [
-      { label: "Home Guide", href: "/docs/" },
-      { label: "Parsing & QC", href: "/docs/parsing_qc/" },
-      { label: "Database & Schema", href: "/docs/postgresql_visualization/database/" },
-      { label: "Metric Computations", href: "/docs/postgresql_visualization/metrics/" },
-      { label: "Visualisation Guide", href: "/docs/postgresql_visualization/" },
-      { label: "Bonus Visualisations", href: "/docs/bonus_visualisations/" },
-      { label: "Ownership Notes", href: "/docs/parsing_qc/OWNERS/" },
-    ];
-
-    const currentPath = window.location.pathname;
-    let currentHref = sections[0].href;
-    for (const section of sections) {
-      if (currentPath.startsWith(section.href) && section.href.length >= currentHref.length) {
-        currentHref = section.href;
-      }
-    }
-
-    const switcher = document.createElement("div");
-    switcher.className = "app-docs-switcher";
-
-    const label = document.createElement("label");
-    label.className = "app-docs-switcher__label";
-    label.setAttribute("for", "app-docs-switcher-select");
-    label.textContent = "Go to";
-
-    const select = document.createElement("select");
-    select.id = "app-docs-switcher-select";
-    select.className = "app-docs-switcher__select";
-    select.setAttribute("aria-label", "Switch documentation section");
-
-    for (const section of sections) {
-      const option = document.createElement("option");
-      option.value = section.href;
-      option.textContent = section.label;
-      if (section.href === currentHref) {
-        option.selected = true;
-      }
-      select.append(option);
-    }
-
-    select.addEventListener("change", () => {
-      if (select.value) {
-        window.location.href = select.value;
-      }
-    });
-
-    switcher.append(label, select);
-    docsTabsGrid.append(switcher);
-  }
-
   const buildDnaForTrack = (track) => {
     if (!track) return;
 

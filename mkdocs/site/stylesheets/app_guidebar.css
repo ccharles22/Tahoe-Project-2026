@@ -215,17 +215,6 @@
     inset 0 -1px 0 rgba(10, 34, 56, 0.18);
 }
 
-.md-tabs .md-grid {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.md-tabs__list {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
 .md-tabs__link {
   color: rgba(236, 248, 255, 0.8) !important;
   font-weight: 700;
@@ -258,58 +247,6 @@
   background: #7ce6d5;
 }
 
-.app-docs-switcher {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  margin-left: auto;
-  flex: 0 0 auto;
-}
-
-.app-docs-switcher__label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(233, 247, 255, 0.7);
-}
-
-.app-docs-switcher__select {
-  min-width: 190px;
-  min-height: 2rem;
-  padding: 0.2rem 2rem 0.2rem 0.8rem;
-  border: 1px solid rgba(183, 225, 240, 0.32);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.14);
-  color: #ffffff;
-  font: inherit;
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1.2;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  -webkit-appearance: none;
-  appearance: none;
-  background-image:
-    linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.8) 50%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.8) 50%, transparent 50%);
-  background-position:
-    calc(100% - 18px) calc(50% - 2px),
-    calc(100% - 12px) calc(50% - 2px);
-  background-size: 6px 6px, 6px 6px;
-  background-repeat: no-repeat;
-}
-
-.app-docs-switcher__select:hover,
-.app-docs-switcher__select:focus-visible {
-  border-color: rgba(196, 237, 244, 0.48);
-  background-color: rgba(255, 255, 255, 0.2);
-  outline: none;
-}
-
-.app-docs-switcher__select option {
-  color: #163d63;
-}
-
 .md-grid {
   max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
 }
@@ -340,34 +277,12 @@
     flex-wrap: wrap;
   }
 
-  .md-tabs .md-grid {
-    flex-wrap: wrap;
-    gap: 0.6rem;
-  }
-
-  .app-docs-switcher {
-    width: 100%;
-    justify-content: flex-end;
-  }
 }
 
 @media (max-width: 600px) {
   .app-guidebar__link {
     font-size: 0.72rem;
     padding: 0.38rem 0.72rem;
-  }
-
-  .app-docs-switcher {
-    justify-content: stretch;
-  }
-
-  .app-docs-switcher__label {
-    display: none;
-  }
-
-  .app-docs-switcher__select {
-    width: 100%;
-    min-width: 0;
   }
 }
 
