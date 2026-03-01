@@ -29,7 +29,8 @@
     function buildDnaBackground() {
       if (!dnaTrack) return;
 
-      const rowCount = 12;
+      const dnaRowHeight = window.innerWidth <= 640 ? 19 : 22;
+      const rowCount = Math.max(18, Math.ceil((window.innerHeight * 1.5) / dnaRowHeight));
       const baseCount = Math.max(110, Math.ceil(window.innerWidth / 12) + 36);
       const bases = ["A", "C", "G", "T"];
 
@@ -99,6 +100,7 @@
     }
 
     buildDnaBackground();
+    window.addEventListener("resize", buildDnaBackground);
 
     if (resultsTrack && resultsPrev && resultsNext) {
       const updateCarouselControls = () => {
