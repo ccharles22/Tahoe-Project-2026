@@ -888,7 +888,16 @@ a:hover { text-decoration: underline; }
 
 /* Results preview section */
 .home-results-preview {
-  padding-top: 36px;
+  margin-top: 10px;
+  padding: 36px clamp(18px, 3vw, 30px) 40px;
+  border-radius: 30px;
+  border: 1px solid rgba(180, 206, 235, 0.78);
+  background:
+    radial-gradient(circle at top right, rgba(255, 255, 255, 0.55), transparent 30%),
+    linear-gradient(180deg, rgba(236, 245, 255, 0.96) 0%, rgba(228, 241, 255, 0.93) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    0 18px 34px rgba(18, 56, 93, 0.06);
 }
 
 .home-results-carousel {
@@ -1555,6 +1564,10 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
+  .home-results-preview {
+    padding: 28px 14px 30px;
+    border-radius: 24px;
+  }
   .home-nav {
     height: 100px;
     padding: 0 16px;
