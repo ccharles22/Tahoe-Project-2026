@@ -152,6 +152,19 @@ def run_pipeline(
     skip_create_views: bool,
 ) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
+    generated_count = 0
+    failures: list[str] = []
+
+    def _run_plot(label: str, func, *args, **kwargs):
+        nonlocal generated_count
+        try:
+            out = func(*args, **kwargs)
+            generated_count += 1
+            return out
+        except Exception as exc:
+            failures.append(f"{label}: {type(exc).__name__}: {exc}")
+            print(f"[warn] {label} skipped: {type(exc).__name__}: {exc}")
+            return None
 
     # Preconditions
     check_activity_score_exists(generation_id)
@@ -184,7 +197,9 @@ def run_pipeline(
 
     # ---- Plots ----
 
-    out_landscape = plot_activity_landscape_plotly(
+    out_landscape = _run_plot(
+        "Landscape (Plotly)",
+        plot_activity_landscape_plotly,
         generation_id=generation_id,
         method=landscape_method,
         mode=landscape_mode,
@@ -192,34 +207,44 @@ def run_pipeline(
         out_path=outputs_dir / f"activity_landscape_{landscape_method}_{landscape_mode}.html",
     )
 
-    out_surface = plot_activity_surface_matplotlib(
+    out_surface = _run_plot(
+        "Surface (Matplotlib)",
+        plot_activity_surface_matplotlib,
         generation_id=generation_id,
         method=landscape_method,
         grid_size=grid_size,
         out_path=outputs_dir / f"activity_surface_{landscape_method}.png",
     )
 
-    out_traj = plot_mutation_trajectory(
+    out_traj = _run_plot(
+        "Trajectory",
+        plot_mutation_trajectory,
         generation_id=generation_id,
         top_n=top_n,
         out_path=outputs_dir / f"mutation_trajectory_top{top_n}.html",
     )
 
     # All-generation heatmap
-    out_domain_heat = plot_domain_enrichment(
+    out_domain_heat = _run_plot(
+        "Domain heatmap",
+        plot_domain_enrichment,
         generation_id=None,
         metric="nonsyn_count",
         out_path=outputs_dir / "domain_enrichment_heatmap.html",
     )
 
     # Single-generation bar chart
-    out_domain_bar = plot_domain_enrichment(
+    out_domain_bar = _run_plot(
+        "Domain (gen bar)",
+        plot_domain_enrichment,
         generation_id=generation_id,
         metric="nonsyn_count",
         out_path=outputs_dir / f"domain_enrichment_gen{generation_id}.html",
     )
 
-    out_mutation_frequency = plot_mutation_frequency(
+    out_mutation_frequency = _run_plot(
+        "Mutation frequency",
+        plot_mutation_frequency,
         generation_id=generation_id,
         out_path=outputs_dir / "mutation_frequency_by_position.html",
     )
@@ -228,9 +253,17 @@ def run_pipeline(
     vid = fingerprint_variant_id or get_top_variant_id(generation_id)
     out_fingerprint = None
     if vid is not None:
-        out_fingerprint = plot_mutation_fingerprint(
+        out_fingerprint = _run_plot(
+            "Fingerprint",
+            plot_mutation_fingerprint,
             variant_id=vid,
             out_path=outputs_dir / f"mutation_fingerprint_variant{vid}.html",
+        )
+
+    if generated_count == 0:
+        details = "; ".join(failures) if failures else "No bonus outputs were written."
+        raise SystemExit(
+            f"No bonus visualisations were generated for generation_id={generation_id}. {details}"
         )
 
     print("\n Bonus visualisation pipeline complete.")
@@ -245,6 +278,10 @@ def run_pipeline(
         print(f"- Fingerprint: {out_fingerprint}")
     else:
         print("- Fingerprint: skipped (no top variant found)")
+    if failures:
+        print("- Some bonus visualisations were skipped:")
+        for failure in failures:
+            print(f"  * {failure}")
 
 
 def main():
