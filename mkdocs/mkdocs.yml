@@ -45,6 +45,9 @@ nav:
       - Project Docs:
           - Architecture: parsing_qc/architecture.md
           - Parsing & QC Manual: parsing_qc/parsing_qc_manual.md
+  - Metric Computations:
+      - Metrics Overview: /metrics/
+      - Activity Score Calculations: /activity_score_calculations/
   - Visualisation Guide:
       - Overview: postgresql_visualization/index.md
       - Database:
@@ -62,9 +65,6 @@ nav:
           - Database Setup (Tailscale): postgresql_visualization/database_setup_tailscale.md
           - PostgreSQL Tailscale Methodology: postgresql_visualization/postgresql_tailscale_methodology.md
           - Git Workflow: postgresql_visualization/git_workflow.md
-  - Metric Computations:
-      - Metrics Overview: /metrics/
-      - Activity Score Calculations: /activity_score_calculations/
   - Bonus Visualisations:
       - Guide Overview: /bonus_visualisations/
       - Activity Landscape: /bonus_visualisations/visualisations/activity-landscape/
