@@ -206,13 +206,15 @@
 .md-tabs {
   border-bottom: 1px solid rgba(103, 164, 204, 0.42);
   margin-top: -1px;
+  overflow: visible;
   background:
     linear-gradient(90deg, rgba(18, 47, 76, 0.94) 0%, rgba(24, 86, 136, 0.9) 46%, rgba(23, 184, 179, 0.78) 100%);
   box-shadow:
     inset 0 -1px 0 rgba(10, 34, 56, 0.18);
 }
 
-.md-tabs__inner {
+.md-tabs .md-grid {
+  display: block;
   max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
   margin: 0 auto;
   padding: 0 16px;
@@ -223,10 +225,20 @@
   align-items: stretch;
   gap: 4px;
   min-height: 56px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.md-tabs__list::-webkit-scrollbar {
+  display: none;
 }
 
 .md-tabs__item {
   height: auto;
+  flex: 0 0 auto;
 }
 
 .md-tabs__link {
@@ -236,6 +248,8 @@
   padding: 14px 14px 11px;
   margin-top: 0;
   white-space: nowrap;
+  font-size: 0.82rem;
+  line-height: 1.2;
   color: rgba(236, 248, 255, 0.8) !important;
   font-weight: 700;
 }
@@ -276,7 +290,7 @@
     display: none;
   }
 
-  .md-tabs__inner {
+  .md-tabs .md-grid {
     max-width: min(100vw - 24px, 76rem);
     padding: 0 10px;
   }
