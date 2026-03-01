@@ -11,6 +11,9 @@
     const stageCards = document.querySelectorAll(".home-stage__card");
     const stageCardsList = Array.from(stageCards);
     const pipelineItems = document.querySelectorAll(".home-pipeline__item");
+    const resultsTrack = document.querySelector("[data-home-carousel-track]");
+    const resultsPrev = document.querySelector("[data-home-carousel-prev]");
+    const resultsNext = document.querySelector("[data-home-carousel-next]");
 
     function setActiveStage(stageId) {
       if (!stageId) return;
@@ -39,6 +42,30 @@
 
     if (stageCards.length) {
       setActiveStage(stageCards[0].dataset.stage);
+    }
+
+    if (resultsTrack && resultsPrev && resultsNext) {
+      const updateCarouselControls = () => {
+        const maxScroll = Math.max(0, resultsTrack.scrollWidth - resultsTrack.clientWidth - 2);
+        resultsPrev.disabled = resultsTrack.scrollLeft <= 2;
+        resultsNext.disabled = resultsTrack.scrollLeft >= maxScroll;
+      };
+
+      const scrollResults = (direction) => {
+        const firstCard = resultsTrack.querySelector(".home-results-card");
+        const gap = parseFloat(window.getComputedStyle(resultsTrack).columnGap || window.getComputedStyle(resultsTrack).gap || "24");
+        const stride = firstCard ? firstCard.getBoundingClientRect().width + gap : resultsTrack.clientWidth * 0.9;
+        resultsTrack.scrollBy({
+          left: stride * direction,
+          behavior: reduceMotion ? "auto" : "smooth",
+        });
+      };
+
+      resultsPrev.addEventListener("click", () => scrollResults(-1));
+      resultsNext.addEventListener("click", () => scrollResults(1));
+      resultsTrack.addEventListener("scroll", updateCarouselControls, { passive: true });
+      window.addEventListener("resize", updateCarouselControls);
+      updateCarouselControls();
     }
 
     if (stageCards.length) {

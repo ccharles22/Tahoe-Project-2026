@@ -138,7 +138,16 @@
         <p class="home-results-intro__micro">On mobile and narrow screens, swipe across the cards to browse the full core and bonus preview set.</p>
       </div>
     </div>
-    <div class="home-results-grid">
+    <div class="home-results-carousel" aria-label="Results preview carousel">
+      <button
+        type="button"
+        class="home-results-carousel__control home-results-carousel__control--prev"
+        data-home-carousel-prev
+        aria-label="Scroll result previews left"
+      >
+        <span aria-hidden="true">‹</span>
+      </button>
+      <div class="home-results-grid" data-home-carousel-track>
       <article class="home-results-card">
         <div class="home-results-card__header">
           <p class="home-results-card__kicker">Top Variants</p>
@@ -200,15 +209,30 @@
           <p class="home-results-card__kicker">Bonus Visualisation</p>
           <span class="home-results-card__badge">Experiment 128</span>
         </div>
-        <h3 class="home-results-card__title">Activity Surface (PCA)</h3>
+        <h3 class="home-results-card__title">Activity Landscape</h3>
         <p class="home-results-card__text">
-          Explore the bonus PCA activity surface to see how the variant
-          landscape spreads across a dimensionality-reduced activity map.
+          Preview one of the Section 6 bonus views: the interactive activity
+          landscape built from the experiment's dimensionality-reduced outputs.
         </p>
-        <div class="home-results-graph-wrap" aria-label="Example bonus activity surface graph">
-          <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_128_bonus_activity_surface.png') }}" alt="Bonus activity surface from experiment 128">
+        <div class="home-results-graph-wrap" aria-label="Example bonus activity landscape graph">
+          <iframe
+            class="home-results-embed"
+            src="{{ url_for('static', filename='generated/128/bonus/activity_landscape_pca_surface.html') }}"
+            title="Bonus activity landscape from experiment 128"
+            loading="lazy"
+            tabindex="-1"
+          ></iframe>
         </div>
       </article>
+      </div>
+      <button
+        type="button"
+        class="home-results-carousel__control home-results-carousel__control--next"
+        data-home-carousel-next
+        aria-label="Scroll result previews right"
+      >
+        <span aria-hidden="true">›</span>
+      </button>
     </div>
   </section>
 
@@ -381,4 +405,3 @@
   {% endif %}
 </body>
 </html>
-

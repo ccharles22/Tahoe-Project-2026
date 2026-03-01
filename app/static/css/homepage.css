@@ -818,6 +818,54 @@ a:hover { text-decoration: underline; }
   padding-top: 36px;
 }
 
+.home-results-carousel {
+  position: relative;
+}
+
+.home-results-carousel__control {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 48px;
+  height: 48px;
+  border: 1px solid rgba(42, 125, 225, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  color: var(--primary-dark);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 16px 28px rgba(21, 62, 111, 0.14);
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+
+.home-results-carousel__control span {
+  font-size: 28px;
+  line-height: 1;
+  transform: translateY(-1px);
+}
+
+.home-results-carousel__control:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.04);
+  box-shadow: 0 18px 30px rgba(21, 62, 111, 0.18);
+}
+
+.home-results-carousel__control:disabled {
+  opacity: .38;
+  cursor: default;
+  box-shadow: none;
+}
+
+.home-results-carousel__control--prev {
+  left: -14px;
+}
+
+.home-results-carousel__control--next {
+  right: -14px;
+}
+
 .home-results-grid {
   display: grid;
   grid-template-columns: none;
@@ -952,6 +1000,16 @@ a:hover { text-decoration: underline; }
   height: auto;
   display: block;
   border-radius: 10px;
+}
+
+.home-results-embed {
+  display: block;
+  width: 100%;
+  min-height: 280px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff;
+  pointer-events: none;
 }
 
 .home-results-graph__axis {
@@ -1409,6 +1467,13 @@ a:hover { text-decoration: underline; }
 }
 
 @media (max-width: 960px) {
+  .home-results-carousel__control {
+    width: 42px;
+    height: 42px;
+  }
+  .home-results-carousel__control span {
+    font-size: 24px;
+  }
   .home-results-grid {
     grid-auto-columns: minmax(320px, calc((100% - 24px) / 2));
     gap: 18px;
@@ -1479,6 +1544,9 @@ a:hover { text-decoration: underline; }
     grid-auto-columns: minmax(82vw, 360px);
     gap: 16px;
     padding: 2px 4px 10px;
+  }
+  .home-results-carousel__control {
+    display: none;
   }
   .auth-sheet__panel {
     height: 100vh;
