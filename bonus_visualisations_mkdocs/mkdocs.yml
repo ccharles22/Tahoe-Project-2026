@@ -6,13 +6,27 @@ repo_name: Tahoe-Project-2026
 theme:
   name: material
   palette:
-    scheme: default
-    primary: teal
-    accent: amber
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
   features:
+    - navigation.instant
+    - navigation.tabs
     - content.code.copy
     - navigation.sections
     - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
 
 markdown_extensions:
   - admonition
@@ -25,14 +39,17 @@ markdown_extensions:
       permalink: true
 
 nav:
-  - Home: index.md
-  - Pipeline:
-    - Running the Pipeline: pipeline/usage.md
-    - CLI Reference: pipeline/cli-reference.md
-  - Visualisations:
+  - Guide Home: index.md
+  - Bonus Visualisations:
     - Activity Landscape: visualisations/activity-landscape.md
     - Mutation Fingerprinting: visualisations/mutation-fingerprint.md
     - Domain Enrichment Heatmap: visualisations/domain-enrichment.md
     - Mutation Frequency: visualisations/mutation-frequency.md
-  - Database:
+  - Pipeline Usage:
+    - Running the Pipeline: pipeline/usage.md
+    - CLI Reference: pipeline/cli-reference.md
+  - Database Notes:
     - Connection & Materialized Views: database/connection.md
+
+plugins:
+  - search
