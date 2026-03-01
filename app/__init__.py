@@ -179,6 +179,14 @@ def create_app():
     def docs_index():
         return _serve_docs_target("index.html")
 
+    @app.route("/docs/database/")
+    @app.route("/docs/database/<path:filename>")
+    def docs_database_alias(filename: str = "index.html"):
+        target = "/docs/postgresql_visualization/database/"
+        if filename != "index.html":
+            target = f"{target}{filename}"
+        return redirect(target)
+
     @app.route("/docs/<path:filename>")
     def docs_files(filename):
         return _serve_docs_target(filename)
