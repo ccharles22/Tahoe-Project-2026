@@ -12,9 +12,9 @@
   z-index: 0;
   opacity: 0.4;
   background:
-    linear-gradient(122deg, rgba(20, 52, 79, 0.92) 0%, rgba(24, 86, 136, 0.86) 44%, rgba(23, 184, 179, 0.72) 100%),
-    radial-gradient(ellipse 76% 66% at 16% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
-    radial-gradient(circle at 82% 20%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
+    linear-gradient(180deg, rgba(18, 47, 76, 0.88) 0%, rgba(24, 86, 136, 0.82) 44%, rgba(23, 184, 179, 0.68) 100%),
+    radial-gradient(ellipse 76% 66% at 50% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
+    radial-gradient(circle at 50% 82%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
 }
 
 .app-guidebar-dna-rail--left {
@@ -34,9 +34,9 @@
 
 .app-guidebar-dna-rail::before {
   background:
-    radial-gradient(circle at 18% 22%, rgba(29, 211, 200, 0.12) 0%, transparent 34%),
-    radial-gradient(circle at 78% 26%, rgba(30, 144, 255, 0.1) 0%, transparent 28%),
-    radial-gradient(circle at 52% 82%, rgba(123, 245, 170, 0.1) 0%, transparent 34%);
+    radial-gradient(circle at 18% 22%, rgba(29, 211, 200, 0.16) 0%, transparent 34%),
+    radial-gradient(circle at 78% 26%, rgba(30, 144, 255, 0.14) 0%, transparent 28%),
+    radial-gradient(circle at 52% 82%, rgba(123, 245, 170, 0.12) 0%, transparent 34%);
 }
 
 .app-guidebar-dna-rail::after {
