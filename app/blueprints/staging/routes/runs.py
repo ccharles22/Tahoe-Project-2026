@@ -139,8 +139,10 @@ def run_sequence():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
-    explicit_force = request.form.get('force_reprocess', '').strip().lower() in {'1', 'true', 'yes', 'on'}
-    force_reprocess = explicit_force or is_sequence_reprocess_required(exp_id_int)
+    # Step 4 is the explicit "recompute sequence outputs" action, so it should
+    # always run the full sequence pipeline rather than silently skipping
+    # already-processed variants.
+    force_reprocess = True
     ok, message = _run_sequence_processing_for_experiment(
         exp_id_int,
         force_reprocess=force_reprocess,
