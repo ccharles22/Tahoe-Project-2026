@@ -468,6 +468,10 @@ a:hover { text-decoration: underline; }
   gap: 10px;
 }
 
+.home-nav__brand--portal {
+  gap: 12px;
+}
+
 .home-nav__logo {
   width: 32px;
   height: 32px;
@@ -481,11 +485,40 @@ a:hover { text-decoration: underline; }
   font-weight: 800;
 }
 
+.home-nav__logo--portal {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+    0 8px 18px rgba(11, 44, 84, 0.22);
+}
+
+.home-nav__brand-copy {
+  display: grid;
+  gap: 2px;
+}
+
 .home-nav__name {
   font-size: 16px;
   font-weight: 700;
   color: #eaf4ff;
   letter-spacing: -.02em;
+}
+
+.home-nav__name--portal {
+  font-size: clamp(15px, 1.55vw, 20px);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.02;
+}
+
+.home-nav__tagline {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: rgba(234, 244, 255, 0.76);
 }
 
 .home-nav__right {
@@ -1482,7 +1515,12 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
-  .home-nav__name { display: none; }
+  .home-nav__name--portal {
+    font-size: 13px;
+  }
+  .home-nav__tagline {
+    display: none;
+  }
   .home-nav__iconlink {
     width: 30px;
     height: 30px;
