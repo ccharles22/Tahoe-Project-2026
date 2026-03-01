@@ -151,30 +151,30 @@
               {% endif %}
             </div>
           </article>
-          <article class="home-stage__card" id="stage-analyse" data-stage="analyse">
+          <article class="home-stage__card" id="stage-sequence" data-stage="sequence">
             <p class="home-stage__eyebrow">Stage 04</p>
-            <h2 class="home-stage__title">Analysis &amp; Reporting</h2>
+            <h2 class="home-stage__title">Sequence Processing</h2>
             <p class="home-stage__description">
-              Generate the Activity Score, top performers table, and activity-by-generation plot.
+              Find the gene, translate DNA to protein, call synonymous/non-synonymous mutations, store results.
             </p>
             <div class="home-stage__actions" aria-label="Stage 4 actions">
               <a class="home-stage__action home-stage__action--primary" href="{{ workspace_url }}">
-                Open analysis workspace
+                Open sequence workspace
               </a>
               <a class="home-stage__action" href="{{ guide_url }}">
                 Review workflow guide
               </a>
             </div>
           </article>
-          <article class="home-stage__card" id="stage-sequence" data-stage="sequence">
+          <article class="home-stage__card" id="stage-analyse" data-stage="analyse">
             <p class="home-stage__eyebrow">Stage 05</p>
-            <h2 class="home-stage__title">Sequence Processing</h2>
+            <h2 class="home-stage__title">Analysis &amp; Reporting</h2>
             <p class="home-stage__description">
-              Find the gene, translate DNA to protein, call synonymous/non-synonymous mutations, store results.
+              Generate the Activity Score, top performers table, and activity-by-generation plot.
             </p>
             <div class="home-stage__actions" aria-label="Stage 5 actions">
               <a class="home-stage__action home-stage__action--primary" href="{{ workspace_url }}">
-                Open sequence workspace
+                Open analysis workspace
               </a>
               <a class="home-stage__action" href="{{ guide_url }}">
                 Review workflow guide
@@ -190,8 +190,8 @@
             <li class="home-pipeline__item is-active" data-stage="fetch-wt" role="button" tabindex="0" aria-label="Show stage: Stage Experiment">Stage Experiment</li>
             <li class="home-pipeline__item" data-stage="validate" role="button" tabindex="0" aria-label="Show stage: Protein and Plasmid Validation">Protein &amp; Plasmid Validation</li>
             <li class="home-pipeline__item" data-stage="upload" role="button" tabindex="0" aria-label="Show stage: Data Upload and QC">Data Upload &amp; QC</li>
-            <li class="home-pipeline__item" data-stage="analyse" role="button" tabindex="0" aria-label="Show stage: Analysis and Reporting">Analysis &amp; Reporting</li>
             <li class="home-pipeline__item" data-stage="sequence" role="button" tabindex="0" aria-label="Show stage: Sequence Processing">Sequence Processing</li>
+            <li class="home-pipeline__item" data-stage="analyse" role="button" tabindex="0" aria-label="Show stage: Analysis and Reporting">Analysis &amp; Reporting</li>
           </ul>
         </div>
       </aside>
@@ -502,4 +502,3 @@
   {% endif %}
 </body>
 </html>
-
