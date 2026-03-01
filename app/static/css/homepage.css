@@ -450,9 +450,9 @@ a:hover { text-decoration: underline; }
 .home-nav {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   padding: 0 28px;
-  height: 112px;
+  height: 132px;
   background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid rgba(189, 214, 241, 0.72);
   box-shadow: 0 10px 24px rgba(18, 56, 93, 0.08);
@@ -469,16 +469,18 @@ a:hover { text-decoration: underline; }
 }
 
 .home-nav__brand--portal {
-  flex: 1 1 auto;
-  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
   gap: 0;
 }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(360px, 46vw, 720px);
+  width: clamp(420px, 48vw, 760px);
   max-width: 100%;
-  height: clamp(72px, 8.5vw, 96px);
+  height: clamp(84px, 9vw, 112px);
   object-fit: cover;
   object-position: center;
   border-radius: 16px;
@@ -535,6 +537,10 @@ a:hover { text-decoration: underline; }
 }
 
 .home-nav__right {
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1529,12 +1535,16 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav {
-    height: 88px;
+    height: 102px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(210px, 58vw, 320px);
-    height: 58px;
+    width: clamp(220px, 60vw, 340px);
+    height: 70px;
+  }
+  .home-nav__right {
+    right: 16px;
+    gap: 8px;
   }
   .home-nav__iconlink {
     width: 30px;
