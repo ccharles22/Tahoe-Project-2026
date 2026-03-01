@@ -6,8 +6,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const guideIconMarkup = `
     <svg class="app-guidebar__docs-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18.5v-13Z"></path>
-      <path d="M8 7h8M8 11h8M8 15h6"></path>
+      <path d="M7 3.5h7.6L19 7.9V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.4Z"></path>
+      <path d="M14.5 3.5V8H19"></path>
+      <path d="M9 11h6M9 14.5h6M9 18h4.5"></path>
     </svg>
   `;
 
