@@ -184,11 +184,16 @@ function initRunLoader() {
             throw new Error(`Unexpected sequence state: ${payload.state}`);
           }
 
-          if (!response.ok) {
-            throw new Error(`Request failed with status ${response.status}`);
+          const payload = await response.json();
+          if (payload.state === 'completed' || payload.state === 'failed') {
+            const rawTarget = payload.redirect_url || window.location.href;
+            const targetUrl = new URL(rawTarget, window.location.href);
+            targetUrl.searchParams.set('_refresh', String(Date.now()));
+            window.location.assign(targetUrl.toString());
+            return;
           }
 
-          window.location.href = response.url || window.location.href;
+          throw new Error(`Unexpected analysis state: ${payload.state}`);
         } catch (error) {
           console.error('Run request failed:', error);
           hideLoader();
