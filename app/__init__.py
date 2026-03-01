@@ -1,6 +1,6 @@
 import os
 import logging
-from flask import Flask, render_template, send_from_directory, abort, redirect
+from flask import Flask, render_template, send_from_directory, abort, redirect, make_response
 from dotenv import load_dotenv
 from sqlalchemy.exc import OperationalError, DatabaseError
 
@@ -159,13 +159,19 @@ def create_app():
     )
     bonus_site_dir = os.path.abspath(bonus_site_dir)
 
+    def _mark_docs_no_cache(response):
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
+
     def _serve_docs_target_from(base_dir: str, target: str):
         path = os.path.join(base_dir, target)
         if os.path.isdir(path):
             target = os.path.join(target, "index.html")
             path = os.path.join(base_dir, target)
         if os.path.exists(path):
-            return send_from_directory(base_dir, target)
+            return _mark_docs_no_cache(send_from_directory(base_dir, target, max_age=0))
         abort(404)
 
     def _serve_docs_target(target: str):
@@ -173,7 +179,7 @@ def create_app():
 
     @app.route("/guide/")
     def docs_hub():
-        return render_template("docs/guide_hub.html")
+        return _mark_docs_no_cache(make_response(render_template("docs/guide_hub.html")))
 
     @app.route("/docs/")
     def docs_index():
