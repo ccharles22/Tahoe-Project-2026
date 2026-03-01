@@ -133,6 +133,16 @@ def create_app():
     from .services.analysis.app import register_analysis_routes
     register_analysis_routes(app)
 
+    @app.route("/favicon.ico")
+    def favicon():
+        icon_dir = os.path.join(app.static_folder, "img")
+        return send_from_directory(
+            icon_dir,
+            "webpage_tahoe_favicon_v2.png",
+            mimetype="image/png",
+            max_age=0,
+        )
+
     # Serve built MkDocs site (unified docs site output).
     # Routes are always registered so docs work after a build without requiring
     # the app to have seen `site/` at startup time.
