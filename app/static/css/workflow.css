@@ -734,15 +734,27 @@ a:hover { text-decoration: underline; }
 }
 
 .task__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: var(--text);
-  font-size: 13px;
   cursor: pointer;
-  padding: 2px 4px;
+  padding: 2px;
   transition: transform .2s var(--ease);
   flex-shrink: 0;
   order: 3;
+}
+
+.task__toggle-icon {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .task__state {
@@ -1345,7 +1357,21 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 
-.back-btn__icon { font-size: 14px; }
+.back-btn__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.back-btn__icon svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 .back-btn__text { display: inline; }
 
 @media (max-width: 640px) {
@@ -1438,9 +1464,18 @@ a:hover { text-decoration: underline; }
 }
 
 .taskbar__icon {
-  font-size: 22px;
   display: inline-flex;
   align-items: center;
+}
+
+.taskbar__icon svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .taskbar__label {

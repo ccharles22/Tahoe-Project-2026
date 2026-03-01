@@ -16,6 +16,7 @@
     const resultsTrack = document.querySelector("[data-home-carousel-track]");
     const resultsPrev = document.querySelector("[data-home-carousel-prev]");
     const resultsNext = document.querySelector("[data-home-carousel-next]");
+    let activeStageId = "";
     const stageTitles = {
       "fetch-wt": "Stage Experiment",
       "validate": "Protein & Plasmid Validation",
@@ -26,6 +27,8 @@
 
     function setActiveStage(stageId) {
       if (!stageId) return;
+      if (stageId === activeStageId) return;
+      activeStageId = stageId;
       stageCards.forEach((card) => card.classList.toggle("is-active", card.dataset.stage === stageId));
       pipelineItems.forEach((it) => it.classList.remove("is-active"));
       const matchingItem = document.querySelector(`.home-pipeline__item[data-stage="${stageId}"]`);

@@ -76,14 +76,18 @@
     <!-- PAGE HEADER -->
     <header class="page-header">
       <a href="{{ url_for('auth.homepage') }}" class="back-btn">
-        <span class="back-btn__icon" aria-hidden="true">&#x2190;</span>
+        <span class="back-btn__icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" focusable="false">
+            <path d="M15 5 8 12l7 7"></path>
+          </svg>
+        </span>
         <span class="back-btn__text">Back to Homepage</span>
       </a>
       {% if experiment_id %}
         <div class="page-header__context">
           <span class="page-header__exp">{{ display_experiment_name }} #{{ experiment_id }}</span>
           {% if wt %}
-            <span class="page-header__sep">·</span>
+            <span class="page-header__sep">|</span>
             <span class="page-header__protein">{{ wt.uniprot_id }}</span>
           {% endif %}
         </div>
@@ -164,11 +168,19 @@
       <!-- LEFT TASKBAR -->
       <nav class="taskbar">
         <a href="#experiments" class="taskbar__item" data-section="experiments">
-          <span class="taskbar__icon" aria-hidden="true">&#x1F4C1;</span>
+          <span class="taskbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="M3.5 8.5a2 2 0 0 1 2-2H10l2 2h6.5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2v-9Z"></path>
+            </svg>
+          </span>
           <span class="taskbar__label">Experiments</span>
         </a>
         <a href="#tools" class="taskbar__item" data-section="tools">
-          <span class="taskbar__icon" aria-hidden="true">&#x1F6E0;&#xFE0F;</span>
+          <span class="taskbar__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" focusable="false">
+              <path d="m14.7 6.3 3 3M8.2 16.8l-3.5 3.5M8.6 15.6l5.7-5.7a3.7 3.7 0 0 0 4.7-5l-2.2 2.2-2.9-.8-.8-2.9 2.2-2.2a3.7 3.7 0 0 0-5 4.7l-5.7 5.7"></path>
+            </svg>
+          </span>
           <span class="taskbar__label">Tools</span>
         </a>
       </nav>
@@ -187,7 +199,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--a">1</div>
             <div class="task__title">Fetch WT (UniProt)</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
             {% if wt %}
               <span class="badge badge--ok">Complete</span>
             {% else %}
@@ -218,7 +230,7 @@
 
             {% if wt %}
               <div class="task__done-summary">
-                Complete: <strong>{{ wt.uniprot_id }}</strong> · {{ wt.sequence_length or '?' }} aa
+                Complete: <strong>{{ wt.uniprot_id }}</strong> | {{ wt.sequence_length or '?' }} aa
               </div>
             {% endif %}
           </div>
@@ -230,7 +242,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--b">2</div>
             <div class="task__title">Validate Plasmid</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
             {% if validation %}
               {% if validation.is_valid %}
                 <span class="badge badge--ok">Complete</span>
@@ -261,11 +273,11 @@
 
               {% if step_b_done %}
                 <div class="task__done-summary task__done-summary--ok">
-                  Plasmid validated — Complete
+                  Plasmid validated - Complete
                 </div>
               {% elif step_b_fail %}
                 <div class="task__done-summary task__done-summary--bad">
-                  Validation FAILED — re-upload to retry
+                  Validation FAILED - re-upload to retry
                 </div>
               {% endif %}
             {% endif %}
@@ -278,7 +290,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--c">3</div>
             <div class="task__title">Upload Parsing Data</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
             {% if parsing_result and parsing_result.success and (parsing_result.warnings_count|default(0)) > 0 %}
               {% if warning_meta.critical > 0 %}
                 <span class="badge badge--warn">{{ warning_meta.advisory }} advisory warnings ({{ warning_meta.critical }} critical)</span>
@@ -332,7 +344,7 @@
                 </div>
               {% elif step_c_fail %}
                 <div class="task__done-summary task__done-summary--bad">
-                  Upload failed — check errors in workspace
+                  Upload failed - check errors in workspace
                 </div>
               {% endif %}
             {% endif %}
@@ -345,7 +357,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--d">4</div>
             <div class="task__title">Process Sequences</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
             {% if step_e_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
@@ -377,7 +389,7 @@
           <div class="task__top">
             <div class="task__step-badge task__step-badge--e">5</div>
             <div class="task__title">Run Analysis</div>
-            <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
+            <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
             {% if step_d_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
@@ -460,7 +472,7 @@
       <main class="workspace">
         <div class="workspace__header">
           {% if experiment_id %}
-            <h1 class="workspace__title">{{ display_experiment_name }} #{{ experiment_id }}{% if wt %} · {{ wt.uniprot_id }}{% endif %}</h1>
+            <h1 class="workspace__title">{{ display_experiment_name }} #{{ experiment_id }}{% if wt %} | {{ wt.uniprot_id }}{% endif %}</h1>
             <p class="workspace__sub">{{ done_count }}/5 steps complete</p>
             <p class="methods-strip">
               WT: <strong>{{ methods_panel.wt_accession }}</strong>
@@ -554,7 +566,7 @@
               {% if wt_insights.feature_highlights %}
               <div class="run-summary__item run-summary__item--wide">
                 <span>UniProt Highlights</span>
-                <strong>{{ wt_insights.feature_highlights|join(' · ') }}</strong>
+                <strong>{{ wt_insights.feature_highlights|join(' | ') }}</strong>
               </div>
               {% endif %}
             </div>
@@ -594,7 +606,7 @@
               <div class="note">
                 {% if wt_insights.feature_highlights %}
                   <strong>Highlights:</strong>
-                  {{ wt_insights.feature_highlights|join(' · ') }}
+                  {{ wt_insights.feature_highlights|join(' | ') }}
                   <br><br>
                 {% endif %}
                 Wild-type protein loaded. Continue to Step B to validate your plasmid, or skip to Step C to upload variant data.
@@ -603,7 +615,7 @@
           {% else %}
             <div class="empty">
               <div class="empty__icon" aria-hidden="true">&#x1F4CB;</div>
-              Waiting for WT fetch…
+              Waiting for WT fetch...
               <div class="empty__sub">Enter a UniProt accession in Step A on the left.</div>
             </div>
           {% endif %}
@@ -648,7 +660,7 @@
             <div class="empty">
               <div class="empty__icon" aria-hidden="true">&#x1F4C8;</div>
               No validation run yet.
-              <div class="empty__sub">Upload a plasmid FASTA in Step B. (Optional — you can skip to Step C.)</div>
+              <div class="empty__sub">Upload a plasmid FASTA in Step B. (Optional - you can skip to Step C.)</div>
             </div>
           {% endif %}
         </section>
@@ -948,7 +960,7 @@
           {% elif analysis_outputs and analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
             {% set bonus_default_url = analysis_outputs.bonus_fingerprint.url %}
             {% set bonus_default_title = 'Mutation Fingerprint' %}
-            {% set bonus_default_description = 'Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant’s sequence signature.' %}
+            {% set bonus_default_description = 'Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant's sequence signature.' %}
           {% endif %}
 
           {% if has_any_graph %}
@@ -1146,7 +1158,7 @@
                 data-explorer-title-target="bonusExplorerTitle"
                 data-explorer-tooltip-target="bonusExplorerTooltipText"
                 data-explorer-title="Mutation Fingerprint"
-                data-explorer-description="Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant’s sequence signature."
+                data-explorer-description="Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant's sequence signature."
               >Mutation Fingerprint</a>
             {% endif %}
           </div>
@@ -1268,3 +1280,5 @@
     <script src="{{ url_for('static', filename='js/staging.js') }}"></script>
   </body>
 </html>
+
+

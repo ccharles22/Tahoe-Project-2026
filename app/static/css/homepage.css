@@ -557,9 +557,18 @@ a:hover { text-decoration: underline; }
   border: 1px solid rgba(188, 214, 241, .92);
   background: #f6fbff;
   color: #183656;
-  font-size: 16px;
   text-decoration: none;
   transition: all .15s var(--ease);
+}
+
+.ui-icon {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.85;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .home-nav__iconlink:hover {
@@ -741,6 +750,15 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
 }
 
+.btn--hero .btn__icon {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
 .btn--hero:hover {
   background: linear-gradient(135deg, #1b86ef, #18b8b3);
   color: #ffffff;
@@ -909,8 +927,7 @@ a:hover { text-decoration: underline; }
   opacity: .72;
   transform: translateY(5px) scale(.97);
   transform-origin: right center;
-  will-change: transform, opacity;
-  transition: opacity .14s var(--ease), transform .14s var(--ease), box-shadow .14s var(--ease), border-color .14s var(--ease);
+  transition: opacity .14s var(--ease), transform .14s var(--ease);
   cursor: pointer;
 }
 
@@ -963,6 +980,10 @@ a:hover { text-decoration: underline; }
   font-size: clamp(15px, 1.05vw, 17px);
   line-height: 1.55;
   max-width: 58ch;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .home-stage__actions {
@@ -982,8 +1003,10 @@ a:hover { text-decoration: underline; }
 
 .home-stage__card.is-active .home-stage__actions {
   margin-top: 16px;
-  max-height: 120px;
+  padding-top: 2px;
+  max-height: 160px;
   opacity: 1;
+  overflow: visible;
   pointer-events: auto;
 }
 
@@ -1011,7 +1034,7 @@ a:hover { text-decoration: underline; }
 
 .home-stage__action:hover {
   text-decoration: none;
-  transform: translateY(-1px);
+  transform: none;
   border-color: #c6d0d9;
   background: #ffffff;
   color: #3f4d5c;
@@ -1114,10 +1137,14 @@ a:hover { text-decoration: underline; }
   transition: transform .18s ease, box-shadow .18s ease, opacity .18s ease;
 }
 
-.home-results-carousel__control span {
-  font-size: 28px;
-  line-height: 1;
-  transform: translateY(-1px);
+.carousel-arrow-icon {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .home-results-carousel__control:hover:not(:disabled) {
@@ -1744,8 +1771,9 @@ a:hover { text-decoration: underline; }
     width: 42px;
     height: 42px;
   }
-  .home-results-carousel__control span {
-    font-size: 24px;
+  .carousel-arrow-icon {
+    width: 20px;
+    height: 20px;
   }
   .home-results-grid {
     grid-auto-columns: minmax(320px, calc((100% - 24px) / 2));
