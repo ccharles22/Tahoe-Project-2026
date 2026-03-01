@@ -19,20 +19,11 @@ Example:
 
 `/distribution/41`
 
-## SQL check
+## Validation check
 
-```sql
-select
-  g.generation_number,
-  m.value as activity_score
-from metrics m
-join variants v on v.variant_id = m.variant_id
-join generations g on g.generation_id = v.generation_id
-where m.metric_name = 'activity_score'
-  and m.metric_type = 'derived'
-  and g.experiment_id = 41
-order by g.generation_number;
-```
+To validate this plot, check that the experiment has derived `activity_score`
+rows across multiple generations. The distribution chart groups those stored
+scores by generation number and then renders one violin per generation.
 
 ## Interpretation
 

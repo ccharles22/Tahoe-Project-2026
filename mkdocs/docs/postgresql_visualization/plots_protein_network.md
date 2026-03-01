@@ -33,24 +33,12 @@ Examples:
 - `medium`: balanced density
 - `dense`: more edges for exploratory viewing
 
-## SQL checks
+## Validation checks
 
-```sql
--- identity mode readiness
-select count(*) as n_with_sequence
-from variants v
-join generations g on g.generation_id = v.generation_id
-where g.experiment_id = 41
-  and v.protein_sequence is not null;
-
--- co-occurrence mode readiness
-select count(*) as n_protein_mutations
-from mutations m
-join variants v on v.variant_id = m.variant_id
-join generations g on g.generation_id = v.generation_id
-where g.experiment_id = 41
-  and m.mutation_type = 'protein';
-```
+Before using this view, confirm that the experiment has usable protein
+sequences for identity mode and protein-level mutation rows for co-occurrence
+mode. The network can only be as informative as the underlying sequence and
+mutation data available for the selected experiment.
 
 ## Interpretation
 
