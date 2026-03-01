@@ -960,7 +960,7 @@
           {% elif analysis_outputs and analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
             {% set bonus_default_url = analysis_outputs.bonus_fingerprint.url %}
             {% set bonus_default_title = 'Mutation Fingerprint' %}
-            {% set bonus_default_description = 'Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant's sequence signature.' %}
+            {% set bonus_default_description = "Highlights the mutation profile of the top-ranked variant, showing which positions and protein regions define that variant's sequence signature." %}
           {% endif %}
 
           {% if has_any_graph %}

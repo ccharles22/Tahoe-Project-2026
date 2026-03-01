@@ -368,7 +368,7 @@
                       <td class="score-cell">
                         <div class="score-stack">
                           <span class="score-value">{{ '%.3f'|format(row.activity_score) }}</span>
-                          <span class="score-bar"><span style="width: {{ '%.2f'|format(bar_width) }}%;"></span></span>
+                          <span class="score-bar"><span data-width="{{ '%.2f'|format(bar_width) }}"></span></span>
                         </div>
                       </td>
                       <td><span class="mut-chip">{{ row.total_mutations }}</span></td>
@@ -404,6 +404,12 @@
 
         const tbody = table.querySelector("tbody");
         const rows = Array.from(tbody.querySelectorAll("tr"));
+        rows.forEach((row) => {
+          const bar = row.querySelector(".score-bar > span[data-width]");
+          if (!bar) return;
+          const width = Number(bar.dataset.width);
+          bar.style.width = `${Number.isFinite(width) ? Math.max(0, Math.min(width, 100)) : 0}%`;
+        });
         let currentSort = { key: "rank", direction: "asc" };
 
         const compare = {
