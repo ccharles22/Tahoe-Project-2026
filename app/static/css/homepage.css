@@ -450,12 +450,12 @@ a:hover { text-decoration: underline; }
 .home-nav {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   padding: 0 28px;
-  height: 182px;
-  background: rgba(255, 255, 255, 0.97);
-  border-bottom: 1px solid rgba(189, 214, 241, 0.72);
-  box-shadow: 0 10px 24px rgba(18, 56, 93, 0.08);
+  height: 160px;
+  background: linear-gradient(180deg, rgba(236, 245, 255, 0.97) 0%, rgba(228, 241, 255, 0.95) 100%);
+  border-bottom: 1px solid rgba(180, 206, 235, 0.78);
+  box-shadow: 0 10px 22px rgba(18, 56, 93, 0.08);
   backdrop-filter: blur(6px);
   position: sticky;
   top: 0;
@@ -471,18 +471,20 @@ a:hover { text-decoration: underline; }
 .home-nav__brand--portal {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 100%;
+  justify-content: flex-start;
+  width: auto;
+  max-width: calc(100% - 320px);
+  margin-right: auto;
   gap: 0;
 }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(720px, 68vw, 1180px);
-  max-width: calc(100% - 240px);
-  height: clamp(150px, 14.2vw, 176px);
+  width: clamp(560px, 56vw, 920px);
+  max-width: 100%;
+  height: clamp(126px, 11.8vw, 150px);
   object-fit: contain;
-  object-position: center;
+  object-position: left center;
   filter: drop-shadow(0 10px 16px rgba(18, 56, 93, 0.06));
 }
 
@@ -593,6 +595,26 @@ a:hover { text-decoration: underline; }
 
 .home-nav__logout {
   font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(197, 48, 48, 0.92);
+  background: linear-gradient(180deg, #da4d4d 0%, #c83c3c 100%);
+  box-shadow: 0 8px 16px rgba(191, 54, 54, 0.2);
+  transition: all .15s var(--ease);
+}
+
+.home-nav__logout:hover {
+  background: linear-gradient(180deg, #e25e5e 0%, #cf4444 100%);
+  border-color: rgba(182, 32, 32, 0.98);
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.home-nav__signin {
+  font-size: 13px;
   font-weight: 600;
   color: #183656;
   text-decoration: none;
@@ -603,7 +625,7 @@ a:hover { text-decoration: underline; }
   transition: all .15s var(--ease);
 }
 
-.home-nav__logout:hover {
+.home-nav__signin:hover {
   background: #eaf4ff;
   border-color: rgba(85, 150, 224, .52);
   color: #0f2c49;
@@ -1534,13 +1556,13 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav {
-    height: 130px;
+    height: 118px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(330px, 76vw, 500px);
-    max-width: calc(100% - 112px);
-    height: 108px;
+    width: clamp(260px, 60vw, 380px);
+    max-width: calc(100% - 132px);
+    height: 92px;
   }
   .home-nav__right {
     right: 16px;

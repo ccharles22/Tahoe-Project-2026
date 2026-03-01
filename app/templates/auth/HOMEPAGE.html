@@ -35,7 +35,7 @@
       </div>
       <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
       {% else %}
-      <a href="{{ url_for('auth.homepage', auth='login') }}" class="home-nav__logout" data-auth-open="login">Sign in</a>
+      <a href="{{ url_for('auth.homepage', auth='login') }}" class="home-nav__signin" data-auth-open="login">Sign in</a>
       <a href="{{ url_for('auth.homepage', auth='register') }}" class="home-nav__signup" data-auth-open="register">Sign up</a>
       {% endif %}
     </div>
