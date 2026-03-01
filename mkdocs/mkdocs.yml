@@ -28,7 +28,7 @@ theme:
     - content.code.copy
 
 nav:
-  - Home: index.md
+  - Guide Home: index.md
   - Parsing & QC:
       - Overview: parsing_qc/index.md
       - User Guide:
@@ -45,7 +45,7 @@ nav:
       - Project Docs:
           - Architecture: parsing_qc/architecture.md
           - Parsing & QC Manual: parsing_qc/parsing_qc_manual.md
-  - PostgreSQL & Visualization:
+  - Visualisation Guide:
       - Overview: postgresql_visualization/index.md
       - Database:
           - Overview: postgresql_visualization/database.md
@@ -62,7 +62,17 @@ nav:
           - Database Setup (Tailscale): postgresql_visualization/database_setup_tailscale.md
           - PostgreSQL Tailscale Methodology: postgresql_visualization/postgresql_tailscale_methodology.md
           - Git Workflow: postgresql_visualization/git_workflow.md
-  - Ownership:
+  - Metric Computations:
+      - Metrics Overview: /metrics/
+      - Activity Score Calculations: /activity_score_calculations/
+  - Bonus Visualisations:
+      - Guide Overview: /bonus_visualisations/
+      - Activity Landscape: /bonus_visualisations/visualisations/activity-landscape/
+      - Mutation Fingerprinting: /bonus_visualisations/visualisations/mutation-fingerprint/
+      - Domain Enrichment Heatmap: /bonus_visualisations/visualisations/domain-enrichment/
+      - Mutation Frequency: /bonus_visualisations/visualisations/mutation-frequency/
+      - Pipeline Usage: /bonus_visualisations/pipeline/usage/
+  - Ownership Notes:
       - Parsing & QC Ownership: parsing_qc/OWNERS.md
       - PostgreSQL & Visualization Ownership: postgresql_visualization/OWNERS.md
 

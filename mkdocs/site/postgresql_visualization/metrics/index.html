@@ -13,28 +13,24 @@
       
       
       
-        <link rel="prev" href="../thresholds/">
-      
-      
-        <link rel="next" href="../../api/endpoints/">
       
       
         
       
       
-      <link rel="icon" href="../../../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.2">
     
     
       
-        <title>Validation Checks - BIO727P Documentation</title>
+        <title>Metrics - BIO727P Documentation</title>
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -53,9 +49,9 @@
       
     
     
-      <link rel="stylesheet" href="../../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../parsing_qc/stylesheets/extra.css">
     
-    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#validation-checks" class="md-skip">
+        <a href="#metrics" class="md-skip">
           Skip to content
         </a>
       
@@ -94,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../../.." title="BIO727P Documentation" class="md-header__button md-logo" aria-label="BIO727P Documentation" data-md-component="logo">
+    <a href="../.." title="BIO727P Documentation" class="md-header__button md-logo" aria-label="BIO727P Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -114,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Validation Checks
+              Metrics
             
           </span>
         </div>
@@ -213,7 +209,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../../.." class="md-tabs__link">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -230,13 +226,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../parsing_qc/" class="md-tabs__link">
           
   
   
@@ -256,7 +250,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../../postgresql_visualization/" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -316,7 +310,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../OWNERS/" class="md-tabs__link">
+        <a href="../../parsing_qc/OWNERS/" class="md-tabs__link">
           
   
   
@@ -350,7 +344,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../../.." title="BIO727P Documentation" class="md-nav__button md-logo" aria-label="BIO727P Documentation" data-md-component="logo">
+    <a href="../.." title="BIO727P Documentation" class="md-nav__button md-logo" aria-label="BIO727P Documentation" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -368,7 +362,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../.." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -392,31 +386,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -434,7 +425,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -452,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../" class="md-nav__link">
+      <a href="../../parsing_qc/" class="md-nav__link">
         
   
   
@@ -486,13 +477,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -501,7 +489,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
             
   
   
@@ -537,7 +525,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/getting-started/" class="md-nav__link">
+      <a href="../../parsing_qc/guide/getting-started/" class="md-nav__link">
         
   
   
@@ -565,7 +553,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/uploading-data/" class="md-nav__link">
+      <a href="../../parsing_qc/guide/uploading-data/" class="md-nav__link">
         
   
   
@@ -593,7 +581,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../guide/file-formats/" class="md-nav__link">
+      <a href="../../parsing_qc/guide/file-formats/" class="md-nav__link">
         
   
   
@@ -626,31 +614,28 @@
                 
   
   
-    
   
   
-  
     
     
     
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
         
           
-          
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_3" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
         
           
-          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
             
   
   
@@ -668,7 +653,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_3">
             <span class="md-nav__icon md-icon"></span>
             
@@ -686,7 +671,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../overview/" class="md-nav__link">
+      <a href="../../parsing_qc/qc/overview/" class="md-nav__link">
         
   
   
@@ -714,7 +699,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../thresholds/" class="md-nav__link">
+      <a href="../../parsing_qc/qc/thresholds/" class="md-nav__link">
         
   
   
@@ -739,37 +724,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Validation Checks
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/qc/validation-checks/" class="md-nav__link">
         
   
   
@@ -785,220 +743,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#check-categories" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Check Categories
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#per-record-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Per-Record Checks
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Per-Record Checks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-required-fields" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Required Fields
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-yield-range-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Yield Range Validation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Yield Range Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dna-yield-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DNA Yield Checks
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protein-yield-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protein Yield Checks
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-data-type-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Data Type Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cross-record-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cross-Record Checks
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Cross-Record Checks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-duplicate-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Duplicate Detection
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-batch-consistency" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Batch Consistency
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-generation-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Generation Sequence
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#check-execution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Check Execution Order
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#error-vs-warning-behaviour" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Error vs Warning Behaviour
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#qc-report-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QC Report Structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#customising-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Customising Checks
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#related-topics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related Topics
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1025,13 +769,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1040,7 +781,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
         
           
-          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
             
   
   
@@ -1076,7 +817,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../api/endpoints/" class="md-nav__link">
+      <a href="../../parsing_qc/api/endpoints/" class="md-nav__link">
         
   
   
@@ -1112,7 +853,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../troubleshooting/" class="md-nav__link">
+      <a href="../../parsing_qc/troubleshooting/" class="md-nav__link">
         
   
   
@@ -1146,13 +887,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -1161,7 +899,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
         
           
-          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
   
   
@@ -1197,7 +935,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../architecture/" class="md-nav__link">
+      <a href="../../parsing_qc/architecture/" class="md-nav__link">
         
   
   
@@ -1225,7 +963,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../parsing_qc_manual/" class="md-nav__link">
+      <a href="../../parsing_qc/parsing_qc_manual/" class="md-nav__link">
         
   
   
@@ -1322,7 +1060,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -1404,7 +1142,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/database/" class="md-nav__link">
+      <a href="../database/" class="md-nav__link">
         
   
   
@@ -1432,7 +1170,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/schema_design_notes/" class="md-nav__link">
+      <a href="../schema_design_notes/" class="md-nav__link">
         
   
   
@@ -1522,7 +1260,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/plots/" class="md-nav__link">
+      <a href="../plots/" class="md-nav__link">
         
   
   
@@ -1550,7 +1288,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/plots_lineage/" class="md-nav__link">
+      <a href="../plots_lineage/" class="md-nav__link">
         
   
   
@@ -1578,7 +1316,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/plots_distribution/" class="md-nav__link">
+      <a href="../plots_distribution/" class="md-nav__link">
         
   
   
@@ -1606,7 +1344,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/plots_top10/" class="md-nav__link">
+      <a href="../plots_top10/" class="md-nav__link">
         
   
   
@@ -1634,7 +1372,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/plots_protein_network/" class="md-nav__link">
+      <a href="../plots_protein_network/" class="md-nav__link">
         
   
   
@@ -1670,7 +1408,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/pipeline/" class="md-nav__link">
+      <a href="../pipeline/" class="md-nav__link">
         
   
   
@@ -1698,7 +1436,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/user_guide/" class="md-nav__link">
+      <a href="../user_guide/" class="md-nav__link">
         
   
   
@@ -1780,7 +1518,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/database_setup_tailscale/" class="md-nav__link">
+      <a href="../database_setup_tailscale/" class="md-nav__link">
         
   
   
@@ -1808,7 +1546,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/postgresql_tailscale_methodology/" class="md-nav__link">
+      <a href="../postgresql_tailscale_methodology/" class="md-nav__link">
         
   
   
@@ -1836,7 +1574,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/git_workflow/" class="md-nav__link">
+      <a href="../git_workflow/" class="md-nav__link">
         
   
   
@@ -2279,7 +2017,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../OWNERS/" class="md-nav__link">
+      <a href="../../parsing_qc/OWNERS/" class="md-nav__link">
         
   
   
@@ -2307,7 +2045,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../../postgresql_visualization/OWNERS/" class="md-nav__link">
+      <a href="../OWNERS/" class="md-nav__link">
         
   
   
@@ -2362,10 +2100,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#check-categories" class="md-nav__link">
+  <a href="#metric-categories" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Check Categories
+        Metric categories
       
     </span>
   </a>
@@ -2373,138 +2111,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#per-record-checks" class="md-nav__link">
+  <a href="#unified-metrics-strategy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Per-Record Checks
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Per-Record Checks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-required-fields" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Required Fields
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-yield-range-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Yield Range Validation
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="2. Yield Range Validation">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dna-yield-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        DNA Yield Checks
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#protein-yield-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Protein Yield Checks
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-data-type-validation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Data Type Validation
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cross-record-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Cross-Record Checks
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Cross-Record Checks">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#1-duplicate-detection" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        1. Duplicate Detection
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#2-batch-consistency" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2. Batch Consistency
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#3-generation-sequence" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        3. Generation Sequence
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#check-execution-order" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Check Execution Order
+        Unified metrics strategy
       
     </span>
   </a>
@@ -2512,10 +2122,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#error-vs-warning-behaviour" class="md-nav__link">
+  <a href="#current-scoring-policy" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Error vs Warning Behaviour
+        Current scoring policy
       
     </span>
   </a>
@@ -2523,10 +2133,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#qc-report-structure" class="md-nav__link">
+  <a href="#where-metrics-live" class="md-nav__link">
     <span class="md-ellipsis">
       
-        QC Report Structure
+        Where metrics live
       
     </span>
   </a>
@@ -2534,10 +2144,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#customising-checks" class="md-nav__link">
+  <a href="#key-storage-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Customising Checks
+        Key storage behavior
       
     </span>
   </a>
@@ -2545,10 +2155,32 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#related-topics" class="md-nav__link">
+  <a href="#upsert-logic-used-by-code" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Related Topics
+        Upsert logic used by code
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#common-metric-names-in-this-repo" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common metric names in this repo
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#quick-validation-sql" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick validation SQL
       
     </span>
   </a>
@@ -2572,367 +2204,71 @@
 
 
 
-<h1 id="validation-checks">Validation Checks<a class="headerlink" href="#validation-checks" title="Permanent link">&para;</a></h1>
-<p>Complete reference of all validation checks performed by the QC system.</p>
-<hr />
-<h2 id="check-categories">Check Categories<a class="headerlink" href="#check-categories" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>flowchart TB
-    subgraph Checks["QC Validation Checks"]
-        direction TB
-        subgraph PerRecord["Per-Record Checks"]
-            PR1[Required Fields]
-            PR2[Yield Range]
-            PR3[Data Type Validation]
-        end
-
-        subgraph CrossRecord["Cross-Record Checks"]
-            CR1[Duplicate Detection]
-            CR2[Batch Consistency]
-            CR3[Generation Sequence]
-        end
-    end
-
-    style PerRecord fill:#4dabf7,color:#fff
-    style CrossRecord fill:#7950f2,color:#fff</code></pre>
-<hr />
-<h2 id="per-record-checks">Per-Record Checks<a class="headerlink" href="#per-record-checks" title="Permanent link">&para;</a></h2>
-<p>These checks validate each row individually.</p>
-<h3 id="1-required-fields">1. Required Fields<a class="headerlink" href="#1-required-fields" title="Permanent link">&para;</a></h3>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Required</th>
-<th>Example</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>plasmid_variant_index</code></td>
-<td>✅ Yes</td>
-<td><code>BSU_Pol_001</code></td>
-</tr>
-<tr>
-<td><code>generation</code></td>
-<td>✅ Yes</td>
-<td><code>G0</code>, <code>G1</code>, <code>G2</code></td>
-</tr>
-<tr>
-<td><code>dna_yield_fg</code></td>
-<td>✅ Yes</td>
-<td><code>1523.45</code></td>
-</tr>
-<tr>
-<td><code>protein_yield_pg</code></td>
-<td>✅ Yes</td>
-<td><code>456.78</code></td>
-</tr>
-</tbody>
-</table>
-<div class="admonition failure">
-<p class="admonition-title">Missing Field Error</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>ERROR: Row 45 - Missing required field: dna_yield_fg
-</code></pre></div>
-</div>
-<hr />
-<h3 id="2-yield-range-validation">2. Yield Range Validation<a class="headerlink" href="#2-yield-range-validation" title="Permanent link">&para;</a></h3>
-<h4 id="dna-yield-checks">DNA Yield Checks<a class="headerlink" href="#dna-yield-checks" title="Permanent link">&para;</a></h4>
-<table>
-<thead>
-<tr>
-<th>Check Type</th>
-<th>Condition</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Critical Low</strong></td>
-<td><code>&lt; 300 fg</code></td>
-<td>❌ ERROR</td>
-</tr>
-<tr>
-<td><strong>Warning Low</strong></td>
-<td><code>&lt; P1</code></td>
-<td>⚠️ WARNING</td>
-</tr>
-<tr>
-<td><strong>Normal</strong></td>
-<td><code>P1 ≤ x ≤ P99</code></td>
-<td>✅ OK</td>
-</tr>
-<tr>
-<td><strong>Warning High</strong></td>
-<td><code>&gt; P99</code></td>
-<td>⚠️ WARNING</td>
-</tr>
-<tr>
-<td><strong>Critical High</strong></td>
-<td><code>&gt; 5000 fg</code></td>
-<td>❌ ERROR</td>
-</tr>
-</tbody>
-</table>
-<h4 id="protein-yield-checks">Protein Yield Checks<a class="headerlink" href="#protein-yield-checks" title="Permanent link">&para;</a></h4>
-<table>
-<thead>
-<tr>
-<th>Check Type</th>
-<th>Condition</th>
-<th>Result</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Critical Low</strong></td>
-<td><code>&lt; 20 pg</code></td>
-<td>❌ ERROR</td>
-</tr>
-<tr>
-<td><strong>Warning Low</strong></td>
-<td><code>&lt; P1</code></td>
-<td>⚠️ WARNING</td>
-</tr>
-<tr>
-<td><strong>Normal</strong></td>
-<td><code>P1 ≤ x ≤ P99</code></td>
-<td>✅ OK</td>
-</tr>
-<tr>
-<td><strong>Warning High</strong></td>
-<td><code>&gt; P99</code></td>
-<td>⚠️ WARNING</td>
-</tr>
-<tr>
-<td><strong>Critical High</strong></td>
-<td><code>&gt; 2000 pg</code></td>
-<td>❌ ERROR</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="3-data-type-validation">3. Data Type Validation<a class="headerlink" href="#3-data-type-validation" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
-    V[Value] --&gt; T{Type Check}
-    T --&gt;|Valid Number| OK[✅ Accept]
-    T --&gt;|Empty/Null| M[Handle Missing]
-    T --&gt;|Invalid| E[❌ ERROR]
-
-    M --&gt; M1{Required?}
-    M1 --&gt;|Yes| E
-    M1 --&gt;|No| OK
-
-    style OK fill:#51cf66
-    style E fill:#ff6b6b,color:#fff</code></pre>
-<table>
-<thead>
-<tr>
-<th>Field</th>
-<th>Expected Type</th>
-<th>Invalid Examples</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>dna_yield_fg</code></td>
-<td>Float</td>
-<td><code>"N/A"</code>, <code>"pending"</code>, <code>""</code></td>
-</tr>
-<tr>
-<td><code>protein_yield_pg</code></td>
-<td>Float</td>
-<td><code>"null"</code>, <code>"#REF!"</code>, <code>"-"</code></td>
-</tr>
-<tr>
-<td><code>generation</code></td>
-<td>String</td>
-<td>(must not be empty)</td>
-</tr>
-<tr>
-<td><code>plasmid_variant_index</code></td>
-<td>String</td>
-<td>(must not be empty)</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2 id="cross-record-checks">Cross-Record Checks<a class="headerlink" href="#cross-record-checks" title="Permanent link">&para;</a></h2>
-<p>These checks validate relationships between records.</p>
-<h3 id="1-duplicate-detection">1. Duplicate Detection<a class="headerlink" href="#1-duplicate-detection" title="Permanent link">&para;</a></h3>
-<p>Checks for duplicate <code>plasmid_variant_index</code> within the same generation.</p>
-<pre class="mermaid"><code>flowchart LR
-    subgraph Records["Uploaded Records"]
-        R1["BSU_Pol_001 (G1)"]
-        R2["BSU_Pol_002 (G1)"]
-        R3["BSU_Pol_001 (G1)"]
-    end
-
-    subgraph Check["Duplicate Check"]
-        D{Same variant&lt;br/&gt;+ Same gen?}
-    end
-
-    subgraph Result["Result"]
-        W["⚠️ WARNING:&lt;br/&gt;Duplicate detected"]
-    end
-
-    R1 --&gt; D
-    R3 --&gt; D
-    D --&gt;|Yes| W
-
-    style W fill:#ffd43b</code></pre>
-<div class="admonition warning">
-<p class="admonition-title">Duplicate Warning</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>WARNING: Duplicate plasmid_variant_index &#39;BSU_Pol_001&#39; in generation G1 (rows 12, 78)
-</code></pre></div>
-</div>
-<hr />
-<h3 id="2-batch-consistency">2. Batch Consistency<a class="headerlink" href="#2-batch-consistency" title="Permanent link">&para;</a></h3>
-<p>Validates that batch metadata is consistent across files.</p>
-<table>
-<thead>
-<tr>
-<th>Check</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Experiment Name</td>
-<td>Must match existing experiment or will be created</td>
-</tr>
-<tr>
-<td>Generation Sequence</td>
-<td>G0 → G1 → G2 (no gaps)</td>
-</tr>
-<tr>
-<td>Wild Type Reference</td>
-<td>Must exist in database</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="3-generation-sequence">3. Generation Sequence<a class="headerlink" href="#3-generation-sequence" title="Permanent link">&para;</a></h3>
-<pre class="mermaid"><code>flowchart LR
-    subgraph Valid["✅ Valid Sequences"]
-        V1["G0"]
-        V2["G0 → G1"]
-        V3["G0 → G1 → G2"]
-    end
-
-    subgraph Invalid["❌ Invalid"]
-        I1["G1 (no G0)"]
-        I2["G0 → G2 (gap)"]
-        I3["G-1"]
-    end
-
-    style Valid fill:#51cf66
-    style Invalid fill:#ff6b6b,color:#fff</code></pre>
-<hr />
-<h2 id="check-execution-order">Check Execution Order<a class="headerlink" href="#check-execution-order" title="Permanent link">&para;</a></h2>
-<pre class="mermaid"><code>sequenceDiagram
-    participant F as File
-    participant P as Parser
-    participant V as Validator
-    participant DB as Database
-
-    F-&gt;&gt;P: Upload file
-    P-&gt;&gt;P: Parse records
-
-    loop Each Record
-        P-&gt;&gt;V: Per-record validation
-        V--&gt;&gt;P: Errors/Warnings
-    end
-
-    P-&gt;&gt;V: Cross-record validation
-    V--&gt;&gt;P: Errors/Warnings
-
-    alt No Errors
-        P-&gt;&gt;DB: Insert records
-        DB--&gt;&gt;P: Success
-    else Has Errors
-        P--&gt;&gt;F: Reject with details
-    end</code></pre>
-<hr />
-<h2 id="error-vs-warning-behaviour">Error vs Warning Behaviour<a class="headerlink" href="#error-vs-warning-behaviour" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Severity</th>
-<th>Effect</th>
-<th>Record Saved?</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>❌ ERROR</td>
-<td>Upload rejected</td>
-<td>No</td>
-</tr>
-<tr>
-<td>⚠️ WARNING</td>
-<td>Flagged but accepted</td>
-<td>Yes</td>
-</tr>
-</tbody>
-</table>
-<div class="admonition danger">
-<p class="admonition-title">One Error = Full Rejection</p>
-<p>If <strong>any</strong> record has an error, the entire upload is rejected. Fix all errors before re-uploading.</p>
-</div>
-<hr />
-<h2 id="qc-report-structure">QC Report Structure<a class="headerlink" href="#qc-report-structure" title="Permanent link">&para;</a></h2>
-<p>After validation, you receive a structured report:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;warnings&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;total_records&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">301</span><span class="p">,</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;errors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[],</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">&quot;warnings&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">      </span><span class="nt">&quot;row&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">45</span><span class="p">,</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">      </span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;dna_yield_fg&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">312.5</span><span class="p">,</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Below P1 threshold (395.2)&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">      </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span>
-<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="p">},</span>
-<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">      </span><span class="nt">&quot;row&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">198</span><span class="p">,</span>
-<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">      </span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;protein_yield_pg&quot;</span><span class="p">,</span><span class="w"> </span>
-<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">      </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1847.3</span><span class="p">,</span>
-<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">      </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Above P99 threshold (1823.1)&quot;</span><span class="p">,</span>
-<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">      </span><span class="nt">&quot;severity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;warning&quot;</span>
-<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="p">],</span>
-<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nt">&quot;thresholds_used&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">    </span><span class="nt">&quot;dna_yield_low&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">395.2</span><span class="p">,</span>
-<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">    </span><span class="nt">&quot;dna_yield_high&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1823.4</span><span class="p">,</span>
-<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">    </span><span class="nt">&quot;protein_yield_low&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">45.6</span><span class="p">,</span>
-<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">    </span><span class="nt">&quot;protein_yield_high&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">1789.2</span>
-<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="p">}</span>
-<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="p">}</span>
-</code></pre></div>
-<hr />
-<h2 id="customising-checks">Customising Checks<a class="headerlink" href="#customising-checks" title="Permanent link">&para;</a></h2>
-<p>To add custom validation rules, modify <code>parsing/qc.py</code>:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">custom_check</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">dict</span><span class="p">]:</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Add your custom validation logic.&quot;&quot;&quot;</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    <span class="n">warnings</span> <span class="o">=</span> <span class="p">[]</span>
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    <span class="c1"># Example: Flag specific variant patterns</span>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    <span class="k">if</span> <span class="s2">&quot;control&quot;</span> <span class="ow">in</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;plasmid_variant_index&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">lower</span><span class="p">():</span>
-<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>        <span class="k">if</span> <span class="n">record</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dna_yield_fg&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">500</span><span class="p">:</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>            <span class="n">warnings</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>                <span class="s2">&quot;field&quot;</span><span class="p">:</span> <span class="s2">&quot;dna_yield_fg&quot;</span><span class="p">,</span>
-<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>                <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Control variant has unusually low yield&quot;</span>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>            <span class="p">})</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    <span class="k">return</span> <span class="n">warnings</span>
-</code></pre></div>
-<hr />
-<h2 id="related-topics">Related Topics<a class="headerlink" href="#related-topics" title="Permanent link">&para;</a></h2>
+<h1 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h1>
+<p>This section describes how metrics are stored, typed, and updated in the project.</p>
+<h2 id="metric-categories">Metric categories<a class="headerlink" href="#metric-categories" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="../overview/">QC Overview</a> - Architecture explanation</li>
-<li><a href="../thresholds/">Threshold Configuration</a> - Adjust limits</li>
+<li><code>raw</code>: direct measured values (for example <code>dna_yield_raw</code>, <code>protein_yield_raw</code>)</li>
+<li><code>normalized</code>: scaled values (<code>dna_yield_norm</code>, <code>protein_yield_norm</code>)</li>
+<li><code>derived</code>: computed outputs (mainly <code>activity_score</code>)</li>
 </ul>
+<h2 id="unified-metrics-strategy">Unified metrics strategy<a class="headerlink" href="#unified-metrics-strategy" title="Permanent link">&para;</a></h2>
+<p>The metric flow described in the tutorials is:
+1. Store raw DNA/protein yields.
+2. Compute WT baseline values per generation.
+3. Normalize variant values against WT.
+4. Compute final <code>activity_score</code> from normalized ratios.
+5. Store both normalized and derived outputs for downstream ranking/plots.</p>
+<p>This supports top-variant selection and generation-level activity distribution views.</p>
+<h2 id="current-scoring-policy">Current scoring policy<a class="headerlink" href="#current-scoring-policy" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Report generation uses WT-based normalization only.</li>
+<li>If WT baselines are missing or invalid, score computation fails with an explicit error.</li>
+<li>No median-based fallback is used in current pipeline runs.</li>
+</ul>
+<h2 id="where-metrics-live">Where metrics live<a class="headerlink" href="#where-metrics-live" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Table: <code>metrics</code></li>
+<li>Optional dictionary table: <code>metric_definitions</code></li>
+</ul>
+<p><code>metrics</code> rows are attached to either:
+- a variant (<code>variant_id</code>), or
+- a WT control (<code>wt_control_id</code>)</p>
+<h2 id="key-storage-behavior">Key storage behavior<a class="headerlink" href="#key-storage-behavior" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>generation_id</code> is automatically set by trigger logic from <code>variant_id</code> or <code>wt_control_id</code>.</li>
+<li>Uniqueness is enforced so one <code>(generation_id, variant_id, metric_name, metric_type)</code> row exists per variant metric.</li>
+<li>WT rows use analogous uniqueness with <code>wt_control_id</code>.</li>
+</ul>
+<h2 id="upsert-logic-used-by-code">Upsert logic used by code<a class="headerlink" href="#upsert-logic-used-by-code" title="Permanent link">&para;</a></h2>
+<p>Code path:
+- <code>src/analysis_MPL/metrics.py</code> -&gt; <code>upsert_variant_metrics</code></p>
+<p>Behavior:
+- Inserts metric rows.
+- On conflict, updates <code>value</code> and <code>unit</code>.</p>
+<h2 id="common-metric-names-in-this-repo">Common metric names in this repo<a class="headerlink" href="#common-metric-names-in-this-repo" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>dna_yield_raw</code></li>
+<li><code>protein_yield_raw</code></li>
+<li><code>dna_yield_norm</code></li>
+<li><code>protein_yield_norm</code></li>
+<li><code>activity_score</code></li>
+</ul>
+<p>For detailed formulas and QC exclusions, see:
+- <a href="../activity_score_calculations/">Activity score calculations</a></p>
+<h2 id="quick-validation-sql">Quick validation SQL<a class="headerlink" href="#quick-validation-sql" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- all activity scores</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">select</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_activity_scores</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">where</span><span class="w"> </span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span><span class="p">;</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">-- count by metric name + type</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">select</span><span class="w"> </span><span class="n">metric_name</span><span class="p">,</span><span class="w"> </span><span class="n">metric_type</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">metric_name</span><span class="p">,</span><span class="w"> </span><span class="n">metric_type</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">metric_name</span><span class="p">,</span><span class="w"> </span><span class="n">metric_type</span><span class="p">;</span>
+</code></pre></div>
 
 
 
@@ -2983,10 +2319,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.instant", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "search.highlight", "content.code.copy"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
