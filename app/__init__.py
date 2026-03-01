@@ -151,19 +151,22 @@ def create_app():
     )
     site_dir = os.path.abspath(site_dir)
 
+    def _serve_docs_target(target: str):
+        path = os.path.join(site_dir, target)
+        if os.path.isdir(path):
+            target = os.path.join(target, "index.html")
+            path = os.path.join(site_dir, target)
+        if os.path.exists(path):
+            return send_from_directory(site_dir, target)
+        abort(404)
+
     @app.route("/docs/")
     def docs_index():
-        index_path = os.path.join(site_dir, "index.html")
-        if os.path.exists(index_path):
-            return send_from_directory(site_dir, "index.html")
-        abort(404)
+        return _serve_docs_target("index.html")
 
     @app.route("/docs/<path:filename>")
     def docs_files(filename):
-        path = os.path.join(site_dir, filename)
-        if os.path.exists(path):
-            return send_from_directory(site_dir, filename)
-        abort(404)
+        return _serve_docs_target(filename)
 
     # MkDocs builds in this project contain root-relative links (for example
     # /parsing_qc/... and /postgresql_visualization/...) plus shared asset
@@ -173,34 +176,22 @@ def create_app():
     @app.route("/parsing_qc/<path:filename>")
     def docs_parsing_qc(filename: str = "index.html"):
         target = os.path.join("parsing_qc", filename)
-        path = os.path.join(site_dir, target)
-        if os.path.exists(path):
-            return send_from_directory(site_dir, target)
-        abort(404)
+        return _serve_docs_target(target)
 
     @app.route("/postgresql_visualization/")
     @app.route("/postgresql_visualization/<path:filename>")
     def docs_postgresql_visualization(filename: str = "index.html"):
         target = os.path.join("postgresql_visualization", filename)
-        path = os.path.join(site_dir, target)
-        if os.path.exists(path):
-            return send_from_directory(site_dir, target)
-        abort(404)
+        return _serve_docs_target(target)
 
     @app.route("/assets/<path:filename>")
     def docs_assets(filename: str):
         target = os.path.join("assets", filename)
-        path = os.path.join(site_dir, target)
-        if os.path.exists(path):
-            return send_from_directory(site_dir, target)
-        abort(404)
+        return _serve_docs_target(target)
 
     @app.route("/search/<path:filename>")
     def docs_search(filename: str):
         target = os.path.join("search", filename)
-        path = os.path.join(site_dir, target)
-        if os.path.exists(path):
-            return send_from_directory(site_dir, target)
-        abort(404)
+        return _serve_docs_target(target)
 
     return app
