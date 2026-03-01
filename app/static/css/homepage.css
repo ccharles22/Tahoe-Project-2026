@@ -452,7 +452,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: space-between;
   padding: 0 28px;
-  height: 104px;
+  height: 112px;
   background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid rgba(189, 214, 241, 0.72);
   box-shadow: 0 10px 24px rgba(18, 56, 93, 0.08);
@@ -469,14 +469,20 @@ a:hover { text-decoration: underline; }
 }
 
 .home-nav__brand--portal {
-  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+  gap: 0;
 }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(290px, 38vw, 520px);
-  max-height: 86px;
-  height: auto;
+  width: clamp(360px, 46vw, 720px);
+  max-width: 100%;
+  height: clamp(72px, 8.5vw, 96px);
+  object-fit: cover;
+  object-position: center;
+  border-radius: 16px;
+  background: #ffffff;
 }
 
 .home-nav__logo {
@@ -1523,12 +1529,12 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav {
-    height: 82px;
+    height: 88px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(190px, 52vw, 280px);
-    max-height: 60px;
+    width: clamp(210px, 58vw, 320px);
+    height: 58px;
   }
   .home-nav__iconlink {
     width: 30px;
