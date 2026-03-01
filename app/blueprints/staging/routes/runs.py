@@ -160,6 +160,16 @@ def run_sequence():
         force_reprocess=force_reprocess,
     )
     if is_xhr:
-        return jsonify({'state': 'completed' if ok else 'failed', 'message': message}), (200 if ok else 500)
+        return jsonify(
+            {
+                'state': 'completed' if ok else 'failed',
+                'message': message,
+                'redirect_url': url_for(
+                    'staging.create_experiment',
+                    experiment_id=experiment_id,
+                    sequence_message=message,
+                ),
+            }
+        ), (200 if ok else 500)
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
