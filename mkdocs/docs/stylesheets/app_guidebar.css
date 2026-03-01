@@ -10,7 +10,7 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.4;
+  opacity: 0.56;
   background:
     linear-gradient(180deg, rgba(18, 47, 76, 0.88) 0%, rgba(24, 86, 136, 0.82) 44%, rgba(23, 184, 179, 0.68) 100%),
     radial-gradient(ellipse 76% 66% at 50% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
@@ -58,7 +58,7 @@
   line-height: 1;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  animation: appGuidebarDnaScroll 132s linear infinite;
+  animation: appGuidebarDnaScroll 84s linear infinite;
   will-change: transform;
 }
 
@@ -74,10 +74,10 @@
 .app-guidebar-dna-rail__row:nth-child(4n) { opacity: 0.72; }
 .app-guidebar-dna-rail__row:nth-child(3n) { opacity: 0.82; }
 
-.app-guidebar-dna-rail__base--A { color: rgba(142, 238, 188, 0.92); }
-.app-guidebar-dna-rail__base--C { color: rgba(125, 221, 255, 0.92); }
-.app-guidebar-dna-rail__base--G { color: rgba(98, 236, 218, 0.92); }
-.app-guidebar-dna-rail__base--T { color: rgba(154, 204, 255, 0.92); }
+.app-guidebar-dna-rail__base--A { color: rgba(142, 238, 188, 0.98); }
+.app-guidebar-dna-rail__base--C { color: rgba(125, 221, 255, 0.98); }
+.app-guidebar-dna-rail__base--G { color: rgba(98, 236, 218, 0.98); }
+.app-guidebar-dna-rail__base--T { color: rgba(154, 204, 255, 0.98); }
 
 @keyframes appGuidebarDnaScroll {
   from {
