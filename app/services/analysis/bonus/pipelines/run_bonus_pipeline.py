@@ -82,10 +82,15 @@ def ensure_materialized_views(sql_dir: Path) -> None:
         _exec_sql(cur, mv2)
 
 
-def refresh_materialized_views(view_names: Sequence[str]) -> None:
-    with get_cursor(commit=True) as cur:
-        for v in view_names:
-            cur.execute(f"REFRESH MATERIALIZED VIEW {v};")
+def refresh_materialized_views(view_names: Sequence[str]) -> dict[str, str]:
+    failures: dict[str, str] = {}
+    for v in view_names:
+        try:
+            with get_cursor(commit=True) as cur:
+                cur.execute(f"REFRESH MATERIALIZED VIEW {v};")
+        except Exception as exc:
+            failures[v] = f"{type(exc).__name__}: {exc}"
+    return failures
 
 
 def _write_placeholder_html(out_path: Path, title: str, message: str) -> Path:
@@ -301,8 +306,19 @@ def run_pipeline(
             "Skipping activity-dependent bonus plots."
         )
 
-    # Refresh datatables
-    refresh_materialized_views(["mv_activity_landscape", "mv_domain_mutation_enrichment"])
+    # Refresh datatables. If one MV fails, keep going and only skip the
+    # plots that actually depend on that view.
+    mv_refresh_failures = refresh_materialized_views(
+        ["mv_activity_landscape", "mv_domain_mutation_enrichment"]
+    )
+    domain_mv_failure = mv_refresh_failures.get("mv_domain_mutation_enrichment")
+    if domain_mv_failure:
+        failures.append(f"Domain MV refresh: {domain_mv_failure}")
+        print(f"[warn] Domain MV refresh skipped: {domain_mv_failure}")
+    activity_mv_failure = mv_refresh_failures.get("mv_activity_landscape")
+    if activity_mv_failure:
+        failures.append(f"Activity MV refresh: {activity_mv_failure}")
+        print(f"[warn] Activity MV refresh skipped: {activity_mv_failure}")
 
     # ---- Plots ----
 
@@ -353,26 +369,44 @@ def run_pipeline(
         )
 
     # All-generation heatmap
-    out_domain_heat = _run_plot(
-        "Domain heatmap",
-        plot_domain_enrichment,
-        generation_id=None,
-        metric="nonsyn_count",
-        out_path=outputs_dir / "domain_enrichment_heatmap.html",
-        placeholder_title="Domain Heatmap",
-        placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or mutation data are missing.",
-    )
+    if domain_mv_failure:
+        domain_failure_msg = (
+            "The domain enrichment view could not be refreshed from the database. "
+            f"Details: {domain_mv_failure}"
+        )
+        out_domain_heat = _skip_plot(
+            "Domain heatmap",
+            domain_failure_msg,
+            out_path=outputs_dir / "domain_enrichment_heatmap.html",
+            placeholder_title="Domain Heatmap",
+        )
+        out_domain_bar = _skip_plot(
+            "Domain (gen bar)",
+            domain_failure_msg,
+            out_path=outputs_dir / "domain_enrichment_latest.html",
+            placeholder_title="Domain by Generation",
+        )
+    else:
+        out_domain_heat = _run_plot(
+            "Domain heatmap",
+            plot_domain_enrichment,
+            generation_id=None,
+            metric="nonsyn_count",
+            out_path=outputs_dir / "domain_enrichment_heatmap.html",
+            placeholder_title="Domain Heatmap",
+            placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or mutation data are missing.",
+        )
 
-    # Single-generation bar chart
-    out_domain_bar = _run_plot(
-        "Domain (gen bar)",
-        plot_domain_enrichment,
-        generation_id=generation_id,
-        metric="nonsyn_count",
-        out_path=outputs_dir / "domain_enrichment_latest.html",
-        placeholder_title="Domain by Generation",
-        placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",
-    )
+        # Single-generation bar chart
+        out_domain_bar = _run_plot(
+            "Domain (gen bar)",
+            plot_domain_enrichment,
+            generation_id=generation_id,
+            metric="nonsyn_count",
+            out_path=outputs_dir / "domain_enrichment_latest.html",
+            placeholder_title="Domain by Generation",
+            placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",
+        )
 
     out_mutation_frequency = _run_plot(
         "Mutation frequency",
