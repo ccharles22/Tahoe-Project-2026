@@ -123,12 +123,50 @@
       }
 
       .guide-kicker {
-        margin: 0 0 18px;
+        margin: 0;
         font-size: 12px;
         font-weight: 800;
         letter-spacing: 0.16em;
         text-transform: uppercase;
         color: #2e7ac3;
+      }
+
+      .guide-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .guide-navlinks {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .guide-navlink {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 7px 12px;
+        border-radius: 999px;
+        border: 1px solid rgba(175, 211, 233, 0.92);
+        background: rgba(255, 255, 255, 0.74);
+        color: #163d63;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-decoration: none;
+        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
+      }
+
+      .guide-navlink:hover,
+      .guide-navlink:focus-visible {
+        border-color: #bdd8f0;
+        background: rgba(255, 255, 255, 0.92);
+        transform: translateY(-1px);
+        outline: none;
+        text-decoration: none;
       }
 
       .guide-title {
@@ -259,6 +297,17 @@
           padding: 14px;
         }
 
+        .guide-topbar {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+          margin-bottom: 14px;
+        }
+
+        .guide-navlinks {
+          flex-wrap: wrap;
+        }
+
         .guide-dna {
           opacity: 0.22;
         }
@@ -285,7 +334,13 @@
       <div class="guide-dna__track" data-guide-dna-track></div>
     </div>
     <main class="guide-shell">
-      <p class="guide-kicker">User Guide</p>
+      <div class="guide-topbar">
+        <p class="guide-kicker">User Guide</p>
+        <div class="guide-navlinks" aria-label="Guide navigation shortcuts">
+          <a class="guide-navlink" href="{{ url_for('auth.homepage') }}">Home</a>
+          <a class="guide-navlink" href="{{ url_for('staging.create_experiment') }}">Workspace</a>
+        </div>
+      </div>
       <h1 class="guide-title">Choose a documentation path</h1>
       <p class="guide-subtitle">
         Start from the main guide home, jump into parsing and QC, review database and schema
