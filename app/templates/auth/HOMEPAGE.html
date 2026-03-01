@@ -34,7 +34,7 @@
         </a>
       </div>
       <a
-        href="/docs/parsing_qc/guide/getting-started/index.html"
+        href="/guide/"
         class="home-nav__iconbtn"
         aria-label="User Guide"
         title="User Guide"
@@ -98,7 +98,7 @@
       {% set workspace_url = url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('staging.create_experiment') %}
       {% set upload_url = url_for('parsing.upload_form', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('parsing.upload_form') %}
       {% set new_experiment_url = url_for('staging.create_experiment') %}
-      {% set guide_url = '/docs/parsing_qc/guide/getting-started/index.html' %}
+      {% set guide_url = '/guide/' %}
 
       <section class="home-stage" aria-label="Workflow stage descriptions">
         <div class="home-stage__viewport" id="home-stage-viewport">

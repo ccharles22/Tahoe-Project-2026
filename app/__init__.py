@@ -150,15 +150,26 @@ def create_app():
         os.path.dirname(__file__), "..", "mkdocs", "site"
     )
     site_dir = os.path.abspath(site_dir)
+    metrics_site_dir = os.path.join(
+        os.path.dirname(__file__), "..", "user_guide_mkdocs", "site"
+    )
+    metrics_site_dir = os.path.abspath(metrics_site_dir)
 
-    def _serve_docs_target(target: str):
-        path = os.path.join(site_dir, target)
+    def _serve_docs_target_from(base_dir: str, target: str):
+        path = os.path.join(base_dir, target)
         if os.path.isdir(path):
             target = os.path.join(target, "index.html")
-            path = os.path.join(site_dir, target)
+            path = os.path.join(base_dir, target)
         if os.path.exists(path):
-            return send_from_directory(site_dir, target)
+            return send_from_directory(base_dir, target)
         abort(404)
+
+    def _serve_docs_target(target: str):
+        return _serve_docs_target_from(site_dir, target)
+
+    @app.route("/guide/")
+    def docs_hub():
+        return render_template("docs/guide_hub.html")
 
     @app.route("/docs/")
     def docs_index():
@@ -193,5 +204,58 @@ def create_app():
     def docs_search(filename: str):
         target = os.path.join("search", filename)
         return _serve_docs_target(target)
+
+    def _serve_metrics_docs_target(target: str):
+        return _serve_docs_target_from(metrics_site_dir, target)
+
+    @app.route("/metrics/")
+    @app.route("/metrics/<path:filename>")
+    def docs_metrics(filename: str = "index.html"):
+        target = os.path.join("metrics", filename)
+        return _serve_metrics_docs_target(target)
+
+    @app.route("/activity_score_calculations/")
+    @app.route("/activity_score_calculations/<path:filename>")
+    def docs_activity_score(filename: str = "index.html"):
+        target = os.path.join("activity_score_calculations", filename)
+        return _serve_metrics_docs_target(target)
+
+    # The metrics-only guide links back to a shared set of PostgreSQL
+    # documentation pages at root-level paths. Mirror those URLs so cross-links
+    # remain navigable.
+    root_postgres_sections = (
+        "database",
+        "schema_design_notes",
+        "plots",
+        "plots_lineage",
+        "plots_distribution",
+        "plots_top10",
+        "plots_protein_network",
+        "pipeline",
+        "user_guide",
+        "database_setup_tailscale",
+        "postgresql_tailscale_methodology",
+        "git_workflow",
+        "OWNERS",
+    )
+
+    def _build_root_postgres_view(section: str):
+        def _view(filename: str = "index.html"):
+            target = os.path.join("postgresql_visualization", section, filename)
+            return _serve_docs_target(target)
+
+        return _view
+
+    for section in root_postgres_sections:
+        app.add_url_rule(
+            f"/{section}/",
+            endpoint=f"docs_root_{section}",
+            view_func=_build_root_postgres_view(section),
+        )
+        app.add_url_rule(
+            f"/{section}/<path:filename>",
+            endpoint=f"docs_root_{section}_files",
+            view_func=_build_root_postgres_view(section),
+        )
 
     return app
