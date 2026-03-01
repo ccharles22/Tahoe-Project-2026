@@ -44,15 +44,9 @@
     linear-gradient(180deg, rgba(16, 43, 66, 0.72) 0%, rgba(16, 43, 66, 0.14) 18%, rgba(16, 43, 66, 0.04) 50%, rgba(16, 43, 66, 0.18) 82%, rgba(16, 43, 66, 0.68) 100%);
 }
 
-.app-guidebar-dna-rail__dna-track,
-.app-guidebar-dna-rail__context-track {
-  position: absolute;
-  inset: 0;
-}
-
 .app-guidebar-dna-rail__dna-track {
   position: absolute;
-  inset: -8% -18%;
+  inset: -8% -12%;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -85,46 +79,12 @@
 .app-guidebar-dna-rail__base--G { color: rgba(98, 236, 218, 0.92); }
 .app-guidebar-dna-rail__base--T { color: rgba(154, 204, 255, 0.92); }
 
-.app-guidebar-dna-rail__context-track {
-  inset: 18px 14px 18px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  justify-content: flex-start;
-  animation: appGuidebarContextScroll 180s linear infinite;
-  will-change: transform;
-}
-
-.app-guidebar-dna-rail__context-line {
-  display: block;
-  padding: 10px 12px;
-  border: 1px solid rgba(200, 227, 244, 0.16);
-  border-radius: 14px;
-  background: linear-gradient(180deg, rgba(16, 43, 66, 0.3) 0%, rgba(16, 43, 66, 0.16) 100%);
-  color: rgba(233, 247, 255, 0.82);
-  font-size: clamp(11px, 0.84vw, 13px);
-  font-weight: 700;
-  line-height: 1.35;
-  letter-spacing: 0.02em;
-  text-wrap: balance;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
-}
-
 @keyframes appGuidebarDnaScroll {
   from {
     transform: rotate(-3deg) scale(1.02) translateY(0);
   }
   to {
     transform: rotate(-3deg) scale(1.02) translateY(-50%);
-  }
-}
-
-@keyframes appGuidebarContextScroll {
-  from {
-    transform: translateY(0);
-  }
-  to {
-    transform: translateY(-12%);
   }
 }
 
