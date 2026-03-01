@@ -4,6 +4,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
+  const guideIconMarkup = `
+    <svg class="app-guidebar__docs-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18.5v-13Z"></path>
+      <path d="M8 7h8M8 11h8M8 15h6"></path>
+    </svg>
+  `;
+
+  document.querySelectorAll(".md-logo").forEach((logo) => {
+    logo.innerHTML = guideIconMarkup;
+  });
+
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const createRail = (side) => {

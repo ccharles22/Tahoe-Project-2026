@@ -195,6 +195,16 @@
   color: #ffffff !important;
 }
 
+.app-guidebar__docs-icon {
+  width: 1.45rem;
+  height: 1.45rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .md-tabs {
   border-top: 1px solid rgba(133, 180, 214, 0.3);
   border-bottom: 1px solid rgba(103, 164, 204, 0.42);
