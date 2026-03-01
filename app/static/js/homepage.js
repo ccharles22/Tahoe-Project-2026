@@ -11,9 +11,18 @@
     const stageCards = document.querySelectorAll(".home-stage__card");
     const stageCardsList = Array.from(stageCards);
     const pipelineItems = document.querySelectorAll(".home-pipeline__item");
+    const stageVisual = document.querySelector("[data-home-stage-visual]");
+    const stageVisualTitle = document.querySelector("[data-home-stage-visual-title]");
     const resultsTrack = document.querySelector("[data-home-carousel-track]");
     const resultsPrev = document.querySelector("[data-home-carousel-prev]");
     const resultsNext = document.querySelector("[data-home-carousel-next]");
+    const stageTitles = {
+      "fetch-wt": "Stage Experiment",
+      "validate": "Protein & Plasmid Validation",
+      "upload": "Data Upload & QC",
+      "analyse": "Analysis & Reporting",
+      "sequence": "Sequence Processing",
+    };
 
     function setActiveStage(stageId) {
       if (!stageId) return;
@@ -21,6 +30,12 @@
       pipelineItems.forEach((it) => it.classList.remove("is-active"));
       const matchingItem = document.querySelector(`.home-pipeline__item[data-stage="${stageId}"]`);
       if (matchingItem) matchingItem.classList.add("is-active");
+      if (stageVisual) {
+        stageVisual.dataset.stage = stageId;
+      }
+      if (stageVisualTitle && stageTitles[stageId]) {
+        stageVisualTitle.textContent = stageTitles[stageId];
+      }
     }
 
     pipelineItems.forEach((item) => {

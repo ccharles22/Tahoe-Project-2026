@@ -76,6 +76,45 @@
       </div>
 
       <section class="home-stage" aria-label="Workflow stage descriptions">
+        <div class="home-stage__visual" data-home-stage-visual aria-hidden="true">
+          <div class="home-stage__visual-shell">
+            <div class="home-stage__visual-rotor">
+              <div class="home-stage__visual-ring home-stage__visual-ring--outer"></div>
+              <div class="home-stage__visual-ring home-stage__visual-ring--inner"></div>
+              <div class="home-stage__visual-glow"></div>
+              <svg class="home-stage__visual-dna" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg" focusable="false" aria-hidden="true">
+                <defs>
+                  <linearGradient id="dnaBlueGreen" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#17c4cf"></stop>
+                    <stop offset="52%" stop-color="#18b6e4"></stop>
+                    <stop offset="100%" stop-color="#2b76dc"></stop>
+                  </linearGradient>
+                  <linearGradient id="dnaBlueGreenSoft" x1="100%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stop-color="#34d7b8"></stop>
+                    <stop offset="45%" stop-color="#19c6da"></stop>
+                    <stop offset="100%" stop-color="#2a80e0"></stop>
+                  </linearGradient>
+                </defs>
+                <path d="M74 30C97 49 125 60 147 77C165 90 171 113 159 133C147 155 121 167 100 185C82 200 74 209 78 218" fill="none" stroke="url(#dnaBlueGreen)" stroke-width="14" stroke-linecap="round"/>
+                <path d="M146 24C127 41 96 54 76 70C53 88 46 114 61 138C74 161 107 176 128 193C145 206 148 213 143 220" fill="none" stroke="url(#dnaBlueGreenSoft)" stroke-width="14" stroke-linecap="round"/>
+                <path d="M77 58C97 66 116 75 145 88" fill="none" stroke="url(#dnaBlueGreen)" stroke-width="8" stroke-linecap="round"/>
+                <path d="M66 98C92 107 115 118 152 132" fill="none" stroke="url(#dnaBlueGreenSoft)" stroke-width="8" stroke-linecap="round"/>
+                <path d="M73 143C100 152 121 162 143 178" fill="none" stroke="url(#dnaBlueGreen)" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="145" cy="88" r="5.5" fill="#28d5be"></circle>
+                <circle cx="152" cy="132" r="5.5" fill="#1cbbe6"></circle>
+                <circle cx="143" cy="178" r="5.5" fill="#2f86e4"></circle>
+                <circle cx="78" cy="58" r="5.5" fill="#1ecfd0"></circle>
+                <circle cx="66" cy="98" r="5.5" fill="#28c0ea"></circle>
+                <circle cx="73" cy="143" r="5.5" fill="#2b7fe3"></circle>
+              </svg>
+            </div>
+          </div>
+          <div class="home-stage__visual-copy">
+            <p class="home-stage__visual-kicker">Interactive DNA View</p>
+            <h2 class="home-stage__visual-title" data-home-stage-visual-title>Stage Experiment</h2>
+            <p class="home-stage__visual-text">Select a stage to rotate the DNA guide and preview the flow through the portal.</p>
+          </div>
+        </div>
         <div class="home-stage__viewport" id="home-stage-viewport">
           <article class="home-stage__card is-active" id="stage-fetch-wt" data-stage="fetch-wt">
             <p class="home-stage__eyebrow">Stage 01</p>
