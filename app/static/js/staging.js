@@ -145,12 +145,48 @@ function initRunLoader() {
     document.body.classList.add('is-run-loading');
   };
 
+  const hideLoader = () => {
+    loader.classList.remove('is-visible');
+    loader.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('is-run-loading');
+  };
+
   document
     .querySelectorAll('form[action*="/sequence/run"], form[action*="/analysis/run"]')
     .forEach((form) => {
-      form.addEventListener('submit', () => {
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        if (form.dataset.submitting === 'true') return;
+
         const mode = form.action.includes('/sequence/run') ? 'sequence' : 'analysis';
+        const submitBtn = form.querySelector('.btn--submit');
+        form.dataset.submitting = 'true';
+        if (submitBtn) submitBtn.classList.add('is-loading');
         showLoader(mode);
+
+        try {
+          const response = await fetch(form.action, {
+            method: form.method || 'POST',
+            body: new FormData(form),
+            credentials: 'same-origin',
+            redirect: 'follow',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Request failed with status ${response.status}`);
+          }
+
+          window.location.href = response.url || window.location.href;
+        } catch (error) {
+          console.error('Run request failed:', error);
+          hideLoader();
+          form.dataset.submitting = 'false';
+          if (submitBtn) submitBtn.classList.remove('is-loading');
+          window.alert('The run request did not finish. The page stayed in place so you can try again.');
+        }
       });
     });
 }
