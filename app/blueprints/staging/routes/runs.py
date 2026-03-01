@@ -8,29 +8,14 @@ from flask_login import login_required
 from sqlalchemy import text
 
 from app.extensions import db
-from app.jobs.run_sequence_processing import submit_sequence_processing
 from app.services.staging.analysis_runtime import run_analysis_for_experiment
 from app.services.staging.session_state import (
+    clear_sequence_reprocess_required,
     is_sequence_reprocess_required,
     save_sequence_status_to_session,
 )
 
 from .. import staging_bp
-
-
-def _get_experiment_analysis_status(experiment_id: int) -> str:
-    """Return the persisted experiment analysis status."""
-    status = db.session.execute(
-        text(
-            """
-            SELECT analysis_status
-            FROM public.experiments
-            WHERE experiment_id = :eid
-            """
-        ),
-        {'eid': experiment_id},
-    ).scalar()
-    return str(status or '').strip().upper()
 
 
 def _has_persisted_sequence_outputs(experiment_id: int) -> bool:
@@ -67,28 +52,48 @@ def _has_sequence_outputs(experiment_id: int) -> bool:
     return _has_persisted_sequence_outputs(experiment_id)
 
 
-def _sequence_status_payload(experiment_id: int) -> tuple[dict, int]:
-    """Summarise current sequence-processing state for polling clients."""
-    persisted_status = _get_experiment_analysis_status(experiment_id)
-    if persisted_status == 'ANALYSIS_RUNNING':
-        return {
-            'state': 'running',
-            'message': 'Sequence processing is still running.',
-        }, 202
-    if persisted_status == 'FAILED':
-        return {
-            'state': 'failed',
-            'message': 'Sequence processing failed.',
-        }, 200
-    if _has_persisted_sequence_outputs(experiment_id):
-        return {
-            'state': 'completed',
-            'message': 'Sequence processing completed.',
-        }, 200
-    return {
-        'state': 'pending',
-        'message': 'Sequence processing has not completed yet.',
-    }, 200
+def _run_sequence_processing_for_experiment(
+    experiment_id: int,
+    *,
+    force_reprocess: bool,
+) -> tuple[bool, str]:
+    """Run sequence processing synchronously and persist UI status text."""
+    try:
+        from app.jobs.run_sequence_processing import run_sequence_processing
+
+        run_sequence_processing(experiment_id, force_reprocess=force_reprocess)
+        clear_sequence_reprocess_required(experiment_id)
+        if force_reprocess:
+            message = (
+                'Sequence processing completed. Full mutation outputs were refreshed '
+                'because the experiment inputs changed.'
+            )
+        else:
+            message = (
+                'Sequence processing completed. Existing valid outputs were reused; '
+                'only missing variants were processed.'
+            )
+        save_sequence_status_to_session(
+            experiment_id,
+            {
+                'status': 'success',
+                'summary': message,
+                'technical_details': '',
+                'completed_at_epoch': int(time.time()),
+            },
+        )
+        return True, message
+    except Exception as exc:
+        message = f'Sequence processing failed: {exc}'
+        save_sequence_status_to_session(
+            experiment_id,
+            {
+                'status': 'failed',
+                'summary': str(exc),
+                'technical_details': traceback.format_exc(),
+            },
+        )
+        return False, message
 
 
 @staging_bp.post('/analysis/run')
@@ -122,18 +127,10 @@ def run_analysis():
     )
 
 
-@staging_bp.get('/sequence/status/<int:experiment_id>')
-@login_required
-def sequence_status_json(experiment_id: int):
-    """Return JSON status for the current sequence-processing run."""
-    payload, status_code = _sequence_status_payload(experiment_id)
-    return jsonify(payload), status_code
-
-
 @staging_bp.post('/sequence/run')
 @login_required
 def run_sequence():
-    """Launch sequence processing in the background and return immediately."""
+    """Run sequence processing and return only when it finishes."""
     experiment_id = request.form.get('experiment_id', '').strip()
     is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if not experiment_id.isdigit():
@@ -164,68 +161,11 @@ def run_sequence():
                 sequence_message=message,
             )
         )
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-            return jsonify({'state': 'completed', 'message': message}), 200
-
-    try:
-        current_status = _get_experiment_analysis_status(exp_id_int)
-        if current_status == 'ANALYSIS_RUNNING':
-            message = 'Sequence processing is already running in the background.'
-            save_sequence_status_to_session(
-                exp_id_int,
-                {
-                    'status': 'running',
-                    'summary': message,
-                    'technical_details': '',
-                    'completed_at_epoch': int(time.time()),
-                },
-            )
-            if is_xhr:
-                return jsonify({'state': 'running', 'message': message}), 202
-            return redirect(
-                url_for(
-                    'staging.create_experiment',
-                    experiment_id=experiment_id,
-                    sequence_message=message,
-                )
-            )
-            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-                return jsonify({'state': 'running', 'message': message}), 202
-
-        submit_sequence_processing(exp_id_int, force_reprocess=force_reprocess)
-        if force_reprocess:
-            message = (
-                'Sequence processing started in the background. A full refresh is '
-                'running because the experiment inputs changed.'
-            )
-        else:
-            message = (
-                'Sequence processing started in the background. This page will show '
-                'updated sequence outputs when the run finishes.'
-            )
-        save_sequence_status_to_session(
-            exp_id_int,
-            {
-                'status': 'running',
-                'summary': message,
-                'technical_details': '',
-                'completed_at_epoch': int(time.time()),
-            },
-        )
-    except Exception as exc:
-        message = f'Sequence processing failed: {exc}'
-        save_sequence_status_to_session(
-            exp_id_int,
-            {
-                'status': 'failed',
-                'summary': str(exc),
-                'technical_details': traceback.format_exc(),
-            },
-        )
-        if is_xhr:
-            return jsonify({'state': 'failed', 'message': message}), 500
-
+    ok, message = _run_sequence_processing_for_experiment(
+        exp_id_int,
+        force_reprocess=force_reprocess,
+    )
     if is_xhr:
-        return jsonify({'state': 'running', 'message': message}), 202
+        return jsonify({'state': 'completed' if ok else 'failed', 'message': message}), (200 if ok else 500)
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))

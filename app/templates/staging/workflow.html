@@ -18,7 +18,6 @@
   {% set step_c_done = parsing_result is not none and parsing_result.success %}
   {% set step_c_fail = parsing_result is not none and not parsing_result.success %}
   {% set analysis_failed = analysis_message and ('analysis failed' in (analysis_message|lower)) %}
-  {% set sequence_running = (sequence_status and sequence_status.status == 'running') or (sequence_message and (('started in the background' in (sequence_message|lower)) or ('already running in the background' in (sequence_message|lower)))) %}
   {% set sequence_failed = (sequence_status and sequence_status.status == 'failed') or (sequence_message and ('sequence processing failed' in (sequence_message|lower))) %}
   {% set sequence_completed = (sequence_status and sequence_status.status == 'success') or (sequence_message and ('sequence processing completed' in (sequence_message|lower))) %}
   {% set sequence_technical = sequence_status.technical_details if sequence_status and sequence_status.technical_details else '' %}
@@ -349,8 +348,6 @@
             <button class="task__toggle" type="button" aria-label="Toggle step">&#x25BE;</button>
             {% if step_e_done %}
               <span class="badge badge--ok">Complete</span>
-            {% elif sequence_running %}
-              <span class="badge badge--neutral">Running</span>
             {% elif step_c_done %}
               <span class="badge badge--neutral">Pending</span>
             {% else %}
@@ -798,13 +795,11 @@
           <div class="panel__header">
             <span class="panel__step">4</span>
             Sequence Processing
-            {% if step_e_done %}<span class="badge badge--ok ml-auto">Complete</span>{% elif sequence_running %}<span class="badge badge--neutral ml-auto">Running</span>{% elif sequence_failed %}<span class="badge badge--bad ml-auto">Error</span>{% endif %}
+            {% if step_e_done %}<span class="badge badge--ok ml-auto">Complete</span>{% elif sequence_failed %}<span class="badge badge--bad ml-auto">Error</span>{% endif %}
           </div>
 
           {% if step_e_done %}
             <div class="note">{{ sequence_message if sequence_message else 'Sequence processing completed. Mutation outputs were refreshed.' }}</div>
-          {% elif sequence_running %}
-            <div class="note">{{ sequence_message if sequence_message else 'Sequence processing is running in the background.' }}</div>
           {% elif sequence_failed %}
             <div class="note note--danger">{{ sequence_message if sequence_message else 'Sequence processing failed.' }}</div>
             <div class="sequence-callout__actions">

@@ -198,10 +198,6 @@ def create_experiment():
         sequence_completed = sequence_status_code == 'success' or (
             'sequence processing completed' in sequence_message.lower()
         )
-        sequence_running = sequence_status_code == 'running' or (
-            'sequence processing started in the background' in sequence_message.lower()
-            or 'sequence processing is already running in the background' in sequence_message.lower()
-        )
         sequence_failed = sequence_status_code == 'failed' or (
             'sequence processing failed' in sequence_message.lower()
         )
@@ -229,24 +225,8 @@ def create_experiment():
                 sequence_completed = True
         except Exception:
             db.session.rollback()
-        try:
-            persisted_status = db.session.execute(
-                text(
-                    """
-                    SELECT analysis_status
-                    FROM public.experiments
-                    WHERE experiment_id = :eid
-                    """
-                ),
-                {'eid': int(experiment_id)},
-            ).scalar()
-            if str(persisted_status or '').strip().upper() == 'ANALYSIS_RUNNING':
-                sequence_running = True
-        except Exception:
-            db.session.rollback()
         if (
             sequence_completed
-            and not sequence_running
             and is_sequence_reprocess_required(int(experiment_id))
         ):
             clear_sequence_reprocess_required(int(experiment_id))
