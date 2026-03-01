@@ -112,7 +112,7 @@
         width: min(100%, 1680px);
         border: 1px solid var(--guide-border);
         border-radius: 28px;
-        padding: clamp(48px, 5vw, 64px) clamp(18px, 2.3vw, 24px);
+        padding: clamp(36px, 4vw, 48px) clamp(18px, 2.3vw, 24px);
         background:
           linear-gradient(180deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 251, 255, 0.94) 100%);
         box-shadow:
@@ -123,7 +123,7 @@
       }
 
       .guide-kicker {
-        margin: 0 0 12px;
+        margin: 0 0 18px;
         font-size: 12px;
         font-weight: 800;
         letter-spacing: 0.16em;
@@ -152,16 +152,16 @@
       .guide-grid {
         display: grid;
         grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 12px;
-        margin-top: 18px;
+        gap: 14px;
+        margin-top: 22px;
       }
 
       .guide-card {
         display: flex;
         flex-direction: column;
-        gap: 9px;
-        padding: 14px;
-        border-radius: 18px;
+        gap: 11px;
+        padding: 18px;
+        border-radius: 20px;
         border: 1px solid var(--guide-border);
         background: var(--guide-accent), rgba(255, 255, 255, 0.88);
         text-decoration: none;
@@ -189,7 +189,7 @@
 
       .guide-card__title {
         margin: 0;
-        font-size: clamp(1.08rem, 1.45vw, 1.4rem);
+        font-size: clamp(1.18rem, 1.55vw, 1.5rem);
         line-height: 1.04;
         font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         font-weight: 760;
@@ -199,8 +199,8 @@
 
       .guide-card__body {
         margin: 0;
-        font-size: 0.77rem;
-        line-height: 1.45;
+        font-size: 0.82rem;
+        line-height: 1.5;
         color: var(--guide-muted);
         display: -webkit-box;
         -webkit-box-orient: vertical;
@@ -213,7 +213,7 @@
         display: inline-flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.74rem;
+        font-size: 0.78rem;
         font-weight: 700;
         color: var(--guide-primary);
       }
@@ -221,7 +221,7 @@
       @media (max-width: 1280px) {
         .guide-shell {
           width: min(100%, 1200px);
-          padding: 40px 18px;
+          padding: 30px 18px;
         }
 
         .guide-grid {
@@ -271,7 +271,7 @@
 
         .guide-shell {
           border-radius: 22px;
-          padding: 32px 18px;
+          padding: 24px 18px;
         }
 
         .guide-grid {
