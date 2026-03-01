@@ -43,6 +43,7 @@ from Bio.Seq import Seq
 
 
 VALID_DNA: Set[str] = {"A", "C", "G", "T"}
+DEFAULT_GENETIC_CODE_TABLE: int = 11
 
 @dataclass(frozen=True)
 class TranslationQC:
@@ -122,7 +123,7 @@ def reverse_complement_dna(dna: str) -> str:
 def translate_dna(
         dna: str,
         *,
-        table: int = 11,
+        table: int = DEFAULT_GENETIC_CODE_TABLE,
         to_stop: bool = False,
         strict: bool = False,
     ) -> str:
@@ -149,7 +150,7 @@ def translate_dna(
 def translate_cds_with_qc(
         cds_dna: str,
         *,
-        genetic_code_table: int = 11,
+        genetic_code_table: int = DEFAULT_GENETIC_CODE_TABLE,
         stop_policy: str = "truncate",
         min_len_nt: int = 3,
 ) -> Tuple[Optional[str], TranslationQC]:

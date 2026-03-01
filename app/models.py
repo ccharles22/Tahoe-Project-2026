@@ -145,6 +145,34 @@ class WildtypeControl(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.text("CURRENT_TIMESTAMP"))
 
 
+class StagingValidation(db.Model):
+    __tablename__ = "staging_validations"
+    __table_args__ = {"extend_existing": True}
+
+    staging_validation_id = db.Column(db.BigInteger, primary_key=True)
+    experiment_id = db.Column(
+        db.BigInteger,
+        db.ForeignKey("experiments.experiment_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    is_valid = db.Column(db.Boolean, nullable=False)
+    identity = db.Column(db.Float, nullable=False)
+    coverage = db.Column(db.Float, nullable=False)
+    strand = db.Column(db.String(1), nullable=False)
+    # 0-based nucleotide coordinate, inclusive.
+    start_nt = db.Column(db.Integer, nullable=False)
+    # 0-based nucleotide coordinate, inclusive.
+    end_nt = db.Column(db.Integer, nullable=False)
+    wraps = db.Column(db.Boolean, nullable=False, default=False)
+    failure_reason = db.Column(db.Text, nullable=True)
+    genetic_code_used = db.Column(db.Integer, nullable=False)
+    created_at = db.Column(
+        db.DateTime(timezone=True),
+        server_default=db.text("now()"),
+        nullable=False,
+    )
+
+
 # ---------------------------------------------------------------------------
 # StagingValidation — in-memory only (no DB table).
 # Your Postgres user doesn't have CREATE TABLE permission, so we store

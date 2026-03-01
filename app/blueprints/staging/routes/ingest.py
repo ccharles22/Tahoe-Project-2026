@@ -4,7 +4,7 @@ from flask import redirect, request, url_for
 from flask_login import current_user, login_required
 
 from app.extensions import db
-from app.models import Experiment, ProteinFeature, WildtypeProtein
+from app.models import Experiment, ProteinFeature, StagingValidation, WildtypeProtein
 from app.services.sequence import db_repo as sequence_db_repo
 from app.services.sequence.uniprot_service import (
     UniProtRetrievalError,
@@ -223,6 +223,20 @@ def upload_plasmid():
 
     result = validate_plasmid(wt.amino_acid_sequence, dna)
     save_validation_to_session(experiment_id, result)
+    db.session.add(
+        StagingValidation(
+            experiment_id=exp_id_int,
+            is_valid=bool(result.is_valid),
+            identity=float(result.identity),
+            coverage=float(result.coverage),
+            strand=str(result.strand),
+            start_nt=int(result.start_nt),
+            end_nt=int(result.end_nt),
+            wraps=bool(result.wraps),
+            failure_reason=(None if result.is_valid else str(result.message)),
+            genetic_code_used=int(result.genetic_code_used),
+        )
+    )
 
     try:
         db.session.commit()

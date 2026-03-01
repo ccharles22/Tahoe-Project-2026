@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 from Bio.Align import PairwiseAligner
 from Bio.Seq import Seq
+from app.services.sequence.seq_utils import DEFAULT_GENETIC_CODE_TABLE
 
 
 @dataclass
@@ -20,6 +21,7 @@ class ValidationResult:
     end_nt: int
     wraps: bool
     message: str
+    genetic_code_used: int = DEFAULT_GENETIC_CODE_TABLE
 
 
 def reverse_complement(dna: str) -> str:
@@ -27,13 +29,24 @@ def reverse_complement(dna: str) -> str:
     return str(Seq(dna).reverse_complement())
 
 
-def translate_frame(dna: str, frame: int = 0) -> str:
+def translate_frame(
+    dna: str,
+    frame: int = 0,
+    genetic_code_table: int = DEFAULT_GENETIC_CODE_TABLE,
+    cds: bool = False,
+) -> str:
     """Translate DNA from a reading frame index (0, 1, or 2)."""
     frame_seq = dna[frame:]
     trimmed_len = len(frame_seq) - (len(frame_seq) % 3)
     if trimmed_len <= 0:
         return ''
-    return str(Seq(frame_seq[:trimmed_len]).translate(to_stop=False))
+    return str(
+        Seq(frame_seq[:trimmed_len]).translate(
+            table=genetic_code_table,
+            to_stop=False,
+            cds=cds,
+        )
+    )
 
 
 def _make_local_aligner() -> PairwiseAligner:
@@ -117,6 +130,7 @@ def validate_plasmid(
     min_identity: float = 98.0,
     min_coverage: float = 98.0,
     require_exact: bool = True,
+    genetic_code_table: int = DEFAULT_GENETIC_CODE_TABLE,
 ) -> ValidationResult:
     """Validate that circular plasmid DNA encodes WT protein in one of six frames."""
     protein = wt_protein.strip().upper()
@@ -145,7 +159,7 @@ def validate_plasmid(
     translated_frames = []
     for source, strand, seq in (('fwd', '+', dna2), ('rev', '-', dna2_rc)):
         for frame in (0, 1, 2):
-            translated = translate_frame(seq, frame)
+            translated = translate_frame(seq, frame, genetic_code_table=genetic_code_table)
             translated_frames.append((source, strand, frame, translated))
             exact_start = translated.find(protein)
             if exact_start >= 0:
@@ -166,6 +180,7 @@ def validate_plasmid(
                     end_nt=end_nt,
                     wraps=wraps,
                     message='PASS: WT protein is exactly encoded in the uploaded plasmid.',
+                    genetic_code_used=genetic_code_table,
                 )
 
     for source, strand, frame, translated in translated_frames:
@@ -218,4 +233,5 @@ def validate_plasmid(
         end_nt=int(end_nt),
         wraps=bool(wraps),
         message=message,
+        genetic_code_used=genetic_code_table,
     )

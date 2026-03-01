@@ -270,6 +270,27 @@ unique (experiment_id, field_name)
 create index idx_meta_experiment on experiment_metadata (experiment_id);
 create index idx_meta_field on experiment_metadata (field_name);
 
+-- 10b. Staging validation summaries (one row per Stage 02b run)
+create table if not exists staging_validations (
+    staging_validation_id bigserial primary key,
+    experiment_id bigint not null references experiments(experiment_id) on delete cascade,
+    is_valid boolean not null,
+    identity double precision not null,
+    coverage double precision not null,
+    strand varchar(1) not null,
+    -- 0-based nucleotide coordinate, inclusive.
+    start_nt int not null,
+    -- 0-based nucleotide coordinate, inclusive.
+    end_nt int not null,
+    wraps boolean not null default false,
+    failure_reason text,
+    genetic_code_used int not null,
+    created_at timestamptz not null default now()
+);
+
+create index if not exists idx_staging_validations_experiment_created
+    on staging_validations (experiment_id, created_at desc);
+
 alter table variants add column if not exists extra_metadata jsonb;
 create index if not exists idx_variants_extra_metadata on variants using gin (extra_metadata);
 -- this data is very dynamic considering it depends on all the other data together and is subject to a change

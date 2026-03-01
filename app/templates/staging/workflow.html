@@ -76,14 +76,16 @@
     <!-- PAGE HEADER -->
     <header class="page-header">
       <div class="page-header__left">
-        <a href="{{ url_for('auth.homepage') }}" class="page-header__home-pill" aria-current="page">Home</a>
-        <a
-          href="{{ url_for('staging.create_experiment', experiment_id=experiment_id) if experiment_id else url_for('staging.create_experiment') }}"
-          class="page-header__workspace-pill"
-          aria-current="page"
-        >
-          Workspace
+        <a href="{{ url_for('auth.homepage') }}" class="page-header__brand">
+          <img
+            class="page-header__brand-icon"
+            src="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png') }}"
+            alt=""
+          >
+          <span class="page-header__brand-name">Direct Evolution Monitoring</span>
         </a>
+      </div>
+      <div class="page-header__center">
         {% if experiment_id %}
           <div class="page-header__context">
             <span class="page-header__exp">{{ display_experiment_name }} #{{ experiment_id }}</span>
@@ -92,30 +94,34 @@
               <span class="page-header__protein">{{ wt.uniprot_id }}</span>
             {% endif %}
           </div>
+        {% else %}
+          <span class="page-header__context">Workflow</span>
         {% endif %}
       </div>
       <div class="page-header__right">
-        <a href="/docs/parsing_qc/guide/getting-started/index.html" class="page-header__iconlink" aria-label="User Guide" title="User Guide">
+        <div class="page-header__navlinks" aria-label="Primary navigation">
+          <a href="{{ url_for('auth.homepage') }}" class="page-header__navlink">Home</a>
+          <a
+            href="{{ url_for('staging.create_experiment', experiment_id=experiment_id) if experiment_id else url_for('staging.create_experiment') }}"
+            class="page-header__navlink page-header__navlink--active"
+            aria-current="page"
+          >
+            Workspace
+          </a>
+        </div>
+        <a href="/docs/parsing_qc/guide/getting-started/index.html" class="page-header__iconbtn" aria-label="User Guide" title="User Guide">
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18.5v-13Z"></path>
             <path d="M8 7h8M8 11h8M8 15h6"></path>
           </svg>
         </a>
         {% if current_user.is_authenticated %}
-        <div class="page-header__iconpair" aria-label="Account controls">
-          <a href="{{ url_for('auth.settings') }}" class="page-header__iconlink page-header__iconlink--bare" aria-label="Account" title="{{ current_user.username }}">
-            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
-              <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
-            </svg>
-          </a>
-          <a href="{{ url_for('auth.settings') }}" class="page-header__iconlink page-header__iconlink--bare" aria-label="Settings" title="Settings">
-            <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-              <path d="m12 3 1.1 2.5 2.7.5.7 2.6 2.4 1.5-1 2.5 1 2.5-2.4 1.5-.7 2.6-2.7.5L12 21l-1.1-2.5-2.7-.5-.7-2.6-2.4-1.5 1-2.5-1-2.5 2.4-1.5.7-2.6 2.7-.5L12 3Z"></path>
-              <circle cx="12" cy="12" r="3.1"></circle>
-            </svg>
-          </a>
-        </div>
+        <a href="{{ url_for('auth.settings') }}" class="page-header__iconbtn" aria-label="Account" title="{{ current_user.username }}">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+          </svg>
+        </a>
         <a href="{{ url_for('auth.logout') }}" class="page-header__logout">Logout</a>
         {% else %}
         <a href="{{ url_for('auth.homepage', auth='login') }}" class="page-header__signin">Sign in</a>

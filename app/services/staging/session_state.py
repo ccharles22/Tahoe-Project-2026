@@ -57,6 +57,7 @@ def save_validation_to_session(experiment_id, result):
         'end_nt': int(result.end_nt),
         'wraps': bool(result.wraps),
         'message': str(result.message),
+        'genetic_code_used': int(result.genetic_code_used),
     }
 
 
