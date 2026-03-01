@@ -11,10 +11,6 @@
         <link rel="canonical" href="http://localhost:8000/postgresql_tailscale_methodology/">
       
       
-        <link rel="prev" href="../database_setup_tailscale/">
-      
-      
-        <link rel="next" href="../git_workflow/">
       
       
         
@@ -25,7 +21,7 @@
     
     
       
-        <title>PostgreSQL Tailscale methodology - PostgreSQL Repository and Data Visualization</title>
+        <title>PostgreSQL + Tailscale methodology - PostgreSQL Repository and Data Visualization</title>
       
     
     
@@ -102,7 +98,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              PostgreSQL Tailscale methodology
+              PostgreSQL + Tailscale methodology
             
           </span>
         </div>
@@ -591,7 +587,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../metrics/" class="md-nav__link">
+      <a href="../metrics.md" class="md-nav__link">
         
   
   
@@ -619,7 +615,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../activity_score_calculations/" class="md-nav__link">
+      <a href="../activity_score_calculations.md" class="md-nav__link">
         
   
   
@@ -757,337 +753,6 @@
   
 
       </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-    
-  
-  
-  
-    
-    
-    
-    
-      
-        
-        
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" checked>
-        
-          
-          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="">
-            
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Ops
-  
-
-    
-  </span>
-  
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_7">
-            <span class="md-nav__icon md-icon"></span>
-            
-  
-    Ops
-  
-
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../database_setup_tailscale/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Database setup (Tailscale)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-    
-  
-  
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    PostgreSQL Tailscale methodology
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    PostgreSQL Tailscale methodology
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#architecture-summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Architecture summary
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#host-bootstrap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Host bootstrap
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Host bootstrap">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#install-services" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Install services
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#verify-host-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Verify host state
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#postgresql-network-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        PostgreSQL network configuration
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#access-management-pattern" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Access management pattern
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Access management pattern">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#materialized-view-permissions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Materialized view permissions
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#optional-logical-replication-setup" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Optional logical replication setup
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Optional logical replication setup">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#publisher-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Publisher settings
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation-checklist" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Validation checklist
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#operational-cautions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Operational cautions
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../git_workflow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Git workflow
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
     </li>
   
 
