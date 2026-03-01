@@ -1164,6 +1164,11 @@ a:hover { text-decoration: underline; }
   min-width: 0;
 }
 
+.panel__header-main--major {
+  font-size: 13px;
+  line-height: 1.15;
+}
+
 .panel__actions {
   margin-left: auto;
   display: flex;
