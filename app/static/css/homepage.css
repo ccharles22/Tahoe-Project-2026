@@ -480,9 +480,9 @@ a:hover { text-decoration: underline; }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(600px, 68vw, 1020px);
+  width: clamp(560px, 64vw, 960px);
   max-width: 100%;
-  height: clamp(78px, 9.2vw, 124px);
+  height: clamp(74px, 8.7vw, 116px);
   max-height: calc(100% - 6px);
   margin-top: 2px;
   object-fit: contain;
@@ -1806,9 +1806,9 @@ a:hover { text-decoration: underline; }
     max-width: calc(100% - 110px);
   }
   .home-nav__portal-image {
-    width: clamp(300px, 76vw, 500px);
+    width: clamp(280px, 72vw, 460px);
     max-width: calc(100% - 120px);
-    height: 66px;
+    height: 62px;
   }
   .home-nav__right {
     right: 16px;
