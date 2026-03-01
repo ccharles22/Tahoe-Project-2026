@@ -2,6 +2,24 @@
   --app-guidebar-rail-width: clamp(136px, 14vw, 232px);
 }
 
+html.app-guidebar-transition-enabled .md-main__inner {
+  opacity: 0.9;
+  transform: translateY(8px);
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
+}
+
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner {
+  opacity: 0.82;
+  transform: translateY(10px);
+}
+
 .app-guidebar-dna-rail {
   position: fixed;
   top: 0;
@@ -355,6 +373,14 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html.app-guidebar-transition-enabled .md-main__inner,
+  html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .app-guidebar-dna-rail__track {
     animation: none;
   }

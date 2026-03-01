@@ -1,4 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
+  document.documentElement.classList.add("app-guidebar-transition-enabled");
+
   const header = document.querySelector(".md-header");
   if (!header || document.querySelector(".app-guidebar")) {
     return;
@@ -104,4 +106,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   rebuildDnaRails();
   window.addEventListener("resize", scheduleRebuild, { passive: true });
+
+  document.querySelectorAll(".md-tabs__link").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || link.target === "_blank") {
+        return;
+      }
+
+      const nextUrl = new URL(link.href, window.location.href);
+      if (nextUrl.origin !== window.location.origin || nextUrl.href === window.location.href) {
+        return;
+      }
+
+      document.documentElement.classList.add("app-guidebar-page-leaving");
+    });
+  });
+
+  window.requestAnimationFrame(() => {
+    document.documentElement.classList.add("app-guidebar-page-ready");
+  });
 });
