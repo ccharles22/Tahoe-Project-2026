@@ -196,24 +196,50 @@ def create_experiment():
         sequence_completed = sequence_status_code == 'success' or (
             'sequence processing completed' in sequence_message.lower()
         )
+        sequence_running = sequence_status_code == 'running' or (
+            'sequence processing started in the background' in sequence_message.lower()
+            or 'sequence processing is already running in the background' in sequence_message.lower()
+        )
         sequence_failed = sequence_status_code == 'failed' or (
             'sequence processing failed' in sequence_message.lower()
         )
         sequence_failure_reason = sequence_summary or sequence_message.replace('Sequence processing failed: ', '')
         try:
             # Session state can be stale; persisted sequence analyses still indicate completion.
-            sequence_analysis_count = db.session.execute(
+            sequence_counts = db.session.execute(
                 text(
                     """
-                    SELECT COUNT(*)
-                    FROM variant_sequence_analysis
+                    SELECT
+                      COUNT(DISTINCT v.variant_id) AS total_variants,
+                      COUNT(DISTINCT CASE WHEN vsa.vsa_id IS NOT NULL THEN v.variant_id END) AS analysed_variants
+                    FROM public.variants v
+                    JOIN public.generations g ON g.generation_id = v.generation_id
+                    LEFT JOIN public.variant_sequence_analysis vsa ON vsa.variant_id = v.variant_id
+                    WHERE g.experiment_id = :eid
+                    """
+                ),
+                {'eid': int(experiment_id)},
+            ).mappings().one()
+            if (
+                int(sequence_counts['total_variants'] or 0) > 0
+                and int(sequence_counts['analysed_variants'] or 0) >= int(sequence_counts['total_variants'] or 0)
+            ):
+                sequence_completed = True
+        except Exception:
+            db.session.rollback()
+        try:
+            persisted_status = db.session.execute(
+                text(
+                    """
+                    SELECT analysis_status
+                    FROM public.experiments
                     WHERE experiment_id = :eid
                     """
                 ),
                 {'eid': int(experiment_id)},
             ).scalar()
-            if int(sequence_analysis_count or 0) > 0:
-                sequence_completed = True
+            if str(persisted_status or '').strip().upper() == 'ANALYSIS_RUNNING':
+                sequence_running = True
         except Exception:
             db.session.rollback()
 

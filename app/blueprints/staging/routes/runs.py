@@ -8,9 +8,9 @@ from flask_login import login_required
 from sqlalchemy import text
 
 from app.extensions import db
+from app.jobs.run_sequence_processing import submit_sequence_processing
 from app.services.staging.analysis_runtime import run_analysis_for_experiment
 from app.services.staging.session_state import (
-    clear_sequence_reprocess_required,
     is_sequence_reprocess_required,
     save_sequence_status_to_session,
 )
@@ -18,48 +18,19 @@ from app.services.staging.session_state import (
 from .. import staging_bp
 
 
-def _run_sequence_processing_for_experiment(
-    experiment_id: int,
-    *,
-    force_reprocess: bool,
-) -> tuple[bool, str]:
-    """Run sequence processing synchronously and persist UI status text."""
-    try:
-        from app.jobs.run_sequence_processing import run_sequence_processing
-
-        run_sequence_processing(experiment_id, force_reprocess=force_reprocess)
-        clear_sequence_reprocess_required(experiment_id)
-        if force_reprocess:
-            message = (
-                'Sequence processing completed. Full mutation outputs were refreshed '
-                'because the experiment inputs changed.'
-            )
-        else:
-            message = (
-                'Sequence processing completed. Existing valid outputs were reused; '
-                'only missing variants were processed.'
-            )
-        save_sequence_status_to_session(
-            experiment_id,
-            {
-                'status': 'success',
-                'summary': message,
-                'technical_details': '',
-                'completed_at_epoch': int(time.time()),
-            },
-        )
-        return True, message
-    except Exception as exc:
-        message = f'Sequence processing failed: {exc}'
-        save_sequence_status_to_session(
-            experiment_id,
-            {
-                'status': 'failed',
-                'summary': str(exc),
-                'technical_details': traceback.format_exc(),
-            },
-        )
-        return False, message
+def _get_experiment_analysis_status(experiment_id: int) -> str:
+    """Return the persisted experiment analysis status."""
+    status = db.session.execute(
+        text(
+            """
+            SELECT analysis_status
+            FROM public.experiments
+            WHERE experiment_id = :eid
+            """
+        ),
+        {'eid': experiment_id},
+    ).scalar()
+    return str(status or '').strip().upper()
 
 
 def _has_sequence_outputs(experiment_id: int) -> bool:
@@ -126,7 +97,7 @@ def run_analysis():
 @staging_bp.post('/sequence/run')
 @login_required
 def run_sequence():
-    """Run sequence processing for the experiment and return status via redirect."""
+    """Launch sequence processing in the background and return immediately."""
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
@@ -153,9 +124,56 @@ def run_sequence():
             )
         )
 
-    _, message = _run_sequence_processing_for_experiment(
-        exp_id_int,
-        force_reprocess=force_reprocess,
-    )
+    try:
+        current_status = _get_experiment_analysis_status(exp_id_int)
+        if current_status == 'ANALYSIS_RUNNING':
+            message = 'Sequence processing is already running in the background.'
+            save_sequence_status_to_session(
+                exp_id_int,
+                {
+                    'status': 'running',
+                    'summary': message,
+                    'technical_details': '',
+                    'completed_at_epoch': int(time.time()),
+                },
+            )
+            return redirect(
+                url_for(
+                    'staging.create_experiment',
+                    experiment_id=experiment_id,
+                    sequence_message=message,
+                )
+            )
+
+        submit_sequence_processing(exp_id_int, force_reprocess=force_reprocess)
+        if force_reprocess:
+            message = (
+                'Sequence processing started in the background. A full refresh is '
+                'running because the experiment inputs changed.'
+            )
+        else:
+            message = (
+                'Sequence processing started in the background. This page will show '
+                'updated sequence outputs when the run finishes.'
+            )
+        save_sequence_status_to_session(
+            exp_id_int,
+            {
+                'status': 'running',
+                'summary': message,
+                'technical_details': '',
+                'completed_at_epoch': int(time.time()),
+            },
+        )
+    except Exception as exc:
+        message = f'Sequence processing failed: {exc}'
+        save_sequence_status_to_session(
+            exp_id_int,
+            {
+                'status': 'failed',
+                'summary': str(exc),
+                'technical_details': traceback.format_exc(),
+            },
+        )
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
