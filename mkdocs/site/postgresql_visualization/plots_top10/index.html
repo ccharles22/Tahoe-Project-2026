@@ -1638,10 +1638,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#data-sources" class="md-nav__link">
+  <a href="#what-it-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data sources
+        What it shows
       
     </span>
   </a>
@@ -1649,10 +1649,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-filters" class="md-nav__link">
+  <a href="#data-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Suggested filters
+        Data sources
       
     </span>
   </a>
@@ -2212,10 +2212,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#data-sources" class="md-nav__link">
+  <a href="#what-it-shows" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Data sources
+        What it shows
       
     </span>
   </a>
@@ -2223,10 +2223,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-filters" class="md-nav__link">
+  <a href="#data-sources" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Suggested filters
+        Data sources
       
     </span>
   </a>
@@ -2295,20 +2295,30 @@
 
 
 <h1 id="top-10-table">Top 10 table<a class="headerlink" href="#top-10-table" title="Permanent link">&para;</a></h1>
+<p>The Top 10 table ranks the highest-performing variants in the selected
+experiment using the unified activity score.</p>
+<h2 id="what-it-shows">What it shows<a class="headerlink" href="#what-it-shows" title="Permanent link">&para;</a></h2>
+<p>Each row combines:</p>
+<ul>
+<li>generation number</li>
+<li>plasmid variant index</li>
+<li>unified <code>activity_score</code></li>
+<li>total mutation count relative to the WT reference</li>
+</ul>
+<p>This creates a compact experiment-level ranking view rather than a
+generation-by-generation ranking.</p>
 <h2 id="data-sources">Data sources<a class="headerlink" href="#data-sources" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Activity scores: <code>metrics</code> where <code>metric_name='activity_score'</code> and <code>metric_type='derived'</code></li>
-<li>Mutation counts: <code>mutations</code> (protein)</li>
-<li>Generation + variant labels: <code>generations</code>, <code>variants</code></li>
-</ul>
-<h2 id="suggested-filters">Suggested filters<a class="headerlink" href="#suggested-filters" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Filter by <code>experiment_id</code></li>
+<li>Activity scores: latest <code>metrics</code> rows where
+  <code>metric_name='activity_score'</code> and <code>metric_type='derived'</code></li>
+<li>Mutation totals: <code>metrics.mutation_total_count</code> when present, with fallbacks
+  to stored sequence-analysis totals and finally raw mutation-row counts</li>
+<li>Generation and variant labels: <code>generations</code>, <code>variants</code></li>
 </ul>
 <h2 id="endpoint">Endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
 <p><code>/top10/&lt;experiment_id&gt;</code></p>
-<p>Example:
-<code>/top10/41</code></p>
+<p>Example:</p>
+<p><code>/top10/41</code></p>
 <h2 id="sql-check">SQL check<a class="headerlink" href="#sql-check" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">,</span>
@@ -2317,17 +2327,26 @@
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span><span class="w"> </span><span class="n">m</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">join</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">variant_id</span>
 <a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;activity_score&#39;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="o">=</span><span class="s1">&#39;derived&#39;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="w"> </span><span class="k">desc</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_id</span><span class="w"> </span><span class="k">desc</span><span class="p">,</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="w"> </span><span class="k">desc</span>
 <a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="k">limit</span><span class="w"> </span><span class="mi">10</span><span class="p">;</span>
 </code></pre></div>
 <h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Rows are the highest <code>activity_score</code> variants in the selected experiment.</li>
-<li>If fewer than 10 rows appear, not enough valid derived metrics were computed.</li>
+<li>Rows are the highest <code>activity_score</code> variants across the full experiment.</li>
+<li>High rank does not necessarily imply low mutation burden; late-generation,
+  high-performing variants may also carry many cumulative mutations.</li>
+<li>Comparing activity score and mutation count together helps distinguish:</li>
+<li>strong performance with modest sequence drift</li>
+<li>strong performance after extensive divergence from WT</li>
+<li>In the interactive workspace view, the <code>View</code> action exposes per-variant
+  sequence and mutation details, which is useful for validating whether a
+  top-ranked variant is biologically plausible.</li>
 </ul>
+<p>If fewer than 10 rows appear, not enough valid derived activity scores were
+written for that experiment.</p>
 <h2 id="example-graph">Example graph<a class="headerlink" href="#example-graph" title="Permanent link">&para;</a></h2>
 <p><img alt="Top 10 example" src="../assets/plots/top10_exp41.png" /></p>
 

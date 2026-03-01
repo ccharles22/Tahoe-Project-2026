@@ -1593,17 +1593,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Suggested inputs
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2223,17 +2212,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-inputs" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Suggested inputs
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2295,22 +2273,18 @@
 
 
 <h1 id="lineage-plot">Lineage plot<a class="headerlink" href="#lineage-plot" title="Permanent link">&para;</a></h1>
+<p>The lineage visualisation shows the evolutionary relationships between variants
+within the selected experiment.</p>
 <h2 id="data-sources">Data sources<a class="headerlink" href="#data-sources" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Nodes and parent relationships: <code>variants</code>, <code>generations</code></li>
 <li>Optional lineage acceleration: <code>variant_lineage_closure</code></li>
 <li>Optional mutation context: <code>mutations</code></li>
 </ul>
-<h2 id="suggested-inputs">Suggested inputs<a class="headerlink" href="#suggested-inputs" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>experiment_id</code> for the route</li>
-<li>parent-child links (<code>parent_variant_id</code>)</li>
-<li>generation number for layered plotting</li>
-</ul>
 <h2 id="endpoint">Endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
 <p><code>/lineage/&lt;experiment_id&gt;</code></p>
-<p>Example:
-<code>/lineage/41</code></p>
+<p>Example:</p>
+<p><code>/lineage/41</code></p>
 <h2 id="sql-check">SQL check<a class="headerlink" href="#sql-check" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">v</span><span class="p">.</span><span class="n">parent_variant_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">parent_id</span><span class="p">,</span>
@@ -2325,9 +2299,17 @@
 <h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Left-to-right progression follows generation number.</li>
-<li>Edges represent parent-child inheritance between variants.</li>
-<li>Isolated nodes can indicate missing parent assignments in loaded data.</li>
+<li>Directed edges represent parent-child inheritance between variants.</li>
+<li>Branching patterns highlight where one variant gave rise to multiple
+  descendants.</li>
+<li>Dense successful branches can indicate an adaptive lineage that continued to
+  diversify while retaining useful sequence features.</li>
+<li>Isolated nodes are expected for roots of the local experiment view, but they
+  can also indicate missing <code>parent_variant_id</code> values in loaded data.</li>
 </ul>
+<p>This view is especially useful when cross-checking Top 10 results, because it
+shows whether the best-performing variants come from one dominant lineage or
+from multiple independent branches.</p>
 <h2 id="example-graph">Example graph<a class="headerlink" href="#example-graph" title="Permanent link">&para;</a></h2>
 <p><img alt="Lineage example" src="../assets/plots/lineage_exp41.png" /></p>
 

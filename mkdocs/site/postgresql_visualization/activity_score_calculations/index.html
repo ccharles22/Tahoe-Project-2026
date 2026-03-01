@@ -1352,10 +1352,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-concept" class="md-nav__link">
+  <a href="#core-formula" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core concept
+        Core formula
       
     </span>
   </a>
@@ -1363,10 +1363,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
+  <a href="#preferred-strategy-wt-normalization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Inputs
+        Preferred strategy: WT normalization
       
     </span>
   </a>
@@ -1374,10 +1374,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#wt-based-normalization" class="md-nav__link">
+  <a href="#fallback-strategy-generation-median-normalization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WT-based normalization
+        Fallback strategy: generation-median normalization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-paths-used-in-this-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code paths used in this project
       
     </span>
   </a>
@@ -1393,13 +1404,41 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Worked example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#case-1-wt-normalization-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 1: WT normalization available
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-2-generation-median-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 2: generation-median fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
+  <a href="#interpretation-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interpretation
+        Interpretation guide
       
     </span>
   </a>
@@ -2220,10 +2259,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#core-concept" class="md-nav__link">
+  <a href="#core-formula" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core concept
+        Core formula
       
     </span>
   </a>
@@ -2231,10 +2270,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#inputs" class="md-nav__link">
+  <a href="#preferred-strategy-wt-normalization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Inputs
+        Preferred strategy: WT normalization
       
     </span>
   </a>
@@ -2242,10 +2281,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#wt-based-normalization" class="md-nav__link">
+  <a href="#fallback-strategy-generation-median-normalization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        WT-based normalization
+        Fallback strategy: generation-median normalization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-paths-used-in-this-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Code paths used in this project
       
     </span>
   </a>
@@ -2261,13 +2311,41 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Worked example">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#case-1-wt-normalization-available" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 1: WT normalization available
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#case-2-generation-median-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Case 2: generation-median fallback
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
-  <a href="#interpretation" class="md-nav__link">
+  <a href="#interpretation-guide" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Interpretation
+        Interpretation guide
       
     </span>
   </a>
@@ -2314,75 +2392,104 @@
 
 
 <h1 id="activity-score-calculations">Activity Score Calculations<a class="headerlink" href="#activity-score-calculations" title="Permanent link">&para;</a></h1>
-<p>This page explains the core formula used to compute <code>activity_score</code> and how
-that value should be interpreted.</p>
-<h2 id="core-concept">Core concept<a class="headerlink" href="#core-concept" title="Permanent link">&para;</a></h2>
-<p>The activity score compares each variant against the wild-type baseline of the
-same generation.</p>
-<p>At a high level:</p>
+<p>This page explains the unified activity metric used throughout the reporting and
+visualisation pipeline. The goal is to reduce two raw measurements into one
+comparable score that reflects functional output relative to expression.</p>
+<h2 id="core-formula">Core formula<a class="headerlink" href="#core-formula" title="Permanent link">&para;</a></h2>
+<p>The final derived metric is:</p>
+<ul>
+<li><code>activity_score = dna_yield_norm / protein_yield_norm</code></li>
+</ul>
+<p>The normalized inputs depend on which baseline strategy is available for the
+experiment.</p>
+<h2 id="preferred-strategy-wt-normalization">Preferred strategy: WT normalization<a class="headerlink" href="#preferred-strategy-wt-normalization" title="Permanent link">&para;</a></h2>
+<p>When valid wild-type (WT) controls exist for every generation, the pipeline
+normalizes each variant against the WT of the same generation:</p>
 <ul>
 <li><code>dna_yield_norm = dna_yield_raw / dna_wt</code></li>
 <li><code>protein_yield_norm = protein_yield_raw / protein_wt</code></li>
+</ul>
+<p>This is the preferred route because it removes generation-specific assay
+variation while keeping the comparison tied to a real biological control.</p>
+<h2 id="fallback-strategy-generation-median-normalization">Fallback strategy: generation-median normalization<a class="headerlink" href="#fallback-strategy-generation-median-normalization" title="Permanent link">&para;</a></h2>
+<p>Real datasets may have missing or incomplete WT controls. In that case, the
+report pipeline falls back to a WT-free comparison:</p>
+<ul>
+<li><code>dna_yield_norm = dna_yield_raw / median_dna_yield_for_generation</code></li>
+<li><code>protein_yield_norm = protein_yield_raw / median_protein_yield_for_generation</code></li>
+</ul>
+<p>The same final ratio is then applied:</p>
+<ul>
 <li><code>activity_score = dna_yield_norm / protein_yield_norm</code></li>
 </ul>
-<p>This produces a single relative metric that can be used for ranking and
-distribution views.</p>
-<h2 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h2>
-<p>The calculation depends on:</p>
+<p>This keeps activity scores computable and comparable within the experiment even
+when the WT control data is incomplete.</p>
+<h2 id="code-paths-used-in-this-project">Code paths used in this project<a class="headerlink" href="#code-paths-used-in-this-project" title="Permanent link">&para;</a></h2>
 <ul>
-<li><code>dna_yield_raw</code></li>
-<li><code>protein_yield_raw</code></li>
-<li>the generation-specific WT baseline values</li>
+<li>WT-based normalization and QC:</li>
+<li><code>app/services/analysis/activity_score.py</code></li>
+<li><code>compute_stage4_metrics(...)</code></li>
+<li>Fallback median normalization:</li>
+<li><code>scripts/run_report.py</code></li>
+<li><code>compute_activity_score_fallback(...)</code></li>
+<li>Scoring mode selection (<code>auto</code>, <code>wt</code>, <code>fallback</code>):</li>
+<li><code>scripts/run_report.py</code></li>
 </ul>
-<p>Those raw measurements are stored in the <code>metrics</code> table and grouped by
-generation before the final derived score is written.</p>
-<h2 id="wt-based-normalization">WT-based normalization<a class="headerlink" href="#wt-based-normalization" title="Permanent link">&para;</a></h2>
-<p>For a valid generation:</p>
-<ul>
-<li>DNA is normalized against the WT DNA baseline</li>
-<li>protein is normalized against the WT protein baseline</li>
-<li>the final score is the ratio of those two normalized values</li>
-</ul>
-<p>This ensures the score reflects generation-relative performance rather than raw
-absolute scale alone.</p>
 <h2 id="worked-example">Worked example<a class="headerlink" href="#worked-example" title="Permanent link">&para;</a></h2>
-<p>If a variant has:</p>
+<p>Variant measurements:</p>
 <ul>
 <li><code>dna_yield_raw = 120</code></li>
 <li><code>protein_yield_raw = 40</code></li>
 </ul>
-<p>And the WT baseline is:</p>
+<h3 id="case-1-wt-normalization-available">Case 1: WT normalization available<a class="headerlink" href="#case-1-wt-normalization-available" title="Permanent link">&para;</a></h3>
+<p>WT baseline for the same generation:</p>
 <ul>
 <li><code>dna_wt = 100</code></li>
 <li><code>protein_wt = 50</code></li>
 </ul>
 <p>Then:</p>
 <ul>
-<li><code>dna_yield_norm = 120 / 100 = 1.2</code></li>
-<li><code>protein_yield_norm = 40 / 50 = 0.8</code></li>
-<li><code>activity_score = 1.2 / 0.8 = 1.5</code></li>
+<li><code>dna_yield_norm = 120 / 100 = 1.20</code></li>
+<li><code>protein_yield_norm = 40 / 50 = 0.80</code></li>
+<li><code>activity_score = 1.20 / 0.80 = 1.50</code></li>
 </ul>
-<h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
+<p>Interpretation: the variant shows roughly 50% stronger functional output
+relative to its expression than the WT baseline.</p>
+<h3 id="case-2-generation-median-fallback">Case 2: generation-median fallback<a class="headerlink" href="#case-2-generation-median-fallback" title="Permanent link">&para;</a></h3>
+<p>If WT controls are unavailable, assume the generation medians are:</p>
 <ul>
-<li><code>activity_score &gt; 1</code>: the DNA-normalized signal is stronger than the
-  protein-normalized signal</li>
-<li><code>activity_score &lt; 1</code>: the protein-normalized signal is relatively stronger</li>
-<li><code>activity_score ≈ 1</code>: the normalized behavior is balanced</li>
+<li><code>dna_median = 90</code></li>
+<li><code>protein_median = 45</code></li>
 </ul>
-<p>These values are comparative and should be read in the context of the same
-experiment and generation.</p>
+<p>Then:</p>
+<ul>
+<li><code>dna_yield_norm = 120 / 90 = 1.33</code></li>
+<li><code>protein_yield_norm = 40 / 45 = 0.89</code></li>
+<li><code>activity_score = 1.33 / 0.89 ≈ 1.49</code></li>
+</ul>
+<p>This produces a comparable estimate while remaining robust to missing control
+rows.</p>
+<h2 id="interpretation-guide">Interpretation guide<a class="headerlink" href="#interpretation-guide" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>activity_score &gt; 1</code>: improved functional efficiency relative to the chosen
+  baseline</li>
+<li><code>activity_score ≈ 1</code>: performance near the normalization baseline</li>
+<li><code>activity_score &lt; 1</code>: reduced efficiency relative to the baseline</li>
+</ul>
+<p>These values should always be interpreted within the same experiment context,
+because the normalization strategy is applied per generation.</p>
 <h2 id="what-gets-stored">What gets stored<a class="headerlink" href="#what-gets-stored" title="Permanent link">&para;</a></h2>
-<p>When a row passes QC, the pipeline writes:</p>
+<p>When a variant passes metric QC, the pipeline writes:</p>
 <ul>
 <li><code>dna_yield_norm</code></li>
 <li><code>protein_yield_norm</code></li>
 <li><code>activity_score</code></li>
 </ul>
-<p>These outputs are then used by:</p>
+<p>All three are stored as ratio-style outputs and then reused by:</p>
 <ul>
-<li>Top 10 ranking</li>
-<li>activity distributions</li>
-<li>downstream visual summaries</li>
+<li>Top 10 ranking across the experiment</li>
+<li>activity score distribution plots</li>
+<li>downstream report summaries and bonus analyses</li>
 </ul>
 <h2 id="related-pages">Related pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
 <ul>

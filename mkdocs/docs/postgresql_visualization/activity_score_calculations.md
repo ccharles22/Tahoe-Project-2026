@@ -1,85 +1,117 @@
 # Activity Score Calculations
 
-This page explains the core formula used to compute `activity_score` and how
-that value should be interpreted.
+This page explains the unified activity metric used throughout the reporting and
+visualisation pipeline. The goal is to reduce two raw measurements into one
+comparable score that reflects functional output relative to expression.
 
-## Core concept
+## Core formula
 
-The activity score compares each variant against the wild-type baseline of the
-same generation.
+The final derived metric is:
 
-At a high level:
+- `activity_score = dna_yield_norm / protein_yield_norm`
+
+The normalized inputs depend on which baseline strategy is available for the
+experiment.
+
+## Preferred strategy: WT normalization
+
+When valid wild-type (WT) controls exist for every generation, the pipeline
+normalizes each variant against the WT of the same generation:
 
 - `dna_yield_norm = dna_yield_raw / dna_wt`
 - `protein_yield_norm = protein_yield_raw / protein_wt`
+
+This is the preferred route because it removes generation-specific assay
+variation while keeping the comparison tied to a real biological control.
+
+## Fallback strategy: generation-median normalization
+
+Real datasets may have missing or incomplete WT controls. In that case, the
+report pipeline falls back to a WT-free comparison:
+
+- `dna_yield_norm = dna_yield_raw / median_dna_yield_for_generation`
+- `protein_yield_norm = protein_yield_raw / median_protein_yield_for_generation`
+
+The same final ratio is then applied:
+
 - `activity_score = dna_yield_norm / protein_yield_norm`
 
-This produces a single relative metric that can be used for ranking and
-distribution views.
+This keeps activity scores computable and comparable within the experiment even
+when the WT control data is incomplete.
 
-## Inputs
+## Code paths used in this project
 
-The calculation depends on:
-
-- `dna_yield_raw`
-- `protein_yield_raw`
-- the generation-specific WT baseline values
-
-Those raw measurements are stored in the `metrics` table and grouped by
-generation before the final derived score is written.
-
-## WT-based normalization
-
-For a valid generation:
-
-- DNA is normalized against the WT DNA baseline
-- protein is normalized against the WT protein baseline
-- the final score is the ratio of those two normalized values
-
-This ensures the score reflects generation-relative performance rather than raw
-absolute scale alone.
+- WT-based normalization and QC:
+  - `app/services/analysis/activity_score.py`
+  - `compute_stage4_metrics(...)`
+- Fallback median normalization:
+  - `scripts/run_report.py`
+  - `compute_activity_score_fallback(...)`
+- Scoring mode selection (`auto`, `wt`, `fallback`):
+  - `scripts/run_report.py`
 
 ## Worked example
 
-If a variant has:
+Variant measurements:
 
 - `dna_yield_raw = 120`
 - `protein_yield_raw = 40`
 
-And the WT baseline is:
+### Case 1: WT normalization available
+
+WT baseline for the same generation:
 
 - `dna_wt = 100`
 - `protein_wt = 50`
 
 Then:
 
-- `dna_yield_norm = 120 / 100 = 1.2`
-- `protein_yield_norm = 40 / 50 = 0.8`
-- `activity_score = 1.2 / 0.8 = 1.5`
+- `dna_yield_norm = 120 / 100 = 1.20`
+- `protein_yield_norm = 40 / 50 = 0.80`
+- `activity_score = 1.20 / 0.80 = 1.50`
 
-## Interpretation
+Interpretation: the variant shows roughly 50% stronger functional output
+relative to its expression than the WT baseline.
 
-- `activity_score > 1`: the DNA-normalized signal is stronger than the
-  protein-normalized signal
-- `activity_score < 1`: the protein-normalized signal is relatively stronger
-- `activity_score ≈ 1`: the normalized behavior is balanced
+### Case 2: generation-median fallback
 
-These values are comparative and should be read in the context of the same
-experiment and generation.
+If WT controls are unavailable, assume the generation medians are:
+
+- `dna_median = 90`
+- `protein_median = 45`
+
+Then:
+
+- `dna_yield_norm = 120 / 90 = 1.33`
+- `protein_yield_norm = 40 / 45 = 0.89`
+- `activity_score = 1.33 / 0.89 ≈ 1.49`
+
+This produces a comparable estimate while remaining robust to missing control
+rows.
+
+## Interpretation guide
+
+- `activity_score > 1`: improved functional efficiency relative to the chosen
+  baseline
+- `activity_score ≈ 1`: performance near the normalization baseline
+- `activity_score < 1`: reduced efficiency relative to the baseline
+
+These values should always be interpreted within the same experiment context,
+because the normalization strategy is applied per generation.
 
 ## What gets stored
 
-When a row passes QC, the pipeline writes:
+When a variant passes metric QC, the pipeline writes:
 
 - `dna_yield_norm`
 - `protein_yield_norm`
 - `activity_score`
 
-These outputs are then used by:
+All three are stored as ratio-style outputs and then reused by:
 
-- Top 10 ranking
-- activity distributions
-- downstream visual summaries
+- Top 10 ranking across the experiment
+- activity score distribution plots
+- downstream report summaries and bonus analyses
 
 ## Related pages
 

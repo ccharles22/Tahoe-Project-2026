@@ -1335,6 +1335,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#metric-classes-used-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric classes used in practice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#row-ownership" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1372,6 +1383,17 @@
     <span class="md-ellipsis">
       
         Upsert behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#units-and-interpretability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Units and interpretability
       
     </span>
   </a>
@@ -2220,6 +2242,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#metric-classes-used-in-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric classes used in practice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#row-ownership" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2264,6 +2297,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#units-and-interpretability" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Units and interpretability
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#why-this-matters" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2292,15 +2336,33 @@
 
 
 <h1 id="metric-storage-types">Metric Storage &amp; Types<a class="headerlink" href="#metric-storage-types" title="Permanent link">&para;</a></h1>
-<p>This page focuses on how metrics are structured and persisted in the database.</p>
+<p>This page focuses on how metrics are structured, categorized, and persisted in
+the database so that recalculation and reporting remain predictable.</p>
 <h2 id="where-metrics-live">Where metrics live<a class="headerlink" href="#where-metrics-live" title="Permanent link">&para;</a></h2>
 <p>The main metric rows are stored in:</p>
 <ul>
 <li><code>metrics</code></li>
 </ul>
-<p>An optional reference dictionary also exists:</p>
+<p>An optional supporting dictionary also exists:</p>
 <ul>
 <li><code>metric_definitions</code></li>
+</ul>
+<p>The <code>metric_definitions</code> table provides descriptions, naming conventions, and
+units, while the <code>metrics</code> table holds the actual experiment data.</p>
+<h2 id="metric-classes-used-in-practice">Metric classes used in practice<a class="headerlink" href="#metric-classes-used-in-practice" title="Permanent link">&para;</a></h2>
+<p>The platform writes three main classes of metric rows:</p>
+<ul>
+<li><code>raw</code>: direct experimental measurements</li>
+<li><code>normalized</code>: baseline-scaled ratios</li>
+<li><code>derived</code>: computed values such as <code>activity_score</code></li>
+</ul>
+<p>Examples:</p>
+<ul>
+<li><code>dna_yield_raw</code></li>
+<li><code>protein_yield_raw</code></li>
+<li><code>dna_yield_norm</code></li>
+<li><code>protein_yield_norm</code></li>
+<li><code>activity_score</code></li>
 </ul>
 <h2 id="row-ownership">Row ownership<a class="headerlink" href="#row-ownership" title="Permanent link">&para;</a></h2>
 <p>Each metric row is attached to either:</p>
@@ -2308,42 +2370,47 @@
 <li>a variant (<code>variant_id</code>)</li>
 <li>or a WT control (<code>wt_control_id</code>)</li>
 </ul>
-<p>This allows the system to store both experimental variant measurements and the
-wild-type baseline measurements used for normalization.</p>
+<p>This allows the same metric table to store both experimental variant values and
+wild-type baseline measurements.</p>
 <h2 id="generation-linkage">Generation linkage<a class="headerlink" href="#generation-linkage" title="Permanent link">&para;</a></h2>
 <p><code>generation_id</code> is populated automatically from the owning variant or WT control
-record, so the metric remains aligned with the correct generation even when the
+record. This keeps the metric aligned with the correct generation even when the
 write path only provides <code>variant_id</code> or <code>wt_control_id</code>.</p>
 <h2 id="uniqueness-model">Uniqueness model<a class="headerlink" href="#uniqueness-model" title="Permanent link">&para;</a></h2>
-<p>For variant-scoped metrics, the storage model expects one logical row for each:</p>
+<p>For variant-scoped metrics, one logical row is expected for each combination of:</p>
 <ul>
 <li>generation</li>
 <li>variant</li>
 <li>metric name</li>
 <li>metric type</li>
 </ul>
-<p>WT control metrics use the same idea, but keyed by <code>wt_control_id</code>.</p>
-<p>This design prevents duplicate metric rows from accumulating during normal
-recalculation and keeps reporting queries predictable.</p>
+<p>WT control metrics follow the same idea, keyed by <code>wt_control_id</code> instead of
+<code>variant_id</code>.</p>
+<p>This keeps recalculation idempotent and prevents uncontrolled duplicate rows.</p>
 <h2 id="upsert-behavior">Upsert behavior<a class="headerlink" href="#upsert-behavior" title="Permanent link">&para;</a></h2>
-<p>The application writes metric rows through an upsert path, so recalculations
-update existing values instead of duplicating them.</p>
+<p>Metric rows are written through an upsert path, so recalculations update the
+latest value instead of inserting a second logical copy.</p>
 <p>Code path:</p>
 <ul>
 <li><code>src/analysis_MPL/metrics.py</code></li>
-<li><code>upsert_variant_metrics</code></li>
+<li><code>upsert_variant_metrics(...)</code></li>
 </ul>
 <p>Behavior:</p>
 <ul>
 <li>insert the metric if it does not exist</li>
 <li>update <code>value</code> and <code>unit</code> if the metric already exists</li>
 </ul>
+<h2 id="units-and-interpretability">Units and interpretability<a class="headerlink" href="#units-and-interpretability" title="Permanent link">&para;</a></h2>
+<p>For normalized and derived score rows, the expected unit is a ratio-like value.
+This matters because downstream pages compare those values directly rather than
+treating them as absolute assay measurements.</p>
 <h2 id="why-this-matters">Why this matters<a class="headerlink" href="#why-this-matters" title="Permanent link">&para;</a></h2>
-<p>This storage model is what allows:</p>
+<p>This storage model is what allows the platform to:</p>
 <ul>
-<li>recalculating activity scores safely</li>
-<li>regenerating reports without duplicating metric rows</li>
-<li>ranking variants using the latest values only</li>
+<li>recompute activity scores safely</li>
+<li>regenerate reports without duplicating metric rows</li>
+<li>rank variants using the latest consistent values</li>
+<li>trace a derived score back to the raw measurements that produced it</li>
 </ul>
 
 

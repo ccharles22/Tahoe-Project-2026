@@ -331,7 +331,7 @@ def compute_activity_score_fallback(
                 metric_name="dna_yield_norm",
                 metric_type="normalized",
                 value=float(r.dna_yield_norm),
-                unit=None,
+                unit="ratio",
                 metric_definition_id=None,
             )
         )
@@ -343,7 +343,7 @@ def compute_activity_score_fallback(
                 metric_name="protein_yield_norm",
                 metric_type="normalized",
                 value=float(r.protein_yield_norm),
-                unit=None,
+                unit="ratio",
                 metric_definition_id=None,
             )
         )
@@ -355,7 +355,7 @@ def compute_activity_score_fallback(
                 metric_name="activity_score",
                 metric_type="derived",
                 value=float(r.activity_score),
-                unit=None,
+                unit="ratio",
                 metric_definition_id=None,
             )
         )

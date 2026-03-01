@@ -1554,10 +1554,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#shared-notes" class="md-nav__link">
+  <a href="#how-the-plots-complement-each-other" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shared notes
+        How the plots complement each other
       
     </span>
   </a>
@@ -2190,10 +2190,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#shared-notes" class="md-nav__link">
+  <a href="#how-the-plots-complement-each-other" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Shared notes
+        How the plots complement each other
       
     </span>
   </a>
@@ -2251,21 +2251,33 @@
 
 
 <h1 id="plots-and-data-sources">Plots and data sources<a class="headerlink" href="#plots-and-data-sources" title="Permanent link">&para;</a></h1>
-<p>This section maps each visualization to its data source. Use the pages below for details and examples:</p>
+<p>This section explains how each core visualisation should be read, not just where
+it gets its data. Together, the plots are meant to answer different questions
+about the same experiment:</p>
 <ul>
-<li>Lineage: lineage and mutation fingerprinting data sources</li>
-<li>Distribution: activity score distribution inputs</li>
-<li>Top 10: ranking table inputs</li>
-<li>Protein network: identity and co-occurrence inputs</li>
+<li><strong>Top 10</strong>: which variants rank highest by unified activity score</li>
+<li><strong>Distribution</strong>: how activity changes across generations</li>
+<li><strong>Lineage</strong>: how variants are related through parent-child inheritance</li>
+<li><strong>Protein network</strong>: which variants are similar by sequence or shared
+  mutations</li>
 </ul>
-<h2 id="shared-notes">Shared notes<a class="headerlink" href="#shared-notes" title="Permanent link">&para;</a></h2>
+<h2 id="how-the-plots-complement-each-other">How the plots complement each other<a class="headerlink" href="#how-the-plots-complement-each-other" title="Permanent link">&para;</a></h2>
+<p>The four main plots are designed to be interpreted together:</p>
 <ul>
-<li>The materialized views are refreshed by <code>refresh_bonus_materialized_views()</code>.</li>
+<li>Top 10 shows the best-performing rows</li>
+<li>Distribution shows whether those top performers sit inside a broad shift or a
+  narrow outlier band</li>
+<li>Lineage shows whether high performers emerge from one successful branch or
+  many independent branches</li>
+<li>Protein similarity shows whether similar performers share common mutation
+  patterns even when they are not directly related by ancestry</li>
 </ul>
 <h2 id="how-plots-are-generated-in-this-repo">How plots are generated in this repo<a class="headerlink" href="#how-plots-are-generated-in-this-repo" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Batch mode: <code>python -m scripts.run_report</code> writes files to <code>app/static/generated</code>.</li>
-<li>Endpoint mode: Flask routes generate plot files into <code>app/static/plots</code> when requested.</li>
+<li>Batch mode: <code>python -m scripts.run_report</code> writes files to
+  <code>app/static/generated</code></li>
+<li>Endpoint mode: Flask routes generate plot files into <code>app/static/plots</code> when
+  requested</li>
 </ul>
 <h2 id="flask-routes">Flask routes<a class="headerlink" href="#flask-routes" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2276,10 +2288,10 @@
 </ul>
 <h2 id="quick-verification-checklist">Quick verification checklist<a class="headerlink" href="#quick-verification-checklist" title="Permanent link">&para;</a></h2>
 <ol>
-<li>Endpoint responds without template/database errors.</li>
-<li>New image file appears in <code>app/static/plots</code>.</li>
-<li>Plot has non-empty data (not placeholder text).</li>
-<li>Plot matches expected experiment ID.</li>
+<li>the endpoint responds without template or database errors</li>
+<li>a new image file appears in <code>app/static/plots</code></li>
+<li>the plot contains real data rather than an empty or placeholder view</li>
+<li>the plot matches the requested experiment ID</li>
 </ol>
 
 

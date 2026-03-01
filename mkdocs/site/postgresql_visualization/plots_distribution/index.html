@@ -1621,17 +1621,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Suggested filters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2223,17 +2212,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#suggested-filters" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Suggested filters
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#endpoint" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2295,19 +2273,20 @@
 
 
 <h1 id="distribution-plot">Distribution plot<a class="headerlink" href="#distribution-plot" title="Permanent link">&para;</a></h1>
+<p>The activity score distribution view shows how performance changes across
+generations, making it easier to interpret whether the experiment is broadly
+improving, becoming more variable, or producing isolated high-performing
+outliers.</p>
 <h2 id="data-sources">Data sources<a class="headerlink" href="#data-sources" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Activity scores: <code>metrics</code> where <code>metric_name='activity_score'</code> and <code>metric_type='derived'</code></li>
+<li>Activity scores: <code>metrics</code> where <code>metric_name='activity_score'</code> and
+  <code>metric_type='derived'</code></li>
 <li>Variant and generation metadata: <code>variants</code>, <code>generations</code></li>
-</ul>
-<h2 id="suggested-filters">Suggested filters<a class="headerlink" href="#suggested-filters" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Filter by <code>experiment_id</code></li>
 </ul>
 <h2 id="endpoint">Endpoint<a class="headerlink" href="#endpoint" title="Permanent link">&para;</a></h2>
 <p><code>/distribution/&lt;experiment_id&gt;</code></p>
-<p>Example:
-<code>/distribution/41</code></p>
+<p>Example:</p>
+<p><code>/distribution/41</code></p>
 <h2 id="sql-check">SQL check<a class="headerlink" href="#sql-check" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">,</span>
@@ -2315,17 +2294,26 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span><span class="w"> </span><span class="n">m</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">join</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">variant_id</span>
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="o">=</span><span class="s1">&#39;activity_score&#39;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="o">=</span><span class="s1">&#39;derived&#39;</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span>
 <a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
 <a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">;</span>
 </code></pre></div>
 <h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Each violin summarizes the score distribution for one generation.</li>
-<li>Red baseline at <code>1.0</code> represents neutral normalized activity.</li>
-<li>Wider shapes indicate higher dispersion in that generation.</li>
+<li>Each violin summarizes the full distribution of activity scores for one
+  generation.</li>
+<li>The red baseline at <code>1.0</code> represents neutral normalized activity.</li>
+<li>Shifts upward in the center of the violins suggest improved performance across
+  the population.</li>
+<li>Wider shapes indicate more dispersion, which can reflect broader exploration
+  of sequence space or unstable selection.</li>
+<li>Strong outliers can indicate the emergence of highly successful variants even
+  when the generation-wide median changes only slightly.</li>
 </ul>
+<p>This plot is most useful when interpreted alongside Top 10 and Lineage, because
+it shows whether top performers reflect a broad generation-wide trend or only a
+small exceptional subgroup.</p>
 <h2 id="example-graph">Example graph<a class="headerlink" href="#example-graph" title="Permanent link">&para;</a></h2>
 <p><img alt="Distribution example" src="../assets/plots/distribution_exp41.png" /></p>
 

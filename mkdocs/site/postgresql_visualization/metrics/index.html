@@ -1307,10 +1307,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#metric-flow" class="md-nav__link">
+  <a href="#unified-activity-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Metric flow
+        Unified activity workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
       
     </span>
   </a>
@@ -2209,10 +2220,21 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#metric-flow" class="md-nav__link">
+  <a href="#unified-activity-workflow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Metric flow
+        Unified activity workflow
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
       
     </span>
   </a>
@@ -2270,34 +2292,50 @@
 
 
 <h1 id="metrics-overview">Metrics Overview<a class="headerlink" href="#metrics-overview" title="Permanent link">&para;</a></h1>
-<p>This section explains how the platform stores, classifies, and reuses metrics
-across sequence analysis, ranking, and reporting.</p>
+<p>The platform uses a unified metric system so that raw assay values, normalized
+values, and final derived scores all remain traceable to the same experiment and
+generation context. This is what makes variant ranking, distribution plots, and
+report generation internally consistent.</p>
 <h2 id="metric-categories">Metric categories<a class="headerlink" href="#metric-categories" title="Permanent link">&para;</a></h2>
-<p>The project uses three main metric classes:</p>
+<p>Three metric classes are used throughout the pipeline:</p>
 <ul>
-<li><code>raw</code>: direct measured values, such as <code>dna_yield_raw</code> and
+<li><code>raw</code>: direct assay measurements such as <code>dna_yield_raw</code> and
   <code>protein_yield_raw</code></li>
-<li><code>normalized</code>: values scaled against a baseline, such as <code>dna_yield_norm</code> and
+<li><code>normalized</code>: baseline-scaled values such as <code>dna_yield_norm</code> and
   <code>protein_yield_norm</code></li>
-<li><code>derived</code>: computed outputs, primarily <code>activity_score</code></li>
+<li><code>derived</code>: higher-level outputs computed from normalized values, primarily
+  <code>activity_score</code></li>
 </ul>
-<h2 id="metric-flow">Metric flow<a class="headerlink" href="#metric-flow" title="Permanent link">&para;</a></h2>
+<h2 id="unified-activity-workflow">Unified activity workflow<a class="headerlink" href="#unified-activity-workflow" title="Permanent link">&para;</a></h2>
 <p>The high-level metric flow is:</p>
 <ol>
-<li>Store raw DNA and protein yields</li>
-<li>Establish the generation-specific WT baseline</li>
-<li>Normalize variant values against that baseline</li>
-<li>Compute the final <code>activity_score</code></li>
-<li>Persist normalized and derived values for downstream ranking and plotting</li>
+<li>store raw DNA and protein yields</li>
+<li>attempt wild-type (WT) baseline normalization for the same generation</li>
+<li>if WT baselines are unavailable, fall back to generation-median
+   normalization</li>
+<li>compute the final <code>activity_score</code></li>
+<li>persist normalized and derived rows for ranking, plotting, and reporting</li>
 </ol>
-<p>This is what allows the application to compare variants consistently within an
-experiment.</p>
+<p>This keeps the activity score computable even when real experimental datasets
+have missing WT control measurements.</p>
+<h2 id="why-this-matters">Why this matters<a class="headerlink" href="#why-this-matters" title="Permanent link">&para;</a></h2>
+<p>Because all downstream views read from the same metric layer, the metric system
+acts as the common language between:</p>
+<ul>
+<li>sequence-aware reporting</li>
+<li>Top 10 ranking</li>
+<li>activity score distributions</li>
+<li>lineage summaries</li>
+<li>protein similarity and bonus views</li>
+</ul>
 <h2 id="what-this-section-covers">What this section covers<a class="headerlink" href="#what-this-section-covers" title="Permanent link">&para;</a></h2>
 <p>Use the pages in this group for:</p>
 <ul>
-<li><strong>Storage &amp; Types</strong>: where metrics live and how they are written</li>
-<li><strong>Activity Score Calculations</strong>: the actual normalization and formula logic</li>
-<li><strong>QC &amp; Validation</strong>: what is excluded, and how to verify the output rows</li>
+<li><strong>Metrics Overview</strong>: the shared purpose of the metric layer</li>
+<li><strong>Metric Storage &amp; Types</strong>: how rows are structured and upserted</li>
+<li><strong>Activity Score Calculations</strong>: the formula, fallback behavior, and worked
+  examples</li>
+<li><strong>Metric QC &amp; Validation</strong>: which rows are excluded and how to check outputs</li>
 </ul>
 <h2 id="common-metric-names">Common metric names<a class="headerlink" href="#common-metric-names" title="Permanent link">&para;</a></h2>
 <ul>
@@ -2306,6 +2344,7 @@ experiment.</p>
 <li><code>dna_yield_norm</code></li>
 <li><code>protein_yield_norm</code></li>
 <li><code>activity_score</code></li>
+<li><code>mutation_total_count</code></li>
 </ul>
 <h2 id="related-pages">Related pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
 <ul>
