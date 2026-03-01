@@ -5,17 +5,15 @@ import traceback
 
 from flask import current_app, redirect, request, url_for
 from flask_login import login_required
+from sqlalchemy import text
 
+from app.extensions import db
 from app.services.staging.analysis_runtime import run_analysis_for_experiment
 from app.services.staging.session_state import (
-    get_sequence_status_from_session,
     save_sequence_status_to_session,
 )
 
 from .. import staging_bp
-
-
-_SEQUENCE_REUSE_WINDOW_S = 300
 
 
 def _run_sequence_processing_for_experiment(experiment_id: int) -> tuple[bool, str]:
@@ -50,42 +48,40 @@ def _run_sequence_processing_for_experiment(experiment_id: int) -> tuple[bool, s
         return False, message
 
 
-def _should_reuse_recent_sequence_run(experiment_id: int) -> bool:
-    """Return True when a just-completed Step 4 run can be reused safely."""
-    status = get_sequence_status_from_session(experiment_id) or {}
-    if str(status.get('status', '')).lower() != 'success':
-        return False
-
-    completed_at = status.get('completed_at_epoch')
+def _has_sequence_outputs(experiment_id: int) -> bool:
+    """Return True when sequence processing has already persisted results."""
     try:
-        completed_at_int = int(completed_at)
-    except (TypeError, ValueError):
+        count = db.session.execute(
+            text(
+                """
+                SELECT COUNT(*)
+                FROM variant_sequence_analysis
+                WHERE experiment_id = :eid
+                """
+            ),
+            {'eid': experiment_id},
+        ).scalar()
+        return int(count or 0) > 0
+    except Exception:
+        db.session.rollback()
         return False
-
-    return (int(time.time()) - completed_at_int) <= _SEQUENCE_REUSE_WINDOW_S
 
 
 @staging_bp.post('/analysis/run')
 @login_required
 def run_analysis():
-    """Run sequence processing first, then analysis, and redirect back to staging."""
+    """Run analysis only when sequence outputs already exist."""
     experiment_id = request.form.get('experiment_id', '').strip()
     if not experiment_id.isdigit():
         return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
-    if _should_reuse_recent_sequence_run(exp_id_int):
-        seq_ok = True
-        sequence_message = 'Sequence processing already completed recently. Reusing latest mutation outputs.'
-    else:
-        seq_ok, sequence_message = _run_sequence_processing_for_experiment(exp_id_int)
-    if not seq_ok:
+    if not _has_sequence_outputs(exp_id_int):
         return redirect(
             url_for(
                 'staging.create_experiment',
                 experiment_id=experiment_id,
-                sequence_message=sequence_message,
-                analysis_message='Analysis skipped because sequence processing failed.',
+                analysis_message='Run sequence processing first. Analysis only generates plots and reports from existing sequence outputs.',
             )
         )
 
@@ -97,7 +93,6 @@ def run_analysis():
         url_for(
             'staging.create_experiment',
             experiment_id=experiment_id,
-            sequence_message=sequence_message,
             analysis_message=analysis_message,
         )
     )
