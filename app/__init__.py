@@ -165,4 +165,42 @@ def create_app():
             return send_from_directory(site_dir, filename)
         abort(404)
 
+    # MkDocs builds in this project contain root-relative links (for example
+    # /parsing_qc/... and /postgresql_visualization/...) plus shared asset
+    # paths like /assets/... and /search/.... Serve those as aliases so the
+    # guide remains navigable when hosted inside the Flask app.
+    @app.route("/parsing_qc/")
+    @app.route("/parsing_qc/<path:filename>")
+    def docs_parsing_qc(filename: str = "index.html"):
+        target = os.path.join("parsing_qc", filename)
+        path = os.path.join(site_dir, target)
+        if os.path.exists(path):
+            return send_from_directory(site_dir, target)
+        abort(404)
+
+    @app.route("/postgresql_visualization/")
+    @app.route("/postgresql_visualization/<path:filename>")
+    def docs_postgresql_visualization(filename: str = "index.html"):
+        target = os.path.join("postgresql_visualization", filename)
+        path = os.path.join(site_dir, target)
+        if os.path.exists(path):
+            return send_from_directory(site_dir, target)
+        abort(404)
+
+    @app.route("/assets/<path:filename>")
+    def docs_assets(filename: str):
+        target = os.path.join("assets", filename)
+        path = os.path.join(site_dir, target)
+        if os.path.exists(path):
+            return send_from_directory(site_dir, target)
+        abort(404)
+
+    @app.route("/search/<path:filename>")
+    def docs_search(filename: str):
+        target = os.path.join("search", filename)
+        path = os.path.join(site_dir, target)
+        if os.path.exists(path):
+            return send_from_directory(site_dir, target)
+        abort(404)
+
     return app
