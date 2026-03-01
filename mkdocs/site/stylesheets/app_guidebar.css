@@ -2,22 +2,28 @@
   --app-guidebar-rail-width: clamp(136px, 14vw, 232px);
 }
 
-html.app-guidebar-transition-enabled .md-main__inner {
-  opacity: 0.9;
-  transform: translateY(8px);
+html.app-guidebar-transition-enabled .md-main__inner,
+html.app-guidebar-transition-enabled .md-sidebar--primary,
+html.app-guidebar-transition-enabled .md-sidebar--secondary {
+  opacity: 0.94;
+  transform: translateY(6px);
   transition:
-    opacity 0.22s ease,
-    transform 0.22s ease;
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner {
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner,
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--primary,
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--secondary {
   opacity: 1;
   transform: translateY(0);
 }
 
-html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner {
-  opacity: 0.82;
-  transform: translateY(10px);
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner,
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--primary,
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--secondary {
+  opacity: 0.7;
+  transform: translateY(12px);
 }
 
 .app-guidebar-dna-rail {
@@ -374,8 +380,14 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner {
 
 @media (prefers-reduced-motion: reduce) {
   html.app-guidebar-transition-enabled .md-main__inner,
+  html.app-guidebar-transition-enabled .md-sidebar--primary,
+  html.app-guidebar-transition-enabled .md-sidebar--secondary,
   html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner,
-  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner {
+  html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--primary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--secondary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--primary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--secondary {
     opacity: 1;
     transform: none;
     transition: none;

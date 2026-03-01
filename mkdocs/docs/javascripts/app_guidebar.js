@@ -1,5 +1,6 @@
 document.addEventListener("DOMContentLoaded", () => {
   document.documentElement.classList.add("app-guidebar-transition-enabled");
+  let isLeaving = false;
 
   const header = document.querySelector(".md-header");
   if (!header || document.querySelector(".app-guidebar")) {
@@ -110,6 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".md-tabs__link").forEach((link) => {
     link.addEventListener("click", (event) => {
       if (
+        isLeaving ||
         event.defaultPrevented ||
         event.button !== 0 ||
         event.metaKey ||
@@ -130,7 +132,12 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      event.preventDefault();
+      isLeaving = true;
       document.documentElement.classList.add("app-guidebar-page-leaving");
+      window.setTimeout(() => {
+        window.location.href = nextUrl.href;
+      }, 180);
     });
   });
 
