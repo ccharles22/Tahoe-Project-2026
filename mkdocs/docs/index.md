@@ -129,7 +129,7 @@ areas of responsibility.
 
 ### If you are new to the platform
 
-1. `Guide Home`
+1. `Home Guide`
 2. `Parsing & QC`
 3. `Workspace`
 4. `Metric Computations`

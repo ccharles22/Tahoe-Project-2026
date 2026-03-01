@@ -28,7 +28,7 @@ theme:
     - content.code.copy
 
 nav:
-  - Guide Home: index.md
+  - Home Guide: index.md
   - Parsing & QC:
       - Overview: parsing_qc/index.md
       - User Guide:
