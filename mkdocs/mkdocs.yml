@@ -51,7 +51,9 @@ nav:
       - Bonus Database Notes: bonus_visualisations/database/connection.md
   - Metric Computations:
       - Metrics Overview: postgresql_visualization/metrics.md
+      - Metric Storage & Types: postgresql_visualization/metric_storage_and_types.md
       - Activity Score Calculations: postgresql_visualization/activity_score_calculations.md
+      - Metric QC & Validation: postgresql_visualization/metric_qc_and_validation.md
   - Visualisation Guide:
       - Overview: postgresql_visualization/index.md
       - Plots:

@@ -13,10 +13,10 @@
       
       
       
-        <link rel="prev" href="../metrics/">
+        <link rel="prev" href="../metric_storage_and_types/">
       
       
-        <link rel="next" href="../">
+        <link rel="next" href="../metric_qc_and_validation/">
       
       
         
@@ -1261,6 +1261,34 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../metric_storage_and_types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metric Storage & Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1324,21 +1352,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#unified-activity-metric-concept" class="md-nav__link">
+  <a href="#core-concept" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified activity metric concept
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-this-metric-is-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why this metric is used
+        Core concept
       
     </span>
   </a>
@@ -1357,10 +1374,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notation-used-in-this-page" class="md-nav__link">
+  <a href="#wt-based-normalization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notation used in this page
+        WT-based normalization
       
     </span>
   </a>
@@ -1368,49 +1385,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#primary-method-wt-based-normalization" class="md-nav__link">
+  <a href="#worked-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Primary method: WT-based normalization
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Primary method: WT-based normalization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#wt-baseline-source" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WT baseline source
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wt-based-worked-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WT-based worked example
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#full-algorithm-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Full algorithm flow
+        Worked example
       
     </span>
   </a>
@@ -1418,60 +1396,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quality-control-qc-behavior" class="md-nav__link">
+  <a href="#interpretation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quality control (QC) behavior
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quality control (QC) behavior">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#key-qc-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key QC rules
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qc-warning-to-show-in-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QC warning to show in reports
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qc-code-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QC code mapping
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stored-output-metrics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stored output metrics
+        Interpretation
       
     </span>
   </a>
@@ -1479,10 +1407,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#database-persistence-details" class="md-nav__link">
+  <a href="#what-gets-stored" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Database persistence details
+        What gets stored
       
     </span>
   </a>
@@ -1490,82 +1418,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-query" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation query
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Validation query">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#additional-validation-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Additional validation checks
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#execution-reminder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execution reminder
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#historical-results-note" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Historical results note
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#practical-interpretation-guidance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Practical interpretation guidance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#supporting-references" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supporting references
+        Related pages
       
     </span>
   </a>
@@ -1576,6 +1432,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metric_qc_and_validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metric QC & Validation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -2336,21 +2220,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#unified-activity-metric-concept" class="md-nav__link">
+  <a href="#core-concept" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified activity metric concept
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#why-this-metric-is-used" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Why this metric is used
+        Core concept
       
     </span>
   </a>
@@ -2369,10 +2242,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#notation-used-in-this-page" class="md-nav__link">
+  <a href="#wt-based-normalization" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Notation used in this page
+        WT-based normalization
       
     </span>
   </a>
@@ -2380,49 +2253,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#primary-method-wt-based-normalization" class="md-nav__link">
+  <a href="#worked-example" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Primary method: WT-based normalization
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Primary method: WT-based normalization">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#wt-baseline-source" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WT baseline source
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#wt-based-worked-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        WT-based worked example
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#full-algorithm-flow" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Full algorithm flow
+        Worked example
       
     </span>
   </a>
@@ -2430,60 +2264,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#quality-control-qc-behavior" class="md-nav__link">
+  <a href="#interpretation" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Quality control (QC) behavior
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Quality control (QC) behavior">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#key-qc-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key QC rules
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qc-warning-to-show-in-reports" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QC warning to show in reports
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#qc-code-mapping" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        QC code mapping
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#stored-output-metrics" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Stored output metrics
+        Interpretation
       
     </span>
   </a>
@@ -2491,10 +2275,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#database-persistence-details" class="md-nav__link">
+  <a href="#what-gets-stored" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Database persistence details
+        What gets stored
       
     </span>
   </a>
@@ -2502,82 +2286,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#validation-query" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Validation query
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Validation query">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#additional-validation-checks" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Additional validation checks
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#execution-reminder" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Execution reminder
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#historical-results-note" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Historical results note
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#practical-interpretation-guidance" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Practical interpretation guidance
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#troubleshooting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Troubleshooting
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#supporting-references" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Supporting references
+        Related pages
       
     </span>
   </a>
@@ -2602,206 +2314,81 @@
 
 
 <h1 id="activity-score-calculations">Activity Score Calculations<a class="headerlink" href="#activity-score-calculations" title="Permanent link">&para;</a></h1>
-<p>This page documents exactly how <code>activity_score</code> is computed, validated, stored, and interpreted in this repository.</p>
-<h2 id="unified-activity-metric-concept">Unified activity metric concept<a class="headerlink" href="#unified-activity-metric-concept" title="Permanent link">&para;</a></h2>
-<p>The tutorials define a unified metric that compares each variant against the WT baseline of the same generation:
-- <code>DNA_WT_gen = mean WT DNA (raw)</code>
-- <code>Protein_WT_gen = mean WT protein (raw)</code>
-- <code>DNA_norm = DNA_raw_variant / DNA_WT_gen</code>
-- <code>Protein_norm = Protein_raw_variant / Protein_WT_gen</code>
-- <code>Activity_score = DNA_norm / Protein_norm</code></p>
-<p>This is the same approach implemented in the WT-based path below.</p>
-<h2 id="why-this-metric-is-used">Why this metric is used<a class="headerlink" href="#why-this-metric-is-used" title="Permanent link">&para;</a></h2>
-<p><code>activity_score</code> combines DNA and protein yield behavior into one ratio:
-- DNA-side signal is retained through <code>dna_yield_norm</code>.
-- Protein-side signal is retained through <code>protein_yield_norm</code>.
-- Dividing the two normalized values provides a single comparative score per variant.</p>
-<p>At a high level:
-- <code>activity_score &gt; 1</code>: DNA-normalized signal is stronger than protein-normalized signal.
-- <code>activity_score &lt; 1</code>: protein-normalized signal is relatively stronger than DNA-normalized signal.
-- <code>activity_score ~= 1</code>: balanced normalized behavior.</p>
-<p>These interpretations are relative to the generation baseline used.</p>
-<h2 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h2>
-<p>Per variant, the calculation requires:
-- <code>dna_yield_raw</code>
-- <code>protein_yield_raw</code>
-- <code>generation_id</code></p>
-<p>The metrics are loaded as raw values in <code>metrics</code> with:
-- <code>metric_name='dna_yield_raw'</code>
-- <code>metric_name='protein_yield_raw'</code></p>
-<h2 id="notation-used-in-this-page">Notation used in this page<a class="headerlink" href="#notation-used-in-this-page" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>v</code>: a single variant</li>
-<li><code>g</code>: a single generation</li>
-<li><code>dna_raw(v)</code>: raw DNA yield of variant <code>v</code></li>
-<li><code>prot_raw(v)</code>: raw protein yield of variant <code>v</code></li>
-<li><code>dna_wt(g)</code>: WT baseline DNA for generation <code>g</code></li>
-<li><code>prot_wt(g)</code>: WT baseline protein for generation <code>g</code></li>
-</ul>
-<h2 id="primary-method-wt-based-normalization">Primary method: WT-based normalization<a class="headerlink" href="#primary-method-wt-based-normalization" title="Permanent link">&para;</a></h2>
-<p>If WT baselines exist for a generation, the pipeline uses:</p>
+<p>This page explains the core formula used to compute <code>activity_score</code> and how
+that value should be interpreted.</p>
+<h2 id="core-concept">Core concept<a class="headerlink" href="#core-concept" title="Permanent link">&para;</a></h2>
+<p>The activity score compares each variant against the wild-type baseline of the
+same generation.</p>
+<p>At a high level:</p>
 <ul>
 <li><code>dna_yield_norm = dna_yield_raw / dna_wt</code></li>
 <li><code>protein_yield_norm = protein_yield_raw / protein_wt</code></li>
 <li><code>activity_score = dna_yield_norm / protein_yield_norm</code></li>
 </ul>
-<p>Where:
-- <code>dna_wt</code> = WT baseline DNA for that generation
-- <code>protein_wt</code> = WT baseline protein for that generation</p>
-<p>This logic is implemented in:
-- <code>src/analysis_MPL/activity_score.py</code> (<code>compute_stage4_metrics</code>)</p>
-<h3 id="wt-baseline-source">WT baseline source<a class="headerlink" href="#wt-baseline-source" title="Permanent link">&para;</a></h3>
-<p>WT baselines are pulled from WT control metric rows, grouped per generation:
-- WT DNA baseline comes from WT DNA raw values.
-- WT protein baseline comes from WT protein raw values.</p>
-<p>If a generation has no valid WT baseline, scoring stops with an explicit error. The pipeline does not switch to an alternative normalization mode.</p>
-<h3 id="wt-based-worked-example">WT-based worked example<a class="headerlink" href="#wt-based-worked-example" title="Permanent link">&para;</a></h3>
-<p>If a variant has:
-- <code>dna_yield_raw = 120</code>
-- <code>protein_yield_raw = 40</code></p>
-<p>And the generation WT baseline is:
-- <code>dna_wt = 100</code>
-- <code>protein_wt = 50</code></p>
-<p>Then:
-- <code>dna_yield_norm = 120 / 100 = 1.2</code>
-- <code>protein_yield_norm = 40 / 50 = 0.8</code>
-- <code>activity_score = 1.2 / 0.8 = 1.5</code></p>
-<h2 id="full-algorithm-flow">Full algorithm flow<a class="headerlink" href="#full-algorithm-flow" title="Permanent link">&para;</a></h2>
-<ol>
-<li>Fetch variant-level raw metrics (<code>dna_yield_raw</code>, <code>protein_yield_raw</code>) and <code>generation_id</code>.</li>
-<li>Fetch WT baselines for the experiment and verify they are valid.</li>
-<li>Apply QC gates.</li>
-<li>Keep only rows that pass QC.</li>
-<li>Upsert three metric rows per valid variant:</li>
+<p>This produces a single relative metric that can be used for ranking and
+distribution views.</p>
+<h2 id="inputs">Inputs<a class="headerlink" href="#inputs" title="Permanent link">&para;</a></h2>
+<p>The calculation depends on:</p>
+<ul>
+<li><code>dna_yield_raw</code></li>
+<li><code>protein_yield_raw</code></li>
+<li>the generation-specific WT baseline values</li>
+</ul>
+<p>Those raw measurements are stored in the <code>metrics</code> table and grouped by
+generation before the final derived score is written.</p>
+<h2 id="wt-based-normalization">WT-based normalization<a class="headerlink" href="#wt-based-normalization" title="Permanent link">&para;</a></h2>
+<p>For a valid generation:</p>
+<ul>
+<li>DNA is normalized against the WT DNA baseline</li>
+<li>protein is normalized against the WT protein baseline</li>
+<li>the final score is the ratio of those two normalized values</li>
+</ul>
+<p>This ensures the score reflects generation-relative performance rather than raw
+absolute scale alone.</p>
+<h2 id="worked-example">Worked example<a class="headerlink" href="#worked-example" title="Permanent link">&para;</a></h2>
+<p>If a variant has:</p>
+<ul>
+<li><code>dna_yield_raw = 120</code></li>
+<li><code>protein_yield_raw = 40</code></li>
+</ul>
+<p>And the WT baseline is:</p>
+<ul>
+<li><code>dna_wt = 100</code></li>
+<li><code>protein_wt = 50</code></li>
+</ul>
+<p>Then:</p>
+<ul>
+<li><code>dna_yield_norm = 120 / 100 = 1.2</code></li>
+<li><code>protein_yield_norm = 40 / 50 = 0.8</code></li>
+<li><code>activity_score = 1.2 / 0.8 = 1.5</code></li>
+</ul>
+<h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><code>activity_score &gt; 1</code>: the DNA-normalized signal is stronger than the
+  protein-normalized signal</li>
+<li><code>activity_score &lt; 1</code>: the protein-normalized signal is relatively stronger</li>
+<li><code>activity_score ≈ 1</code>: the normalized behavior is balanced</li>
+</ul>
+<p>These values are comparative and should be read in the context of the same
+experiment and generation.</p>
+<h2 id="what-gets-stored">What gets stored<a class="headerlink" href="#what-gets-stored" title="Permanent link">&para;</a></h2>
+<p>When a row passes QC, the pipeline writes:</p>
+<ul>
 <li><code>dna_yield_norm</code></li>
 <li><code>protein_yield_norm</code></li>
 <li><code>activity_score</code></li>
-<li>Write a stage-4 QC debug CSV for diagnostics.</li>
-</ol>
-<h2 id="quality-control-qc-behavior">Quality control (QC) behavior<a class="headerlink" href="#quality-control-qc-behavior" title="Permanent link">&para;</a></h2>
-<p>WT-based path marks rows with <code>qc_stage4</code>:
-- <code>ok</code>
-- <code>missing_raw_metrics</code>
-- <code>nonpositive_raw_metrics</code>
-- <code>missing_wt_baseline</code>
-- <code>invalid_wt_baseline</code>
-- <code>protein_norm_too_small</code></p>
-<p>Only rows with <code>qc_stage4='ok'</code> are upserted as derived metrics.</p>
-<h3 id="key-qc-rules">Key QC rules<a class="headerlink" href="#key-qc-rules" title="Permanent link">&para;</a></h3>
-<ul>
-<li>Missing or non-positive raw values are rejected.</li>
-<li>Missing/invalid WT baselines are rejected in WT-based mode.</li>
-<li>Very small normalized protein values are rejected to avoid unstable division.</li>
 </ul>
-<h3 id="qc-warning-to-show-in-reports">QC warning to show in reports<a class="headerlink" href="#qc-warning-to-show-in-reports" title="Permanent link">&para;</a></h3>
-<p>When reporting activity scores, include a warning that these rows were excluded:
-- missing raw values
-- missing WT baseline
-- baseline <code>&lt;= 0</code></p>
-<h3 id="qc-code-mapping">QC code mapping<a class="headerlink" href="#qc-code-mapping" title="Permanent link">&para;</a></h3>
-<p>WT-based QC (<code>compute_stage4_metrics</code>):
-- <code>missing_raw_metrics</code>: DNA/protein raw value missing.
-- <code>nonpositive_raw_metrics</code>: DNA/protein raw value <code>&lt;= 0</code>.
-- <code>missing_wt_baseline</code>: no WT baseline entry for generation.
-- <code>invalid_wt_baseline</code>: WT baseline present but invalid (<code>None</code> or <code>&lt;= 0</code>).
-- <code>protein_norm_too_small</code>: normalized protein value too close to zero (division instability guard).
-- <code>ok</code>: accepted and persisted.</p>
-<h2 id="stored-output-metrics">Stored output metrics<a class="headerlink" href="#stored-output-metrics" title="Permanent link">&para;</a></h2>
-<p>For each valid variant, the pipeline writes:
-- <code>dna_yield_norm</code> (<code>metric_type='normalized'</code>)
-- <code>protein_yield_norm</code> (<code>metric_type='normalized'</code>)
-- <code>activity_score</code> (<code>metric_type='derived'</code>)</p>
-<p>These are upserted into <code>metrics</code> and become the source for downstream plots and ranking.</p>
-<h2 id="database-persistence-details">Database persistence details<a class="headerlink" href="#database-persistence-details" title="Permanent link">&para;</a></h2>
+<p>These outputs are then used by:</p>
 <ul>
-<li>Upsert path: <code>src/analysis_MPL/metrics.py</code> (<code>upsert_variant_metrics</code>)</li>
-<li>Conflict key: <code>(generation_id, variant_id, metric_name, metric_type)</code></li>
-<li>On conflict: <code>value</code> and <code>unit</code> are updated</li>
+<li>Top 10 ranking</li>
+<li>activity distributions</li>
+<li>downstream visual summaries</li>
 </ul>
-<p>This design allows recalculating scores safely without duplicating rows.</p>
-<h2 id="validation-query">Validation query<a class="headerlink" href="#validation-query" title="Permanent link">&para;</a></h2>
-<p>Use this query to verify derived activity metrics for one experiment:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">activity_score_rows</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span><span class="w"> </span><span class="n">m</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">join</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">variant_id</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="p">;</span>
-</code></pre></div>
-<h3 id="additional-validation-checks">Additional validation checks<a class="headerlink" href="#additional-validation-checks" title="Permanent link">&para;</a></h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1">-- QC distribution from generated debug CSV should align with expected exclusions.</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1">-- Database-side sanity checks:</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1">-- per-generation activity score counts for one experiment</span>
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="k">select</span>
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="p">,</span>
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">,</span>
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_activity_scores</span>
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span><span class="w"> </span><span class="n">m</span>
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="k">join</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">variant_id</span>
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span>
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="p">,</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span>
-<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">;</span>
-<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a>
-<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="c1">-- min/max/median-like summary proxy by generation</span>
-<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="k">select</span>
-<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">,</span>
-<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">  </span><span class="k">min</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">min_activity</span><span class="p">,</span>
-<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">  </span><span class="k">max</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">max_activity</span><span class="p">,</span>
-<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">  </span><span class="k">avg</span><span class="p">(</span><span class="n">m</span><span class="p">.</span><span class="n">value</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">mean_activity</span>
-<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span><span class="w"> </span><span class="n">m</span>
-<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="k">join</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">variant_id</span>
-<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
-<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="k">where</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
-<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">m</span><span class="p">.</span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span>
-<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
-<a id="__codelineno-1-30" name="__codelineno-1-30" href="#__codelineno-1-30"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span>
-<a id="__codelineno-1-31" name="__codelineno-1-31" href="#__codelineno-1-31"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">;</span>
-</code></pre></div>
-<h2 id="execution-reminder">Execution reminder<a class="headerlink" href="#execution-reminder" title="Permanent link">&para;</a></h2>
-<p>Run the report stage to compute and store these metrics:</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">EXPERIMENT_ID</span><span class="o">=</span><span class="m">41</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>python<span class="w"> </span>-m<span class="w"> </span>scripts.run_report
-</code></pre></div>
-<p>After running, inspect:
-- <code>app/static/generated/exp_&lt;EXPERIMENT_ID&gt;_analysis.csv</code>
-for per-variant QC outcomes and computed values.</p>
-<h2 id="historical-results-note">Historical results note<a class="headerlink" href="#historical-results-note" title="Permanent link">&para;</a></h2>
-<p>Some previously generated experiment outputs may have used older fallback behavior before WT-only enforcement.
-If you compare old and new outputs, regenerate the experiment with current <code>scripts/run_report.py</code> to ensure WT-based consistency.</p>
-<h2 id="practical-interpretation-guidance">Practical interpretation guidance<a class="headerlink" href="#practical-interpretation-guidance" title="Permanent link">&para;</a></h2>
+<h2 id="related-pages">Related pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
 <ul>
-<li>Compare scores within the same experiment and generation context.</li>
-<li>WT-based normalization is mandatory for current report runs.</li>
-<li>Investigate generations with unusually low accepted row counts in QC output.</li>
-<li>Treat scores as relative ranking signals, not absolute biophysical constants.</li>
-</ul>
-<h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
-<ul>
-<li>No <code>activity_score</code> rows inserted:</li>
-<li>Check raw metric availability (<code>dna_yield_raw</code>, <code>protein_yield_raw</code>).</li>
-<li>Check WT baseline availability/validity.</li>
-<li>Review stage-4 QC CSV for exclusion reasons.</li>
-<li>Too many exclusions:</li>
-<li>Inspect missing/nonpositive raw values.</li>
-<li>Verify WT control ingestion and metric naming consistency.</li>
-<li>Unexpected score ranges:</li>
-<li>Validate denominator behavior (<code>protein_yield_norm</code> not near zero).</li>
-<li>Confirm experiment filter and generation mapping are correct.</li>
-</ul>
-<h2 id="supporting-references">Supporting references<a class="headerlink" href="#supporting-references" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Packer, M. S., and Liu, D. R. (2015). Methods for the directed evolution of proteins. <em>Nature Reviews Genetics</em>, 16, 379-394.</li>
-<li>Romero, P. A., and Arnold, F. H. (2009). Exploring protein fitness landscapes by directed evolution. <em>Nature Reviews Molecular Cell Biology</em>, 10, 866-876.</li>
-<li>Little, R. J. A., and Rubin, D. B. (2019). <em>Statistical Analysis with Missing Data</em> (3rd ed.). Wiley.</li>
-<li>Motulsky, H. (2014). <em>Intuitive Biostatistics</em> (3rd ed.). Oxford University Press.</li>
+<li><a href="../metrics/">Metrics Overview</a></li>
+<li><a href="../metric_storage_and_types/">Metric Storage &amp; Types</a></li>
+<li><a href="../metric_qc_and_validation/">Metric QC &amp; Validation</a></li>
 </ul>
 
 

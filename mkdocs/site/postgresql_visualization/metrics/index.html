@@ -16,7 +16,7 @@
         <link rel="prev" href="../../bonus_visualisations/database/connection/">
       
       
-        <link rel="next" href="../activity_score_calculations/">
+        <link rel="next" href="../metric_storage_and_types/">
       
       
         
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#metrics" class="md-skip">
+        <a href="#metrics-overview" class="md-skip">
           Skip to content
         </a>
       
@@ -1307,10 +1307,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#unified-metrics-strategy" class="md-nav__link">
+  <a href="#metric-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified metrics strategy
+        Metric flow
       
     </span>
   </a>
@@ -1318,10 +1318,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-scoring-policy" class="md-nav__link">
+  <a href="#what-this-section-covers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current scoring policy
+        What this section covers
       
     </span>
   </a>
@@ -1329,10 +1329,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-metrics-live" class="md-nav__link">
+  <a href="#common-metric-names" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where metrics live
+        Common metric names
       
     </span>
   </a>
@@ -1340,43 +1340,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-storage-behavior" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key storage behavior
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#upsert-logic-used-by-code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Upsert logic used by code
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#common-metric-names-in-this-repo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Common metric names in this repo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-validation-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick validation SQL
+        Related pages
       
     </span>
   </a>
@@ -1399,6 +1366,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../metric_storage_and_types/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metric Storage & Types
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../activity_score_calculations/" class="md-nav__link">
         
   
@@ -1407,6 +1402,34 @@
     
   
     Activity Score Calculations
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../metric_qc_and_validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metric QC & Validation
   
 
     
@@ -2186,10 +2209,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#unified-metrics-strategy" class="md-nav__link">
+  <a href="#metric-flow" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Unified metrics strategy
+        Metric flow
       
     </span>
   </a>
@@ -2197,10 +2220,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#current-scoring-policy" class="md-nav__link">
+  <a href="#what-this-section-covers" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Current scoring policy
+        What this section covers
       
     </span>
   </a>
@@ -2208,10 +2231,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#where-metrics-live" class="md-nav__link">
+  <a href="#common-metric-names" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Where metrics live
+        Common metric names
       
     </span>
   </a>
@@ -2219,43 +2242,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-storage-behavior" class="md-nav__link">
+  <a href="#related-pages" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key storage behavior
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#upsert-logic-used-by-code" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Upsert logic used by code
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#common-metric-names-in-this-repo" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Common metric names in this repo
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-validation-sql" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Quick validation SQL
+        Related pages
       
     </span>
   </a>
@@ -2279,49 +2269,37 @@
 
 
 
-<h1 id="metrics">Metrics<a class="headerlink" href="#metrics" title="Permanent link">&para;</a></h1>
-<p>This section describes how metrics are stored, typed, and updated in the project.</p>
+<h1 id="metrics-overview">Metrics Overview<a class="headerlink" href="#metrics-overview" title="Permanent link">&para;</a></h1>
+<p>This section explains how the platform stores, classifies, and reuses metrics
+across sequence analysis, ranking, and reporting.</p>
 <h2 id="metric-categories">Metric categories<a class="headerlink" href="#metric-categories" title="Permanent link">&para;</a></h2>
+<p>The project uses three main metric classes:</p>
 <ul>
-<li><code>raw</code>: direct measured values (for example <code>dna_yield_raw</code>, <code>protein_yield_raw</code>)</li>
-<li><code>normalized</code>: scaled values (<code>dna_yield_norm</code>, <code>protein_yield_norm</code>)</li>
-<li><code>derived</code>: computed outputs (mainly <code>activity_score</code>)</li>
+<li><code>raw</code>: direct measured values, such as <code>dna_yield_raw</code> and
+  <code>protein_yield_raw</code></li>
+<li><code>normalized</code>: values scaled against a baseline, such as <code>dna_yield_norm</code> and
+  <code>protein_yield_norm</code></li>
+<li><code>derived</code>: computed outputs, primarily <code>activity_score</code></li>
 </ul>
-<h2 id="unified-metrics-strategy">Unified metrics strategy<a class="headerlink" href="#unified-metrics-strategy" title="Permanent link">&para;</a></h2>
-<p>The metric flow described in the tutorials is:
-1. Store raw DNA/protein yields.
-2. Compute WT baseline values per generation.
-3. Normalize variant values against WT.
-4. Compute final <code>activity_score</code> from normalized ratios.
-5. Store both normalized and derived outputs for downstream ranking/plots.</p>
-<p>This supports top-variant selection and generation-level activity distribution views.</p>
-<h2 id="current-scoring-policy">Current scoring policy<a class="headerlink" href="#current-scoring-policy" title="Permanent link">&para;</a></h2>
+<h2 id="metric-flow">Metric flow<a class="headerlink" href="#metric-flow" title="Permanent link">&para;</a></h2>
+<p>The high-level metric flow is:</p>
+<ol>
+<li>Store raw DNA and protein yields</li>
+<li>Establish the generation-specific WT baseline</li>
+<li>Normalize variant values against that baseline</li>
+<li>Compute the final <code>activity_score</code></li>
+<li>Persist normalized and derived values for downstream ranking and plotting</li>
+</ol>
+<p>This is what allows the application to compare variants consistently within an
+experiment.</p>
+<h2 id="what-this-section-covers">What this section covers<a class="headerlink" href="#what-this-section-covers" title="Permanent link">&para;</a></h2>
+<p>Use the pages in this group for:</p>
 <ul>
-<li>Report generation uses WT-based normalization only.</li>
-<li>If WT baselines are missing or invalid, score computation fails with an explicit error.</li>
-<li>No median-based fallback is used in current pipeline runs.</li>
+<li><strong>Storage &amp; Types</strong>: where metrics live and how they are written</li>
+<li><strong>Activity Score Calculations</strong>: the actual normalization and formula logic</li>
+<li><strong>QC &amp; Validation</strong>: what is excluded, and how to verify the output rows</li>
 </ul>
-<h2 id="where-metrics-live">Where metrics live<a class="headerlink" href="#where-metrics-live" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Table: <code>metrics</code></li>
-<li>Optional dictionary table: <code>metric_definitions</code></li>
-</ul>
-<p><code>metrics</code> rows are attached to either:
-- a variant (<code>variant_id</code>), or
-- a WT control (<code>wt_control_id</code>)</p>
-<h2 id="key-storage-behavior">Key storage behavior<a class="headerlink" href="#key-storage-behavior" title="Permanent link">&para;</a></h2>
-<ul>
-<li><code>generation_id</code> is automatically set by trigger logic from <code>variant_id</code> or <code>wt_control_id</code>.</li>
-<li>Uniqueness is enforced so one <code>(generation_id, variant_id, metric_name, metric_type)</code> row exists per variant metric.</li>
-<li>WT rows use analogous uniqueness with <code>wt_control_id</code>.</li>
-</ul>
-<h2 id="upsert-logic-used-by-code">Upsert logic used by code<a class="headerlink" href="#upsert-logic-used-by-code" title="Permanent link">&para;</a></h2>
-<p>Code path:
-- <code>src/analysis_MPL/metrics.py</code> -&gt; <code>upsert_variant_metrics</code></p>
-<p>Behavior:
-- Inserts metric rows.
-- On conflict, updates <code>value</code> and <code>unit</code>.</p>
-<h2 id="common-metric-names-in-this-repo">Common metric names in this repo<a class="headerlink" href="#common-metric-names-in-this-repo" title="Permanent link">&para;</a></h2>
+<h2 id="common-metric-names">Common metric names<a class="headerlink" href="#common-metric-names" title="Permanent link">&para;</a></h2>
 <ul>
 <li><code>dna_yield_raw</code></li>
 <li><code>protein_yield_raw</code></li>
@@ -2329,21 +2307,12 @@
 <li><code>protein_yield_norm</code></li>
 <li><code>activity_score</code></li>
 </ul>
-<p>For detailed formulas and QC exclusions, see:
-- <a href="../activity_score_calculations/">Activity score calculations</a></p>
-<h2 id="quick-validation-sql">Quick validation SQL<a class="headerlink" href="#quick-validation-sql" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1">-- all activity scores</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">select</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n_activity_scores</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="k">where</span><span class="w"> </span><span class="n">metric_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;activity_score&#39;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">metric_type</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;derived&#39;</span><span class="p">;</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1">-- count by metric name + type</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">select</span><span class="w"> </span><span class="n">metric_name</span><span class="p">,</span><span class="w"> </span><span class="n">metric_type</span><span class="p">,</span><span class="w"> </span><span class="k">count</span><span class="p">(</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">n</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">from</span><span class="w"> </span><span class="n">metrics</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="k">group</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">metric_name</span><span class="p">,</span><span class="w"> </span><span class="n">metric_type</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="n">metric_name</span><span class="p">,</span><span class="w"> </span><span class="n">metric_type</span><span class="p">;</span>
-</code></pre></div>
+<h2 id="related-pages">Related pages<a class="headerlink" href="#related-pages" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../metric_storage_and_types/">Metric Storage &amp; Types</a></li>
+<li><a href="../activity_score_calculations/">Activity Score Calculations</a></li>
+<li><a href="../metric_qc_and_validation/">Metric QC &amp; Validation</a></li>
+</ul>
 
 
 

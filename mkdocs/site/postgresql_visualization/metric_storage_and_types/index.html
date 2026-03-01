@@ -13,10 +13,10 @@
       
       
       
-        <link rel="prev" href="../troubleshooting/">
+        <link rel="prev" href="../metrics/">
       
       
-        <link rel="next" href="../parsing_qc_manual/">
+        <link rel="next" href="../activity_score_calculations/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>Architecture - Direct Evolution Monitoring Portal</title>
+        <title>Metric Storage & Types - Direct Evolution Monitoring Portal</title>
       
     
     
@@ -53,7 +53,7 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../parsing_qc/stylesheets/extra.css">
     
       <link rel="stylesheet" href="../../stylesheets/app_guidebar.css">
     
@@ -82,7 +82,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#architecture" class="md-skip">
+        <a href="#metric-storage-types" class="md-skip">
           Skip to content
         </a>
       
@@ -116,7 +116,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Architecture
+              Metric Storage & Types
             
           </span>
         </div>
@@ -232,13 +232,11 @@
   
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../parsing_qc/" class="md-tabs__link">
           
   
   
@@ -258,7 +256,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../postgresql_visualization/database/" class="md-tabs__link">
+        <a href="../database/" class="md-tabs__link">
           
   
   
@@ -274,11 +272,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../../postgresql_visualization/metrics/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../metrics/" class="md-tabs__link">
           
   
   
@@ -298,7 +298,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../../postgresql_visualization/" class="md-tabs__link">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -338,7 +338,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../OWNERS/" class="md-tabs__link">
+        <a href="../../parsing_qc/OWNERS/" class="md-tabs__link">
           
   
   
@@ -414,31 +414,28 @@
       
   
   
-    
   
   
-  
     
     
     
     
-      
-        
-        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -456,7 +453,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             
@@ -474,7 +471,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../" class="md-nav__link">
+      <a href="../../parsing_qc/" class="md-nav__link">
         
   
   
@@ -508,13 +505,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -523,7 +517,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
             
   
   
@@ -559,7 +553,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guide/getting-started/" class="md-nav__link">
+      <a href="../../parsing_qc/guide/getting-started/" class="md-nav__link">
         
   
   
@@ -587,7 +581,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guide/uploading-data/" class="md-nav__link">
+      <a href="../../parsing_qc/guide/uploading-data/" class="md-nav__link">
         
   
   
@@ -615,7 +609,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../guide/file-formats/" class="md-nav__link">
+      <a href="../../parsing_qc/guide/file-formats/" class="md-nav__link">
         
   
   
@@ -657,13 +651,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -672,7 +663,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_3" >
         
           
-          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_3" id="__nav_2_3_label" tabindex="0">
             
   
   
@@ -708,7 +699,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../qc/overview/" class="md-nav__link">
+      <a href="../../parsing_qc/qc/overview/" class="md-nav__link">
         
   
   
@@ -736,7 +727,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../qc/thresholds/" class="md-nav__link">
+      <a href="../../parsing_qc/qc/thresholds/" class="md-nav__link">
         
   
   
@@ -764,7 +755,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../qc/validation-checks/" class="md-nav__link">
+      <a href="../../parsing_qc/qc/validation-checks/" class="md-nav__link">
         
   
   
@@ -806,13 +797,10 @@
       
       
         
-          
-          
-        
       
     
     
-    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
@@ -821,7 +809,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_4" >
         
           
-          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_4" id="__nav_2_4_label" tabindex="0">
             
   
   
@@ -857,7 +845,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../api/endpoints/" class="md-nav__link">
+      <a href="../../parsing_qc/api/endpoints/" class="md-nav__link">
         
   
   
@@ -893,7 +881,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../troubleshooting/" class="md-nav__link">
+      <a href="../../parsing_qc/troubleshooting/" class="md-nav__link">
         
   
   
@@ -918,31 +906,28 @@
                 
   
   
-    
   
   
-  
     
     
     
     
       
       
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
         
           
-          
         
-      
-    
-    
-    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_6" checked>
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2_6" >
         
           
-          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="">
+          <label class="md-nav__link" for="__nav_2_6" id="__nav_2_6_label" tabindex="0">
             
   
   
@@ -960,7 +945,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_6_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -975,37 +960,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    Architecture
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../parsing_qc/architecture/" class="md-nav__link">
         
   
   
@@ -1021,59 +979,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#folder-ownership-rules" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Folder Ownership Rules
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#key-decisions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Key Decisions
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conventions" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Conventions
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1086,7 +991,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../parsing_qc_manual/" class="md-nav__link">
+      <a href="../../parsing_qc/parsing_qc_manual/" class="md-nav__link">
         
   
   
@@ -1183,7 +1088,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/database/" class="md-nav__link">
+      <a href="../database/" class="md-nav__link">
         
   
   
@@ -1211,7 +1116,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/schema_design_notes/" class="md-nav__link">
+      <a href="../schema_design_notes/" class="md-nav__link">
         
   
   
@@ -1271,28 +1176,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -1310,7 +1218,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1328,7 +1236,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/metrics/" class="md-nav__link">
+      <a href="../metrics/" class="md-nav__link">
         
   
   
@@ -1353,10 +1261,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../../postgresql_visualization/metric_storage_and_types/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Metric Storage & Types
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1372,6 +1307,92 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#where-metrics-live" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where metrics live
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#row-ownership" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Row ownership
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#generation-linkage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generation linkage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uniqueness-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uniqueness model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upsert-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upsert behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1384,7 +1405,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/activity_score_calculations/" class="md-nav__link">
+      <a href="../activity_score_calculations/" class="md-nav__link">
         
   
   
@@ -1412,7 +1433,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/metric_qc_and_validation/" class="md-nav__link">
+      <a href="../metric_qc_and_validation/" class="md-nav__link">
         
   
   
@@ -1501,7 +1522,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -1583,7 +1604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/plots/" class="md-nav__link">
+      <a href="../plots/" class="md-nav__link">
         
   
   
@@ -1611,7 +1632,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/plots_lineage/" class="md-nav__link">
+      <a href="../plots_lineage/" class="md-nav__link">
         
   
   
@@ -1639,7 +1660,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/plots_distribution/" class="md-nav__link">
+      <a href="../plots_distribution/" class="md-nav__link">
         
   
   
@@ -1667,7 +1688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/plots_top10/" class="md-nav__link">
+      <a href="../plots_top10/" class="md-nav__link">
         
   
   
@@ -1695,7 +1716,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/plots_protein_network/" class="md-nav__link">
+      <a href="../plots_protein_network/" class="md-nav__link">
         
   
   
@@ -1731,7 +1752,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/pipeline/" class="md-nav__link">
+      <a href="../pipeline/" class="md-nav__link">
         
   
   
@@ -1759,7 +1780,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/user_guide/" class="md-nav__link">
+      <a href="../user_guide/" class="md-nav__link">
         
   
   
@@ -2105,7 +2126,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../OWNERS/" class="md-nav__link">
+      <a href="../../parsing_qc/OWNERS/" class="md-nav__link">
         
   
   
@@ -2133,7 +2154,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../postgresql_visualization/OWNERS/" class="md-nav__link">
+      <a href="../OWNERS/" class="md-nav__link">
         
   
   
@@ -2188,10 +2209,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#folder-ownership-rules" class="md-nav__link">
+  <a href="#where-metrics-live" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Folder Ownership Rules
+        Where metrics live
       
     </span>
   </a>
@@ -2199,10 +2220,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#key-decisions" class="md-nav__link">
+  <a href="#row-ownership" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Key Decisions
+        Row ownership
       
     </span>
   </a>
@@ -2210,10 +2231,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#conventions" class="md-nav__link">
+  <a href="#generation-linkage" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Conventions
+        Generation linkage
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#uniqueness-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Uniqueness model
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#upsert-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Upsert behavior
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#why-this-matters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why this matters
       
     </span>
   </a>
@@ -2237,29 +2291,59 @@
 
 
 
-<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
-<p>This project uses a Flask application-factory pattern with blueprint-based routing and service-layer business logic.</p>
-<h2 id="folder-ownership-rules">Folder Ownership Rules<a class="headerlink" href="#folder-ownership-rules" title="Permanent link">&para;</a></h2>
+<h1 id="metric-storage-types">Metric Storage &amp; Types<a class="headerlink" href="#metric-storage-types" title="Permanent link">&para;</a></h1>
+<p>This page focuses on how metrics are structured and persisted in the database.</p>
+<h2 id="where-metrics-live">Where metrics live<a class="headerlink" href="#where-metrics-live" title="Permanent link">&para;</a></h2>
+<p>The main metric rows are stored in:</p>
 <ul>
-<li><code>app/blueprints/*</code>: HTTP routes and request/response orchestration only.</li>
-<li><code>app/services/*</code>: domain logic, external integrations, and data processing.</li>
-<li><code>app/models.py</code>: SQLAlchemy models.</li>
-<li><code>app/templates/</code> and <code>app/static/</code>: UI assets.</li>
-<li><code>scripts/</code>: one-off or operational entry scripts; not imported by app runtime.</li>
-<li><code>tests/</code>: automated verification.</li>
+<li><code>metrics</code></li>
 </ul>
-<h2 id="key-decisions">Key Decisions<a class="headerlink" href="#key-decisions" title="Permanent link">&para;</a></h2>
+<p>An optional reference dictionary also exists:</p>
 <ul>
-<li>Single app factory at <code>app/__init__.py</code>.</li>
-<li>Single routing pattern via blueprints in <code>app/blueprints/</code>.</li>
-<li>Single UniProt integration module at <code>app/services/uniprot_service.py</code>.</li>
-<li>Analysis code source of truth in <code>app/services/analysis/</code>.</li>
+<li><code>metric_definitions</code></li>
 </ul>
-<h2 id="conventions">Conventions<a class="headerlink" href="#conventions" title="Permanent link">&para;</a></h2>
+<h2 id="row-ownership">Row ownership<a class="headerlink" href="#row-ownership" title="Permanent link">&para;</a></h2>
+<p>Each metric row is attached to either:</p>
 <ul>
-<li>New routes must be added through a blueprint package under <code>app/blueprints/</code>.</li>
-<li>New business logic should be added under the appropriate <code>app/services/&lt;domain&gt;/</code>.</li>
-<li>Avoid introducing parallel package roots (for example, a second <code>src/</code> runtime tree).</li>
+<li>a variant (<code>variant_id</code>)</li>
+<li>or a WT control (<code>wt_control_id</code>)</li>
+</ul>
+<p>This allows the system to store both experimental variant measurements and the
+wild-type baseline measurements used for normalization.</p>
+<h2 id="generation-linkage">Generation linkage<a class="headerlink" href="#generation-linkage" title="Permanent link">&para;</a></h2>
+<p><code>generation_id</code> is populated automatically from the owning variant or WT control
+record, so the metric remains aligned with the correct generation even when the
+write path only provides <code>variant_id</code> or <code>wt_control_id</code>.</p>
+<h2 id="uniqueness-model">Uniqueness model<a class="headerlink" href="#uniqueness-model" title="Permanent link">&para;</a></h2>
+<p>For variant-scoped metrics, the storage model expects one logical row for each:</p>
+<ul>
+<li>generation</li>
+<li>variant</li>
+<li>metric name</li>
+<li>metric type</li>
+</ul>
+<p>WT control metrics use the same idea, but keyed by <code>wt_control_id</code>.</p>
+<p>This design prevents duplicate metric rows from accumulating during normal
+recalculation and keeps reporting queries predictable.</p>
+<h2 id="upsert-behavior">Upsert behavior<a class="headerlink" href="#upsert-behavior" title="Permanent link">&para;</a></h2>
+<p>The application writes metric rows through an upsert path, so recalculations
+update existing values instead of duplicating them.</p>
+<p>Code path:</p>
+<ul>
+<li><code>src/analysis_MPL/metrics.py</code></li>
+<li><code>upsert_variant_metrics</code></li>
+</ul>
+<p>Behavior:</p>
+<ul>
+<li>insert the metric if it does not exist</li>
+<li>update <code>value</code> and <code>unit</code> if the metric already exists</li>
+</ul>
+<h2 id="why-this-matters">Why this matters<a class="headerlink" href="#why-this-matters" title="Permanent link">&para;</a></h2>
+<p>This storage model is what allows:</p>
+<ul>
+<li>recalculating activity scores safely</li>
+<li>regenerating reports without duplicating metric rows</li>
+<li>ranking variants using the latest values only</li>
 </ul>
 
 
