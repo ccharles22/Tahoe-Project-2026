@@ -109,3 +109,7 @@ extra:
 
 extra_css:
   - parsing_qc/stylesheets/extra.css
+  - stylesheets/app_guidebar.css
+
+extra_javascript:
+  - javascripts/app_guidebar.js
