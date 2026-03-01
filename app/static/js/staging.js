@@ -151,6 +151,16 @@ function initRunLoader() {
     document.body.classList.remove('is-run-loading');
   };
 
+  const readJsonPayload = async (response) => {
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.includes('application/json')) {
+      const bodyText = (await response.text()).trim();
+      const preview = bodyText ? bodyText.slice(0, 300) : `status ${response.status}`;
+      throw new Error(`Unexpected non-JSON response: ${preview}`);
+    }
+    return response.json();
+  };
+
   document
     .querySelectorAll('form[action*="/sequence/run"], form[action*="/analysis/run"]')
     .forEach((form) => {
@@ -176,19 +186,31 @@ function initRunLoader() {
           });
 
           if (mode === 'sequence') {
-            const payload = await response.json();
-            if (payload.state === 'completed' || payload.state === 'failed') {
+            const payload = await readJsonPayload(response);
+            if (payload.state === 'completed') {
               window.location.reload();
+              return;
+            }
+            if (payload.state === 'failed') {
+              const rawTarget = payload.redirect_url || window.location.href;
+              const targetUrl = new URL(rawTarget, window.location.href);
+              targetUrl.searchParams.set('_refresh', String(Date.now()));
+              window.location.assign(targetUrl.toString());
               return;
             }
             throw new Error(`Unexpected sequence state: ${payload.state}`);
           }
 
-          if (!response.ok) {
-            throw new Error(`Request failed with status ${response.status}`);
+          const payload = await readJsonPayload(response);
+          if (payload.state === 'completed' || payload.state === 'failed') {
+            const rawTarget = payload.redirect_url || window.location.href;
+            const targetUrl = new URL(rawTarget, window.location.href);
+            targetUrl.searchParams.set('_refresh', String(Date.now()));
+            window.location.assign(targetUrl.toString());
+            return;
           }
 
-          window.location.href = response.url || window.location.href;
+          throw new Error(`Unexpected analysis state: ${payload.state}`);
         } catch (error) {
           console.error('Run request failed:', error);
           hideLoader();

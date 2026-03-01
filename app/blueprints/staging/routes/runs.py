@@ -101,30 +101,43 @@ def _run_sequence_processing_for_experiment(
 def run_analysis():
     """Run analysis only when sequence outputs already exist."""
     experiment_id = request.form.get('experiment_id', '').strip()
+    is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if not experiment_id.isdigit():
+        if is_xhr:
+            return jsonify({'state': 'failed', 'message': 'Missing experiment_id.'}), 400
         return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
     if not _has_sequence_outputs(exp_id_int):
-        return redirect(
-            url_for(
-                'staging.create_experiment',
-                experiment_id=experiment_id,
-                analysis_message='Run sequence processing first. Analysis only generates plots and reports from existing sequence outputs.',
-            )
+        message = 'Run sequence processing first. Analysis only generates plots and reports from existing sequence outputs.'
+        redirect_url = url_for(
+            'staging.create_experiment',
+            experiment_id=experiment_id,
+            analysis_message=message,
         )
+        if is_xhr:
+            return jsonify({'state': 'failed', 'message': message, 'redirect_url': redirect_url}), 409
+        return redirect(redirect_url)
 
     ok, analysis_message = run_analysis_for_experiment(exp_id_int, current_app._get_current_object())
     if not ok and not analysis_message:
         analysis_message = 'Analysis failed.'
 
-    return redirect(
-        url_for(
-            'staging.create_experiment',
-            experiment_id=experiment_id,
-            analysis_message=analysis_message,
-        )
+    redirect_url = url_for(
+        'staging.create_experiment',
+        experiment_id=experiment_id,
+        analysis_message=analysis_message,
     )
+    if is_xhr:
+        return jsonify(
+            {
+                'state': 'completed' if ok else 'failed',
+                'message': analysis_message,
+                'redirect_url': redirect_url,
+            }
+        ), (200 if ok else 500)
+
+    return redirect(redirect_url)
 
 
 @staging_bp.post('/sequence/run')
@@ -139,15 +152,24 @@ def run_sequence():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
-    # Step 4 is the explicit "recompute sequence outputs" action, so it should
-    # always run the full sequence pipeline rather than silently skipping
-    # already-processed variants.
+    # Step 4 is the explicit mutation-recompute step. Always run the full
+    # sequence pipeline so mutation outputs are refreshed deterministically.
     force_reprocess = True
     ok, message = _run_sequence_processing_for_experiment(
         exp_id_int,
         force_reprocess=force_reprocess,
     )
     if is_xhr:
-        return jsonify({'state': 'completed' if ok else 'failed', 'message': message}), (200 if ok else 500)
+        return jsonify(
+            {
+                'state': 'completed' if ok else 'failed',
+                'message': message,
+                'redirect_url': url_for(
+                    'staging.create_experiment',
+                    experiment_id=experiment_id,
+                    sequence_message=message,
+                ),
+            }
+        ), (200 if ok else 500)
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))

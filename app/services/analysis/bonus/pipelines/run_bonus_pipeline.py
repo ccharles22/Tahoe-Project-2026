@@ -88,8 +88,85 @@ def refresh_materialized_views(view_names: Sequence[str]) -> None:
             cur.execute(f"REFRESH MATERIALIZED VIEW {v};")
 
 
-def check_activity_score_exists(generation_id: int) -> None:
-    """Fails early if a teammate's activity_score pipeline hasn't run yet."""
+def _write_placeholder_html(out_path: Path, title: str, message: str) -> Path:
+    """Write a small HTML placeholder so the bonus section remains populated."""
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    escaped_title = title.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    escaped_message = (
+        message.replace("&", "&amp;")
+        .replace("<", "&lt;")
+        .replace(">", "&gt;")
+        .replace("\n", "<br>")
+    )
+    out_path.write_text(
+        f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{escaped_title}</title>
+    <style>
+      :root {{
+        color-scheme: light;
+      }}
+      body {{
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        padding: 32px;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        color: #18324a;
+        background:
+          radial-gradient(circle at top right, rgba(208, 232, 255, 0.7), transparent 34%),
+          linear-gradient(180deg, #f8fbff 0%, #eef5ff 100%);
+      }}
+      .placeholder {{
+        width: min(100%, 760px);
+        padding: 28px 30px;
+        border-radius: 22px;
+        border: 1px solid #d3e4f6;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 18px 38px rgba(12, 38, 66, 0.08);
+      }}
+      .eyebrow {{
+        margin: 0 0 10px;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #3b82f6;
+      }}
+      h1 {{
+        margin: 0 0 12px;
+        font-size: clamp(28px, 4vw, 44px);
+        line-height: 1;
+        font-family: Georgia, "Times New Roman", serif;
+      }}
+      p {{
+        margin: 0;
+        font-size: 15px;
+        line-height: 1.7;
+        color: #486178;
+      }}
+    </style>
+  </head>
+  <body>
+    <section class="placeholder">
+      <p class="eyebrow">Bonus visualisation unavailable</p>
+      <h1>{escaped_title}</h1>
+      <p>{escaped_message}</p>
+    </section>
+  </body>
+</html>
+""",
+        encoding="utf-8",
+    )
+    return out_path
+
+
+def activity_scores_available(generation_id: int) -> bool:
+    """Return whether this generation has derived variant activity_score rows."""
     with get_cursor() as cur:
         cur.execute(
             """
@@ -103,12 +180,7 @@ def check_activity_score_exists(generation_id: int) -> None:
             (generation_id,),
         )
         n = int(cur.fetchone()[0])
-
-    if n == 0:
-        raise SystemExit(
-            f"No activity_score metrics found for generation_id={generation_id}.\n"
-            "Run the activity score computation first (your teammate's stage), then rerun this pipeline."
-        )
+    return n > 0
 
 
 def get_top_variant_id(generation_id: int) -> Optional[int]:
@@ -152,9 +224,53 @@ def run_pipeline(
     skip_create_views: bool,
 ) -> None:
     outputs_dir.mkdir(parents=True, exist_ok=True)
+    generated_count = 0
+    failures: list[str] = []
+
+    def _run_plot(
+        label: str,
+        func,
+        *args,
+        placeholder_title: Optional[str] = None,
+        placeholder_message: Optional[str] = None,
+        **kwargs,
+    ):
+        nonlocal generated_count
+        out_path = kwargs.get("out_path")
+        try:
+            out = func(*args, **kwargs)
+            generated_count += 1
+            return out
+        except Exception as exc:
+            failures.append(f"{label}: {type(exc).__name__}: {exc}")
+            print(f"[warn] {label} skipped: {type(exc).__name__}: {exc}")
+            if (
+                out_path is not None
+                and isinstance(out_path, Path)
+                and out_path.suffix.lower() == ".html"
+                and placeholder_title
+            ):
+                placeholder = _write_placeholder_html(
+                    out_path,
+                    placeholder_title,
+                    placeholder_message or f"This view could not be generated: {type(exc).__name__}: {exc}",
+                )
+                generated_count += 1
+                return placeholder
+            return None
+
+    def _skip_plot(label: str, reason: str, *, out_path: Optional[Path] = None, placeholder_title: Optional[str] = None):
+        nonlocal generated_count
+        failures.append(f"{label}: {reason}")
+        print(f"[warn] {label} skipped: {reason}")
+        if out_path is not None and out_path.suffix.lower() == ".html" and placeholder_title:
+            placeholder = _write_placeholder_html(out_path, placeholder_title, reason)
+            generated_count += 1
+            return placeholder
+        return None
 
     # Preconditions
-    check_activity_score_exists(generation_id)
+    has_activity_scores = activity_scores_available(generation_id)
 
     # If user requests tsne landscape, ensure we computed tsne coords
     if landscape_method == "tsne" and not include_tsne:
@@ -163,74 +279,134 @@ def run_pipeline(
             "Run again with: --include-tsne"
         )
 
-    # Ensure metric definitions exist
-    ensure_metric_definitions()
-
     # Create views (optional) and refresh
     if not skip_create_views:
         ensure_materialized_views(sql_dir)
 
-    # Precompute PCA/t-SNE embeddings into metrics
-    precompute_embeddings_for_generation(
-        generation_id=generation_id,
-        include_tsne=include_tsne,
-        seed=seed,
-        perplexity=perplexity,
-        refresh_view=False,
-    )
+    if has_activity_scores:
+        # Ensure metric definitions exist only when embeddings are needed.
+        ensure_metric_definitions()
+
+        # Precompute PCA/t-SNE embeddings into metrics.
+        precompute_embeddings_for_generation(
+            generation_id=generation_id,
+            include_tsne=include_tsne,
+            seed=seed,
+            perplexity=perplexity,
+            refresh_view=False,
+        )
+    else:
+        print(
+            f"[warn] No activity_score metrics found for generation_id={generation_id}. "
+            "Skipping activity-dependent bonus plots."
+        )
 
     # Refresh datatables
     refresh_materialized_views(["mv_activity_landscape", "mv_domain_mutation_enrichment"])
 
     # ---- Plots ----
 
-    out_landscape = plot_activity_landscape_plotly(
-        generation_id=generation_id,
-        method=landscape_method,
-        mode=landscape_mode,
-        grid_size=grid_size,
-        out_path=outputs_dir / f"activity_landscape_{landscape_method}_{landscape_mode}.html",
-    )
+    if has_activity_scores:
+        out_landscape = _run_plot(
+            "Landscape (Plotly)",
+            plot_activity_landscape_plotly,
+            generation_id=generation_id,
+            method=landscape_method,
+            mode=landscape_mode,
+            grid_size=grid_size,
+            out_path=outputs_dir / f"activity_landscape_{landscape_method}_{landscape_mode}.html",
+            placeholder_title="Activity Landscape",
+            placeholder_message="This generation does not yet have enough valid embedding and activity data to render the landscape.",
+        )
 
-    out_surface = plot_activity_surface_matplotlib(
-        generation_id=generation_id,
-        method=landscape_method,
-        grid_size=grid_size,
-        out_path=outputs_dir / f"activity_surface_{landscape_method}.png",
-    )
+        out_surface = _run_plot(
+            "Surface (Matplotlib)",
+            plot_activity_surface_matplotlib,
+            generation_id=generation_id,
+            method=landscape_method,
+            grid_size=grid_size,
+            out_path=outputs_dir / f"activity_surface_{landscape_method}.png",
+        )
 
-    out_traj = plot_mutation_trajectory(
-        generation_id=generation_id,
-        top_n=top_n,
-        out_path=outputs_dir / f"mutation_trajectory_top{top_n}.html",
-    )
+        out_traj = _run_plot(
+            "Trajectory",
+            plot_mutation_trajectory,
+            generation_id=generation_id,
+            top_n=top_n,
+            out_path=outputs_dir / f"mutation_trajectory_top{top_n}.html",
+            placeholder_title="Mutation Trajectory",
+            placeholder_message="The latest generation does not yet have enough ranked variants to build a mutation trajectory.",
+        )
+    else:
+        out_landscape = _skip_plot(
+            "Landscape (Plotly)",
+            "No activity_score metrics found for this generation.",
+            out_path=outputs_dir / f"activity_landscape_{landscape_method}_{landscape_mode}.html",
+            placeholder_title="Activity Landscape",
+        )
+        out_surface = _skip_plot("Surface (Matplotlib)", "No activity_score metrics found for this generation.")
+        out_traj = _skip_plot(
+            "Trajectory",
+            "No activity_score metrics found for this generation.",
+            out_path=outputs_dir / f"mutation_trajectory_top{top_n}.html",
+            placeholder_title="Mutation Trajectory",
+        )
 
     # All-generation heatmap
-    out_domain_heat = plot_domain_enrichment(
+    out_domain_heat = _run_plot(
+        "Domain heatmap",
+        plot_domain_enrichment,
         generation_id=None,
         metric="nonsyn_count",
         out_path=outputs_dir / "domain_enrichment_heatmap.html",
+        placeholder_title="Domain Heatmap",
+        placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or mutation data are missing.",
     )
 
     # Single-generation bar chart
-    out_domain_bar = plot_domain_enrichment(
+    out_domain_bar = _run_plot(
+        "Domain (gen bar)",
+        plot_domain_enrichment,
         generation_id=generation_id,
         metric="nonsyn_count",
-        out_path=outputs_dir / f"domain_enrichment_gen{generation_id}.html",
+        out_path=outputs_dir / "domain_enrichment_latest.html",
+        placeholder_title="Domain by Generation",
+        placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",
     )
 
-    out_mutation_frequency = plot_mutation_frequency(
+    out_mutation_frequency = _run_plot(
+        "Mutation frequency",
+        plot_mutation_frequency,
         generation_id=generation_id,
         out_path=outputs_dir / "mutation_frequency_by_position.html",
+        placeholder_title="Mutation Frequency",
+        placeholder_message="No non-synonymous protein mutations are available yet for this experiment, so mutation frequency cannot be shown.",
     )
 
-    # Use top-activity variant if none specified
-    vid = fingerprint_variant_id or get_top_variant_id(generation_id)
+    # Use top-activity variant if none specified.
+    vid = fingerprint_variant_id or (get_top_variant_id(generation_id) if has_activity_scores else None)
     out_fingerprint = None
     if vid is not None:
-        out_fingerprint = plot_mutation_fingerprint(
+        out_fingerprint = _run_plot(
+            "Fingerprint",
+            plot_mutation_fingerprint,
             variant_id=vid,
-            out_path=outputs_dir / f"mutation_fingerprint_variant{vid}.html",
+            out_path=outputs_dir / "mutation_fingerprint_latest.html",
+            placeholder_title="Mutation Fingerprint",
+            placeholder_message="A mutation fingerprint could not be built for the latest top-ranked variant.",
+        )
+    else:
+        out_fingerprint = _skip_plot(
+            "Fingerprint",
+            "No top-ranked variant with activity data is available for the latest generation.",
+            out_path=outputs_dir / "mutation_fingerprint_latest.html",
+            placeholder_title="Mutation Fingerprint",
+        )
+
+    if generated_count == 0:
+        details = "; ".join(failures) if failures else "No bonus outputs were written."
+        raise SystemExit(
+            f"No bonus visualisations were generated for generation_id={generation_id}. {details}"
         )
 
     print("\n Bonus visualisation pipeline complete.")
@@ -245,6 +421,10 @@ def run_pipeline(
         print(f"- Fingerprint: {out_fingerprint}")
     else:
         print("- Fingerprint: skipped (no top variant found)")
+    if failures:
+        print("- Some bonus visualisations were skipped:")
+        for failure in failures:
+            print(f"  * {failure}")
 
 
 def main():
