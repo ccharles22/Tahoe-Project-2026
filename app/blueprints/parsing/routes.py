@@ -24,7 +24,10 @@ from app.services.parsing.qc import QualityControl
 from app.services.parsing.base_parser import BaseParser
 from app.services.parsing.utils import safe_int, safe_float
 from app.services.parsing.db_operations import batch_upsert_variants
-from app.services.staging.session_state import clear_sequence_status_from_session
+from app.services.staging.session_state import (
+    clear_sequence_status_from_session,
+    mark_sequence_reprocess_required,
+)
 
 from . import parsing_bp
 
@@ -204,6 +207,7 @@ def upload_form_submit() -> str:
         )
         session.commit()
         clear_sequence_status_from_session(experiment_id)
+        mark_sequence_reprocess_required(experiment_id)
 
         summary = parser.get_summary()
         flash('File uploaded and processed successfully!', 'success')

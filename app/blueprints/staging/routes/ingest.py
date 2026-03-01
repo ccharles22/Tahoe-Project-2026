@@ -16,6 +16,7 @@ from app.services.staging.plasmid_validator import validate_plasmid
 from app.services.staging.session_state import (
     clear_validation_from_session,
     clear_sequence_status_from_session,
+    mark_sequence_reprocess_required,
     save_validation_to_session,
 )
 
@@ -162,6 +163,7 @@ def fetch_uniprot():
             f"{exc}"
         )
     clear_sequence_status_from_session(experiment_id)
+    mark_sequence_reprocess_required(experiment_id)
     if previous_accession and previous_accession != accession:
         clear_validation_from_session(experiment_id)
 
@@ -239,6 +241,7 @@ def upload_plasmid():
     except Exception as exc:
         cache_warning = f'Plasmid validated, but WT mapping cache was not cleared: {exc}'
     clear_sequence_status_from_session(experiment_id)
+    mark_sequence_reprocess_required(experiment_id)
 
     return redirect(
         url_for(

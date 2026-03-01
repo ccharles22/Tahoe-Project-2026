@@ -12,6 +12,7 @@ import logging
 from typing import List, Dict, Any, Tuple, Set, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 
 from app.models import Generation, Variant, Metric
 from app.services.parsing.utils import safe_int, safe_float
@@ -84,6 +85,26 @@ def _create_metrics_for_variant(
     return count
 
 
+def _merge_variant_extra_metadata(
+    existing_metadata: Optional[Dict[str, Any]],
+    new_metadata: Optional[Dict[str, Any]],
+) -> Optional[Dict[str, Any]]:
+    """
+    Merge parser metadata onto existing variant metadata while dropping
+    stale sequence-analysis payloads that are no longer valid after re-upload.
+    """
+    merged: Dict[str, Any] = {}
+
+    if isinstance(existing_metadata, dict):
+        merged.update(existing_metadata)
+        merged.pop("sequence_analysis", None)
+
+    if isinstance(new_metadata, dict):
+        merged.update(new_metadata)
+
+    return merged or None
+
+
 # ---------------------------------------------------------------------------
 # public API -- called from parsing routes
 # ---------------------------------------------------------------------------
@@ -151,7 +172,21 @@ def batch_upsert_variants(
 
             if existing:
                 existing.assembled_dna_sequence = dna_seq
-                existing.extra_metadata = metadata or None
+                existing.extra_metadata = _merge_variant_extra_metadata(existing.extra_metadata, metadata)
+                existing.protein_sequence = None
+
+                # Re-uploaded variant data invalidates prior sequence outputs.
+                session.execute(
+                    text("DELETE FROM public.variant_sequence_analysis WHERE variant_id = :vid"),
+                    {"vid": existing.variant_id},
+                )
+                session.execute(
+                    text("DELETE FROM public.mutations WHERE variant_id = :vid"),
+                    {"vid": existing.variant_id},
+                )
+
+                # Clear all variant-scoped metrics so raw uploads become the
+                # only source of truth until sequence processing / analysis rerun.
                 session.query(Metric).filter_by(variant_id=existing.variant_id).delete()
                 _create_metrics_for_variant(
                     session, gen.generation_id, existing.variant_id,

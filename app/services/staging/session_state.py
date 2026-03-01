@@ -139,8 +139,24 @@ def clear_sequence_status_from_session(experiment_id):
     flask_session.pop(f'sequence_status_{experiment_id}', None)
 
 
+def mark_sequence_reprocess_required(experiment_id):
+    """Mark sequence outputs as stale after WT/plasmid/upload changes."""
+    flask_session[f'sequence_reprocess_required_{experiment_id}'] = True
+
+
+def is_sequence_reprocess_required(experiment_id) -> bool:
+    """Return True when a full sequence rerun is still required."""
+    return bool(flask_session.get(f'sequence_reprocess_required_{experiment_id}', False))
+
+
+def clear_sequence_reprocess_required(experiment_id):
+    """Clear the stale-sequence marker after a successful rerun."""
+    flask_session.pop(f'sequence_reprocess_required_{experiment_id}', None)
+
+
 def clear_experiment_session_state(experiment_id: int):
     """Remove all staging session keys tied to one experiment."""
     flask_session.pop(f'validation_{experiment_id}', None)
     flask_session.pop(f'parsing_result_{experiment_id}', None)
     flask_session.pop(f'sequence_status_{experiment_id}', None)
+    flask_session.pop(f'sequence_reprocess_required_{experiment_id}', None)

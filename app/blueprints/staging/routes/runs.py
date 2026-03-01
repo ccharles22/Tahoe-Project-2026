@@ -10,21 +10,35 @@ from sqlalchemy import text
 from app.extensions import db
 from app.services.staging.analysis_runtime import run_analysis_for_experiment
 from app.services.staging.session_state import (
+    clear_sequence_reprocess_required,
+    is_sequence_reprocess_required,
     save_sequence_status_to_session,
 )
 
 from .. import staging_bp
 
 
-def _run_sequence_processing_for_experiment(experiment_id: int) -> tuple[bool, str]:
+def _run_sequence_processing_for_experiment(
+    experiment_id: int,
+    *,
+    force_reprocess: bool,
+) -> tuple[bool, str]:
     """Run sequence processing synchronously and persist UI status text."""
     try:
         from app.jobs.run_sequence_processing import run_sequence_processing
 
-        # These staging actions are explicitly about refreshing downstream
-        # mutation-aware outputs, so always force a full reprocess.
-        run_sequence_processing(experiment_id, force_reprocess=True)
-        message = 'Sequence processing completed. Mutation outputs were refreshed in the database.'
+        run_sequence_processing(experiment_id, force_reprocess=force_reprocess)
+        clear_sequence_reprocess_required(experiment_id)
+        if force_reprocess:
+            message = (
+                'Sequence processing completed. Full mutation outputs were refreshed '
+                'because the experiment inputs changed.'
+            )
+        else:
+            message = (
+                'Sequence processing completed. Existing valid outputs were reused; '
+                'only missing variants were processed.'
+            )
         save_sequence_status_to_session(
             experiment_id,
             {
@@ -50,18 +64,29 @@ def _run_sequence_processing_for_experiment(experiment_id: int) -> tuple[bool, s
 
 def _has_sequence_outputs(experiment_id: int) -> bool:
     """Return True when sequence processing has already persisted results."""
+    if is_sequence_reprocess_required(experiment_id):
+        return False
+
     try:
-        count = db.session.execute(
+        counts = db.session.execute(
             text(
                 """
-                SELECT COUNT(*)
-                FROM variant_sequence_analysis
-                WHERE experiment_id = :eid
+                SELECT
+                  COUNT(DISTINCT v.variant_id) AS total_variants,
+                  COUNT(DISTINCT CASE WHEN vsa.vsa_id IS NOT NULL THEN v.variant_id END) AS analysed_variants
+                FROM public.variants v
+                JOIN public.generations g
+                  ON g.generation_id = v.generation_id
+                LEFT JOIN public.variant_sequence_analysis vsa
+                  ON vsa.variant_id = v.variant_id
+                WHERE g.experiment_id = :eid
                 """
             ),
             {'eid': experiment_id},
-        ).scalar()
-        return int(count or 0) > 0
+        ).mappings().one()
+        total_variants = int(counts['total_variants'] or 0)
+        analysed_variants = int(counts['analysed_variants'] or 0)
+        return total_variants > 0 and analysed_variants >= total_variants
     except Exception:
         db.session.rollback()
         return False
@@ -107,6 +132,12 @@ def run_sequence():
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
-    _, message = _run_sequence_processing_for_experiment(exp_id_int)
+    force_reprocess = request.form.get('force_reprocess', '').strip().lower() in {'1', 'true', 'yes', 'on'}
+    if not force_reprocess:
+        force_reprocess = is_sequence_reprocess_required(exp_id_int)
+    _, message = _run_sequence_processing_for_experiment(
+        exp_id_int,
+        force_reprocess=force_reprocess,
+    )
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))
