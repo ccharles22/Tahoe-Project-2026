@@ -452,7 +452,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: flex-start;
   padding: 0 28px;
-  height: 160px;
+  height: 136px;
   background: linear-gradient(180deg, rgba(236, 245, 255, 0.97) 0%, rgba(228, 241, 255, 0.95) 100%);
   border-bottom: 1px solid rgba(180, 206, 235, 0.78);
   box-shadow: 0 10px 22px rgba(18, 56, 93, 0.08);
@@ -480,9 +480,9 @@ a:hover { text-decoration: underline; }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(560px, 56vw, 920px);
+  width: clamp(480px, 50vw, 780px);
   max-width: 100%;
-  height: clamp(126px, 11.8vw, 150px);
+  height: clamp(104px, 9.8vw, 124px);
   object-fit: contain;
   object-position: left center;
   filter: drop-shadow(0 10px 16px rgba(18, 56, 93, 0.06));
@@ -1556,13 +1556,13 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav {
-    height: 118px;
+    height: 100px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(260px, 60vw, 380px);
+    width: clamp(220px, 54vw, 320px);
     max-width: calc(100% - 132px);
-    height: 92px;
+    height: 76px;
   }
   .home-nav__right {
     right: 16px;
