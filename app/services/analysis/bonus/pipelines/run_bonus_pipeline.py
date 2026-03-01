@@ -88,8 +88,8 @@ def refresh_materialized_views(view_names: Sequence[str]) -> None:
             cur.execute(f"REFRESH MATERIALIZED VIEW {v};")
 
 
-def check_activity_score_exists(generation_id: int) -> None:
-    """Fails early if a teammate's activity_score pipeline hasn't run yet."""
+def activity_scores_available(generation_id: int) -> bool:
+    """Return whether this generation has derived variant activity_score rows."""
     with get_cursor() as cur:
         cur.execute(
             """
@@ -103,12 +103,7 @@ def check_activity_score_exists(generation_id: int) -> None:
             (generation_id,),
         )
         n = int(cur.fetchone()[0])
-
-    if n == 0:
-        raise SystemExit(
-            f"No activity_score metrics found for generation_id={generation_id}.\n"
-            "Run the activity score computation first (your teammate's stage), then rerun this pipeline."
-        )
+    return n > 0
 
 
 def get_top_variant_id(generation_id: int) -> Optional[int]:
@@ -166,8 +161,13 @@ def run_pipeline(
             print(f"[warn] {label} skipped: {type(exc).__name__}: {exc}")
             return None
 
+    def _skip_plot(label: str, reason: str):
+        failures.append(f"{label}: {reason}")
+        print(f"[warn] {label} skipped: {reason}")
+        return None
+
     # Preconditions
-    check_activity_score_exists(generation_id)
+    has_activity_scores = activity_scores_available(generation_id)
 
     # If user requests tsne landscape, ensure we computed tsne coords
     if landscape_method == "tsne" and not include_tsne:
@@ -176,53 +176,64 @@ def run_pipeline(
             "Run again with: --include-tsne"
         )
 
-    # Ensure metric definitions exist
-    ensure_metric_definitions()
-
     # Create views (optional) and refresh
     if not skip_create_views:
         ensure_materialized_views(sql_dir)
 
-    # Precompute PCA/t-SNE embeddings into metrics
-    precompute_embeddings_for_generation(
-        generation_id=generation_id,
-        include_tsne=include_tsne,
-        seed=seed,
-        perplexity=perplexity,
-        refresh_view=False,
-    )
+    if has_activity_scores:
+        # Ensure metric definitions exist only when embeddings are needed.
+        ensure_metric_definitions()
+
+        # Precompute PCA/t-SNE embeddings into metrics.
+        precompute_embeddings_for_generation(
+            generation_id=generation_id,
+            include_tsne=include_tsne,
+            seed=seed,
+            perplexity=perplexity,
+            refresh_view=False,
+        )
+    else:
+        print(
+            f"[warn] No activity_score metrics found for generation_id={generation_id}. "
+            "Skipping activity-dependent bonus plots."
+        )
 
     # Refresh datatables
     refresh_materialized_views(["mv_activity_landscape", "mv_domain_mutation_enrichment"])
 
     # ---- Plots ----
 
-    out_landscape = _run_plot(
-        "Landscape (Plotly)",
-        plot_activity_landscape_plotly,
-        generation_id=generation_id,
-        method=landscape_method,
-        mode=landscape_mode,
-        grid_size=grid_size,
-        out_path=outputs_dir / f"activity_landscape_{landscape_method}_{landscape_mode}.html",
-    )
+    if has_activity_scores:
+        out_landscape = _run_plot(
+            "Landscape (Plotly)",
+            plot_activity_landscape_plotly,
+            generation_id=generation_id,
+            method=landscape_method,
+            mode=landscape_mode,
+            grid_size=grid_size,
+            out_path=outputs_dir / f"activity_landscape_{landscape_method}_{landscape_mode}.html",
+        )
 
-    out_surface = _run_plot(
-        "Surface (Matplotlib)",
-        plot_activity_surface_matplotlib,
-        generation_id=generation_id,
-        method=landscape_method,
-        grid_size=grid_size,
-        out_path=outputs_dir / f"activity_surface_{landscape_method}.png",
-    )
+        out_surface = _run_plot(
+            "Surface (Matplotlib)",
+            plot_activity_surface_matplotlib,
+            generation_id=generation_id,
+            method=landscape_method,
+            grid_size=grid_size,
+            out_path=outputs_dir / f"activity_surface_{landscape_method}.png",
+        )
 
-    out_traj = _run_plot(
-        "Trajectory",
-        plot_mutation_trajectory,
-        generation_id=generation_id,
-        top_n=top_n,
-        out_path=outputs_dir / f"mutation_trajectory_top{top_n}.html",
-    )
+        out_traj = _run_plot(
+            "Trajectory",
+            plot_mutation_trajectory,
+            generation_id=generation_id,
+            top_n=top_n,
+            out_path=outputs_dir / f"mutation_trajectory_top{top_n}.html",
+        )
+    else:
+        out_landscape = _skip_plot("Landscape (Plotly)", "No activity_score metrics found for this generation.")
+        out_surface = _skip_plot("Surface (Matplotlib)", "No activity_score metrics found for this generation.")
+        out_traj = _skip_plot("Trajectory", "No activity_score metrics found for this generation.")
 
     # All-generation heatmap
     out_domain_heat = _run_plot(
@@ -249,8 +260,8 @@ def run_pipeline(
         out_path=outputs_dir / "mutation_frequency_by_position.html",
     )
 
-    # Use top-activity variant if none specified
-    vid = fingerprint_variant_id or get_top_variant_id(generation_id)
+    # Use top-activity variant if none specified.
+    vid = fingerprint_variant_id or (get_top_variant_id(generation_id) if has_activity_scores else None)
     out_fingerprint = None
     if vid is not None:
         out_fingerprint = _run_plot(
