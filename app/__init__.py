@@ -154,6 +154,10 @@ def create_app():
         os.path.dirname(__file__), "..", "user_guide_mkdocs", "site"
     )
     metrics_site_dir = os.path.abspath(metrics_site_dir)
+    bonus_site_dir = os.path.join(
+        os.path.dirname(__file__), "..", "bonus_visualisations_mkdocs", "bonus_visualisations_mkdocs", "site"
+    )
+    bonus_site_dir = os.path.abspath(bonus_site_dir)
 
     def _serve_docs_target_from(base_dir: str, target: str):
         path = os.path.join(base_dir, target)
@@ -208,6 +212,9 @@ def create_app():
     def _serve_metrics_docs_target(target: str):
         return _serve_docs_target_from(metrics_site_dir, target)
 
+    def _serve_bonus_docs_target(target: str):
+        return _serve_docs_target_from(bonus_site_dir, target)
+
     @app.route("/metrics/")
     @app.route("/metrics/<path:filename>")
     def docs_metrics(filename: str = "index.html"):
@@ -219,6 +226,11 @@ def create_app():
     def docs_activity_score(filename: str = "index.html"):
         target = os.path.join("activity_score_calculations", filename)
         return _serve_metrics_docs_target(target)
+
+    @app.route("/bonus_visualisations/")
+    @app.route("/bonus_visualisations/<path:filename>")
+    def docs_bonus_visualisations(filename: str = "index.html"):
+        return _serve_bonus_docs_target(filename)
 
     # The metrics-only guide links back to a shared set of PostgreSQL
     # documentation pages at root-level paths. Mirror those URLs so cross-links

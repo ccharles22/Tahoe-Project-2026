@@ -1,0 +1,38 @@
+site_name: Tahoe Project 2026 – Bonus Visualisations
+site_description: Documentation for the bonus visualisation pipeline (directed evolution analysis).
+repo_url: https://github.com/your-org/Tahoe-Project-2026
+repo_name: Tahoe-Project-2026
+
+theme:
+  name: material
+  palette:
+    scheme: default
+    primary: teal
+    accent: amber
+  features:
+    - content.code.copy
+    - navigation.sections
+    - navigation.expand
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.superfences
+  - pymdownx.details
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Pipeline:
+    - Running the Pipeline: pipeline/usage.md
+    - CLI Reference: pipeline/cli-reference.md
+  - Visualisations:
+    - Activity Landscape: visualisations/activity-landscape.md
+    - Mutation Fingerprinting: visualisations/mutation-fingerprint.md
+    - Domain Enrichment Heatmap: visualisations/domain-enrichment.md
+    - Mutation Frequency: visualisations/mutation-frequency.md
+  - Database:
+    - Connection & Materialized Views: database/connection.md
