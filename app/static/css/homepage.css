@@ -452,7 +452,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: center;
   padding: 0 28px;
-  height: 132px;
+  height: 148px;
   background: rgba(255, 255, 255, 0.97);
   border-bottom: 1px solid rgba(189, 214, 241, 0.72);
   box-shadow: 0 10px 24px rgba(18, 56, 93, 0.08);
@@ -478,13 +478,12 @@ a:hover { text-decoration: underline; }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(420px, 48vw, 760px);
-  max-width: 100%;
-  height: clamp(84px, 9vw, 112px);
-  object-fit: cover;
+  width: clamp(460px, 52vw, 820px);
+  max-width: calc(100% - 240px);
+  height: clamp(102px, 10.5vw, 126px);
+  object-fit: contain;
   object-position: center;
-  border-radius: 16px;
-  background: #ffffff;
+  filter: drop-shadow(0 10px 16px rgba(18, 56, 93, 0.06));
 }
 
 .home-nav__logo {
@@ -1535,12 +1534,13 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav {
-    height: 102px;
+    height: 116px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(220px, 60vw, 340px);
-    height: 70px;
+    width: clamp(240px, 62vw, 360px);
+    max-width: calc(100% - 112px);
+    height: 82px;
   }
   .home-nav__right {
     right: 16px;
