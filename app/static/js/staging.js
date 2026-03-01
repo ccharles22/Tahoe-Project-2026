@@ -118,6 +118,45 @@ document.querySelectorAll('.btn--submit').forEach(btn => {
   }
 });
 
+function initRunLoader() {
+  const loader = document.getElementById('runLoader');
+  if (!loader) return;
+
+  const titleEl = document.getElementById('runLoaderTitle');
+  const textEl = document.getElementById('runLoaderText');
+
+  const copy = {
+    sequence: {
+      title: 'Processing Sequences',
+      text: 'The DNA reference is rotating through translation and mutation-calling now. This page will refresh when the run finishes.',
+    },
+    analysis: {
+      title: 'Running Analysis',
+      text: 'The portal is refreshing metrics, plots, and reports now. This page will update automatically when the run finishes.',
+    },
+  };
+
+  const showLoader = (mode) => {
+    const content = copy[mode] || copy.analysis;
+    if (titleEl) titleEl.textContent = content.title;
+    if (textEl) textEl.textContent = content.text;
+    loader.classList.add('is-visible');
+    loader.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('is-run-loading');
+  };
+
+  document
+    .querySelectorAll('form[action*="/sequence/run"], form[action*="/analysis/run"]')
+    .forEach((form) => {
+      form.addEventListener('submit', () => {
+        const mode = form.action.includes('/sequence/run') ? 'sequence' : 'analysis';
+        showLoader(mode);
+      });
+    });
+}
+
+initRunLoader();
+
 // Click experiment card to open
 document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
   const openCard = () => {

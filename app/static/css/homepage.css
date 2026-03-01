@@ -788,7 +788,7 @@ a:hover { text-decoration: underline; }
 .home-stage__viewport {
   display: grid;
   gap: 14px;
-  padding-top: clamp(300px, 42vh, 500px);
+  padding-top: 0;
   justify-items: end;
 }
 
@@ -1821,7 +1821,7 @@ a:hover { text-decoration: underline; }
   }
   .home-stage__viewport {
     gap: 10px;
-    padding-top: 18px;
+    padding-top: 0;
     justify-items: stretch;
   }
   .home-stage__card {
