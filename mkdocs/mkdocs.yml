@@ -45,14 +45,15 @@ nav:
       - Project Docs:
           - Architecture: parsing_qc/architecture.md
           - Parsing & QC Manual: parsing_qc/parsing_qc_manual.md
+  - Database & Schema:
+      - Database Overview: postgresql_visualization/database.md
+      - Schema Notes: postgresql_visualization/schema_design_notes.md
+      - Bonus Database Notes: bonus_visualisations/database/connection.md
   - Metric Computations:
       - Metrics Overview: postgresql_visualization/metrics.md
       - Activity Score Calculations: postgresql_visualization/activity_score_calculations.md
   - Visualisation Guide:
       - Overview: postgresql_visualization/index.md
-      - Database:
-          - Overview: postgresql_visualization/database.md
-          - Schema Notes: postgresql_visualization/schema_design_notes.md
       - Plots:
           - Overview: postgresql_visualization/plots.md
           - Lineage: postgresql_visualization/plots_lineage.md
@@ -69,7 +70,6 @@ nav:
       - Mutation Frequency: bonus_visualisations/visualisations/mutation-frequency.md
       - Pipeline Usage: bonus_visualisations/pipeline/usage.md
       - CLI Reference: bonus_visualisations/pipeline/cli-reference.md
-      - Database Notes: bonus_visualisations/database/connection.md
   - Ownership Notes:
       - Parsing & QC Ownership: parsing_qc/OWNERS.md
       - PostgreSQL & Visualization Ownership: postgresql_visualization/OWNERS.md
