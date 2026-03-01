@@ -452,7 +452,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  height: 74px;
+  height: 92px;
   background: linear-gradient(120deg, rgba(10, 27, 45, .88) 0%, rgba(17, 50, 74, .82) 100%);
   border-bottom: 1px solid rgba(220, 236, 252, .14);
   box-shadow: 0 8px 20px rgba(4, 16, 28, .18);
@@ -474,8 +474,8 @@ a:hover { text-decoration: underline; }
 
 .home-nav__portal-image {
   display: block;
-  width: clamp(220px, 34vw, 420px);
-  max-height: 56px;
+  width: clamp(250px, 36vw, 460px);
+  max-height: 74px;
   height: auto;
 }
 
@@ -1523,12 +1523,12 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .dashboard-grid { grid-template-columns: 1fr; }
   .home-nav {
-    height: 62px;
+    height: 72px;
     padding: 0 16px;
   }
   .home-nav__portal-image {
-    width: clamp(150px, 44vw, 210px);
-    max-height: 42px;
+    width: clamp(170px, 48vw, 240px);
+    max-height: 52px;
   }
   .home-nav__iconlink {
     width: 30px;
