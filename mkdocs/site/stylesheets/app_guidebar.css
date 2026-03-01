@@ -177,6 +177,27 @@
   box-shadow: inset 0 0 0 1px rgba(150, 188, 222, 0.9);
 }
 
+.md-tabs__item--active .md-tabs__link,
+.md-tabs__link--active {
+  color: #0d3b67 !important;
+  font-weight: 800;
+}
+
+.md-tabs__item--active {
+  position: relative;
+}
+
+.md-tabs__item--active::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: #1f74bf;
+}
+
 .md-grid {
   max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
 }
