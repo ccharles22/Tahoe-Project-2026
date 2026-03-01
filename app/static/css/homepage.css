@@ -670,6 +670,81 @@ a:hover { text-decoration: underline; }
   z-index: 0;
 }
 
+.home-hero__dna {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .36;
+}
+
+.home-hero__dna::before,
+.home-hero__dna::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.home-hero__dna::before {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(29, 211, 200, .18) 0%, transparent 34%),
+    radial-gradient(circle at 78% 26%, rgba(30, 144, 255, .16) 0%, transparent 28%),
+    radial-gradient(circle at 52% 82%, rgba(123, 245, 170, .14) 0%, transparent 34%);
+}
+
+.home-hero__dna::after {
+  background:
+    linear-gradient(180deg, rgba(8, 24, 41, .84) 0%, rgba(8, 24, 41, .20) 18%, rgba(8, 24, 41, .08) 50%, rgba(8, 24, 41, .24) 82%, rgba(8, 24, 41, .8) 100%);
+}
+
+.home-hero__dna-track {
+  position: absolute;
+  inset: -8% -4%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 24px 0;
+  transform: rotate(-3deg) scale(1.02);
+  font-family: "SF Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(12px, 1vw, 15px);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  animation: homeDnaScroll 28s linear infinite;
+  will-change: transform;
+}
+
+.home-hero__dna-row {
+  display: block;
+  white-space: nowrap;
+  opacity: .78;
+}
+
+.home-hero__dna-row:nth-child(4n) { opacity: .52; }
+.home-hero__dna-row:nth-child(3n) { opacity: .66; }
+
+.home-hero__dna-base--A { color: rgba(121, 224, 176, .92); }
+.home-hero__dna-base--C { color: rgba(56, 189, 248, .9); }
+.home-hero__dna-base--G { color: rgba(45, 212, 191, .92); }
+.home-hero__dna-base--T { color: rgba(96, 165, 250, .9); }
+
+@keyframes homeDnaScroll {
+  from {
+    transform: rotate(-3deg) scale(1.02) translateY(0);
+  }
+  to {
+    transform: rotate(-3deg) scale(1.02) translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-hero__dna-track {
+    animation: none;
+  }
+}
+
 .home-hero__content {
   position: relative;
   z-index: 1;
@@ -1816,6 +1891,14 @@ a:hover { text-decoration: underline; }
     font-size: 11px;
   }
   .home-hero { padding: 18px 16px 22px; }
+  .home-hero__dna {
+    opacity: .26;
+  }
+  .home-hero__dna-track {
+    gap: 8px;
+    letter-spacing: .16em;
+    font-size: 11px;
+  }
   .home-hero__content {
     grid-template-columns: 1fr;
     gap: 16px;

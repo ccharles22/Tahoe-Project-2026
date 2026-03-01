@@ -13,6 +13,7 @@
     const pipelineItems = document.querySelectorAll(".home-pipeline__item");
     const stageVisual = document.querySelector("[data-home-stage-visual]");
     const stageVisualTitle = document.querySelector("[data-home-stage-visual-title]");
+    const dnaTrack = document.querySelector("[data-home-dna-track]");
     const resultsTrack = document.querySelector("[data-home-carousel-track]");
     const resultsPrev = document.querySelector("[data-home-carousel-prev]");
     const resultsNext = document.querySelector("[data-home-carousel-next]");
@@ -24,6 +25,32 @@
       "analyse": "Analysis & Reporting",
       "sequence": "Sequence Processing",
     };
+
+    function buildDnaBackground() {
+      if (!dnaTrack) return;
+
+      const rowCount = 12;
+      const baseCount = Math.max(110, Math.ceil(window.innerWidth / 12) + 36);
+      const bases = ["A", "C", "G", "T"];
+
+      const createRow = () => {
+        let row = "";
+        for (let idx = 0; idx < baseCount; idx += 1) {
+          const base = bases[Math.floor(Math.random() * bases.length)];
+          row += `<span class="home-hero__dna-base--${base}">${base}</span>`;
+        }
+        return `<span class="home-hero__dna-row">${row}</span>`;
+      };
+
+      let firstSet = "";
+      for (let idx = 0; idx < rowCount; idx += 1) {
+        firstSet += createRow();
+      }
+      dnaTrack.innerHTML = `${firstSet}${firstSet}`;
+      if (reduceMotion) {
+        dnaTrack.style.transform = "rotate(-3deg) scale(1.02)";
+      }
+    }
 
     function setActiveStage(stageId) {
       if (!stageId) return;
@@ -70,6 +97,8 @@
     if (stageCards.length) {
       setActiveStage(stageCards[0].dataset.stage);
     }
+
+    buildDnaBackground();
 
     if (resultsTrack && resultsPrev && resultsNext) {
       const updateCarouselControls = () => {
