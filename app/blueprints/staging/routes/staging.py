@@ -244,16 +244,23 @@ def create_experiment():
         bonus_trajectory_path = os.path.join(bonus_dir, 'mutation_trajectory_top10.html')
         bonus_mutation_frequency_path = os.path.join(bonus_dir, 'mutation_frequency_by_position.html')
         bonus_domain_heatmap_path = os.path.join(bonus_dir, 'domain_enrichment_heatmap.html')
-        bonus_domain_generation_matches = glob.glob(os.path.join(bonus_dir, 'domain_enrichment_gen*.html'))
-        bonus_domain_generation_matches.sort(key=os.path.getmtime, reverse=True)
-        bonus_domain_generation_file = (
-            os.path.basename(bonus_domain_generation_matches[0]) if bonus_domain_generation_matches else ''
-        )
-        bonus_domain_generation_path = bonus_domain_generation_matches[0] if bonus_domain_generation_matches else ''
-        bonus_fingerprint_matches = glob.glob(os.path.join(bonus_dir, 'mutation_fingerprint_variant*.html'))
-        bonus_fingerprint_matches.sort(key=os.path.getmtime, reverse=True)
-        bonus_fingerprint_file = os.path.basename(bonus_fingerprint_matches[0]) if bonus_fingerprint_matches else ''
-        bonus_fingerprint_path = bonus_fingerprint_matches[0] if bonus_fingerprint_matches else ''
+        bonus_domain_generation_path = os.path.join(bonus_dir, 'domain_enrichment_latest.html')
+        bonus_domain_generation_file = 'domain_enrichment_latest.html'
+        if not os.path.exists(bonus_domain_generation_path):
+            bonus_domain_generation_matches = glob.glob(os.path.join(bonus_dir, 'domain_enrichment_gen*.html'))
+            bonus_domain_generation_matches.sort(key=os.path.getmtime, reverse=True)
+            bonus_domain_generation_file = (
+                os.path.basename(bonus_domain_generation_matches[0]) if bonus_domain_generation_matches else ''
+            )
+            bonus_domain_generation_path = bonus_domain_generation_matches[0] if bonus_domain_generation_matches else ''
+
+        bonus_fingerprint_path = os.path.join(bonus_dir, 'mutation_fingerprint_latest.html')
+        bonus_fingerprint_file = 'mutation_fingerprint_latest.html'
+        if not os.path.exists(bonus_fingerprint_path):
+            bonus_fingerprint_matches = glob.glob(os.path.join(bonus_dir, 'mutation_fingerprint_variant*.html'))
+            bonus_fingerprint_matches.sort(key=os.path.getmtime, reverse=True)
+            bonus_fingerprint_file = os.path.basename(bonus_fingerprint_matches[0]) if bonus_fingerprint_matches else ''
+            bonus_fingerprint_path = bonus_fingerprint_matches[0] if bonus_fingerprint_matches else ''
 
         sub = f'generated/{experiment_id}'
         analysis_outputs = {
