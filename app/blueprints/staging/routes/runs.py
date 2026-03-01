@@ -3,7 +3,7 @@
 import time
 import traceback
 
-from flask import current_app, redirect, request, url_for
+from flask import current_app, jsonify, redirect, request, url_for
 from flask_login import login_required
 from sqlalchemy import text
 
@@ -33,11 +33,8 @@ def _get_experiment_analysis_status(experiment_id: int) -> str:
     return str(status or '').strip().upper()
 
 
-def _has_sequence_outputs(experiment_id: int) -> bool:
-    """Return True when sequence processing has already persisted results."""
-    if is_sequence_reprocess_required(experiment_id):
-        return False
-
+def _has_persisted_sequence_outputs(experiment_id: int) -> bool:
+    """Return True when all variants for the experiment have sequence rows."""
     try:
         counts = db.session.execute(
             text(
@@ -61,6 +58,37 @@ def _has_sequence_outputs(experiment_id: int) -> bool:
     except Exception:
         db.session.rollback()
         return False
+
+
+def _has_sequence_outputs(experiment_id: int) -> bool:
+    """Return True when sequence outputs exist and are not marked stale."""
+    if is_sequence_reprocess_required(experiment_id):
+        return False
+    return _has_persisted_sequence_outputs(experiment_id)
+
+
+def _sequence_status_payload(experiment_id: int) -> tuple[dict, int]:
+    """Summarise current sequence-processing state for polling clients."""
+    persisted_status = _get_experiment_analysis_status(experiment_id)
+    if persisted_status == 'ANALYSIS_RUNNING':
+        return {
+            'state': 'running',
+            'message': 'Sequence processing is still running.',
+        }, 202
+    if persisted_status == 'FAILED':
+        return {
+            'state': 'failed',
+            'message': 'Sequence processing failed.',
+        }, 200
+    if _has_persisted_sequence_outputs(experiment_id):
+        return {
+            'state': 'completed',
+            'message': 'Sequence processing completed.',
+        }, 200
+    return {
+        'state': 'pending',
+        'message': 'Sequence processing has not completed yet.',
+    }, 200
 
 
 @staging_bp.post('/analysis/run')
@@ -94,12 +122,23 @@ def run_analysis():
     )
 
 
+@staging_bp.get('/sequence/status/<int:experiment_id>')
+@login_required
+def sequence_status_json(experiment_id: int):
+    """Return JSON status for the current sequence-processing run."""
+    payload, status_code = _sequence_status_payload(experiment_id)
+    return jsonify(payload), status_code
+
+
 @staging_bp.post('/sequence/run')
 @login_required
 def run_sequence():
     """Launch sequence processing in the background and return immediately."""
     experiment_id = request.form.get('experiment_id', '').strip()
+    is_xhr = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
     if not experiment_id.isdigit():
+        if is_xhr:
+            return jsonify({'state': 'failed', 'message': 'Missing experiment_id.'}), 400
         return redirect(url_for('staging.create_experiment', sequence_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
@@ -116,6 +155,8 @@ def run_sequence():
                 'completed_at_epoch': int(time.time()),
             },
         )
+        if is_xhr:
+            return jsonify({'state': 'completed', 'message': message}), 200
         return redirect(
             url_for(
                 'staging.create_experiment',
@@ -123,6 +164,8 @@ def run_sequence():
                 sequence_message=message,
             )
         )
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'state': 'completed', 'message': message}), 200
 
     try:
         current_status = _get_experiment_analysis_status(exp_id_int)
@@ -137,6 +180,8 @@ def run_sequence():
                     'completed_at_epoch': int(time.time()),
                 },
             )
+            if is_xhr:
+                return jsonify({'state': 'running', 'message': message}), 202
             return redirect(
                 url_for(
                     'staging.create_experiment',
@@ -144,6 +189,8 @@ def run_sequence():
                     sequence_message=message,
                 )
             )
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return jsonify({'state': 'running', 'message': message}), 202
 
         submit_sequence_processing(exp_id_int, force_reprocess=force_reprocess)
         if force_reprocess:
@@ -175,5 +222,10 @@ def run_sequence():
                 'technical_details': traceback.format_exc(),
             },
         )
+        if is_xhr:
+            return jsonify({'state': 'failed', 'message': message}), 500
+
+    if is_xhr:
+        return jsonify({'state': 'running', 'message': message}), 202
 
     return redirect(url_for('staging.create_experiment', experiment_id=experiment_id, sequence_message=message))

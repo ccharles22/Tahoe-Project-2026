@@ -151,6 +151,37 @@ function initRunLoader() {
     document.body.classList.remove('is-run-loading');
   };
 
+  const pollSequenceUntilFinished = (form) => {
+    const experimentId = form.querySelector('input[name="experiment_id"]')?.value;
+    if (!experimentId) {
+      window.location.reload();
+      return;
+    }
+    const statusUrl = form.action.replace('/sequence/run', `/sequence/status/${experimentId}`);
+
+    const tick = async () => {
+      try {
+        const response = await fetch(statusUrl, {
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+        const payload = await response.json();
+        if (payload.state === 'running' || payload.state === 'pending') {
+          window.setTimeout(tick, 2000);
+          return;
+        }
+        window.location.reload();
+      } catch (error) {
+        console.error('Sequence status poll failed:', error);
+        window.setTimeout(tick, 2500);
+      }
+    };
+
+    window.setTimeout(tick, 1500);
+  };
+
   document
     .querySelectorAll('form[action*="/sequence/run"], form[action*="/analysis/run"]')
     .forEach((form) => {
@@ -174,6 +205,19 @@ function initRunLoader() {
               'X-Requested-With': 'XMLHttpRequest',
             },
           });
+
+          if (mode === 'sequence') {
+            const payload = await response.json();
+            if (!response.ok && payload.state !== 'failed') {
+              throw new Error(`Request failed with status ${response.status}`);
+            }
+            if (payload.state === 'completed' || payload.state === 'failed') {
+              window.location.reload();
+              return;
+            }
+            pollSequenceUntilFinished(form);
+            return;
+          }
 
           if (!response.ok) {
             throw new Error(`Request failed with status ${response.status}`);
