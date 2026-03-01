@@ -131,8 +131,8 @@
           ('A', 'Fetch Wild-Type', step_a_done),
           ('B', 'Validate Plasmid', step_b_done),
           ('C', 'Upload Data', step_c_done),
-          ('D', 'Process Sequences', step_e_done),
-          ('E', 'Run Analysis', step_d_done)
+          ('D', 'Process Sequences', step_d_done),
+          ('E', 'Run Analysis', step_e_done)
         ] %}
           <div class="stepper__step {% if done %}stepper__step--done{% endif %} {% if letter == current_step %}stepper__step--active{% endif %}" title="Step {{ letter }}: {{ label }}">
             <div class="stepper__circle">{{ loop.index }}</div>
@@ -382,12 +382,12 @@
 
         <!-- STEP D (SEQUENCE PROCESSING) -->
         <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="D"
-             data-status="{{ 'done' if step_e_done else 'pending' }}">
+             data-status="{{ 'done' if step_d_done else 'pending' }}">
           <div class="task__top">
             <div class="task__step-badge task__step-badge--d">4</div>
             <div class="task__title">Process Sequences</div>
             <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
-            {% if step_e_done %}
+            {% if step_d_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
               <span class="badge badge--neutral">Pending</span>
@@ -414,12 +414,12 @@
 
         <!-- STEP E (ANALYSIS) -->
         <div class="task {% if not step_c_done %}is-locked{% endif %}" data-step="E"
-             data-status="{{ 'done' if step_d_done else 'pending' }}">
+             data-status="{{ 'done' if step_e_done else 'pending' }}">
           <div class="task__top">
             <div class="task__step-badge task__step-badge--e">5</div>
             <div class="task__title">Run Analysis</div>
             <button class="task__toggle" type="button" aria-label="Toggle step"><svg class="task__toggle-icon" viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="m6 9 6 6 6-6"></path></svg></button>
-            {% if step_d_done %}
+            {% if step_e_done %}
               <span class="badge badge--ok">Complete</span>
             {% elif step_c_done %}
               <span class="badge badge--neutral">Pending</span>
@@ -534,7 +534,7 @@
         {% endwith %}
 
         {% if experiment_id and run_summary_status %}
-        {% set actionable_partial = (run_summary_status == 'partial' and step_e_done and not step_d_done and not sequence_failed and not analysis_failed) %}
+        {% set actionable_partial = (run_summary_status == 'partial' and step_d_done and not step_e_done and not sequence_failed and not analysis_failed) %}
         <section class="run-summary run-summary--{{ 'success' if actionable_partial else run_summary_status }} run-summary--primary">
           <div class="run-summary__header">
             <span class="run-summary__badge">
@@ -547,7 +547,7 @@
             {% elif run_summary_status == 'partial' %}
               {% if sequence_failed %}
                 <p class="run-summary__headline">Sequence processing failed - analysis was not run.</p>
-              {% elif analysis_failed and step_e_done %}
+              {% elif analysis_failed and step_d_done %}
                 <p class="run-summary__headline">Sequence processing completed, but analysis failed.</p>
               {% elif actionable_partial %}
                 <p class="run-summary__headline">Sequence processing completed.</p>
@@ -584,7 +584,7 @@
               <div class="run-summary__item"><span>UniProt Annotations</span><strong>{{ wt_insights.annotation_summary }}</strong></div>
               <div class="run-summary__item run-summary__item--wide">
                 <span>Sequence Processing</span>
-                {% if step_e_done %}
+                {% if step_d_done %}
                   <strong>Completed{% if sequence_message %} - {{ sequence_message|replace('Sequence processing completed. ', '') }}{% endif %}</strong>
                 {% elif sequence_failed %}
                   <strong>Failed - {{ sequence_failure_reason }}</strong>
@@ -836,10 +836,10 @@
           <div class="panel__header">
             <span class="panel__step">4</span>
             Sequence Processing
-            {% if step_e_done %}<span class="badge badge--ok ml-auto">Complete</span>{% elif sequence_failed %}<span class="badge badge--bad ml-auto">Error</span>{% endif %}
+            {% if step_d_done %}<span class="badge badge--ok ml-auto">Complete</span>{% elif sequence_failed %}<span class="badge badge--bad ml-auto">Error</span>{% endif %}
           </div>
 
-          {% if step_e_done %}
+          {% if step_d_done %}
             <div class="note">{{ sequence_message if sequence_message else 'Sequence processing completed. Mutation outputs were refreshed.' }}</div>
           {% elif sequence_failed %}
             <div class="note note--danger">{{ sequence_message if sequence_message else 'Sequence processing failed.' }}</div>
