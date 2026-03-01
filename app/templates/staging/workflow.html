@@ -73,7 +73,7 @@
     {% set run_summary_status = 'partial' %}
   {% endif %}
 
-  <body class="staging-page">
+  <body class="staging-page" data-sequence-running="{{ 'true' if sequence_running and not step_e_done else 'false' }}">
     <!-- PAGE HEADER -->
     <header class="page-header">
       <a href="{{ url_for('auth.homepage') }}" class="back-btn">

@@ -13,7 +13,9 @@ from app.extensions import bcrypt, db
 from app.models import Experiment, User, WildtypeProtein
 from app.services.staging.session_state import (
     ValidationProxy,
+    clear_sequence_reprocess_required,
     get_parsing_result_from_session,
+    is_sequence_reprocess_required,
     get_sequence_status_from_session,
     get_validation_from_session,
     normalize_parsing_result,
@@ -242,6 +244,12 @@ def create_experiment():
                 sequence_running = True
         except Exception:
             db.session.rollback()
+        if (
+            sequence_completed
+            and not sequence_running
+            and is_sequence_reprocess_required(int(experiment_id))
+        ):
+            clear_sequence_reprocess_required(int(experiment_id))
 
         gen_dir = os.path.join(current_app.root_path, 'static', 'generated', str(experiment_id))
         plot_path = os.path.join(gen_dir, 'activity_distribution.png')

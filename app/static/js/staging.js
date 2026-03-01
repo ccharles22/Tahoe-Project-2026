@@ -193,6 +193,16 @@ function initRunLoader() {
 
 initRunLoader();
 
+function initSequenceAutoRefresh() {
+  const isRunning = document.body?.dataset?.sequenceRunning === 'true';
+  if (!isRunning) return;
+  window.setTimeout(() => {
+    window.location.reload();
+  }, 3000);
+}
+
+initSequenceAutoRefresh();
+
 // Click experiment card to open
 document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
   const openCard = () => {
