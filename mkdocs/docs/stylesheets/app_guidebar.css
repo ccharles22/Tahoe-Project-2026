@@ -106,12 +106,12 @@
 }
 
 .app-guidebar__inner {
-  min-height: 164px;
+  min-height: 132px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1.25rem;
-  padding: 1rem 0;
+  padding: 0.8rem 0;
 }
 
 .app-guidebar__brand {
@@ -127,9 +127,9 @@
 
 .app-guidebar__brand img {
   display: block;
-  height: clamp(126px, 10.8vw, 164px);
+  height: clamp(98px, 8.8vw, 132px);
   width: auto;
-  max-width: min(70vw, 980px);
+  max-width: min(66vw, 860px);
   object-fit: contain;
 }
 
@@ -269,8 +269,8 @@
   }
 
   .app-guidebar__brand img {
-    height: clamp(96px, 12vw, 132px);
-    max-width: min(82vw, 720px);
+    height: clamp(82px, 10.5vw, 112px);
+    max-width: min(78vw, 640px);
   }
 
   .app-guidebar__nav {
@@ -283,8 +283,8 @@
 
 @media (max-width: 600px) {
   .app-guidebar__brand img {
-    height: clamp(74px, 16vw, 104px);
-    max-width: min(88vw, 520px);
+    height: clamp(64px, 13.5vw, 88px);
+    max-width: min(82vw, 460px);
   }
 
   .app-guidebar__link {
