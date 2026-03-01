@@ -13,32 +13,63 @@ from app.services.analysis.bonus.database.postgres import get_connection
 def plot_domain_enrichment(
     generation_id: Optional[int] = None,
     metric: Literal["nonsyn_count", "nonsyn_per_residue"] = "nonsyn_count",
+    single_generation: bool = False,
     out_path: Path | str = "outputs/domain_enrichment_heatmap.html",
 ) -> Path:
     """Bar chart for a single generation, or cross-generation heatmap when generation_id is None."""
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
+    if generation_id is None:
+        raise ValueError("generation_id is required to resolve the target experiment.")
+
     sql = """
-      SELECT generation_id, domain_label, nonsyn_count, syn_count,
-             total_protein_mutations, domain_length, nonsyn_per_residue
-      FROM mv_domain_mutation_enrichment
+      WITH target_experiment AS (
+        SELECT e.experiment_id, e.wt_id
+        FROM generations g
+        JOIN experiments e ON e.experiment_id = g.experiment_id
+        WHERE g.generation_id = %s
+        LIMIT 1
+      )
+      SELECT
+        v.generation_id,
+        MIN(COALESCE(pf.description, pf.feature_type)) AS domain_label,
+        COUNT(*) FILTER (WHERE m.is_synonymous IS FALSE) AS nonsyn_count,
+        COUNT(*) FILTER (WHERE m.is_synonymous IS TRUE) AS syn_count,
+        COUNT(*) AS total_protein_mutations,
+        (pf.end_position - pf.start_position + 1) AS domain_length,
+        COUNT(*) FILTER (WHERE m.is_synonymous IS FALSE)::float
+          / NULLIF((pf.end_position - pf.start_position + 1), 0) AS nonsyn_per_residue
+      FROM target_experiment te
+      JOIN generations g
+        ON g.experiment_id = te.experiment_id
+      JOIN variants v
+        ON v.generation_id = g.generation_id
+      JOIN mutations m
+        ON m.variant_id = v.variant_id
+       AND m.mutation_type = 'protein'
+      JOIN protein_features pf
+        ON pf.wt_id = te.wt_id
+       AND m.position BETWEEN pf.start_position AND pf.end_position
+      WHERE (%s IS FALSE OR v.generation_id = %s)
+      GROUP BY
+        v.generation_id,
+        pf.feature_type,
+        pf.start_position,
+        pf.end_position
     """
-    params = ()
-    if generation_id is not None:
-        sql += " WHERE generation_id = %s"
-        params = (int(generation_id),)
+    params = (int(generation_id), single_generation, int(generation_id))
 
     with get_connection() as conn:
         df = pd.read_sql_query(sql, conn, params=params)
 
     if df.empty:
         raise RuntimeError(
-            "No rows found in mv_domain_mutation_enrichment. "
-            "Did you build/refresh the MV with valid protein_features (wt_id mapping)?"
+            "No domain-linked protein mutations were found for this experiment. "
+            "Domain enrichment requires both protein features and protein mutation rows."
         )
 
-    if generation_id is not None:
+    if single_generation:
         df = df.sort_values(metric, ascending=False).head(25)
         fig = px.bar(
             df,

@@ -210,6 +210,34 @@ def get_top_variant_id(generation_id: int) -> Optional[int]:
         return int(row[0]) if row else None
 
 
+def get_fallback_variant_id(generation_id: int) -> Optional[int]:
+    """Pick a recent variant with the richest non-synonymous protein mutation signal."""
+    with get_cursor() as cur:
+        cur.execute(
+            """
+            WITH ranked AS (
+                SELECT
+                  v.variant_id,
+                  COUNT(*) FILTER (
+                    WHERE m.mutation_type = 'protein'
+                      AND (m.is_synonymous IS FALSE OR m.is_synonymous IS NULL)
+                  ) AS nonsyn_mutations
+                FROM variants v
+                LEFT JOIN mutations m ON m.variant_id = v.variant_id
+                WHERE v.generation_id = %s
+                GROUP BY v.variant_id
+            )
+            SELECT variant_id
+            FROM ranked
+            ORDER BY nonsyn_mutations DESC, variant_id DESC
+            LIMIT 1
+            """,
+            (generation_id,),
+        )
+        row = cur.fetchone()
+        return int(row[0]) if row else None
+
+
 # -----------------------------
 # Main pipeline
 # -----------------------------
@@ -284,10 +312,6 @@ def run_pipeline(
             "Run again with: --include-tsne"
         )
 
-    # Create views (optional) and refresh
-    if not skip_create_views:
-        ensure_materialized_views(sql_dir)
-
     if has_activity_scores:
         # Ensure metric definitions exist only when embeddings are needed.
         ensure_metric_definitions()
@@ -305,20 +329,6 @@ def run_pipeline(
             f"[warn] No activity_score metrics found for generation_id={generation_id}. "
             "Skipping activity-dependent bonus plots."
         )
-
-    # Refresh datatables. If one MV fails, keep going and only skip the
-    # plots that actually depend on that view.
-    mv_refresh_failures = refresh_materialized_views(
-        ["mv_activity_landscape", "mv_domain_mutation_enrichment"]
-    )
-    domain_mv_failure = mv_refresh_failures.get("mv_domain_mutation_enrichment")
-    if domain_mv_failure:
-        failures.append(f"Domain MV refresh: {domain_mv_failure}")
-        print(f"[warn] Domain MV refresh skipped: {domain_mv_failure}")
-    activity_mv_failure = mv_refresh_failures.get("mv_activity_landscape")
-    if activity_mv_failure:
-        failures.append(f"Activity MV refresh: {activity_mv_failure}")
-        print(f"[warn] Activity MV refresh skipped: {activity_mv_failure}")
 
     # ---- Plots ----
 
@@ -369,44 +379,28 @@ def run_pipeline(
         )
 
     # All-generation heatmap
-    if domain_mv_failure:
-        domain_failure_msg = (
-            "The domain enrichment view could not be refreshed from the database. "
-            f"Details: {domain_mv_failure}"
-        )
-        out_domain_heat = _skip_plot(
-            "Domain heatmap",
-            domain_failure_msg,
-            out_path=outputs_dir / "domain_enrichment_heatmap.html",
-            placeholder_title="Domain Heatmap",
-        )
-        out_domain_bar = _skip_plot(
-            "Domain (gen bar)",
-            domain_failure_msg,
-            out_path=outputs_dir / "domain_enrichment_latest.html",
-            placeholder_title="Domain by Generation",
-        )
-    else:
-        out_domain_heat = _run_plot(
-            "Domain heatmap",
-            plot_domain_enrichment,
-            generation_id=None,
-            metric="nonsyn_count",
-            out_path=outputs_dir / "domain_enrichment_heatmap.html",
-            placeholder_title="Domain Heatmap",
-            placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or mutation data are missing.",
-        )
+    out_domain_heat = _run_plot(
+        "Domain heatmap",
+        plot_domain_enrichment,
+        generation_id=generation_id,
+        metric="nonsyn_count",
+        single_generation=False,
+        out_path=outputs_dir / "domain_enrichment_heatmap.html",
+        placeholder_title="Domain Heatmap",
+        placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or protein mutation data are missing.",
+    )
 
-        # Single-generation bar chart
-        out_domain_bar = _run_plot(
-            "Domain (gen bar)",
-            plot_domain_enrichment,
-            generation_id=generation_id,
-            metric="nonsyn_count",
-            out_path=outputs_dir / "domain_enrichment_latest.html",
-            placeholder_title="Domain by Generation",
-            placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",
-        )
+    # Single-generation bar chart
+    out_domain_bar = _run_plot(
+        "Domain (gen bar)",
+        plot_domain_enrichment,
+        generation_id=generation_id,
+        metric="nonsyn_count",
+        single_generation=True,
+        out_path=outputs_dir / "domain_enrichment_latest.html",
+        placeholder_title="Domain by Generation",
+        placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",
+    )
 
     out_mutation_frequency = _run_plot(
         "Mutation frequency",
@@ -418,7 +412,11 @@ def run_pipeline(
     )
 
     # Use top-activity variant if none specified.
-    vid = fingerprint_variant_id or (get_top_variant_id(generation_id) if has_activity_scores else None)
+    vid = fingerprint_variant_id
+    if vid is None and has_activity_scores:
+        vid = get_top_variant_id(generation_id)
+    if vid is None:
+        vid = get_fallback_variant_id(generation_id)
     out_fingerprint = None
     if vid is not None:
         out_fingerprint = _run_plot(
@@ -432,7 +430,7 @@ def run_pipeline(
     else:
         out_fingerprint = _skip_plot(
             "Fingerprint",
-            "No top-ranked variant with activity data is available for the latest generation.",
+            "No suitable variant with mutation data is available for the latest generation.",
             out_path=outputs_dir / "mutation_fingerprint_latest.html",
             placeholder_title="Mutation Fingerprint",
         )
