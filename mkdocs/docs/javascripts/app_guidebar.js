@@ -46,6 +46,35 @@ document.addEventListener("DOMContentLoaded", () => {
 
   header.before(guideBar);
 
+  const tabs = document.querySelector(".md-tabs");
+  const nativeTabsList = tabs ? tabs.querySelector(".md-tabs__list") : null;
+  if (tabs && nativeTabsList && !tabs.classList.contains("app-docs-tabs--enhanced")) {
+    const customTabs = document.createElement("nav");
+    customTabs.className = "app-docs-tabs";
+    customTabs.setAttribute("aria-label", "Documentation sections");
+
+    nativeTabsList.querySelectorAll(".md-tabs__item").forEach((item) => {
+      const link = item.querySelector(".md-tabs__link");
+      if (!link) return;
+
+      const tab = document.createElement("a");
+      tab.className = "app-docs-tab";
+      if (item.classList.contains("md-tabs__item--active") || link.classList.contains("md-tabs__link--active")) {
+        tab.classList.add("app-docs-tab--active");
+        tab.setAttribute("aria-current", "page");
+      }
+      tab.href = link.href;
+      tab.textContent = link.textContent.replace(/\s+/g, " ").trim();
+      customTabs.appendChild(tab);
+    });
+
+    const tabsGrid = tabs.querySelector(".md-grid");
+    if (tabsGrid) {
+      tabsGrid.appendChild(customTabs);
+      tabs.classList.add("app-docs-tabs--enhanced");
+    }
+  }
+
   const buildDnaForTrack = (track) => {
     if (!track) return;
 
@@ -96,7 +125,7 @@ document.addEventListener("DOMContentLoaded", () => {
   rebuildDnaRails();
   window.addEventListener("resize", scheduleRebuild, { passive: true });
 
-  document.querySelectorAll(".md-tabs__link").forEach((link) => {
+  document.querySelectorAll(".md-tabs__link, .app-docs-tab").forEach((link) => {
     link.addEventListener("click", (event) => {
       if (
         isLeaving ||
