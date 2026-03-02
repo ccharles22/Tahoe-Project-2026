@@ -1,6 +1,3 @@
-# Tahoe-Project-2026
-MSc Bioinformatics Software Development Group Project 2026 - Team Tahoe
-
 # Direct Evolution Monitoring Portal  
 ### Team Tahoe | MSc Bioinformatics | 2025–2026
 
@@ -169,6 +166,11 @@ The system demonstrates:
 ---
 
 ## Team
+-
+-
+-
+-
+-
 
 **Team Tahoe**
 
