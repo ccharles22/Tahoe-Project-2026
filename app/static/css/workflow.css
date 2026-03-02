@@ -1554,8 +1554,8 @@ a:hover { text-decoration: underline; }
   flex-direction: column;
   gap: 0;
   padding: 12px 0;
-  background: rgba(237, 245, 255, 0.56);
-  border-right: 1px solid rgba(173, 221, 249, 0.22);
+  background: rgba(247, 251, 255, 0.72);
+  border-right: 1px solid rgba(173, 221, 249, 0.28);
   align-items: center;
   position: sticky;
   top: 48px;
@@ -1576,11 +1576,11 @@ a:hover { text-decoration: underline; }
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.68;
+  opacity: 0.42;
   background:
-    linear-gradient(180deg, rgba(14, 40, 64, 0.94) 0%, rgba(19, 72, 114, 0.9) 44%, rgba(17, 150, 146, 0.78) 100%),
-    radial-gradient(ellipse 76% 66% at 50% 14%, rgba(95, 216, 255, 0.16) 0%, transparent 66%),
-    radial-gradient(circle at 50% 82%, rgba(56, 221, 204, 0.16) 0%, transparent 28%);
+    linear-gradient(180deg, rgba(70, 126, 172, 0.28) 0%, rgba(78, 160, 197, 0.24) 44%, rgba(73, 196, 183, 0.2) 100%),
+    radial-gradient(ellipse 76% 66% at 50% 14%, rgba(95, 216, 255, 0.12) 0%, transparent 66%),
+    radial-gradient(circle at 50% 82%, rgba(56, 221, 204, 0.1) 0%, transparent 28%);
 }
 
 .taskbar__dna::before,
@@ -1592,14 +1592,14 @@ a:hover { text-decoration: underline; }
 
 .taskbar__dna::before {
   background:
-    radial-gradient(circle at 18% 22%, rgba(29, 211, 200, 0.16) 0%, transparent 34%),
-    radial-gradient(circle at 78% 26%, rgba(30, 144, 255, 0.14) 0%, transparent 28%),
-    radial-gradient(circle at 52% 82%, rgba(123, 245, 170, 0.12) 0%, transparent 34%);
+    radial-gradient(circle at 18% 22%, rgba(29, 211, 200, 0.1) 0%, transparent 34%),
+    radial-gradient(circle at 78% 26%, rgba(30, 144, 255, 0.08) 0%, transparent 28%),
+    radial-gradient(circle at 52% 82%, rgba(123, 245, 170, 0.08) 0%, transparent 34%);
 }
 
 .taskbar__dna::after {
   background:
-    linear-gradient(180deg, rgba(11, 34, 54, 0.8) 0%, rgba(11, 34, 54, 0.2) 18%, rgba(11, 34, 54, 0.08) 50%, rgba(11, 34, 54, 0.24) 82%, rgba(11, 34, 54, 0.76) 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.24) 0%, rgba(255, 255, 255, 0.06) 18%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.04) 82%, rgba(255, 255, 255, 0.16) 100%);
 }
 
 .taskbar__dna-track {
@@ -1655,7 +1655,7 @@ a:hover { text-decoration: underline; }
   padding: 16px 10px;
   border-radius: var(--radius);
   text-decoration: none;
-  color: var(--text);
+  color: #183754;
   font-weight: 600;
   font-size: 12px;
   transition: all .2s var(--ease);
@@ -1669,15 +1669,15 @@ a:hover { text-decoration: underline; }
 }
 
 .taskbar__item:hover {
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.82);
   transform: translateY(-2px);
   text-decoration: none;
 }
 
 .taskbar__item--active {
-  background: rgba(59, 130, 246, 0.14);
-  border-color: rgba(59, 130, 246, 0.32);
-  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.14), var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.86);
+  border-color: rgba(59, 130, 246, 0.28);
+  box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.12), var(--shadow-sm);
   color: #1d4ed8;
 }
 
@@ -1701,6 +1701,7 @@ a:hover { text-decoration: underline; }
   white-space: nowrap;
   word-break: normal;
   line-height: 1.15;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 
