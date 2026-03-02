@@ -1190,8 +1190,8 @@ a:hover { text-decoration: underline; }
 
 .home-results-shell {
   display: grid;
-  grid-template-columns: minmax(240px, 330px) minmax(0, 1fr);
-  gap: clamp(18px, 3vw, 32px);
+  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+  gap: clamp(14px, 2vw, 20px);
   align-items: center;
 }
 
@@ -1252,7 +1252,7 @@ a:hover { text-decoration: underline; }
   display: grid;
   grid-template-columns: none;
   grid-auto-flow: column;
-  grid-auto-columns: minmax(356px, calc((100% - 30px) / 3));
+  grid-auto-columns: minmax(384px, calc((100% - 24px) / 3));
   gap: 18px;
   align-items: stretch;
   overflow-x: auto;
@@ -1301,18 +1301,18 @@ a:hover { text-decoration: underline; }
 .home-results-intro__copy {
   display: grid;
   gap: 10px;
-  max-width: 330px;
+  max-width: 230px;
 }
 
 .home-results-intro .home-section-title {
-  font-size: clamp(2.35rem, 3.7vw, 3.65rem);
+  font-size: clamp(1.9rem, 3vw, 2.9rem);
 }
 
 .home-results-intro__text {
   margin: 0;
   color: rgba(12, 28, 53, 0.74);
-  font-size: 15px;
-  line-height: 1.75;
+  font-size: 14px;
+  line-height: 1.68;
 }
 
 .home-results-intro__micro {
@@ -1876,7 +1876,7 @@ a:hover { text-decoration: underline; }
     height: 20px;
   }
   .home-results-grid {
-    grid-auto-columns: minmax(344px, calc((100% - 18px) / 2));
+    grid-auto-columns: minmax(356px, calc((100% - 18px) / 2));
     gap: 18px;
   }
 }
