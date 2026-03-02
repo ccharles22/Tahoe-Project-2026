@@ -63,3 +63,7 @@ This repo also includes an end-to-end PostgreSQL analysis/visualization flow for
 ### Reports
 - Generate: `python -m scripts.run_report`
 - Outputs are written under `app/static/generated/`
+
+
+### Acknowledgements 
+Thank you to Professor Conrad Bessant and Matteo Fumagalli  for your support.
