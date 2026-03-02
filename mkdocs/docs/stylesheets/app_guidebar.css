@@ -34,11 +34,11 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  opacity: 0.56;
+  opacity: 0.68;
   background:
-    linear-gradient(180deg, rgba(18, 47, 76, 0.88) 0%, rgba(24, 86, 136, 0.82) 44%, rgba(23, 184, 179, 0.68) 100%),
-    radial-gradient(ellipse 76% 66% at 50% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
-    radial-gradient(circle at 50% 82%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
+    linear-gradient(180deg, rgba(14, 40, 64, 0.94) 0%, rgba(19, 72, 114, 0.9) 44%, rgba(17, 150, 146, 0.78) 100%),
+    radial-gradient(ellipse 76% 66% at 50% 14%, rgba(95, 216, 255, 0.16) 0%, transparent 66%),
+    radial-gradient(circle at 50% 82%, rgba(56, 221, 204, 0.16) 0%, transparent 28%);
 }
 
 .app-guidebar-dna-rail--left {
@@ -65,7 +65,7 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 
 .app-guidebar-dna-rail::after {
   background:
-    linear-gradient(180deg, rgba(16, 43, 66, 0.72) 0%, rgba(16, 43, 66, 0.14) 18%, rgba(16, 43, 66, 0.04) 50%, rgba(16, 43, 66, 0.18) 82%, rgba(16, 43, 66, 0.68) 100%);
+    linear-gradient(180deg, rgba(11, 34, 54, 0.8) 0%, rgba(11, 34, 54, 0.2) 18%, rgba(11, 34, 54, 0.08) 50%, rgba(11, 34, 54, 0.24) 82%, rgba(11, 34, 54, 0.76) 100%);
 }
 
 .app-guidebar-dna-rail__dna-track {
