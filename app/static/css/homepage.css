@@ -1187,11 +1187,11 @@ a:hover { text-decoration: underline; }
 /* Results preview section */
 .home-results-preview {
   display: grid;
-  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
-  gap: clamp(14px, 2vw, 20px);
+  grid-template-columns: minmax(170px, 210px) minmax(0, 1fr);
+  gap: clamp(16px, 2vw, 24px);
   align-items: stretch;
-  width: min(calc(100vw - 36px), 1520px);
-  max-width: 1520px;
+  width: min(calc(100vw - 24px), 1760px);
+  max-width: 1760px;
   margin-top: 10px;
   padding: 0;
 }
