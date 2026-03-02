@@ -7,6 +7,61 @@
 (function () {
   "use strict";
 
+  /* 0. Decorative DNA side rails */
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function buildDnaForTrack(track) {
+    if (!track) return;
+
+    const railWidth = track.parentElement
+      ? track.parentElement.getBoundingClientRect().width
+      : 120;
+    const dnaRowHeight = 20;
+    const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.12) / dnaRowHeight));
+    const baseCount = Math.max(12, Math.ceil(railWidth / 10) + 8);
+    const bases = ["A", "C", "G", "T"];
+
+    const createRow = () => {
+      let row = "";
+      for (let idx = 0; idx < baseCount; idx += 1) {
+        const base = bases[Math.floor(Math.random() * bases.length)];
+        row += `<span class="settings-dna-rail__base--${base}">${base}</span>`;
+      }
+      return `<span class="settings-dna-rail__row">${row}</span>`;
+    };
+
+    let firstSet = "";
+    for (let idx = 0; idx < rowCount; idx += 1) {
+      firstSet += createRow();
+    }
+
+    track.innerHTML = `${firstSet}${firstSet}`;
+    if (reduceMotion) {
+      track.style.animation = "none";
+      track.style.transform = "rotate(-3deg) scale(1.02)";
+    }
+  }
+
+  function rebuildDnaRails() {
+    document.querySelectorAll("[data-settings-dna-track]").forEach((track) => {
+      buildDnaForTrack(track);
+    });
+  }
+
+  let resizeFrame = null;
+  const scheduleRebuild = () => {
+    if (resizeFrame !== null) {
+      window.cancelAnimationFrame(resizeFrame);
+    }
+    resizeFrame = window.requestAnimationFrame(() => {
+      resizeFrame = null;
+      rebuildDnaRails();
+    });
+  };
+
+  rebuildDnaRails();
+  window.addEventListener("resize", scheduleRebuild, { passive: true });
+
   /* Helpers */
   // Query helpers to reduce repeated DOM boilerplate.
   const $ = (sel, root = document) => root.querySelector(sel);
