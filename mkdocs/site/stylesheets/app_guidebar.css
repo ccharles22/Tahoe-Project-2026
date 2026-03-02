@@ -244,66 +244,6 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
     inset 0 -1px 0 rgba(10, 34, 56, 0.18);
 }
 
-.app-guidebar-native-tabs-hidden .md-tabs__list {
-  display: none !important;
-}
-
-.app-docs-tabs {
-  display: flex;
-  align-items: stretch;
-  gap: 2px;
-  min-height: 56px;
-  padding: 0 10px;
-  overflow: visible;
-  overflow-y: hidden;
-  justify-content: space-between;
-}
-
-.app-docs-tabs__link {
-  display: flex;
-  flex: 1 1 0;
-  align-items: center;
-  justify-content: center;
-  min-height: 56px;
-  min-width: 0;
-  padding: 12px 8px 9px;
-  white-space: nowrap;
-  font-size: 0.74rem;
-  line-height: 1.2;
-  font-weight: 700;
-  color: rgba(236, 248, 255, 0.8);
-  text-decoration: none;
-  text-align: center;
-  transition:
-    color 0.16s ease,
-    background-color 0.16s ease;
-}
-
-.app-docs-tabs__link:hover,
-.app-docs-tabs__link:focus-visible {
-  color: #ffffff;
-  text-decoration: none;
-  outline: none;
-}
-
-.app-docs-tabs__link--active {
-  position: relative;
-  color: #ffffff;
-  font-weight: 800;
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.app-docs-tabs__link--active::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 0;
-  height: 3px;
-  border-radius: 999px 999px 0 0;
-  background: #7ce6d5;
-}
-
 .md-tabs .md-grid {
   display: block;
   position: relative;
@@ -316,36 +256,34 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 .md-tabs__list {
   display: flex !important;
   align-items: stretch;
-  gap: 4px;
+  gap: 2px;
   min-height: 56px;
   contain: none;
   flex-wrap: nowrap;
-  overflow-x: auto;
+  overflow: visible;
   overflow-y: hidden;
   pointer-events: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.md-tabs__list::-webkit-scrollbar {
-  display: none;
+  justify-content: space-between;
 }
 
 .md-tabs__item {
   height: auto;
   padding-left: 0 !important;
   padding-right: 0 !important;
-  flex: 0 0 auto;
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .md-tabs__link {
   display: flex;
   align-items: center;
+  justify-content: center;
   min-height: 56px;
-  padding: 14px 14px 11px;
+  min-width: 0;
+  padding: 12px 8px 9px;
   margin-top: 0 !important;
   white-space: nowrap;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   line-height: 1.2;
   pointer-events: auto;
   cursor: pointer;
@@ -353,6 +291,7 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   opacity: 1 !important;
   transform: none !important;
   font-weight: 700;
+  text-align: center;
   transition:
     color 0.16s ease,
     background-color 0.16s ease,
@@ -400,15 +339,23 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
     padding: 0 10px;
   }
 
-  .app-docs-tabs {
-    padding: 0 10px;
+  .md-tabs__list {
     gap: 4px;
     justify-content: flex-start;
     overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
   }
 
-  .app-docs-tabs__link {
+  .md-tabs__list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .md-tabs__item {
     flex: 0 0 auto;
+  }
+
+  .md-tabs__link {
     padding: 12px 12px 9px;
     font-size: 0.78rem;
   }
