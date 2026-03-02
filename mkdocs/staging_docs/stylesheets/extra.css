@@ -1,0 +1,105 @@
+/* Custom styles for the user guide */
+
+/* Enhanced code blocks */
+.highlight {
+    border-radius: 4px;
+}
+
+/* Badge styling */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 0.25rem;
+    color: white;
+}
+
+.badge--ok {
+    background-color: #4CAF50;
+}
+
+.badge--warn {
+    background-color: #FFC107;
+    color: #000;
+}
+
+.badge--bad {
+    background-color: #F44336;
+}
+
+.badge--neutral {
+    background-color: #9E9E9E;
+}
+
+/* Step badges in documentation */
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    background-color: var(--md-primary-fg-color);
+    color: white;
+    font-weight: bold;
+    margin-right: 0.5rem;
+}
+
+/* Enhanced tables */
+table {
+    font-size: 0.9rem;
+}
+
+table th {
+    background-color: var(--md-primary-fg-color--light);
+}
+
+/* Mermaid diagram styling */
+.mermaid {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+/* Admonition customization */
+.admonition {
+    margin: 1.5rem 0;
+}
+
+/* File path styling */
+code {
+    padding: 0.1rem 0.3rem;
+    border-radius: 0.2rem;
+}
+
+/* Responsive images */
+img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Navigation improvements */
+.md-nav__link--active {
+    font-weight: 600;
+}
+
+/* Custom color for links in dark mode */
+[data-md-color-scheme="slate"] a {
+    color: #82B1FF;
+}
+
+/* Better spacing for lists */
+ul, ol {
+    line-height: 1.8;
+}
+
+/* Quote blocks */
+blockquote {
+    border-left: 4px solid var(--md-primary-fg-color);
+    padding-left: 1rem;
+    margin-left: 0;
+    font-style: italic;
+    color: var(--md-default-fg-color--light);
+}

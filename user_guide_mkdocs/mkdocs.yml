@@ -1,0 +1,83 @@
+site_name: Direct Evolution Monitoring - User Guide
+site_description: Step-by-step user guide for the Direct Evolution Monitoring Portal
+site_author: BIO727P Group Project Team
+docs_dir: staging_docs
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.instant
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+
+nav:
+  - Home: index.md
+  - Workflow Guide:
+      - Overview: workflow/overview.md
+      - Step 1 - Fetch Wild-Type: workflow/step1-fetch-wildtype.md
+      - Step 2 - Validate Plasmid: workflow/step2-validate-plasmid.md
+      - Step 3 - Upload Data: workflow/step3-upload-data.md
+      - Step 4 - Process Sequences: workflow/step4-process-sequences.md
+      - Step 5 - Run Analysis: workflow/step5-run-analysis.md
+  - Troubleshooting:
+      - Common Issues: troubleshooting/common-issues.md
+      - FAQs: troubleshooting/faqs.md
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - def_list
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+plugins:
+  - search
+  - tags
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com
+
+extra_css:
+  - stylesheets/extra.css
