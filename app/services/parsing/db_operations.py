@@ -195,30 +195,47 @@ def batch_upsert_variants(
 
     inserted_count = 0
     updated_count = 0
-    BATCH_SIZE = 50
+
+    prepared_records: List[Tuple[Dict[str, Any], Dict[str, Any]]] = [
+        extract_metadata_func(record) for record in records
+    ]
+    prepared_records.sort(
+        key=lambda item: safe_int(item[0].get("generation")) or 0
+    )
 
     # Pre-create all generations first
     gen_cache: Dict[int, Generation] = {}
     gen_nums_needed: Set[int] = set()
-    for record in records:
-        core_data, _ = extract_metadata_func(record)
+    for core_data, _ in prepared_records:
         gen_nums_needed.add(safe_int(core_data.get("generation")) or 0)
 
     for gn in gen_nums_needed:
         gen_cache[gn] = get_or_create_generation(session, experiment_id, gn)
     session.flush()
 
+    variant_rows = (
+        session.query(
+            Variant.variant_id,
+            Generation.generation_number,
+            Variant.plasmid_variant_index,
+        )
+        .join(Generation, Generation.generation_id == Variant.generation_id)
+        .filter(Generation.experiment_id == experiment_id)
+        .all()
+    )
+    variant_lookup = {
+        (int(generation_number), str(plasmid_variant_index)): int(variant_id)
+        for variant_id, generation_number, plasmid_variant_index in variant_rows
+    }
+
     # Process variants + metrics inside no_autoflush to avoid
     # mid-loop flushes that can fail on flaky connections.
     with session.no_autoflush:
-        pending_new: list = []
-        pending_parent_links: list = []
         wt_control_cache: Dict[int, WildtypeControl] = {}
         cleared_wt_generations: Set[int] = set()
         wt_control_values: Dict[int, Dict[str, list[float]]] = {}
 
-        for i, record in enumerate(records):
-            core_data, metadata = extract_metadata_func(record)
+        for core_data, metadata in prepared_records:
 
             gen_num = safe_int(core_data.get("generation")) or 0
             variant_index = str(safe_int(core_data.get("variant_index")) or "0")
@@ -274,9 +291,6 @@ def batch_upsert_variants(
                     _clear_variant_outputs(session, stale_variant.variant_id)
                     session.delete(stale_variant)
                     session.flush()
-
-                if (i + 1) % BATCH_SIZE == 0:
-                    session.flush()
                 continue
 
             existing = session.query(Variant).filter_by(
@@ -296,49 +310,36 @@ def batch_upsert_variants(
                     dna_yield=dna_yield,
                     protein_yield=protein_yield,
                 )
+                variant_lookup[(gen_num, variant_index)] = existing.variant_id
                 updated_count += 1
             else:
-                v = Variant(
-                    generation_id=gen.generation_id,
-                    plasmid_variant_index=variant_index,
-                    assembled_dna_sequence=dna_seq,
-                    extra_metadata=metadata or None,
-                )
-                session.add(v)
-                pending_new.append((v, gen.generation_id, dna_yield, protein_yield))
+                parent_variant_id = None
                 if (
                     parent_variant_index is not None
                     and parent_variant_index >= 0
                     and gen_num > 0
                 ):
-                    pending_parent_links.append((v, gen_num, parent_variant_index))
-                inserted_count += 1
-
-            if (i + 1) % BATCH_SIZE == 0:
-                session.flush()
-                for v_obj, gid, dy, py_ in pending_new:
-                    _create_raw_metrics(
-                        session,
-                        gid,
-                        variant_id=v_obj.variant_id,
-                        dna_yield=dy,
-                        protein_yield=py_,
+                    parent_variant_id = variant_lookup.get(
+                        (gen_num - 1, str(parent_variant_index))
                     )
-                pending_new.clear()
+                v = Variant(
+                    generation_id=gen.generation_id,
+                    parent_variant_id=parent_variant_id,
+                    plasmid_variant_index=variant_index,
+                    assembled_dna_sequence=dna_seq,
+                    extra_metadata=metadata or None,
+                )
+                session.add(v)
                 session.flush()
-
-        # Final flush for remaining records
-        session.flush()
-        for v_obj, gid, dy, py_ in pending_new:
-            _create_raw_metrics(
-                session,
-                gid,
-                variant_id=v_obj.variant_id,
-                dna_yield=dy,
-                protein_yield=py_,
-            )
-        pending_new.clear()
-        session.flush()
+                _create_raw_metrics(
+                    session,
+                    gen.generation_id,
+                    variant_id=v.variant_id,
+                    dna_yield=dna_yield,
+                    protein_yield=protein_yield,
+                )
+                variant_lookup[(gen_num, variant_index)] = v.variant_id
+                inserted_count += 1
 
         for gen_num, values in wt_control_values.items():
             wt_control = wt_control_cache[gen_num]
@@ -361,27 +362,6 @@ def batch_upsert_variants(
                 dna_yield=avg_dna,
                 protein_yield=avg_protein,
             )
-        session.flush()
-
-        variant_rows = (
-            session.query(
-                Variant.variant_id,
-                Generation.generation_number,
-                Variant.plasmid_variant_index,
-            )
-            .join(Generation, Generation.generation_id == Variant.generation_id)
-            .filter(Generation.experiment_id == experiment_id)
-            .all()
-        )
-        variant_lookup = {
-            (int(generation_number), str(plasmid_variant_index)): int(variant_id)
-            for variant_id, generation_number, plasmid_variant_index in variant_rows
-        }
-
-        for variant_obj, gen_num, parent_index in pending_parent_links:
-            parent_key = (gen_num - 1, str(parent_index))
-            variant_obj.parent_variant_id = variant_lookup.get(parent_key)
-
         session.flush()
 
     logger.info(
