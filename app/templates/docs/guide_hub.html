@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>User Guide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
     <style>
       :root {
         color-scheme: light;
@@ -22,10 +23,6 @@
       body {
         margin: 0;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
         position: relative;
         overflow-x: hidden;
         font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -34,6 +31,13 @@
           linear-gradient(122deg, rgba(20, 52, 79, 0.92) 0%, rgba(24, 86, 136, 0.86) 44%, rgba(23, 184, 179, 0.72) 100%),
           radial-gradient(ellipse 76% 66% at 16% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
           radial-gradient(circle at 82% 20%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
+      }
+
+      .guide-page {
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
       }
 
       .guide-dna {
@@ -120,58 +124,6 @@
           0 20px 46px rgba(16, 42, 68, 0.12);
         position: relative;
         z-index: 1;
-      }
-
-      .guide-topbar {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 16px;
-        margin-bottom: 18px;
-        padding: 10px 12px;
-        border-radius: 22px;
-        background:
-          linear-gradient(135deg, rgba(20, 162, 165, 0.88) 0%, rgba(20, 79, 125, 0.93) 48%, rgba(18, 50, 82, 0.96) 100%);
-        border: 1px solid rgba(92, 170, 224, 0.28);
-        box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.08),
-          0 12px 24px rgba(10, 30, 52, 0.18);
-      }
-
-      .guide-navlinks {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-      }
-
-      .guide-navlink {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 7px 12px;
-        border-radius: 999px;
-        border: 1px solid rgba(173, 221, 249, 0.28);
-        background: rgba(255, 255, 255, 0.14);
-        color: rgba(245, 251, 255, 0.92);
-        font-size: 0.78rem;
-        font-weight: 700;
-        text-decoration: none;
-        transition: border-color 0.18s ease, background-color 0.18s ease, transform 0.18s ease;
-      }
-
-      .guide-navlink:hover,
-      .guide-navlink:focus-visible {
-        border-color: rgba(157, 236, 228, 0.42);
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-1px);
-        outline: none;
-        text-decoration: none;
-      }
-
-      .guide-navlink--active {
-        color: #ffffff;
-        background: rgba(255, 255, 255, 0.22);
-        box-shadow: inset 0 0 0 1px rgba(157, 236, 228, 0.32);
       }
 
       .guide-title {
@@ -298,19 +250,8 @@
       }
 
       @media (max-width: 760px) {
-        body {
+        .guide-page {
           padding: 14px;
-        }
-
-        .guide-topbar {
-          flex-direction: column;
-          align-items: flex-start;
-          gap: 10px;
-          margin-bottom: 14px;
-        }
-
-        .guide-navlinks {
-          flex-wrap: wrap;
         }
 
         .guide-dna {
@@ -338,14 +279,38 @@
     <div class="guide-dna" aria-hidden="true">
       <div class="guide-dna__track" data-guide-dna-track></div>
     </div>
-    <main class="guide-shell">
-      <div class="guide-topbar">
-        <span class="guide-navlink guide-navlink--active" aria-current="page">User Guide</span>
-        <div class="guide-navlinks" aria-label="Guide navigation shortcuts">
-          <a class="guide-navlink" href="{{ url_for('auth.homepage') }}">Home</a>
-          <a class="guide-navlink" href="{{ url_for('staging.create_experiment') }}">Workspace</a>
-        </div>
+    <nav class="home-nav home-nav--on-dark">
+      <div class="home-nav__left">
+        <a href="{{ url_for('auth.homepage') }}" class="home-nav__brand home-nav__brand--portal">
+          <img
+            class="home-nav__portal-image"
+            src="{{ url_for('static', filename='img/team_tahoe_logo_nav.png') }}"
+            alt="Direct Evolution Monitoring Portal logo"
+          >
+        </a>
       </div>
+      <div class="home-nav__right">
+        <div class="home-nav__navlinks" aria-label="Primary navigation">
+          <a href="{{ url_for('auth.homepage') }}" class="home-nav__navlink">Home</a>
+          <a href="{{ url_for('staging.create_experiment') }}" class="home-nav__navlink">Workspace</a>
+        </div>
+        <a href="/guide/" class="home-nav__navlink home-nav__navlink--active" aria-current="page">User guide</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('auth.settings') }}" class="home-nav__iconbtn" aria-label="Account" title="{{ current_user.username }}">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+          </svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
+        {% else %}
+        <a href="{{ url_for('auth.homepage', auth='login') }}" class="home-nav__signin">Sign in</a>
+        <a href="{{ url_for('auth.homepage', auth='register') }}" class="home-nav__signup">Sign up</a>
+        {% endif %}
+      </div>
+    </nav>
+    <main class="guide-page">
+      <section class="guide-shell">
       <h1 class="guide-title">Choose a documentation path</h1>
       <p class="guide-subtitle">
         Start from the main guide home, jump into parsing and QC, review database and schema
@@ -434,6 +399,7 @@
           </p>
           <span class="guide-card__cta">Open GitHub &rarr;</span>
         </a>
+      </section>
       </section>
     </main>
 
