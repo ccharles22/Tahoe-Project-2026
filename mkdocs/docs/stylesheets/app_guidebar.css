@@ -251,31 +251,29 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 .app-docs-tabs {
   display: flex;
   align-items: stretch;
-  gap: 4px;
+  gap: 2px;
   min-height: 56px;
-  padding: 0 16px;
-  overflow-x: auto;
+  padding: 0 10px;
+  overflow: visible;
   overflow-y: hidden;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.app-docs-tabs::-webkit-scrollbar {
-  display: none;
+  justify-content: space-between;
 }
 
 .app-docs-tabs__link {
-  display: inline-flex;
+  display: flex;
+  flex: 1 1 0;
   align-items: center;
   justify-content: center;
   min-height: 56px;
-  padding: 14px 14px 11px;
+  min-width: 0;
+  padding: 12px 8px 9px;
   white-space: nowrap;
-  font-size: 0.82rem;
+  font-size: 0.74rem;
   line-height: 1.2;
   font-weight: 700;
   color: rgba(236, 248, 255, 0.8);
   text-decoration: none;
+  text-align: center;
   transition:
     color 0.16s ease,
     background-color 0.16s ease;
@@ -310,9 +308,9 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   display: block;
   position: relative;
   z-index: 1;
-  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
+  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 32px), 88rem);
   margin: 0 auto;
-  padding: 0 16px;
+  padding: 0 10px;
 }
 
 .md-tabs__list {
@@ -404,6 +402,15 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 
   .app-docs-tabs {
     padding: 0 10px;
+    gap: 4px;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+
+  .app-docs-tabs__link {
+    flex: 0 0 auto;
+    padding: 12px 12px 9px;
+    font-size: 0.78rem;
   }
 
   .md-grid {
