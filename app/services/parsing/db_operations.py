@@ -296,7 +296,6 @@ def batch_upsert_variants(
                     dna_yield=dna_yield,
                     protein_yield=protein_yield,
                 )
-                pending_parent_links.append((existing, gen_num, parent_variant_index))
                 updated_count += 1
             else:
                 v = Variant(
@@ -307,7 +306,12 @@ def batch_upsert_variants(
                 )
                 session.add(v)
                 pending_new.append((v, gen.generation_id, dna_yield, protein_yield))
-                pending_parent_links.append((v, gen_num, parent_variant_index))
+                if (
+                    parent_variant_index is not None
+                    and parent_variant_index >= 0
+                    and gen_num > 0
+                ):
+                    pending_parent_links.append((v, gen_num, parent_variant_index))
                 inserted_count += 1
 
             if (i + 1) % BATCH_SIZE == 0:
@@ -375,10 +379,6 @@ def batch_upsert_variants(
         }
 
         for variant_obj, gen_num, parent_index in pending_parent_links:
-            if parent_index is None or parent_index < 0 or gen_num <= 0:
-                variant_obj.parent_variant_id = None
-                continue
-
             parent_key = (gen_num - 1, str(parent_index))
             variant_obj.parent_variant_id = variant_lookup.get(parent_key)
 
