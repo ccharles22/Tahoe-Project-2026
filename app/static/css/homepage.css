@@ -444,8 +444,15 @@ a:hover { text-decoration: underline; }
 /* ---------- Homepage dashboard ---------- */
 .home-body {
   background:
-    linear-gradient(122deg, rgba(24, 52, 80, .9) 0%, rgba(30, 78, 118, .88) 50%, rgba(34, 120, 136, .84) 100%) top/100% 100vh no-repeat,
-    #ffffff;
+    linear-gradient(
+      122deg,
+      rgba(24, 52, 80, .92) 0%,
+      rgba(27, 66, 99, .9) 28%,
+      rgba(31, 88, 120, .88) 56%,
+      rgba(33, 106, 129, .86) 78%,
+      rgba(34, 120, 136, .84) 100%
+    ) no-repeat;
+  background-color: #227888;
 }
 
 .auth-sheet-open {
@@ -688,7 +695,14 @@ a:hover { text-decoration: underline; }
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(122deg, rgba(24, 52, 80, .9) 0%, rgba(30, 78, 118, .88) 50%, rgba(34, 120, 136, .84) 100%),
+    linear-gradient(
+      122deg,
+      rgba(24, 52, 80, .92) 0%,
+      rgba(27, 66, 99, .9) 28%,
+      rgba(31, 88, 120, .88) 56%,
+      rgba(33, 106, 129, .86) 78%,
+      rgba(34, 120, 136, .84) 100%
+    ),
     radial-gradient(ellipse 76% 66% at 16% 14%, rgba(95, 216, 255, .08) 0%, transparent 66%),
     radial-gradient(circle at 82% 20%, rgba(56, 221, 204, .08) 0%, transparent 28%);
   z-index: 0;
@@ -1208,6 +1222,20 @@ a:hover { text-decoration: underline; }
   border: none;
   background: #ffffff;
   box-shadow: none;
+  position: relative;
+  z-index: 1;
+}
+
+.home-results-preview::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 100vw;
+  height: calc(100% + 140vh);
+  transform: translateX(-50%);
+  background: #ffffff;
+  z-index: -1;
 }
 
 .home-results-transition {
