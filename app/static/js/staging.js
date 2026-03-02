@@ -59,59 +59,6 @@ document.querySelectorAll('.taskbar__item').forEach(item => {
 // Initialize on page load
 window.addEventListener('load', initializeSidebar);
 
-function initializeWorkflowDnaRail() {
-  const track = document.querySelector('[data-workflow-dna-track]');
-  if (!track) return;
-
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const bases = ['A', 'C', 'G', 'T'];
-
-  const buildTrack = () => {
-    const railWidth = track.parentElement
-      ? track.parentElement.getBoundingClientRect().width
-      : 424;
-    const rowHeight = 20;
-    const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.12) / rowHeight));
-    const baseCount = Math.max(40, Math.ceil(railWidth / 10) + 8);
-
-    const createRow = () => {
-      let row = '';
-      for (let idx = 0; idx < baseCount; idx += 1) {
-        const base = bases[Math.floor(Math.random() * bases.length)];
-        row += `<span class="workflow-dna-rail__base--${base}">${base}</span>`;
-      }
-      return `<span class="workflow-dna-rail__row">${row}</span>`;
-    };
-
-    let firstSet = '';
-    for (let idx = 0; idx < rowCount; idx += 1) {
-      firstSet += createRow();
-    }
-
-    track.innerHTML = `${firstSet}${firstSet}`;
-    if (reduceMotion) {
-      track.style.animation = 'none';
-      track.style.transform = 'rotate(-3deg) scale(1.02)';
-    }
-  };
-
-  let resizeFrame = null;
-  const scheduleBuild = () => {
-    if (resizeFrame !== null) {
-      window.cancelAnimationFrame(resizeFrame);
-    }
-    resizeFrame = window.requestAnimationFrame(() => {
-      resizeFrame = null;
-      buildTrack();
-    });
-  };
-
-  buildTrack();
-  window.addEventListener('resize', scheduleBuild, { passive: true });
-}
-
-window.addEventListener('load', initializeWorkflowDnaRail);
-
 // Apply dynamic progress width from template data attribute.
 window.addEventListener('load', () => {
   const progressFill = document.querySelector('.stepper-bar__fill[data-progress]');
