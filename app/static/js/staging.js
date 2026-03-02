@@ -151,10 +151,56 @@ function initRunLoader() {
     document.body.classList.remove('is-run-loading');
   };
 
+  const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
+
+  const readJsonPayload = async (response) => {
+    const contentType = (response.headers.get('content-type') || '').toLowerCase();
+    if (!contentType.includes('application/json')) {
+      return null;
+    }
+    return response.json();
+  };
+
+  const navigateToUrl = (rawTarget) => {
+    const targetUrl = new URL(rawTarget || window.location.href, window.location.href);
+    targetUrl.searchParams.set('_refresh', String(Date.now()));
+    window.location.assign(targetUrl.toString());
+  };
+
+  const pollSequenceUntilDone = async (experimentId, redirectUrl) => {
+    const pollUrl = `/staging/sequence/status?experiment_id=${encodeURIComponent(experimentId)}`;
+
+    const poll = async () => {
+      try {
+        const response = await fetch(pollUrl, {
+          credentials: 'same-origin',
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+        });
+        const payload = await readJsonPayload(response);
+        if (!payload) {
+          navigateToUrl(redirectUrl);
+          return;
+        }
+        if (payload.state === 'running' || payload.state === 'started' || payload.state === 'idle') {
+          window.setTimeout(poll, 3000);
+          return;
+        }
+        navigateToUrl(payload.redirect_url || redirectUrl);
+      } catch (error) {
+        console.error('Sequence polling failed:', error);
+        navigateToUrl(redirectUrl);
+      }
+    };
+
+    window.setTimeout(poll, 3000);
+  };
+
   document
     .querySelectorAll('form[action*="/sequence/run"], form[action*="/analysis/run"]')
     .forEach((form) => {
-      form.addEventListener('submit', () => {
+      form.addEventListener('submit', async (event) => {
         if (form.dataset.submitting === 'true') return;
 
         const mode = form.action.includes('/sequence/run') ? 'sequence' : 'analysis';
@@ -162,6 +208,42 @@ function initRunLoader() {
         form.dataset.submitting = 'true';
         if (submitBtn) submitBtn.classList.add('is-loading');
         showLoader(mode);
+
+        if (mode !== 'sequence' || isLocalHost) {
+          return;
+        }
+
+        event.preventDefault();
+
+        try {
+          const formData = new FormData(form);
+          const experimentId = String(formData.get('experiment_id') || '').trim();
+          const response = await fetch(form.action, {
+            method: form.method || 'POST',
+            body: formData,
+            credentials: 'same-origin',
+            redirect: 'follow',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest',
+            },
+          });
+
+          const payload = await readJsonPayload(response);
+          if (!payload) {
+            navigateToUrl(window.location.href);
+            return;
+          }
+
+          if (payload.state === 'started' || payload.state === 'running') {
+            pollSequenceUntilDone(experimentId, payload.redirect_url || window.location.href);
+            return;
+          }
+
+          navigateToUrl(payload.redirect_url || window.location.href);
+        } catch (error) {
+          console.error('Sequence run request failed:', error);
+          navigateToUrl(window.location.href);
+        }
       });
     });
 }
