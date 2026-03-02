@@ -72,6 +72,18 @@ Use this section when you need to understand:
 This is the right section for upload problems, unexpected warnings, and record
 validation questions.
 
+### Staging Docs
+
+Use this section when you want to understand:
+
+- how the workspace is laid out
+- what each workflow step is responsible for
+- where to look when outputs are missing from the experiment page
+- how the staging page connects sequence processing and analysis
+
+This is the best section for understanding how the live workspace behaves in
+practice.
+
 ### Database & Schema
 
 Use this section when you need:
@@ -131,9 +143,10 @@ areas of responsibility.
 
 1. `Home Guide`
 2. `Parsing & QC`
-3. `Workspace`
-4. `Metric Computations`
-5. `Visualisation Guide`
+3. `Staging Docs`
+4. `Workspace`
+5. `Metric Computations`
+6. `Visualisation Guide`
 
 ### If you are validating analysis outputs
 
@@ -144,9 +157,10 @@ areas of responsibility.
 ### If you are troubleshooting a run
 
 1. `Workspace`
-2. `Parsing & QC`
-3. `Metric Computations`
-4. `Database & Schema`
+2. `Staging Docs`
+3. `Parsing & QC`
+4. `Metric Computations`
+5. `Database & Schema`
 
 ## Practical use
 
