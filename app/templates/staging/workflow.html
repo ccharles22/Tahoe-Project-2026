@@ -108,13 +108,8 @@
           >
             Workspace
           </a>
+          <a href="/guide/" class="page-header__navlink">User Guide</a>
         </div>
-        <a href="/guide/" class="page-header__iconbtn" aria-label="User Guide" title="User Guide">
-          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v16.5a1.5 1.5 0 0 1-1.5 1.5H6.5A2.5 2.5 0 0 1 4 18.5v-13Z"></path>
-            <path d="M8 7h8M8 11h8M8 15h6"></path>
-          </svg>
-        </a>
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('auth.settings') }}" class="page-header__iconbtn" aria-label="Account" title="{{ current_user.username }}">
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
