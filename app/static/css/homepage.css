@@ -597,20 +597,21 @@ a:hover { text-decoration: underline; }
 .home-nav__logout {
   font-size: 12px;
   font-weight: 600;
-  color: #fff0f0;
+  color: #fff7f7;
   text-decoration: none;
   padding: 5px 10px;
   border-radius: var(--radius);
-  border: 1px solid rgba(255, 171, 171, 0.32);
-  background: rgba(183, 51, 62, 0.2);
-  box-shadow: none;
+  border: 1px solid rgba(255, 150, 150, 0.5);
+  background: rgba(201, 56, 72, 0.34);
+  box-shadow: 0 8px 18px rgba(88, 12, 24, 0.16);
   transition: all .15s var(--ease);
 }
 
 .home-nav__logout:hover {
-  background: rgba(183, 51, 62, 0.28);
-  border-color: rgba(255, 171, 171, 0.42);
+  background: rgba(214, 62, 79, 0.48);
+  border-color: rgba(255, 176, 176, 0.6);
   color: #ffffff;
+  box-shadow: 0 10px 22px rgba(88, 12, 24, 0.24);
   text-decoration: none;
 }
 
