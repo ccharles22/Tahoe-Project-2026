@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Settings &mdash; Direct Evolution Monitoring</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/settings.css') }}">
     <link rel="icon" type="image/png" sizes="128x128" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
@@ -15,14 +16,28 @@
       <div class="settings-dna__track" data-settings-dna-track></div>
     </div>
 
-    <!-- Compact utility header -->
-    <nav class="home-nav" aria-label="Primary navigation">
-      <div class="home-nav__brand" aria-label="DirectEvo home">
-        <span class="home-nav__logo" aria-hidden="true">DE</span>
-        <span class="home-nav__name">DirectEvo</span>
+    <nav class="home-nav home-nav--on-dark" aria-label="Primary navigation">
+      <div class="home-nav__left">
+        <a href="{{ url_for('auth.homepage') }}" class="home-nav__brand home-nav__brand--portal">
+          <img
+            class="home-nav__portal-image"
+            src="{{ url_for('static', filename='img/team_tahoe_logo_nav.png') }}"
+            alt="Direct Evolution Monitoring Portal logo"
+          >
+        </a>
       </div>
       <div class="home-nav__right">
-        <span class="home-nav__user" aria-label="Logged in as {{ current_user.username }}">{{ current_user.username }}</span>
+        <div class="home-nav__navlinks" aria-label="Primary navigation">
+          <a href="{{ url_for('auth.homepage') }}" class="home-nav__navlink">Home</a>
+          <a href="{{ url_for('staging.create_experiment') }}" class="home-nav__navlink">Workspace</a>
+        </div>
+        <a href="/guide/" class="home-nav__navlink">User Guide</a>
+        <a href="{{ url_for('auth.settings') }}" class="home-nav__iconbtn" aria-label="Account settings" aria-current="page" title="{{ current_user.username }}">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+          </svg>
+        </a>
         <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Log out</a>
       </div>
     </nav>
