@@ -73,10 +73,6 @@ nav:
       - Mutation Frequency: bonus_visualisations/visualisations/mutation-frequency.md
       - Pipeline Usage: bonus_visualisations/pipeline/usage.md
       - CLI Reference: bonus_visualisations/pipeline/cli-reference.md
-  - Ownership Notes:
-      - Parsing & QC Ownership: parsing_qc/OWNERS.md
-      - PostgreSQL & Visualization Ownership: postgresql_visualization/OWNERS.md
-
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true
