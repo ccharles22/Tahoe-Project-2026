@@ -1,3 +1,5 @@
+"""Interactive fingerprint view for mutation composition of one variant."""
+
 from __future__ import annotations
 
 import argparse
@@ -33,6 +35,7 @@ def fetch_lineage(conn, variant_id: int) -> pd.DataFrame:
 
 
 def fetch_mutations_for_variants(conn, variant_ids: list[int]) -> pd.DataFrame:
+    """Fetch nonsynonymous protein mutations for the supplied variant chain."""
     return pd.read_sql_query(
         """
         SELECT variant_id, position, original, mutated
@@ -114,6 +117,7 @@ def plot_mutation_fingerprint(
 
 
 def main():
+    """CLI entrypoint for exporting a mutation-fingerprint plot."""
     ap = argparse.ArgumentParser(description="Mutation fingerprint plot coloured by generation introduced.")
     ap.add_argument("--variant-id", type=int, required=True)
     ap.add_argument("--out", default="outputs/mutation_fingerprint.html")

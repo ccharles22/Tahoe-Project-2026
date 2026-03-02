@@ -1,3 +1,5 @@
+"""Database models used by the UI_test Flask application."""
+
 import os
 from datetime import datetime
 

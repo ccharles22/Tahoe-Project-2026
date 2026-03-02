@@ -1,3 +1,8 @@
+/**
+ * auth_password_toggle.js
+ * Shared password reveal toggles for auth forms on non-settings pages.
+ */
+
 (function () {
   "use strict";
 

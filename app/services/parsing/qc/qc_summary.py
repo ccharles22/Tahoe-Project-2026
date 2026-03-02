@@ -15,6 +15,7 @@ from app.services.parsing.qc import QualityControl
 
 
 def show_stats(name, arr):
+    """Print a compact percentile summary for a numeric QC series."""
     arr = np.array(arr)
     if arr.size == 0:
         print(f"{name}: no values")
@@ -26,6 +27,7 @@ def show_stats(name, arr):
 
 
 def main():
+    """CLI entrypoint for summarising TSV parsing QC distributions."""
     parser = TSVParser("data/parsing/DE_BSU_Pol_Batch_1.tsv")
     ok = parser.parse()
     if not ok:

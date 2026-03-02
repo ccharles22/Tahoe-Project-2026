@@ -1,3 +1,5 @@
+"""Compute and persist PCA/t-SNE embeddings for bonus visualisations."""
+
 from __future__ import annotations
 
 import argparse
@@ -19,6 +21,7 @@ from app.services.analysis.bonus.features.mutation_vector import build_mutation_
 
 
 def fetch_variants_and_mutations(conn, generation_id: int) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    """Fetch variants and nonsynonymous protein mutations for one generation."""
     variants = pd.read_sql_query(
         """
         SELECT variant_id, generation_id, plasmid_variant_index, parent_variant_id
@@ -44,12 +47,14 @@ def fetch_variants_and_mutations(conn, generation_id: int) -> Tuple[pd.DataFrame
 
 
 def compute_pca_xy(X: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
+    """Return two-dimensional PCA coordinates for the supplied feature matrix."""
     pca = PCA(n_components=2, random_state=seed)
     coords = pca.fit_transform(X.values)
     return pd.DataFrame({"variant_id": X.index, "pca_x": coords[:, 0], "pca_y": coords[:, 1]})
 
 
 def compute_tsne_xy(X: pd.DataFrame, seed: int = 42, perplexity: int = 30) -> pd.DataFrame:
+    """Return two-dimensional t-SNE coordinates when enough rows are present."""
     n = X.shape[0]
     if n < 3:
         return pd.DataFrame({"variant_id": X.index, "tsne_x": np.nan, "tsne_y": np.nan})
@@ -72,6 +77,7 @@ def make_metric_rows(
     metric_def_ids: Dict[tuple[str, str], int],
     include_tsne: bool,
 ) -> List[Dict[str, Any]]:
+    """Convert embedding coordinates into metric rows ready for insertion."""
     rows: List[Dict[str, Any]] = []
     for _, r in df_coords.iterrows():
         vid = int(r["variant_id"])
@@ -173,6 +179,7 @@ def precompute_embeddings_for_generation(
 
 
 def main():
+    """CLI entrypoint for precomputing and storing generation embeddings."""
     ap = argparse.ArgumentParser(description="Precompute PCA/t-SNE embeddings and store in metrics.")
     ap.add_argument("--generation-id", type=int, required=True)
     ap.add_argument("--include-tsne", action="store_true")

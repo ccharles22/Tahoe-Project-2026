@@ -1,3 +1,5 @@
+"""Map protein mutations onto UniProt feature intervals for enrichment plots."""
+
 from __future__ import annotations
 
 import argparse
@@ -44,6 +46,7 @@ def query_domain_enrichment(conn, generation_id: int, wt_id: int) -> pd.DataFram
 
 
 def main():
+    """CLI entrypoint for inspecting domain-enrichment values."""
     ap = argparse.ArgumentParser(description="Query domain-level mutation enrichment (needs wt_id or auto-detect).")
     ap.add_argument("--generation-id", type=int, required=True)
     ap.add_argument("--wt-id", type=int, default=None, help="WT ID used by protein_features.wt_id (if auto-detect fails).")

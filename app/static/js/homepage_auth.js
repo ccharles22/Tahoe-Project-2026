@@ -1,3 +1,8 @@
+/**
+ * homepage_auth.js
+ * Controls the auth drawer shown from homepage sign-in and sign-up actions.
+ */
+
 (() => {
   const sheet = document.getElementById("auth-sheet");
   if (!sheet) return;

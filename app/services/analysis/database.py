@@ -1,3 +1,5 @@
+"""Database connection helpers for the analysis service layer."""
+
 from __future__ import annotations
 
 import os

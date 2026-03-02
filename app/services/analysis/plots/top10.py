@@ -1,3 +1,5 @@
+"""Matplotlib renderer for the Top 10 ranked variant table."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,6 +14,7 @@ from matplotlib.patches import Rectangle
 
 
 def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None:
+    """Render the Top 10 ranking table image for one experiment."""
     if df_top10 is None or df_top10.empty:
         raise ValueError("df_top10 is empty; nothing to plot")
 

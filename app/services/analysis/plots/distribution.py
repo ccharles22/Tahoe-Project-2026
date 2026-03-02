@@ -1,3 +1,5 @@
+"""Matplotlib renderer for the activity distribution visualisation."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -13,6 +15,7 @@ from matplotlib.patches import Rectangle
 
 
 def plot_activity_distribution(df_dist: pd.DataFrame, out_path: Union[str, Path]) -> None:
+    """Render the violin-style activity distribution plot for one experiment."""
     if df_dist is None or df_dist.empty:
         raise ValueError("df_dist is empty; nothing to plot")
 

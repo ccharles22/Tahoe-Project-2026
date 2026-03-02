@@ -1,3 +1,5 @@
+"""Protein similarity and co-occurrence network plotting helpers."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
@@ -183,7 +185,8 @@ def build_protein_similarity_edges( #build edges based on sequence identity abov
 	seq_col: str,
 	identity_threshold: float,
 ) -> pd.DataFrame:
-	
+	"""Build pairwise similarity edges for equal-length protein sequences."""
+
 	# WARNING: O(N^2) - keep nodes_sub small (<= ~400).
 	ids = nodes_sub[id_col].tolist()
 	seqs = nodes_sub[seq_col].tolist()
@@ -296,6 +299,7 @@ def plot_protein_similarity_network(
 	activity_col: str = "activity_score",
 	top_col: str = "is_top10",
 ) -> None:
+	"""Render the protein network visualisation for one experiment."""
 	_require_networkx()
 
 	if nodes is None or nodes.empty:

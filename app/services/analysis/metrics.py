@@ -1,8 +1,11 @@
+"""Helpers for writing derived variant metrics into PostgreSQL."""
+
 from __future__ import annotations
 from typing import Any, Dict, List
 
 
 def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
+    """Insert or update the supplied metric rows for analysed variants."""
     if not rows:
         return 0
 

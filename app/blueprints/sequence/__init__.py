@@ -1,3 +1,5 @@
+"""Sequence-processing blueprint registration."""
+
 from flask import Blueprint
 
 sequence_bp = Blueprint("sequence", __name__, url_prefix="/api")

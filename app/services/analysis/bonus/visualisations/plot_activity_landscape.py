@@ -1,3 +1,5 @@
+"""Plotly-based bonus landscape visualisation for activity embeddings."""
+
 from __future__ import annotations
 
 import argparse
@@ -178,6 +180,7 @@ def plot_activity_landscape_plotly(
 
 
 def main():
+    """CLI entrypoint for exporting an interactive activity landscape."""
     ap = argparse.ArgumentParser(
         description="3D Activity Landscape: X/Y = PCA or t-SNE (diversity), Z = activity_score"
     )

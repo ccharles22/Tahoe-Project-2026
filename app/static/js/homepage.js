@@ -1,3 +1,8 @@
+/**
+ * homepage.js
+ * Homepage-only motion, stage-card interactions, and results carousel behavior.
+ */
+
 (() => {
   function initHomeMotion() {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

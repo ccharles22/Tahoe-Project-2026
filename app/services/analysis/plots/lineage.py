@@ -1,3 +1,5 @@
+"""Matplotlib renderer for the experiment-local lineage visualisation."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -561,6 +563,7 @@ def plot_layered_lineage(
     mutations_col: str = "protein_mutations",
     config: PlotConfig = PlotConfig(),
 ) -> None:
+    """Render the lineage visualisation for a single experiment."""
     if nodes is None or nodes.empty:
         raise ValueError("nodes is empty; nothing to plot")
 

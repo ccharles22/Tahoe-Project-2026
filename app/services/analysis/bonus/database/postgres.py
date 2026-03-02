@@ -176,10 +176,12 @@ def bulk_insert_metrics(conn: PGConnection, rows: List[Dict[str, Any]]) -> None:
 
 
 def refresh_materialized_view(conn: PGConnection, view_name: str) -> None:
+    """Refresh a single materialized view in the current transaction."""
     with conn.cursor() as cur:
         cur.execute(f"REFRESH MATERIALIZED VIEW {view_name};")
 
 
 def refresh_views(conn: PGConnection, view_names: Sequence[str]) -> None:
+    """Refresh each named materialized view in order."""
     for v in view_names:
         refresh_materialized_view(conn, v)

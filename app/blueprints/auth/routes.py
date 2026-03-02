@@ -1,4 +1,6 @@
-﻿from flask import render_template, url_for, redirect, flash, request
+﻿"""Authentication and homepage routes for the UI_test app."""
+
+from flask import render_template, url_for, redirect, flash, request
 from flask_login import login_user, logout_user, current_user, login_required
 from sqlalchemy.exc import IntegrityError
 
@@ -12,6 +14,7 @@ from flask import current_app
 
 @auth_bp.route("/register", methods=["GET", "POST"])
 def register():
+    """Redirect the register shortcut to the homepage auth sheet."""
     if current_user.is_authenticated:
         return redirect(url_for("auth.homepage"))
     return redirect(url_for("auth.homepage", auth="register"))
@@ -19,6 +22,7 @@ def register():
 
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
+    """Redirect the login shortcut to the homepage auth sheet."""
     if current_user.is_authenticated:
         return redirect(url_for("auth.homepage"))
     next_page = (request.values.get("next") or "").strip()
@@ -30,6 +34,7 @@ def login():
 @auth_bp.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
+    """Terminate the current session and return to the homepage."""
     logout_user()
     flash("You have been logged out successfully.", "success")
     return redirect(url_for("auth.homepage"))
@@ -37,6 +42,7 @@ def logout():
 
 @auth_bp.route("/homepage", methods=["GET", "POST"])
 def homepage():
+    """Render the public homepage and handle inline auth actions."""
     from app.models import Experiment, Variant, WildtypeProtein
     from sqlalchemy import func
 
@@ -121,17 +127,20 @@ def homepage():
 
 @auth_bp.route("/")
 def home():
+    """Redirect the auth root path to the homepage."""
     return redirect(url_for("auth.homepage"))
 
 
 @auth_bp.route("/home-main")
 def home_main():
+    """Support legacy homepage links by redirecting to the homepage."""
     return redirect(url_for("auth.homepage"))
 
 
 @auth_bp.route("/settings", methods=["GET", "POST"])
 @login_required
 def settings():
+    """Render and process the account settings form."""
     form = SettingsForm()
 
     # Pre-fill form with current user info on GET
@@ -221,4 +230,3 @@ def _debug_create_test_user():
     except Exception as e:
         db.session.rollback()
         return (f"error: {e}", 500)
-

@@ -1,3 +1,5 @@
+"""Embedded analysis routes used by the UI_test Flask application."""
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -23,6 +25,7 @@ ROOT_DIR = Path(__file__).resolve().parents[3]
 APP_DIR = ROOT_DIR / "app"
 
 def register_analysis_routes(target_app: Flask) -> None:
+    """Attach the analysis views to an existing Flask app instance."""
     plots_dir = Path(target_app.static_folder) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 

@@ -1,3 +1,5 @@
+"""Query helpers that feed the analysis views and exported reports."""
+
 from __future__ import annotations
 from typing import Dict, Tuple
 import pandas as pd
@@ -227,6 +229,7 @@ ORDER BY experiment_id;
 
 
 def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float]]:
+    """Return strict per-generation WT baselines for Stage 4 normalization."""
     df = pd.read_sql(WT_BASELINE_SQL, conn, params=(experiment_id,))
     baselines: Dict[int, Tuple[float, float]] = {}
 
@@ -275,22 +278,28 @@ def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float
     return baselines
 
 def fetch_variant_raw(conn, experiment_id: int) -> pd.DataFrame:
+    """Load raw DNA and protein yields for every variant in the experiment."""
     return pd.read_sql(VARIANT_RAW_SQL, conn, params=(experiment_id,))
 
 def fetch_top10(conn, experiment_id: int) -> pd.DataFrame:
+    """Return the latest top-ten ranking by derived activity score."""
     return pd.read_sql(TOP10_SQL, conn, params=(experiment_id,))
 
 def fetch_distribution(conn, experiment_id: int) -> pd.DataFrame:
+    """Return activity-score values grouped by generation for plotting."""
     return pd.read_sql(DISTRIBUTION_SQL, conn, params=(experiment_id,))
 
 def fetch_protein_similarity_nodes(conn, experiment_id: int) -> pd.DataFrame:
-    # Same experiment id is used twice because the SQL has two placeholders (CTE and outer select).
+    """Load protein-network nodes and ranking metadata for one experiment."""
+    # The same experiment id is used twice because the SQL has two placeholders.
     return pd.read_sql(PROTEIN_SIMILARITY_NODES_SQL, conn, params=(experiment_id, experiment_id))
 
 def fetch_protein_mutations(conn, experiment_id: int) -> pd.DataFrame:
+    """Return stored protein mutation rows for network co-occurrence mode."""
     return pd.read_sql(PROTEIN_MUTATIONS_SQL, conn, params=(experiment_id,))
 
 def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
+    """Load the variant nodes shown in the experiment-local lineage chart."""
     q = f"""
     SELECT
       v.variant_id,
@@ -322,8 +331,10 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(q, conn, params=(experiment_id,))
 
 def fetch_lineage_edges(conn, experiment_id: int) -> pd.DataFrame:
+    """Return lineage edges for the experiment-local lineage chart."""
     return pd.read_sql(LINEAGE_EDGES_SQL, conn, params=(experiment_id, experiment_id))
 
 def fetch_experiment_ids(conn) -> list[int]:
+    """List every experiment id available for static generation jobs."""
     df = pd.read_sql(EXPERIMENT_IDS_SQL, conn)
     return [int(x) for x in df["experiment_id"].tolist()]

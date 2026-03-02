@@ -1,3 +1,5 @@
+"""Bonus visualisations for domain-level mutation enrichment summaries."""
+
 from __future__ import annotations
 
 import argparse
@@ -95,6 +97,7 @@ def plot_domain_enrichment(
 
 
 def main():
+    """CLI entrypoint for exporting domain-enrichment visualisations."""
     ap = argparse.ArgumentParser(description="Plot domain-level mutation enrichment heatmap.")
     ap.add_argument("--generation-id", type=int, required=False, help="Optional: filter to one generation.")
     ap.add_argument("--metric", choices=["nonsyn_count", "nonsyn_per_residue"], default="nonsyn_count")

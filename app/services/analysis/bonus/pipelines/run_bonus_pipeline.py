@@ -1,3 +1,5 @@
+"""Entry point for optional bonus-analysis generation."""
+
 from __future__ import annotations
 
 import argparse
@@ -83,6 +85,7 @@ def ensure_materialized_views(sql_dir: Path) -> None:
 
 
 def refresh_materialized_views(view_names: Sequence[str]) -> dict[str, str]:
+    """Refresh named materialized views and report any failures by name."""
     failures: dict[str, str] = {}
     for v in view_names:
         try:
@@ -256,6 +259,7 @@ def run_pipeline(
     fingerprint_variant_id: Optional[int],
     skip_create_views: bool,
 ) -> None:
+    """Run the full bonus-analysis pipeline for one generation."""
     outputs_dir.mkdir(parents=True, exist_ok=True)
     generated_count = 0
     failures: list[str] = []
@@ -460,6 +464,7 @@ def run_pipeline(
 
 
 def main():
+    """CLI entrypoint for the end-to-end bonus-analysis pipeline."""
     ap = argparse.ArgumentParser(
         description="Run complete bonus visualisation pipeline: embeddings + views + plots."
     )

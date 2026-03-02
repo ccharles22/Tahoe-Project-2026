@@ -11,6 +11,7 @@ from app.services.parsing.qc import QualityControl
 
 
 def categorize(warning_text: str) -> str:
+    """Map a raw warning string onto a broad warning category."""
     w = warning_text.lower()
     if 'dna' in w or 'dna yield' in w or 'dna_yield' in w:
         return 'dna'
@@ -28,6 +29,7 @@ def categorize(warning_text: str) -> str:
 
 
 def main():
+    """CLI entrypoint for printing a category breakdown of parsing warnings."""
     if len(sys.argv) < 2:
         print('Usage: app.services.parsing.qc.warning_breakdown <tsv-file> [percentile_low percentile_high dna_floor protein_floor]')
         return

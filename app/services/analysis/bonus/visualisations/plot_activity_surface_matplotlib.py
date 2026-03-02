@@ -1,3 +1,5 @@
+"""Static Matplotlib surface preview for activity embedding space."""
+
 from __future__ import annotations
 
 import argparse
@@ -19,6 +21,7 @@ def grid_interpolate_idw(
     grid_size: int = 60,
     power: float = 2.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Interpolate scattered points onto a grid via inverse-distance weighting."""
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
     z = np.asarray(z, dtype=float)
@@ -101,6 +104,7 @@ def plot_activity_surface_matplotlib(
 
 
 def main():
+    """CLI entrypoint for exporting a static activity-surface image."""
     ap = argparse.ArgumentParser(description="Static 3D surface export using Matplotlib mplot3d.")
     ap.add_argument("--generation-id", type=int, required=True)
     ap.add_argument("--method", choices=["pca", "tsne"], default="pca")

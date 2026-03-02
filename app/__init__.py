@@ -1,3 +1,5 @@
+"""Application factory and shared docs-serving helpers for the UI_test app."""
+
 import os
 import logging
 from flask import Flask, render_template, send_from_directory, abort, redirect, make_response
@@ -24,6 +26,7 @@ def _env_int(name: str, default: int) -> int:
 
 
 def create_app():
+    """Create and configure the UI_test Flask application."""
     app = Flask(__name__)
 
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "dev")

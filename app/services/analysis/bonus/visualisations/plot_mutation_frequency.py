@@ -1,3 +1,5 @@
+"""Bonus plot showing mutation frequency by sequence position."""
+
 from __future__ import annotations
 
 import argparse
@@ -239,6 +241,7 @@ def plot_mutation_frequency(
 
 
 def main() -> None:
+    """CLI entrypoint for exporting mutation-frequency visualisations."""
     ap = argparse.ArgumentParser(
         description="Plot experiment-scoped mutation frequency by amino acid position."
     )

@@ -1,3 +1,5 @@
+"""Helpers for building mutation trajectory summaries over generations."""
+
 from __future__ import annotations
 
 import argparse
@@ -130,6 +132,7 @@ def build_trajectory_dataframe(conn, top_variant_id: int) -> pd.DataFrame:
 
 
 def main():
+    """CLI entrypoint for printing lineage mutation trajectories."""
     ap = argparse.ArgumentParser(description="Compute lineage-based mutation accumulation trajectory for top variants.")
     ap.add_argument("--generation-id", type=int, required=True, help="Generation to select Top-N variants from.")
     ap.add_argument("--top-n", type=int, default=5)

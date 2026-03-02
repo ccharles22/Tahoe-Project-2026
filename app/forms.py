@@ -1,3 +1,5 @@
+"""WTForms definitions used by the authentication and settings flows."""
+
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import InputRequired, Length, ValidationError, Email, Optional

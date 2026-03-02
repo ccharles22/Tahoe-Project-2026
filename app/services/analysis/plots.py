@@ -1,12 +1,12 @@
+"""Legacy plotting helper kept for compatibility with earlier imports."""
+
 from __future__ import annotations
 import os
 import pandas as pd
 import matplotlib.pyplot as plt
 
 def plot_activity_distribution(df_dist: pd.DataFrame, outpath: str) -> str:
-    """
-    df_dist columns: generation_number, activity_score
-    """
+    """Render the legacy boxplot preview from generation/activity-score data."""
     if df_dist.empty:
         raise ValueError("No distribution data to plot (df_dist is empty).")
 

@@ -1,3 +1,5 @@
+"""Interactive mutation-trajectory plot for top-ranked lineages."""
+
 from __future__ import annotations
 
 import argparse
@@ -50,6 +52,7 @@ def plot_mutation_trajectory(
 
 
 def main():
+    """CLI entrypoint for exporting the mutation-trajectory plot."""
     ap = argparse.ArgumentParser(description="Plot mutation accumulation trajectories for top variants.")
     ap.add_argument("--generation-id", type=int, required=True)
     ap.add_argument("--top-n", type=int, default=5)

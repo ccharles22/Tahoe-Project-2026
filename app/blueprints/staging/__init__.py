@@ -1,3 +1,5 @@
+"""Staging workspace blueprint registration."""
+
 from flask import Blueprint
 
 staging_bp = Blueprint("staging", __name__, url_prefix="/staging")

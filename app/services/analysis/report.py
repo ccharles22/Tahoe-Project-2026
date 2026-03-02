@@ -1,3 +1,5 @@
+"""Analysis report generation used by the staging workflow and scripts."""
+
 from __future__ import annotations
 
 import math
@@ -161,6 +163,7 @@ def _build_placeholder_edges(
 
 
 def main():
+    """Run the reporting pipeline for the experiment in ``EXPERIMENT_ID``."""
     exp_env = os.getenv("EXPERIMENT_ID")
     if exp_env is None or not str(exp_env).strip():
         raise RuntimeError(

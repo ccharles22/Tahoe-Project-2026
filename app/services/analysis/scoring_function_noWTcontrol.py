@@ -1,3 +1,5 @@
+"""Fallback scoring logic used when WT controls are unavailable."""
+
 import numpy as np
 import pandas as pd
 

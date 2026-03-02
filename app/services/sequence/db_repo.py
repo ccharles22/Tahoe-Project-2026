@@ -49,6 +49,7 @@ _INSERTABLE_MUTATION_TYPES = {"SYNONYMOUS", "NONSYNONYMOUS", "NONSENSE", "AMBIGU
 # =============================================================================
 
 def get_engine() -> Engine:
+    """Build the shared SQLAlchemy engine for sequence-processing work."""
     return create_engine(settings.DATABASE_URL, pool_pre_ping=True, future=True)
 
 
@@ -57,6 +58,7 @@ def get_engine() -> Engine:
 # =============================================================================
 
 def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
+    """Return the WT protein and plasmid sequence for one experiment."""
     with engine.connect() as conn:
         row = conn.execute(
             text("""
@@ -120,6 +122,7 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
 # =============================================================================
 
 def get_experiment_user_and_wt(engine: Engine, experiment_id: int) -> Tuple[int, int]:
+    """Return the owning user id and WT id for an experiment."""
     with engine.connect() as conn:
         row = conn.execute(
             text("""
@@ -137,6 +140,7 @@ def get_experiment_user_and_wt(engine: Engine, experiment_id: int) -> Tuple[int,
 
 
 def update_experiment_status(engine: Engine, experiment_id: int, status: str) -> None:
+    """Persist the current analysis status for an experiment."""
     with engine.begin() as conn:
         conn.execute(
             text("""
@@ -149,6 +153,7 @@ def update_experiment_status(engine: Engine, experiment_id: int, status: str) ->
 
 
 def get_experiment_status(engine: Engine, experiment_id: int) -> Optional[str]:
+    """Read the current analysis status for an experiment."""
     with engine.connect() as conn:
         status = conn.execute(
             text("""
@@ -166,6 +171,7 @@ def get_experiment_status(engine: Engine, experiment_id: int) -> Optional[str]:
 # =============================================================================
 
 def list_variants_by_experiment(engine: Engine, experiment_id: int) -> List[Tuple[int, str]]:
+    """List variant ids and assembled DNA for one experiment."""
     with engine.connect() as conn:
         rows = conn.execute(
             text("""
@@ -203,6 +209,7 @@ def list_processed_variant_ids(engine: Engine, experiment_id: int) -> set:
 
 
 def get_variant_generation_id(engine: Engine, variant_id: int) -> int:
+    """Resolve the generation id that owns a given variant."""
     with engine.connect() as conn:
         gid = conn.execute(
             text("SELECT generation_id FROM public.variants WHERE variant_id = :vid"),
@@ -249,6 +256,7 @@ def _upsert_experiment_metadata(
 # =============================================================================
 
 def load_wt_mapping(engine: Engine, experiment_id: int, user_id: int) -> Optional["WTMapping"]:
+    """Load a cached WT mapping from experiment metadata if present."""
     from app.services.sequence.sequence_service import WTMapping  # avoid circular import
 
     with engine.connect() as conn:
@@ -278,6 +286,7 @@ def upsert_wt_mapping(
     *,
     overwrite: bool = False,
 ) -> None:
+    """Persist the WT mapping cache in experiment metadata."""
     mapping_dict = dataclasses.asdict(wt_mapping)
     mapping_dict["user_id"] = user_id
 
@@ -300,6 +309,7 @@ def upsert_uniprot_staging(
     *,
     overwrite: bool = False,
 ) -> None:
+    """Persist staged UniProt WT data for the staging workflow."""
     payload = json.dumps({
         "user_id": user_id,
         "accession": accession,
@@ -312,6 +322,7 @@ def upsert_uniprot_staging(
 
 
 def has_uniprot_staging(engine: Engine, experiment_id: int) -> bool:
+    """Return whether staged UniProt WT data exists for this experiment."""
     with engine.connect() as conn:
         row = conn.execute(
             text("""
@@ -326,6 +337,7 @@ def has_uniprot_staging(engine: Engine, experiment_id: int) -> bool:
 
 
 def clear_wt_mapping_cache(engine: Engine, experiment_id: int) -> None:
+    """Remove any cached WT mapping so it is recomputed on the next run."""
     with engine.begin() as conn:
         _upsert_experiment_metadata(
             conn,
@@ -345,6 +357,7 @@ def save_run_metadata(
     overwrite: bool = False,
     conn: Optional[Connection] = None,
 ) -> None:
+    """Persist summary metadata about the most recent sequence-processing run."""
     if conn is not None:
         _upsert_experiment_metadata(conn, experiment_id, field_name, field_value, overwrite=overwrite)
     else:
@@ -533,6 +546,7 @@ def save_variant_counts_as_metrics(
     conn: Optional[Connection] = None,
     overwrite: bool = False,
 ) -> None:
+    """Store sequence-derived mutation counts as per-variant derived metrics."""
     gid = get_variant_generation_id(engine, variant_id)
     if conn is not None:
         _write_metrics(conn, variant_id, gid, counts, overwrite=overwrite)
@@ -909,6 +923,7 @@ def insert_variant_analyses_batch(
     analysis_version: str = "v1",
     overwrite: bool = False,
 ) -> None:
+    """Write a batch of sequence-analysis payloads, mutations, and derived metrics."""
     if not items:
         return
 

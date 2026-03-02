@@ -1,3 +1,5 @@
+"""HTTP routes for WT staging and sequence-processing submission."""
+
 from __future__ import annotations
 
 from flask import jsonify, request
@@ -12,6 +14,7 @@ from . import sequence_bp
 
 @sequence_bp.post("/experiments/<int:experiment_id>/stage-wt")
 def stage_wt(experiment_id: int):
+    """Fetch and persist a staged UniProt WT protein for an experiment."""
     payload = request.get_json(force=True) or {}
     accession = payload.get("accession")
 
@@ -44,6 +47,7 @@ def stage_wt(experiment_id: int):
 
 @sequence_bp.post("/experiments/<int:experiment_id>/run")
 def run_processing(experiment_id: int):
+    """Submit sequence processing for the selected experiment."""
     engine = get_engine()
     payload = request.get_json(silent=True) or {}
 
@@ -67,4 +71,5 @@ def run_processing(experiment_id: int):
 
 @sequence_bp.get("/health")
 def health():
+    """Expose a lightweight health-check endpoint for the blueprint."""
     return {"status": "ok"}, 200
