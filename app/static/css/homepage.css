@@ -512,6 +512,7 @@ a:hover { text-decoration: underline; }
   font-weight: 750;
   letter-spacing: -.01em;
   white-space: nowrap;
+  color: #ffffff;
 }
 
 .home-nav__center {
