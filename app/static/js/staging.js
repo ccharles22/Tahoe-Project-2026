@@ -154,11 +154,23 @@ function initRunLoader() {
   const readJsonPayload = async (response) => {
     const contentType = (response.headers.get('content-type') || '').toLowerCase();
     if (!contentType.includes('application/json')) {
-      const bodyText = (await response.text()).trim();
-      const preview = bodyText ? bodyText.slice(0, 300) : `status ${response.status}`;
-      throw new Error(`Unexpected non-JSON response: ${preview}`);
+      return null;
     }
     return response.json();
+  };
+
+  const navigateToWorkspace = () => {
+    const targetUrl = new URL(window.location.href);
+    targetUrl.searchParams.set('_refresh', String(Date.now()));
+    window.location.assign(targetUrl.toString());
+  };
+
+  const handleNonJsonResponse = (response) => {
+    if (response.redirected && response.url) {
+      window.location.assign(response.url);
+      return;
+    }
+    navigateToWorkspace();
   };
 
   document
@@ -187,6 +199,10 @@ function initRunLoader() {
 
           if (mode === 'sequence') {
             const payload = await readJsonPayload(response);
+            if (!payload) {
+              handleNonJsonResponse(response);
+              return;
+            }
             if (payload.state === 'completed') {
               window.location.reload();
               return;
@@ -202,6 +218,10 @@ function initRunLoader() {
           }
 
           const payload = await readJsonPayload(response);
+          if (!payload) {
+            handleNonJsonResponse(response);
+            return;
+          }
           if (payload.state === 'completed' || payload.state === 'failed') {
             const rawTarget = payload.redirect_url || window.location.href;
             const targetUrl = new URL(rawTarget, window.location.href);
@@ -213,10 +233,7 @@ function initRunLoader() {
           throw new Error(`Unexpected analysis state: ${payload.state}`);
         } catch (error) {
           console.error('Run request failed:', error);
-          hideLoader();
-          form.dataset.submitting = 'false';
-          if (submitBtn) submitBtn.classList.remove('is-loading');
-          window.alert('The run request did not finish. The page stayed in place so you can try again.');
+          navigateToWorkspace();
         }
       });
     });
