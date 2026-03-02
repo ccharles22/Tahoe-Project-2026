@@ -57,7 +57,10 @@ The DEM Portal allows users to:
 ### Visualisation
 - Top-performing variants table  
 - Activity distribution by generation  
-- Additional exploratory analysis plots  
+- Variant lineage modelling
+- Protein similarity network (mutation co-occurrence)
+- Mutation Fingerprinting by Generation
+- 3D Activity Landscape
 
 ---
 
