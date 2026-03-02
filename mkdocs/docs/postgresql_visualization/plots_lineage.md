@@ -17,19 +17,12 @@ Example:
 
 `/lineage/41`
 
-## SQL check
+## Validation check
 
-```sql
-select
-  v.parent_variant_id as parent_id,
-  v.variant_id as child_id,
-  g.generation_number
-from variants v
-join generations g on g.generation_id = v.generation_id
-where g.experiment_id = 41
-  and v.parent_variant_id is not null
-order by g.generation_number;
-```
+To validate this view, confirm that variants in the selected experiment have
+`parent_variant_id` values populated. The lineage chart uses those stored
+parent-child links together with generation numbers to build the directed
+experiment-local graph.
 
 ## Interpretation
 

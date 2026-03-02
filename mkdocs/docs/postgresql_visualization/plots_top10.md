@@ -31,22 +31,13 @@ Example:
 
 `/top10/41`
 
-## SQL check
+## Validation check
 
-```sql
-select
-  g.generation_number,
-  v.plasmid_variant_index,
-  m.value as activity_score
-from metrics m
-join variants v on v.variant_id = m.variant_id
-join generations g on g.generation_id = v.generation_id
-where m.metric_name = 'activity_score'
-  and m.metric_type = 'derived'
-  and g.experiment_id = 41
-order by m.metric_id desc, m.value desc
-limit 10;
-```
+To validate this view, confirm that the selected experiment has recent
+`activity_score` rows in the `metrics` table and that those rows resolve to the
+expected variant and generation labels. The Top 10 page simply ranks the newest
+derived activity-score rows and then combines them with mutation totals for the
+same variants.
 
 ## Interpretation
 

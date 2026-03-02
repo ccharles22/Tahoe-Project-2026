@@ -23,6 +23,30 @@ body,
   font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
+html.app-guidebar-transition-enabled .md-main__inner,
+html.app-guidebar-transition-enabled .md-sidebar--primary,
+html.app-guidebar-transition-enabled .md-sidebar--secondary {
+  opacity: 0.94;
+  transform: translateY(6px);
+  transition:
+    opacity 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner,
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--primary,
+html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--secondary {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner,
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--primary,
+html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--secondary {
+  opacity: 0.7;
+  transform: translateY(12px);
+}
+
 .app-guidebar-dna-rail {
   position: fixed;
   top: 0;
@@ -197,6 +221,7 @@ body,
 }
 
 .md-header {
+  z-index: 2;
   background:
     linear-gradient(90deg, rgba(18, 47, 76, 0.94) 0%, rgba(24, 86, 136, 0.9) 46%, rgba(23, 184, 179, 0.78) 100%);
   box-shadow:
@@ -214,6 +239,9 @@ body,
 
 .md-tabs {
   display: block !important;
+  position: relative;
+  z-index: 3;
+  pointer-events: auto;
   border-bottom: 1px solid rgba(103, 164, 204, 0.42);
   margin-top: -1px;
   overflow: visible;
@@ -225,6 +253,8 @@ body,
 
 .md-tabs .md-grid {
   display: block;
+  position: relative;
+  z-index: 1;
   max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
   margin: 0 auto;
   padding: 0 16px;
@@ -239,6 +269,7 @@ body,
   flex-wrap: nowrap;
   overflow-x: auto;
   overflow-y: hidden;
+  pointer-events: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -263,10 +294,16 @@ body,
   white-space: nowrap;
   font-size: 0.82rem;
   line-height: 1.2;
+  pointer-events: auto;
+  cursor: pointer;
   color: rgba(236, 248, 255, 0.8) !important;
   opacity: 1 !important;
   transform: none !important;
   font-weight: 700;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease,
+    opacity 0.16s ease;
 }
 
 .md-tabs__link:hover,
@@ -358,6 +395,20 @@ body,
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html.app-guidebar-transition-enabled .md-main__inner,
+  html.app-guidebar-transition-enabled .md-sidebar--primary,
+  html.app-guidebar-transition-enabled .md-sidebar--secondary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-main__inner,
+  html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--primary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-ready .md-sidebar--secondary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-main__inner,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--primary,
+  html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--secondary {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
   .app-guidebar-dna-rail__track {
     animation: none;
   }

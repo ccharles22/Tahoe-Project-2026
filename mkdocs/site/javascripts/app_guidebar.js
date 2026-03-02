@@ -1,4 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
+  document.documentElement.classList.add("app-guidebar-transition-enabled");
+  let isLeaving = false;
+
   const header = document.querySelector(".md-header");
   if (!header || document.querySelector(".app-guidebar")) {
     return;
@@ -59,9 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!track) return;
 
     const railWidth = track.parentElement ? track.parentElement.getBoundingClientRect().width : 120;
-    const dnaRowHeight = 18;
-    const rowCount = Math.max(20, Math.ceil((window.innerHeight * 1.35) / dnaRowHeight));
-    const baseCount = Math.max(14, Math.ceil(railWidth / 8) + 10);
+    const dnaRowHeight = 20;
+    const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.12) / dnaRowHeight));
+    const baseCount = Math.max(12, Math.ceil(railWidth / 10) + 8);
     const bases = ["A", "C", "G", "T"];
 
     const createRow = () => {
@@ -91,6 +94,54 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
+  let resizeFrame = null;
+  const scheduleRebuild = () => {
+    if (resizeFrame !== null) {
+      window.cancelAnimationFrame(resizeFrame);
+    }
+    resizeFrame = window.requestAnimationFrame(() => {
+      resizeFrame = null;
+      rebuildDnaRails();
+    });
+  };
+
   rebuildDnaRails();
-  window.addEventListener("resize", rebuildDnaRails);
+  window.addEventListener("resize", scheduleRebuild, { passive: true });
+
+  document.querySelectorAll(".md-tabs__link").forEach((link) => {
+    link.addEventListener("click", (event) => {
+      if (
+        isLeaving ||
+        event.defaultPrevented ||
+        event.button !== 0 ||
+        event.metaKey ||
+        event.ctrlKey ||
+        event.shiftKey ||
+        event.altKey
+      ) {
+        return;
+      }
+
+      const href = link.getAttribute("href");
+      if (!href || href.startsWith("#") || link.target === "_blank") {
+        return;
+      }
+
+      const nextUrl = new URL(link.href, window.location.href);
+      if (nextUrl.origin !== window.location.origin || nextUrl.href === window.location.href) {
+        return;
+      }
+
+      event.preventDefault();
+      isLeaving = true;
+      document.documentElement.classList.add("app-guidebar-page-leaving");
+      window.setTimeout(() => {
+        window.location.href = nextUrl.href;
+      }, 180);
+    });
+  });
+
+  window.requestAnimationFrame(() => {
+    document.documentElement.classList.add("app-guidebar-page-ready");
+  });
 });

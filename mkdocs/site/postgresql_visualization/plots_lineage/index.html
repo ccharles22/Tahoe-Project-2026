@@ -1604,10 +1604,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sql-check" class="md-nav__link">
+  <a href="#validation-check" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SQL check
+        Validation check
       
     </span>
   </a>
@@ -2223,10 +2223,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#sql-check" class="md-nav__link">
+  <a href="#validation-check" class="md-nav__link">
     <span class="md-ellipsis">
       
-        SQL check
+        Validation check
       
     </span>
   </a>
@@ -2285,17 +2285,11 @@ within the selected experiment.</p>
 <p><code>/lineage/&lt;experiment_id&gt;</code></p>
 <p>Example:</p>
 <p><code>/lineage/41</code></p>
-<h2 id="sql-check">SQL check<a class="headerlink" href="#sql-check" title="Permanent link">&para;</a></h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">select</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">  </span><span class="n">v</span><span class="p">.</span><span class="n">parent_variant_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">parent_id</span><span class="p">,</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="n">v</span><span class="p">.</span><span class="n">variant_id</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="n">child_id</span><span class="p">,</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">  </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="k">from</span><span class="w"> </span><span class="n">variants</span><span class="w"> </span><span class="n">v</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="k">join</span><span class="w"> </span><span class="n">generations</span><span class="w"> </span><span class="k">g</span><span class="w"> </span><span class="k">on</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">generation_id</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">where</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">experiment_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">41</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">  </span><span class="k">and</span><span class="w"> </span><span class="n">v</span><span class="p">.</span><span class="n">parent_variant_id</span><span class="w"> </span><span class="k">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="k">null</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">order</span><span class="w"> </span><span class="k">by</span><span class="w"> </span><span class="k">g</span><span class="p">.</span><span class="n">generation_number</span><span class="p">;</span>
-</code></pre></div>
+<h2 id="validation-check">Validation check<a class="headerlink" href="#validation-check" title="Permanent link">&para;</a></h2>
+<p>To validate this view, confirm that variants in the selected experiment have
+<code>parent_variant_id</code> values populated. The lineage chart uses those stored
+parent-child links together with generation numbers to build the directed
+experiment-local graph.</p>
 <h2 id="interpretation">Interpretation<a class="headerlink" href="#interpretation" title="Permanent link">&para;</a></h2>
 <ul>
 <li>Left-to-right progression follows generation number.</li>
