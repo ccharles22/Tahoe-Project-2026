@@ -1284,6 +1284,14 @@ a:hover { text-decoration: underline; }
   gap: 10px;
   margin-bottom: 0;
   align-content: center;
+  min-height: 100%;
+  padding: 20px 18px;
+  border-radius: 24px;
+  border: 1px solid rgba(42, 125, 225, 0.14);
+  background:
+    radial-gradient(circle at top right, rgba(222, 239, 255, 0.74), transparent 40%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.94) 100%);
+  box-shadow: 0 16px 30px rgba(21, 62, 111, 0.06);
 }
 
 .home-results-intro__eyebrow {
@@ -1869,6 +1877,9 @@ a:hover { text-decoration: underline; }
     gap: 20px;
     align-items: start;
   }
+  .home-results-intro {
+    padding: 18px 16px;
+  }
   .home-results-carousel__control {
     width: 42px;
     height: 42px;
@@ -1893,6 +1904,10 @@ a:hover { text-decoration: underline; }
   }
   .home-results-shell {
     gap: 16px;
+  }
+  .home-results-intro {
+    padding: 16px 14px;
+    border-radius: 20px;
   }
   .home-nav {
     height: 70px;
