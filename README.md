@@ -1,10 +1,5 @@
 # Direct Evolution Monitoring Portal  
 ### Team Tahoe | MSc Bioinformatics | 2025–2026
-
-<p align="center">
-  <img src="docs/images/logo.png" alt="Direct Evolution Monitoring Portal Logo" width="600"/>
-</p>
-
 ---
 
 ## Overview
