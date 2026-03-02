@@ -251,6 +251,7 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) + 120px), 104rem);
   margin: 0 auto;
   padding: 0 22px;
+  transform: translateX(-16px);
 }
 
 .md-tabs__list {
@@ -348,6 +349,7 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   .md-tabs .md-grid {
     max-width: min(100vw - 24px, 76rem);
     padding: 0 10px;
+    transform: none;
   }
 
   .md-tabs__list {
