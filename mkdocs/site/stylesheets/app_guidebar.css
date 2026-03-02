@@ -326,6 +326,69 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   background: #7ce6d5;
 }
 
+.md-tabs.app-docs-tabs--enhanced .md-tabs__list {
+  display: none !important;
+}
+
+.app-docs-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 56px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-docs-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.app-docs-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 14px 14px 11px;
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: rgba(236, 248, 255, 0.8);
+  text-decoration: none;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease,
+    opacity 0.16s ease;
+}
+
+.app-docs-tab:hover,
+.app-docs-tab:focus-visible {
+  color: #ffffff;
+  text-decoration: none;
+  outline: none;
+}
+
+.app-docs-tab--active {
+  color: #ffffff;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.app-docs-tab--active::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: #7ce6d5;
+}
+
 .md-grid {
   max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
 }
