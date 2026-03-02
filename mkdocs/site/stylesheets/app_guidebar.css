@@ -244,6 +244,68 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
     inset 0 -1px 0 rgba(10, 34, 56, 0.18);
 }
 
+.app-guidebar-native-tabs-hidden .md-tabs__list {
+  display: none !important;
+}
+
+.app-docs-tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 4px;
+  min-height: 56px;
+  padding: 0 16px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-docs-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.app-docs-tabs__link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 56px;
+  padding: 14px 14px 11px;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  font-weight: 700;
+  color: rgba(236, 248, 255, 0.8);
+  text-decoration: none;
+  transition:
+    color 0.16s ease,
+    background-color 0.16s ease;
+}
+
+.app-docs-tabs__link:hover,
+.app-docs-tabs__link:focus-visible {
+  color: #ffffff;
+  text-decoration: none;
+  outline: none;
+}
+
+.app-docs-tabs__link--active {
+  position: relative;
+  color: #ffffff;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.app-docs-tabs__link--active::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 999px 999px 0 0;
+  background: #7ce6d5;
+}
+
 .md-tabs .md-grid {
   display: block;
   position: relative;
@@ -337,6 +399,10 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 
   .md-tabs .md-grid {
     max-width: min(100vw - 24px, 76rem);
+    padding: 0 10px;
+  }
+
+  .app-docs-tabs {
     padding: 0 10px;
   }
 

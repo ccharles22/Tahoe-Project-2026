@@ -46,6 +46,46 @@ document.addEventListener("DOMContentLoaded", () => {
 
   header.before(guideBar);
 
+  const buildDocsStrip = () => {
+    const tabs = document.querySelector(".md-tabs");
+    const nativeList = tabs ? tabs.querySelector(".md-tabs__list") : null;
+    if (!tabs || !nativeList) {
+      return [];
+    }
+
+    const nativeLinks = Array.from(nativeList.querySelectorAll(".md-tabs__item > .md-tabs__link"));
+    if (!nativeLinks.length) {
+      return [];
+    }
+
+    tabs.classList.add("app-guidebar-native-tabs-hidden");
+
+    const strip = document.createElement("div");
+    strip.className = "app-docs-tabs md-grid";
+    strip.setAttribute("role", "navigation");
+    strip.setAttribute("aria-label", "Documentation sections");
+    strip.innerHTML = nativeLinks
+      .map((link) => {
+        const label = link.textContent.trim();
+        const isActive =
+          link.closest(".md-tabs__item")?.classList.contains("md-tabs__item--active") ||
+          link.classList.contains("md-tabs__link--active");
+        return `
+          <a
+            class="app-docs-tabs__link${isActive ? " app-docs-tabs__link--active" : ""}"
+            href="${link.href}"
+            ${isActive ? 'aria-current="page"' : ""}
+          >${label}</a>
+        `;
+      })
+      .join("");
+
+    tabs.prepend(strip);
+    return Array.from(strip.querySelectorAll(".app-docs-tabs__link"));
+  };
+
+  const docsStripLinks = buildDocsStrip();
+
   const buildDnaForTrack = (track) => {
     if (!track) return;
 
@@ -96,7 +136,11 @@ document.addEventListener("DOMContentLoaded", () => {
   rebuildDnaRails();
   window.addEventListener("resize", scheduleRebuild, { passive: true });
 
-  document.querySelectorAll(".md-tabs__link").forEach((link) => {
+  const transitionLinks = docsStripLinks.length
+    ? docsStripLinks
+    : Array.from(document.querySelectorAll(".md-tabs__link"));
+
+  transitionLinks.forEach((link) => {
     link.addEventListener("click", (event) => {
       if (
         isLeaving ||
