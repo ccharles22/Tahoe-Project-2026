@@ -141,11 +141,17 @@ function initRunLoader() {
     },
   };
 
-  const showLoader = (mode) => {
+  const showLoader = (mode, {useAutoProgress = true} = {}) => {
     const content = copy[mode] || copy.analysis;
     if (titleEl) titleEl.textContent = content.title;
     if (textEl) textEl.textContent = content.text;
-    startProgress(mode);
+    if (useAutoProgress) {
+      startProgress(mode);
+    } else {
+      stopProgress();
+      progressValue = 0;
+      renderProgress();
+    }
     loader.classList.add('is-visible');
     loader.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-run-loading');
@@ -225,6 +231,11 @@ function initRunLoader() {
           navigateToUrl(redirectUrl);
           return;
         }
+        if (typeof payload.percent_complete === 'number') {
+          stopProgress();
+          progressValue = Math.max(0, Math.min(100, payload.percent_complete));
+          renderProgress();
+        }
         if (payload.state === 'running' || payload.state === 'started' || payload.state === 'idle') {
           window.setTimeout(poll, 3000);
           return;
@@ -249,7 +260,8 @@ function initRunLoader() {
         const submitBtn = form.querySelector('.btn--submit');
         form.dataset.submitting = 'true';
         if (submitBtn) submitBtn.classList.add('is-loading');
-        showLoader(mode);
+        const useAutoProgress = !(mode === 'sequence' && !isLocalHost);
+        showLoader(mode, {useAutoProgress});
 
         if (mode !== 'sequence' || isLocalHost) {
           return;

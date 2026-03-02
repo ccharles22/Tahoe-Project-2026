@@ -21,6 +21,14 @@ from .. import staging_bp
 
 def _has_persisted_sequence_outputs(experiment_id: int) -> bool:
     """Return True when all variants for the experiment have sequence rows."""
+    counts = _get_sequence_progress_counts(experiment_id)
+    total_variants = counts[0]
+    analysed_variants = counts[1]
+    return total_variants > 0 and analysed_variants >= total_variants
+
+
+def _get_sequence_progress_counts(experiment_id: int) -> tuple[int, int]:
+    """Return total and analysed variant counts for one experiment."""
     try:
         counts = db.session.execute(
             text(
@@ -40,10 +48,10 @@ def _has_persisted_sequence_outputs(experiment_id: int) -> bool:
         ).mappings().one()
         total_variants = int(counts['total_variants'] or 0)
         analysed_variants = int(counts['analysed_variants'] or 0)
-        return total_variants > 0 and analysed_variants >= total_variants
+        return total_variants, analysed_variants
     except Exception:
         db.session.rollback()
-        return False
+        return 0, 0
 
 
 def _has_sequence_outputs(experiment_id: int) -> bool:
@@ -257,10 +265,19 @@ def sequence_status():
 
     exp_id_int = int(experiment_id)
     state, message = _sequence_run_state(exp_id_int)
+    total_variants, analysed_variants = _get_sequence_progress_counts(exp_id_int)
+    percent_complete = 0
+    if total_variants > 0:
+        percent_complete = int(min(100, max(0, round((analysed_variants / total_variants) * 100))))
+    if state == 'completed':
+        percent_complete = 100
     return jsonify(
         {
             'state': state,
             'message': message,
+            'total_variants': total_variants,
+            'analysed_variants': analysed_variants,
+            'percent_complete': percent_complete,
             'redirect_url': url_for(
                 'staging.create_experiment',
                 experiment_id=experiment_id,
