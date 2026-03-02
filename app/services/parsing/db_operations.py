@@ -215,6 +215,7 @@ def batch_upsert_variants(
         pending_parent_links: list = []
         wt_control_cache: Dict[int, WildtypeControl] = {}
         cleared_wt_generations: Set[int] = set()
+        wt_control_values: Dict[int, Dict[str, list[float]]] = {}
 
         for i, record in enumerate(records):
             core_data, metadata = extract_metadata_func(record)
@@ -255,8 +256,15 @@ def batch_upsert_variants(
                         wt_control_id=wt_control.wt_control_id
                     ).delete()
                     cleared_wt_generations.add(gen_num)
-                else:
-                    inserted_count += 1
+
+                bucket = wt_control_values.setdefault(
+                    gen_num,
+                    {"dna": [], "protein": []},
+                )
+                if dna_yield is not None:
+                    bucket["dna"].append(dna_yield)
+                if protein_yield is not None:
+                    bucket["protein"].append(protein_yield)
 
                 stale_variant = session.query(Variant).filter_by(
                     generation_id=gen.generation_id,
@@ -266,14 +274,6 @@ def batch_upsert_variants(
                     _clear_variant_outputs(session, stale_variant.variant_id)
                     session.delete(stale_variant)
                     session.flush()
-
-                _create_raw_metrics(
-                    session,
-                    gen.generation_id,
-                    wt_control_id=wt_control.wt_control_id,
-                    dna_yield=dna_yield,
-                    protein_yield=protein_yield,
-                )
 
                 if (i + 1) % BATCH_SIZE == 0:
                     session.flush()
@@ -334,6 +334,29 @@ def batch_upsert_variants(
                 protein_yield=py_,
             )
         pending_new.clear()
+        session.flush()
+
+        for gen_num, values in wt_control_values.items():
+            wt_control = wt_control_cache[gen_num]
+            dna_values = values["dna"]
+            protein_values = values["protein"]
+            avg_dna = (
+                sum(dna_values) / len(dna_values)
+                if dna_values
+                else None
+            )
+            avg_protein = (
+                sum(protein_values) / len(protein_values)
+                if protein_values
+                else None
+            )
+            _create_raw_metrics(
+                session,
+                gen_cache[gen_num].generation_id,
+                wt_control_id=wt_control.wt_control_id,
+                dna_yield=avg_dna,
+                protein_yield=avg_protein,
+            )
         session.flush()
 
         variant_rows = (
