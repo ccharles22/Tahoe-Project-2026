@@ -45,7 +45,7 @@ nav:
       - Project Docs:
           - Architecture: parsing_qc/architecture.md
           - Parsing & QC Manual: parsing_qc/parsing_qc_manual.md
-  - Staging Docs: staging_docs/index.md
+  - Staging: staging_docs/index.md
   - Database & Schema:
       - Database Overview: postgresql_visualization/database.md
       - Schema Notes: postgresql_visualization/schema_design_notes.md

@@ -116,7 +116,7 @@ When using the workspace, the most important checks are:
 
 ## When to use this section
 
-Use this `Staging Docs` section when you need to understand:
+Use this `Staging` section when you need to understand:
 
 - how the workspace is organized
 - what each workflow step actually does
