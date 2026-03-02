@@ -13,12 +13,9 @@
   function buildDnaForTrack(track) {
     if (!track) return;
 
-    const railWidth = track.parentElement
-      ? track.parentElement.getBoundingClientRect().width
-      : 120;
-    const dnaRowHeight = 20;
-    const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.12) / dnaRowHeight));
-    const baseCount = Math.max(12, Math.ceil(railWidth / 10) + 8);
+    const dnaRowHeight = window.innerWidth <= 760 ? 19 : 22;
+    const rowCount = Math.max(16, Math.ceil((window.innerHeight * 1.35) / dnaRowHeight));
+    const baseCount = Math.max(110, Math.ceil(window.innerWidth / 12) + 30);
     const bases = ["A", "C", "G", "T"];
 
     const createRow = () => {
