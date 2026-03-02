@@ -1187,8 +1187,8 @@ a:hover { text-decoration: underline; }
 /* Results preview section */
 .home-results-preview {
   display: grid;
-  grid-template-columns: minmax(160px, 195px) minmax(0, 1fr);
-  gap: clamp(14px, 1.8vw, 20px);
+  grid-template-columns: minmax(200px, 245px) minmax(0, 1fr);
+  gap: clamp(20px, 2.4vw, 30px);
   align-items: stretch;
   width: min(calc(100vw - 28px), 1640px);
   max-width: 1640px;
