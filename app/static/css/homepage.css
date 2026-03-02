@@ -1320,7 +1320,8 @@ a:hover { text-decoration: underline; }
 .home-results-intro__copy {
   display: grid;
   gap: 8px;
-  max-width: 205px;
+  width: 100%;
+  max-width: none;
 }
 
 .home-results-intro .home-section-title {
