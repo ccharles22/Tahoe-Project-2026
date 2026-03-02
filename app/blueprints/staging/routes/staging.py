@@ -148,6 +148,7 @@ def create_experiment():
         'mutated_percent': None,
     }
     sequence_status = None
+    sequence_completed = False
     selected_experiment_name = None
     wt_insights = _build_wt_insights(None, None)
     methods_panel = {
@@ -202,29 +203,31 @@ def create_experiment():
             'sequence processing failed' in sequence_message.lower()
         )
         sequence_failure_reason = sequence_summary or sequence_message.replace('Sequence processing failed: ', '')
-        try:
-            # Session state can be stale; persisted sequence analyses still indicate completion.
-            sequence_counts = db.session.execute(
-                text(
-                    """
-                    SELECT
-                      COUNT(DISTINCT v.variant_id) AS total_variants,
-                      COUNT(DISTINCT CASE WHEN vsa.vsa_id IS NOT NULL THEN v.variant_id END) AS analysed_variants
-                    FROM public.variants v
-                    JOIN public.generations g ON g.generation_id = v.generation_id
-                    LEFT JOIN public.variant_sequence_analysis vsa ON vsa.variant_id = v.variant_id
-                    WHERE g.experiment_id = :eid
-                    """
-                ),
-                {'eid': int(experiment_id)},
-            ).mappings().one()
-            if (
-                int(sequence_counts['total_variants'] or 0) > 0
-                and int(sequence_counts['analysed_variants'] or 0) >= int(sequence_counts['total_variants'] or 0)
-            ):
-                sequence_completed = True
-        except Exception:
-            db.session.rollback()
+        # Only hit the DB for sequence completion when session state is inconclusive.
+        # When session already reports 'success', the heavy JOIN query is redundant.
+        if not sequence_completed:
+            try:
+                sequence_counts = db.session.execute(
+                    text(
+                        """
+                        SELECT
+                          COUNT(DISTINCT v.variant_id) AS total_variants,
+                          COUNT(DISTINCT CASE WHEN vsa.vsa_id IS NOT NULL THEN v.variant_id END) AS analysed_variants
+                        FROM public.variants v
+                        JOIN public.generations g ON g.generation_id = v.generation_id
+                        LEFT JOIN public.variant_sequence_analysis vsa ON vsa.variant_id = v.variant_id
+                        WHERE g.experiment_id = :eid
+                        """
+                    ),
+                    {'eid': int(experiment_id)},
+                ).mappings().one()
+                if (
+                    int(sequence_counts['total_variants'] or 0) > 0
+                    and int(sequence_counts['analysed_variants'] or 0) >= int(sequence_counts['total_variants'] or 0)
+                ):
+                    sequence_completed = True
+            except Exception:
+                db.session.rollback()
         if (
             sequence_completed
             and is_sequence_reprocess_required(int(experiment_id))
@@ -246,7 +249,7 @@ def create_experiment():
         bonus_domain_heatmap_path = os.path.join(bonus_dir, 'domain_enrichment_heatmap.html')
         bonus_domain_generation_path = os.path.join(bonus_dir, 'domain_enrichment_latest.html')
         bonus_domain_generation_file = 'domain_enrichment_latest.html'
-        if not os.path.exists(bonus_domain_generation_path):
+        if not os.path.exists(bonus_domain_generation_path) and os.path.isdir(bonus_dir):
             bonus_domain_generation_matches = glob.glob(os.path.join(bonus_dir, 'domain_enrichment_gen*.html'))
             bonus_domain_generation_matches.sort(key=os.path.getmtime, reverse=True)
             bonus_domain_generation_file = (
@@ -256,7 +259,7 @@ def create_experiment():
 
         bonus_fingerprint_path = os.path.join(bonus_dir, 'mutation_fingerprint_latest.html')
         bonus_fingerprint_file = 'mutation_fingerprint_latest.html'
-        if not os.path.exists(bonus_fingerprint_path):
+        if not os.path.exists(bonus_fingerprint_path) and os.path.isdir(bonus_dir):
             bonus_fingerprint_matches = glob.glob(os.path.join(bonus_dir, 'mutation_fingerprint_variant*.html'))
             bonus_fingerprint_matches.sort(key=os.path.getmtime, reverse=True)
             bonus_fingerprint_file = os.path.basename(bonus_fingerprint_matches[0]) if bonus_fingerprint_matches else ''
@@ -393,7 +396,6 @@ def create_experiment():
     experiments = []
     if current_user.is_authenticated:
         try:
-            # Prefer the first available generated artifact as the sidebar preview.
             experiments = (
                 Experiment.query.filter_by(user_id=current_user.user_id)
                 .order_by(Experiment.created_at.desc())
@@ -405,11 +407,15 @@ def create_experiment():
                 ('activity_distribution.png', 'Activity score distribution'),
                 ('top10_variants.png', 'Top 10 variants'),
             ]
+            # Cache which experiment directories exist to avoid redundant stat calls.
+            gen_root = os.path.join(current_app.root_path, 'static', 'generated')
             for exp in experiments:
                 exp.preview_url = None
                 exp.preview_label = None
                 exp_id = str(exp.experiment_id)
-                exp_gen_dir = os.path.join(current_app.root_path, 'static', 'generated', exp_id)
+                exp_gen_dir = os.path.join(gen_root, exp_id)
+                if not os.path.isdir(exp_gen_dir):
+                    continue
                 for filename, label in preview_candidates:
                     abs_path = os.path.join(exp_gen_dir, filename)
                     if os.path.exists(abs_path):
@@ -431,6 +437,7 @@ def create_experiment():
         analysis_outputs=analysis_outputs,
         sequence_message=sequence_message,
         sequence_status=sequence_status,
+        sequence_completed_from_db=sequence_completed,
         top10_rows=top10_rows,
         kpis=kpis,
         experiments=experiments,

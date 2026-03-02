@@ -19,7 +19,7 @@
   {% set step_c_fail = parsing_result is not none and not parsing_result.success %}
   {% set analysis_failed = analysis_message and ('analysis failed' in (analysis_message|lower)) %}
   {% set sequence_failed = (sequence_status and sequence_status.status == 'failed') or (sequence_message and ('sequence processing failed' in (sequence_message|lower))) %}
-  {% set sequence_completed = (sequence_status and sequence_status.status == 'success') or (sequence_message and ('sequence processing completed' in (sequence_message|lower))) %}
+  {% set sequence_completed = (sequence_status and sequence_status.status == 'success') or (sequence_message and ('sequence processing completed' in (sequence_message|lower))) or sequence_completed_from_db %}
   {% set sequence_technical = sequence_status.technical_details if sequence_status and sequence_status.technical_details else '' %}
   {% set sequence_failure_reason = sequence_status.summary if sequence_status and sequence_status.summary else (sequence_message|replace('Sequence processing failed: ', '')) %}
   {% set step_d_done = sequence_completed %}

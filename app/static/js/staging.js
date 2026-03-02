@@ -229,7 +229,10 @@ function initRunLoader() {
           window.setTimeout(poll, 3000);
           return;
         }
-        navigateToUrl(payload.redirect_url || redirectUrl);
+        // Show 100% briefly before navigating away
+        progressValue = 100;
+        renderProgress();
+        window.setTimeout(() => navigateToUrl(payload.redirect_url || redirectUrl), 600);
       } catch (error) {
         console.error('Sequence polling failed:', error);
         navigateToUrl(redirectUrl);
@@ -251,7 +254,7 @@ function initRunLoader() {
         if (submitBtn) submitBtn.classList.add('is-loading');
         showLoader(mode);
 
-        if (mode !== 'sequence' || isLocalHost) {
+        if (mode !== 'sequence') {
           return;
         }
 

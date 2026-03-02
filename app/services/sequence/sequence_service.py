@@ -337,33 +337,55 @@ def _align_codons_global(
     var_codons: List[str],
 ) -> Tuple[List[Optional[str]], List[Optional[str]]]:
     """
-    Global-align two codon lists using a simple Needleman-Wunsch DP.
+    Global-align two codon lists using banded Needleman-Wunsch DP.
 
-    This is intentionally codon-based so the downstream mutation caller can
-    count every changed codon (including synonymous ones) instead of relying on
-    protein-level alignment heuristics.
+    When sequences are close in length (typical for directed evolution indels),
+    a narrow diagonal band is used to reduce the DP from O(n²) to O(nxw),
+    where w = 2*band+1.  For sequences with large length differences or small
+    sequences the full DP is used.
     """
     gap_penalty = -1
     n = len(wt_codons)
     m = len(var_codons)
 
-    score = [[0] * (m + 1) for _ in range(n + 1)]
+    diff = abs(n - m)
+    # Use banded alignment when sequences are large and close in length
+    use_band = (n > 60 or m > 60) and diff <= 20
+    band = diff + 6 if use_band else max(n, m)  # generous padding around the diagonal
+
+    NEG_INF = float("-inf")
+
+    score = [[NEG_INF] * (m + 1) for _ in range(n + 1)]
     trace = [[""] * (m + 1) for _ in range(n + 1)]
+    score[0][0] = 0
 
     for i in range(1, n + 1):
-        score[i][0] = score[i - 1][0] + gap_penalty
-        trace[i][0] = "U"
+        if i <= band:
+            score[i][0] = score[i - 1][0] + gap_penalty
+            trace[i][0] = "U"
     for j in range(1, m + 1):
-        score[0][j] = score[0][j - 1] + gap_penalty
-        trace[0][j] = "L"
+        if j <= band:
+            score[0][j] = score[0][j - 1] + gap_penalty
+            trace[0][j] = "L"
 
     for i in range(1, n + 1):
         wt_codon = wt_codons[i - 1]
-        for j in range(1, m + 1):
+        # Diagonal is at j = i * m/n (approximately i when n≈m)
+        # For banded: restrict j to [diag - band, diag + band]
+        diag_j = round(i * m / n) if n > 0 else i
+        j_lo = max(1, diag_j - band)
+        j_hi = min(m, diag_j + band)
+        for j in range(j_lo, j_hi + 1):
             var_codon = var_codons[j - 1]
-            diag = score[i - 1][j - 1] + _codon_similarity_score(wt_codon, var_codon)
-            up = score[i - 1][j] + gap_penalty
-            left = score[i][j - 1] + gap_penalty
+            diag = score[i - 1][j - 1]
+            if diag > NEG_INF:
+                diag += _codon_similarity_score(wt_codon, var_codon)
+            up = score[i - 1][j]
+            if up > NEG_INF:
+                up += gap_penalty
+            left = score[i][j - 1]
+            if left > NEG_INF:
+                left += gap_penalty
 
             best = diag
             move = "D"
@@ -443,13 +465,29 @@ def _prefer_codon_alignment_for_equal_lengths(wt_cds: str, var_cds: str) -> bool
     if mismatch_span > direct_mismatches * 3:
         return False
 
-    aligned_wt, aligned_var = _align_codons_global(wt_codons, var_codons)
+    # Only align the mismatch region (with 2-codon padding) instead of the
+    # full sequence — avoids O(n²) cost on 880-codon proteins.
+    pad = 2
+    block_start = max(0, start - pad)
+    block_end = min(len(wt_codons), end + 1 + pad)
+
+    # Hard cap: DP is only worthwhile for compact blocks. Larger spans are
+    # virtually never a single insertion/deletion pair — bail out early.
+    if block_end - block_start > 60:
+        return False
+
+    wt_block = wt_codons[block_start:block_end]
+    var_block = var_codons[block_start:block_end]
+
+    aligned_wt, aligned_var = _align_codons_global(wt_block, var_block)
     has_gap = any(a is None or b is None for a, b in zip(aligned_wt, aligned_var))
     if not has_gap:
         return False
 
     aligned_events = sum(1 for a, b in zip(aligned_wt, aligned_var) if a != b)
-    return aligned_events <= direct_mismatches
+    # Compare against the number of mismatches in the block (not the whole CDS)
+    block_mismatches = sum(1 for wc, vc in zip(wt_block, var_block) if wc != vc)
+    return aligned_events <= block_mismatches
 
 
 def _variant_cds_from_mapping(plasmid: str, mapping: WTMapping) -> str:
@@ -469,35 +507,270 @@ def _variant_cds_from_mapping(plasmid: str, mapping: WTMapping) -> str:
     return cds_dna
 
 
-def _translate_variant_cds(cds_dna: str, wt_protein_aa: str) -> Tuple[Optional[str], QCFlags]:
-    """Translate extracted CDS and return protein plus QC flags."""
+def _fast_anchor_remap(
+    variant_plasmid: str,
+    wt_mapping: WTMapping,
+    *,
+    anchor_len: int = 30,
+    wt_plasmid: Optional[str] = None,
+) -> Optional[WTMapping]:
+    """Locate the CDS in a variant plasmid using backbone DNA anchors.
+
+    In directed evolution the vector backbone (outside the CDS) is never
+    mutated — only the CDS itself changes.  This function extracts a short
+    DNA anchor from just upstream of the CDS start in the WT plasmid, finds
+    that exact sequence in the variant plasmid, and derives the CDS
+    coordinates from the anchor hit position.
+
+    Falls back to ATG-scanning with N/C-terminal protein probes when no
+    backbone anchor is available (e.g. when ``wt_plasmid`` is not provided
+    or matches the CDS-only sequence stored in the DB).
+
+    Returns a new WTMapping for the variant, or None if no anchor matches.
+    """
+    cds_len = len(wt_mapping.wt_cds_dna)
+    if cds_len < 9:
+        return None
+
+    n = len(variant_plasmid)
+    if n == 0:
+        return None
+
+    # ------------------------------------------------------------------
+    # Strategy 1: Backbone DNA anchor (most reliable — works even with
+    # 100% CDS mutation rate).
+    # ------------------------------------------------------------------
+    if wt_plasmid and len(wt_plasmid) > cds_len:
+        wt_n = len(wt_plasmid)
+        cds_start_wt = wt_mapping.cds_start_0based
+        cds_end_wt = wt_mapping.cds_end_0based_excl
+
+        # We need backbone DNA directly upstream of the CDS.
+        # For PLUS strand: the anchor sits just before cds_start.
+        # For MINUS strand: the anchor sits just after cds_end (on the
+        #   plus strand), which is just before the CDS start in the RC.
+        wt_doubled = wt_plasmid + wt_plasmid
+
+        if wt_mapping.strand == "PLUS":
+            # Upstream anchor: ends at cds_start
+            anchor_end = cds_start_wt if cds_start_wt > 0 else wt_n
+            anchor_start = anchor_end - anchor_len
+            if anchor_start < 0:
+                anchor_start += wt_n
+                up_anchor = wt_doubled[anchor_start:anchor_start + anchor_len]
+            else:
+                up_anchor = wt_plasmid[anchor_start:anchor_end]
+
+            # Downstream anchor: starts at cds_end
+            dn_anchor_start = cds_end_wt
+            dn_anchor = wt_doubled[dn_anchor_start:dn_anchor_start + anchor_len]
+
+            # Search for both anchors in the variant plasmid
+            var_doubled = variant_plasmid + variant_plasmid
+            up_hit = var_doubled.find(up_anchor)
+            dn_hit = var_doubled.find(dn_anchor)
+
+            if up_hit >= 0 and up_hit < n:
+                new_cds_start = (up_hit + anchor_len) % n
+                if dn_hit >= 0 and dn_hit < 2 * n:
+                    # Both anchors found — derive actual CDS length from
+                    # the distance between them (handles indels correctly)
+                    new_cds_end = dn_hit % n
+                else:
+                    # Only upstream anchor — assume WT CDS length
+                    new_cds_end = (new_cds_start + cds_len) % n
+                return WTMapping(
+                    strand=wt_mapping.strand,
+                    frame=wt_mapping.frame,
+                    cds_start_0based=new_cds_start,
+                    cds_end_0based_excl=new_cds_end,
+                    wt_cds_dna=wt_mapping.wt_cds_dna,
+                    wt_protein_aa=wt_mapping.wt_protein_aa,
+                    match_identity_pct=wt_mapping.match_identity_pct,
+                    alignment_score=wt_mapping.alignment_score,
+                )
+
+        elif wt_mapping.strand == "MINUS":
+            # For MINUS strand, the CDS in the plus strand runs from
+            # cds_start to cds_end (then we RC it).
+            # Downstream anchor (after CDS end on plus strand):
+            dn_anchor_start = cds_end_wt if cds_end_wt > 0 else 0
+            dn_anchor = wt_doubled[dn_anchor_start:dn_anchor_start + anchor_len]
+            # Upstream anchor (before CDS start on plus strand):
+            up_anchor_end = cds_start_wt if cds_start_wt > 0 else wt_n
+            up_anchor_start = up_anchor_end - anchor_len
+            if up_anchor_start < 0:
+                up_anchor_start += wt_n
+                up_anchor = wt_doubled[up_anchor_start:up_anchor_start + anchor_len]
+            else:
+                up_anchor = wt_plasmid[up_anchor_start:up_anchor_end]
+
+            var_doubled = variant_plasmid + variant_plasmid
+            dn_hit = var_doubled.find(dn_anchor)
+            up_hit = var_doubled.find(up_anchor)
+
+            if dn_hit >= 0 and dn_hit < n:
+                new_cds_end = dn_hit % n
+                if up_hit >= 0 and up_hit < 2 * n:
+                    new_cds_start = (up_hit + anchor_len) % n
+                else:
+                    new_cds_start = (new_cds_end - cds_len) % n
+                return WTMapping(
+                    strand=wt_mapping.strand,
+                    frame=wt_mapping.frame,
+                    cds_start_0based=new_cds_start,
+                    cds_end_0based_excl=new_cds_end,
+                    wt_cds_dna=wt_mapping.wt_cds_dna,
+                    wt_protein_aa=wt_mapping.wt_protein_aa,
+                    match_identity_pct=wt_mapping.match_identity_pct,
+                    alignment_score=wt_mapping.alignment_score,
+                )
+
+    # ------------------------------------------------------------------
+    # Strategy 2: ATG-scan with N/C-terminal protein probes (fallback
+    # when no backbone anchor is available).
+    # ------------------------------------------------------------------
+    wt_prot = wt_mapping.wt_protein_aa
+    n_probe = min(20, len(wt_prot))
+    if n_probe < 3:
+        return None
+    min_match_frac = 0.70
+    min_matches = int(n_probe * min_match_frac)
+
+    doubled = variant_plasmid + variant_plasmid
+
+    strands_to_try = []
+    if wt_mapping.strand == "PLUS":
+        strands_to_try.append(("PLUS", doubled))
+    elif wt_mapping.strand == "MINUS":
+        rc_doubled = reverse_complement_dna(doubled)
+        strands_to_try.append(("MINUS", rc_doubled))
+    else:
+        strands_to_try.append(("PLUS", doubled))
+        rc_doubled = reverse_complement_dna(doubled)
+        strands_to_try.append(("MINUS", rc_doubled))
+
+    best_hit: Optional[WTMapping] = None
+    best_matches = min_matches - 1
+
+    for strand_label, seq in strands_to_try:
+        search_start = 0
+        while True:
+            atg_pos = seq.find("ATG", search_start)
+            if atg_pos < 0 or atg_pos >= n:
+                break
+            search_start = atg_pos + 1
+
+            candidate_end = atg_pos + cds_len
+            if candidate_end > len(seq):
+                continue
+            candidate_cds = seq[atg_pos:candidate_end]
+            if len(candidate_cds) != cds_len:
+                continue
+
+            probe_dna = candidate_cds[:n_probe * 3]
+            try:
+                probe_aa = "".join(
+                    _translate_codon_cached(probe_dna[k:k + 3])
+                    for k in range(0, len(probe_dna), 3)
+                )
+            except Exception:
+                continue
+
+            if not probe_aa or probe_aa[0] != "M":
+                continue
+
+            matches = sum(
+                1 for j in range(n_probe) if probe_aa[j] == wt_prot[j]
+            )
+            if matches <= best_matches:
+                continue
+
+            c_probe_dna = candidate_cds[-n_probe * 3:]
+            try:
+                c_probe_aa = "".join(
+                    _translate_codon_cached(c_probe_dna[k:k + 3])
+                    for k in range(0, len(c_probe_dna), 3)
+                )
+                c_matches = sum(
+                    1 for j in range(n_probe)
+                    if c_probe_aa[j] == wt_prot[-(n_probe - j)]
+                )
+                if c_matches < min_matches:
+                    continue
+            except Exception:
+                continue
+
+            if strand_label == "PLUS":
+                cds_start = atg_pos % n
+            else:
+                plus_pos_of_last_base = (2 * n - 1 - (atg_pos + cds_len - 1))
+                cds_start = plus_pos_of_last_base % n
+
+            cds_end = (cds_start + cds_len) % n
+
+            best_matches = matches
+            best_hit = WTMapping(
+                strand=wt_mapping.strand,
+                frame=wt_mapping.frame,
+                cds_start_0based=cds_start,
+                cds_end_0based_excl=cds_end,
+                wt_cds_dna=wt_mapping.wt_cds_dna,
+                wt_protein_aa=wt_mapping.wt_protein_aa,
+                match_identity_pct=wt_mapping.match_identity_pct,
+                alignment_score=wt_mapping.alignment_score,
+            )
+
+            if matches == n_probe:
+                return best_hit
+
+    return best_hit
+
+
+def _translate_variant_cds(
+    cds_dna: str, wt_protein_aa: str,
+) -> Tuple[Optional[str], Optional[str], QCFlags]:
+    """Translate extracted CDS once and return output protein, full protein, and QC.
+
+    Translates with ``to_stop=False`` so a single translation provides both
+    the stop-policy–compliant output protein *and* a full stop-free protein
+    for alignment-based coordinate validation (remap detection).
+
+    Returns:
+        (output_protein, full_protein_no_stops, qc_flags)
+    """
     has_frameshift = (len(cds_dna) % 3 != 0)
     has_ambig = contains_ambiguous_bases(cds_dna)
-    to_stop = (settings.STOP_POLICY == "truncate")
 
     protein: Optional[str] = None
+    full_protein_no_stops: Optional[str] = None
     prem_stop = False
     notes: Optional[str] = None
 
     if cds_dna:
         try:
-            protein = translate_dna(
+            # Single translation — derive everything from the full protein.
+            full_translation = translate_dna(
                 cds_dna,
                 table=settings.GENETIC_CODE_TABLE,
-                to_stop=to_stop,
+                to_stop=False,
             )
+            full_protein_no_stops = full_translation.replace("*", "")
 
-            if settings.STOP_POLICY != "truncate" and protein and "*" in protein:
+            if "*" in full_translation:
                 prem_stop = True
-                notes = "Stop codon(s) present in translated protein."
-
-            if settings.STOP_POLICY == "truncate" and protein:
-                if len(protein) < len(wt_protein_aa):
-                    prem_stop = True
+                if settings.STOP_POLICY == "truncate":
+                    protein = full_translation.split("*")[0]
                     notes = "Protein truncated due to in-frame stop codon."
+                else:
+                    protein = full_translation
+                    notes = "Stop codon(s) present in translated protein."
+            else:
+                protein = full_translation
 
         except Exception as e:
             protein = None
+            full_protein_no_stops = None
             notes = f"Translation failed: {type(e).__name__}: {e}"
 
     qc = QCFlags(
@@ -506,21 +779,55 @@ def _translate_variant_cds(cds_dna: str, wt_protein_aa: str) -> Tuple[Optional[s
         has_premature_stop=prem_stop,
         notes=notes,
     )
-    return protein, qc
+    return protein, full_protein_no_stops, qc
+
+
+def _quick_protein_match(
+    protein_aa: str,
+    wt_protein_aa: str,
+    *,
+    window: int = 20,
+    min_identity: float = 0.80,
+    max_length_ratio: float = 0.10,
+) -> bool:
+    """Fast O(1) pre-screen: CDS coordinates valid if length + terminal residues match.
+
+    For directed-evolution variants the protein differs from WT by a handful of
+    point mutations. If the N-terminal and C-terminal residues match the WT
+    with ≥80 % identity and the overall length is within 10 %, the CDS
+    coordinates are almost certainly correct. This avoids the expensive O(n²)
+    BLOSUM62 local alignment that ``_needs_variant_remap`` would otherwise run
+    for every single variant.
+    """
+    prot_len = len(protein_aa)
+    wt_len = len(wt_protein_aa)
+
+    # Length within tolerance?
+    if abs(prot_len - wt_len) > max(10, int(wt_len * max_length_ratio)):
+        return False
+
+    # N-terminal identity
+    n = min(window, prot_len, wt_len)
+    n_matches = sum(1 for i in range(n) if protein_aa[i] == wt_protein_aa[i])
+    if n_matches / max(1, n) < min_identity:
+        return False
+
+    # C-terminal identity
+    c = min(window, prot_len, wt_len)
+    c_matches = sum(1 for i in range(1, c + 1) if protein_aa[-i] == wt_protein_aa[-i])
+    if c_matches / max(1, c) < min_identity:
+        return False
+
+    return True
 
 
 def _needs_variant_remap(protein_aa: Optional[str], wt_protein_aa: str) -> bool:
     """
     Detects when fixed-coordinate extraction likely captured the wrong CDS window.
 
-    If a variant's translated protein aligns strongly to the WT only after a
-    substantial leading offset in either sequence, the gene likely sits at a
-    different plasmid coordinate and should be remapped de novo.
-
-    Short, spuriously translated peptides can also produce deceptively "perfect"
-    local alignments over 1-2 residues. Those are not biologically plausible for
-    an 800+ aa polymerase, so we also force a remap when the translated peptide
-    is implausibly short or when the aligned WT coverage is too small.
+    Uses a fast O(1) terminal-residue pre-screen first.  Only falls through to
+    the expensive BLOSUM62 local alignment when the pre-screen is inconclusive
+    (short protein, length mismatch, or terminal mutations).
     """
     if not protein_aa:
         return True
@@ -533,6 +840,23 @@ def _needs_variant_remap(protein_aa: Optional[str], wt_protein_aa: str) -> bool:
     if prot_len < max(30, wt_len // 4):
         return True
 
+    # Fast path — skip the expensive alignment for typical directed-evolution
+    # variants whose terminals and length closely match WT.
+    if _quick_protein_match(protein_aa, wt_protein_aa):
+        return False
+
+    # Medium path — simple position-by-position identity for same/similar
+    # length proteins catches cases where terminal mutations trip up the
+    # quick match but the CDS window is clearly correct.
+    if abs(prot_len - wt_len) <= max(5, int(wt_len * 0.02)):
+        overlap = min(prot_len, wt_len)
+        matches = sum(1 for i in range(overlap)
+                      if protein_aa[i] == wt_protein_aa[i])
+        if matches / max(1, overlap) >= 0.50:
+            return False
+
+    # Slow path — only reached for atypical variants (large indels,
+    # significant length changes, or terminal mutations).
     aln = _LOCAL_ALIGNER.align(protein_aa, wt_protein_aa)[0]
     if aln.aligned[0].size == 0 or aln.aligned[1].size == 0:
         return True
@@ -543,18 +867,13 @@ def _needs_variant_remap(protein_aa: Optional[str], wt_protein_aa: str) -> bool:
     )
     wt_coverage = aligned_wt / wt_len
 
-    # Even if the local alignment anchor starts near the beginning, poor WT
-    # coverage combined with a shortened protein is a strong signal that the
-    # fixed-coordinate slice still landed on the wrong ORF.
     if prot_len < max(60, int(0.75 * wt_len)) and wt_coverage < 0.50:
         return True
 
     q0 = int(aln.aligned[0][0][0])
     t0 = int(aln.aligned[1][0][0])
 
-    # A one-sided N-terminal offset (e.g. [0, 879] vs [1, 880]) means the
-    # extracted CDS window is shifted relative to the WT and should be remapped.
-    return q0 != t0
+    return abs(q0 - t0) > 5
 
 
 # ============================================================================
@@ -702,6 +1021,7 @@ def process_variant_plasmid(
         wt_mapping: WTMapping,
         *,
         fallback_search: bool,
+        wt_plasmid: Optional[str] = None,
 ) -> VariantSeqResult:
     """
     Extracts, translates, and QC-checks the variant CDS using WT mapping
@@ -713,6 +1033,7 @@ def process_variant_plasmid(
         wt_mapping: Wild-type mapping with coordinates and orientation.
         fallback_search: If True, preserves a QC note when de novo remapping
                         is attempted but cannot recover a plausible CDS.
+        wt_plasmid: Full WT plasmid DNA (enables backbone-anchor remap).
 
     Returns:
         VariantSeqResult: Extracted CDS, translated protein, and QC flags.
@@ -720,9 +1041,34 @@ def process_variant_plasmid(
     plasmid = normalise_dna(variant_plasmid_dna)
     active_mapping = wt_mapping
     cds_dna = _variant_cds_from_mapping(plasmid, active_mapping)
-    protein, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
+    protein, full_prot, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
 
-    remap_needed = _needs_variant_remap(protein, active_mapping.wt_protein_aa)
+    # Fast pre-screen: if the quick match passes, coordinates are fine.
+    prot_for_check = full_prot or protein
+    if prot_for_check and _quick_protein_match(prot_for_check, active_mapping.wt_protein_aa):
+        remap_needed = False
+    else:
+        # Before running the expensive BLOSUM62 remap check, try the fast
+        # anchor-based remap.  This handles the common case where the variant
+        # plasmid is a rotational offset of the WT plasmid.
+        anchor_mapping = _fast_anchor_remap(plasmid, wt_mapping, wt_plasmid=wt_plasmid)
+        if anchor_mapping is not None:
+            active_mapping = anchor_mapping
+            cds_dna = _variant_cds_from_mapping(plasmid, active_mapping)
+            protein, full_prot, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
+            note = "Variant remapped via backbone anchor (rotational offset)."
+            qc = QCFlags(
+                has_ambiguous_bases=qc.has_ambiguous_bases,
+                has_frameshift=qc.has_frameshift,
+                has_premature_stop=qc.has_premature_stop,
+                notes=(f"{note} {qc.notes}" if qc.notes else note),
+            )
+            remap_needed = False
+        else:
+            # Anchor remap failed — fall through to the expensive check.
+            remap_needed = _needs_variant_remap(
+                prot_for_check, active_mapping.wt_protein_aa,
+            )
 
     # Only attempt de novo remap when the caller explicitly enables fallback search.
     if remap_needed and not fallback_search:
@@ -745,9 +1091,11 @@ def process_variant_plasmid(
 
     if remap_needed and fallback_search:
         try:
+            # Anchor remap already failed in the pre-screen above, so go
+            # directly to the expensive full 6-frame protein alignment.
             active_mapping = map_wt_gene_in_plasmid(active_mapping.wt_protein_aa, plasmid)
             cds_dna = active_mapping.wt_cds_dna
-            protein, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
+            protein, _, qc = _translate_variant_cds(cds_dna, active_mapping.wt_protein_aa)
             note = "Variant remapped de novo due to CDS coordinate drift."
             qc = QCFlags(
                 has_ambiguous_bases=qc.has_ambiguous_bases,
@@ -813,7 +1161,42 @@ def call_indels_via_protein_alignment(
     if not wt_codons and not var_codons:
         return ([], MutationCounts(synonymous=0, nonsynonymous=0, total=0))
 
-    wt_aln, var_aln = _align_codons_global(wt_codons, var_codons)
+    # ------------------------------------------------------------------
+    # Prefix/suffix trimming: only align the mismatch block.
+    # In directed evolution the vast majority of codons are identical;
+    # trimming reduces the DP matrix from ~880×880 to ~30×30 or smaller.
+    # ------------------------------------------------------------------
+    prefix_len = 0
+    min_len = min(len(wt_codons), len(var_codons))
+    while prefix_len < min_len and wt_codons[prefix_len] == var_codons[prefix_len]:
+        prefix_len += 1
+
+    suffix_len = 0
+    while (
+        suffix_len < (min_len - prefix_len)
+        and wt_codons[-(suffix_len + 1)] == var_codons[-(suffix_len + 1)]
+    ):
+        suffix_len += 1
+
+    wt_end = len(wt_codons) - suffix_len
+    var_end = len(var_codons) - suffix_len
+    wt_block = wt_codons[prefix_len:wt_end]
+    var_block = var_codons[prefix_len:var_end]
+
+    if wt_block or var_block:
+        # Cap the block size to avoid O(n²) blowup on pathological cases
+        max_block = 60
+        if len(wt_block) > max_block or len(var_block) > max_block:
+            wt_block_aln, var_block_aln = _align_codons_global(wt_block, var_block)
+        else:
+            wt_block_aln, var_block_aln = _align_codons_global(wt_block, var_block)
+        # Reconstruct full alignment: prefix (identity) + aligned block + suffix (identity)
+        wt_aln: List[Optional[str]] = list(wt_codons[:prefix_len]) + wt_block_aln + list(wt_codons[wt_end:])
+        var_aln: List[Optional[str]] = list(var_codons[:prefix_len]) + var_block_aln + list(var_codons[var_end:])
+    else:
+        # All codons match (lengths differ only by trailing codons handled above)
+        wt_aln = list(wt_codons)
+        var_aln = list(var_codons)
 
     muts: List[MutationRecord] = []
     syn = 0

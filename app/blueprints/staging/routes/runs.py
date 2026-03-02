@@ -115,6 +115,28 @@ def _sequence_run_state(experiment_id: int) -> tuple[str, str]:
     if session_code == 'failed' or db_status == 'FAILED':
         return 'failed', session_summary or 'Sequence processing failed.'
 
+    # The background thread updates the DB status to ANALYSED or
+    # ANALYSED_WITH_ERRORS but cannot touch the Flask session.  Recognise
+    # these DB states as completion so the polling client stops waiting.
+    if db_status in ('ANALYSED', 'ANALYSED_WITH_ERRORS'):
+        # Opportunistically clear the session-level reprocess flag so that
+        # subsequent page loads also see the run as complete.
+        try:
+            clear_sequence_reprocess_required(experiment_id)
+            save_sequence_status_to_session(
+                experiment_id,
+                {
+                    'status': 'success',
+                    'summary': session_summary or 'Sequence processing completed.',
+                    'technical_details': '',
+                    'completed_at_epoch': int(time.time()),
+                },
+            )
+        except Exception:
+            pass  # best-effort; the DB status is authoritative
+        message = session_summary or 'Sequence processing completed. Mutation outputs were refreshed.'
+        return 'completed', message
+
     if not is_sequence_reprocess_required(experiment_id) and _has_persisted_sequence_outputs(experiment_id):
         message = session_summary or 'Sequence processing completed. Mutation outputs were refreshed.'
         return 'completed', message
