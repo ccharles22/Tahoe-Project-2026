@@ -1176,9 +1176,17 @@ a:hover { text-decoration: underline; }
 
 /* Results preview section */
 .home-results-preview {
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+  gap: clamp(14px, 2vw, 20px);
+  align-items: stretch;
   width: min(calc(100vw - 36px), 1520px);
   max-width: 1520px;
   margin-top: 10px;
+  padding: 0;
+}
+
+.home-results-preview__panel {
   padding: 36px clamp(18px, 3vw, 30px) 40px;
   border-radius: 30px;
   border: 1px solid rgba(180, 206, 235, 0.78);
@@ -1188,13 +1196,6 @@ a:hover { text-decoration: underline; }
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.72),
     0 18px 34px rgba(18, 56, 93, 0.06);
-}
-
-.home-results-shell {
-  display: grid;
-  grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
-  gap: clamp(14px, 2vw, 20px);
-  align-items: center;
 }
 
 .home-results-carousel {
@@ -1282,16 +1283,14 @@ a:hover { text-decoration: underline; }
 .home-results-intro {
   display: grid;
   gap: 10px;
-  margin-bottom: 0;
   align-content: center;
-  min-height: 100%;
-  padding: 20px 18px;
-  border-radius: 24px;
+  padding: 28px 20px;
+  border-radius: 30px;
   border: 1px solid rgba(42, 125, 225, 0.14);
   background:
     radial-gradient(circle at top right, rgba(222, 239, 255, 0.74), transparent 40%),
     linear-gradient(160deg, rgba(255, 255, 255, 0.98) 0%, rgba(247, 251, 255, 0.94) 100%);
-  box-shadow: 0 16px 30px rgba(21, 62, 111, 0.06);
+  box-shadow: 0 18px 34px rgba(21, 62, 111, 0.06);
 }
 
 .home-results-intro__eyebrow {
@@ -1872,10 +1871,9 @@ a:hover { text-decoration: underline; }
 }
 
 @media (max-width: 960px) {
-  .home-results-shell {
+  .home-results-preview {
     grid-template-columns: 1fr;
     gap: 20px;
-    align-items: start;
   }
   .home-results-intro {
     padding: 18px 16px;
@@ -1899,15 +1897,15 @@ a:hover { text-decoration: underline; }
   .home-results-preview {
     width: auto;
     max-width: none;
+    gap: 16px;
+  }
+  .home-results-preview__panel {
     padding: 28px 14px 30px;
     border-radius: 24px;
   }
-  .home-results-shell {
-    gap: 16px;
-  }
   .home-results-intro {
     padding: 16px 14px;
-    border-radius: 20px;
+    border-radius: 24px;
   }
   .home-nav {
     height: 70px;
