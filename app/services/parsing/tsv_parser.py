@@ -6,6 +6,7 @@ Handles tab-delimited and comma-delimited files.
 import csv
 from typing import Dict, Any
 from app.services.parsing.base_parser import BaseParser
+from app.services.parsing.utils import safe_bool
 
 
 class TSVParser(BaseParser):
@@ -51,6 +52,11 @@ class TSVParser(BaseParser):
                     clean_value = int(clean_value)
                 except (TypeError, ValueError):
                     pass
+
+            if clean_key in {"Control", "control", "is_control"}:
+                coerced = safe_bool(clean_value)
+                if coerced is not None:
+                    clean_value = coerced
 
             cleaned[clean_key] = clean_value
 
@@ -116,4 +122,3 @@ class TSVParser(BaseParser):
         except Exception as e:
             self.errors.append(f"Unexpected error parsing TSV/CSV: {e}")
             return False
-

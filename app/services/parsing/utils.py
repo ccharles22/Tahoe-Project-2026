@@ -65,6 +65,34 @@ def safe_float(value: Union[str, int, float, None]) -> Optional[float]:
         return None
 
 
+def safe_bool(value: Union[str, int, float, bool, None]) -> Optional[bool]:
+    """
+    Convert common truthy/falsey values to a boolean.
+
+    The example upload files use ``Control`` values as either JSON booleans or
+    TSV strings such as ``True`` / ``False``. Treating those strings as plain
+    truthiness would incorrectly classify ``"False"`` as true, so the parsing
+    pipeline needs an explicit coercion step.
+    """
+    if isinstance(value, bool):
+        return value
+
+    if value in (None, '', 'NULL', 'null', 'None'):
+        return None
+
+    if isinstance(value, (int, float)):
+        return bool(value)
+
+    if isinstance(value, str):
+        normalised = value.strip().lower()
+        if normalised in {'true', 't', 'yes', 'y', '1'}:
+            return True
+        if normalised in {'false', 'f', 'no', 'n', '0'}:
+            return False
+
+    return None
+
+
 def prepare_variant_data(
     record: Dict[str, Any],
     experiment_id: int,
