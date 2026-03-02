@@ -1048,6 +1048,11 @@ a:hover { text-decoration: underline; }
   margin-bottom: 10px;
 }
 
+#stage-fetch-wt .home-stage__title {
+  font-size: clamp(32px, 2.45vw, 40px);
+  white-space: nowrap;
+}
+
 .home-stage__description {
   color: #314252;
   font-size: clamp(16px, 1.14vw, 18px);
@@ -1172,6 +1177,11 @@ a:hover { text-decoration: underline; }
 
 .home-pipeline__item.is-active::before {
   content: none;
+}
+
+.home-pipeline__item[data-stage="fetch-wt"] {
+  font-size: clamp(18px, 1.28vw, 22px);
+  white-space: nowrap;
 }
 
 /* Results preview section */
@@ -1992,6 +2002,10 @@ a:hover { text-decoration: underline; }
   }
   .home-stage__title {
     font-size: clamp(30px, 11vw, 48px);
+  }
+  #stage-fetch-wt .home-stage__title,
+  .home-pipeline__item[data-stage="fetch-wt"] {
+    white-space: normal;
   }
   .home-stage__description {
     font-size: 14px;
