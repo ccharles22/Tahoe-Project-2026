@@ -4,18 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  const guideIconMarkup = `
-    <svg class="app-guidebar__docs-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-      <path d="M7 3.5h7.6L19 7.9V19a1.5 1.5 0 0 1-1.5 1.5h-10A1.5 1.5 0 0 1 6 19V5a1.5 1.5 0 0 1 1-1.4Z"></path>
-      <path d="M14.5 3.5V8H19"></path>
-      <path d="M9 11h6M9 14.5h6M9 18h4.5"></path>
-    </svg>
-  `;
-
-  document.querySelectorAll(".md-logo").forEach((logo) => {
-    logo.innerHTML = guideIconMarkup;
-  });
-
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const createRail = (side) => {
@@ -48,7 +36,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <nav class="app-guidebar__nav" aria-label="Application navigation">
         <a class="app-guidebar__link" href="/auth/">Home</a>
         <a class="app-guidebar__link" href="/staging/">Workspace</a>
-        <a class="app-guidebar__link app-guidebar__link--active" href="/guide/" aria-current="page">User Guide</a>
+        <a class="app-guidebar__link app-guidebar__link--active" href="/guide/" aria-current="page">User guide</a>
       </nav>
     </div>
   `;

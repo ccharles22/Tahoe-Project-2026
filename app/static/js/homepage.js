@@ -14,24 +14,26 @@
     const stageVisual = document.querySelector("[data-home-stage-visual]");
     const stageVisualTitle = document.querySelector("[data-home-stage-visual-title]");
     const dnaTrack = document.querySelector("[data-home-dna-track]");
+    const homeNav = document.querySelector(".home-nav");
+    const heroSection = document.querySelector(".home-hero");
     const resultsTrack = document.querySelector("[data-home-carousel-track]");
-    const resultsPrev = document.querySelector("[data-home-carousel-prev]");
-    const resultsNext = document.querySelector("[data-home-carousel-next]");
+    const resultsDots = document.querySelector("[data-home-carousel-dots]");
+    const resultsPreview = document.querySelector(".home-results-preview");
     let activeStageId = "";
     const stageTitles = {
-      "fetch-wt": "Stage Experiment",
-      "validate": "Protein & Plasmid Validation",
-      "upload": "Data Upload & QC",
-      "analyse": "Analysis & Reporting",
-      "sequence": "Sequence Processing",
+      "fetch-wt": "Fetch WT",
+      "validate": "Validate Plasmid",
+      "upload": "Upload Data",
+      "analyse": "Run Analysis",
+      "sequence": "Process Sequences",
     };
 
     function buildDnaBackground() {
       if (!dnaTrack) return;
 
       const dnaRowHeight = window.innerWidth <= 640 ? 19 : 22;
-      const rowCount = Math.max(18, Math.ceil((window.innerHeight * 1.5) / dnaRowHeight));
-      const baseCount = Math.max(110, Math.ceil(window.innerWidth / 12) + 36);
+      const rowCount = Math.max(24, Math.ceil((window.innerHeight * 1.9) / dnaRowHeight));
+      const baseCount = Math.max(132, Math.ceil(window.innerWidth / 10) + 44);
       const bases = ["A", "C", "G", "T"];
 
       const createRow = () => {
@@ -49,7 +51,7 @@
       }
       dnaTrack.innerHTML = `${firstSet}${firstSet}`;
       if (reduceMotion) {
-        dnaTrack.style.transform = "rotate(-3deg) scale(1.02)";
+        dnaTrack.style.transform = "rotate(0deg) scale(1.02)";
       }
     }
 
@@ -102,28 +104,126 @@
     buildDnaBackground();
     window.addEventListener("resize", buildDnaBackground);
 
-    if (resultsTrack && resultsPrev && resultsNext) {
-      const updateCarouselControls = () => {
-        const maxScroll = Math.max(0, resultsTrack.scrollWidth - resultsTrack.clientWidth - 2);
-        resultsPrev.disabled = resultsTrack.scrollLeft <= 2;
-        resultsNext.disabled = resultsTrack.scrollLeft >= maxScroll;
+    const updateNavContrast = () => {
+      if (!homeNav || !heroSection) return;
+      const navBottom = homeNav.getBoundingClientRect().bottom;
+      const heroBottom = heroSection.getBoundingClientRect().bottom;
+      const onDark = navBottom <= heroBottom;
+      homeNav.classList.toggle("home-nav--on-dark", onDark);
+    };
+
+    window.addEventListener("scroll", updateNavContrast, { passive: true });
+    window.addEventListener("resize", updateNavContrast);
+    updateNavContrast();
+
+    if (resultsTrack) {
+      const resultsCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
+      const dotElements = [];
+      let wheelLock = false;
+      let snapRaf = 0;
+
+      const closestCardIndex = () => {
+        if (!resultsCards.length) return 0;
+        const left = resultsTrack.scrollLeft;
+        let bestIdx = 0;
+        let bestDelta = Infinity;
+        resultsCards.forEach((card, idx) => {
+          const delta = Math.abs(card.offsetLeft - left);
+          if (delta < bestDelta) {
+            bestDelta = delta;
+            bestIdx = idx;
+          }
+        });
+        return bestIdx;
       };
 
-      const scrollResults = (direction) => {
-        const firstCard = resultsTrack.querySelector(".home-results-card");
-        const gap = parseFloat(window.getComputedStyle(resultsTrack).columnGap || window.getComputedStyle(resultsTrack).gap || "24");
-        const stride = firstCard ? firstCard.getBoundingClientRect().width + gap : resultsTrack.clientWidth * 0.9;
-        resultsTrack.scrollBy({
-          left: stride * direction,
-          behavior: reduceMotion ? "auto" : "smooth",
+      const snapToCard = (idx) => {
+        if (!resultsCards.length) return;
+        const clamped = Math.max(0, Math.min(resultsCards.length - 1, idx));
+        resultsTrack.scrollTo({
+          left: resultsCards[clamped].offsetLeft,
+          behavior: "auto",
+        });
+        updateActiveDot(clamped);
+      };
+
+      const updateActiveDot = (activeIdx) => {
+        if (!dotElements.length) return;
+        dotElements.forEach((dot, idx) => {
+          dot.classList.toggle("is-active", idx === activeIdx);
         });
       };
 
-      resultsPrev.addEventListener("click", () => scrollResults(-1));
-      resultsNext.addEventListener("click", () => scrollResults(1));
-      resultsTrack.addEventListener("scroll", updateCarouselControls, { passive: true });
-      window.addEventListener("resize", updateCarouselControls);
-      updateCarouselControls();
+      if (resultsDots && resultsCards.length > 1) {
+        resultsCards.forEach((_, idx) => {
+          const dot = document.createElement("span");
+          dot.className = "home-results-dot";
+          dotElements.push(dot);
+          resultsDots.appendChild(dot);
+          if (idx === 0) dot.classList.add("is-active");
+        });
+      }
+
+      resultsTrack.addEventListener("wheel", (event) => {
+        const absY = Math.abs(event.deltaY);
+        const absX = Math.abs(event.deltaX);
+        if (absY < 4 && absX < 4) return;
+        event.preventDefault();
+        if (wheelLock) return;
+        wheelLock = true;
+
+        const currentIdx = closestCardIndex();
+        const direction = (absX > absY ? event.deltaX : event.deltaY) > 0 ? 1 : -1;
+        snapToCard(currentIdx + direction);
+
+        window.setTimeout(() => {
+          wheelLock = false;
+        }, 120);
+      }, { passive: false });
+
+      let isPointerDown = false;
+      let dragStartX = 0;
+      let dragStartScroll = 0;
+
+      resultsTrack.addEventListener("pointerdown", (event) => {
+        isPointerDown = true;
+        dragStartX = event.clientX;
+        dragStartScroll = resultsTrack.scrollLeft;
+        resultsTrack.classList.add("is-dragging");
+        resultsTrack.setPointerCapture(event.pointerId);
+      });
+
+      resultsTrack.addEventListener("pointermove", (event) => {
+        if (!isPointerDown) return;
+        const delta = event.clientX - dragStartX;
+        resultsTrack.scrollLeft = dragStartScroll - delta;
+      });
+
+      const endDrag = (event) => {
+        if (!isPointerDown) return;
+        isPointerDown = false;
+        resultsTrack.classList.remove("is-dragging");
+        if (event && event.pointerId != null && resultsTrack.hasPointerCapture(event.pointerId)) {
+          resultsTrack.releasePointerCapture(event.pointerId);
+        }
+      };
+
+      resultsTrack.addEventListener("pointerup", endDrag);
+      resultsTrack.addEventListener("pointercancel", endDrag);
+      resultsTrack.addEventListener("pointerleave", endDrag);
+
+      resultsTrack.addEventListener("scroll", () => {
+        if (!dotElements.length) return;
+        if (snapRaf) cancelAnimationFrame(snapRaf);
+        snapRaf = requestAnimationFrame(() => {
+          snapRaf = 0;
+          updateActiveDot(closestCardIndex());
+        });
+      }, { passive: true });
+
+      window.addEventListener("resize", () => {
+        snapToCard(closestCardIndex());
+      });
     }
 
     if (stageCards.length) {
@@ -149,6 +249,13 @@
 
           if (closestCard && closestCard.dataset.stage) {
             setActiveStage(closestCard.dataset.stage);
+          }
+
+          if (resultsPreview && activeStageId !== "analyse") {
+            const lockBoundary = Math.max(0, resultsPreview.offsetTop - 1);
+            if (window.scrollY > lockBoundary) {
+              window.scrollTo(0, lockBoundary);
+            }
           }
         });
       };

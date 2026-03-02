@@ -4,6 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>User Guide</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}">
     <style>
       :root {
         color-scheme: light;
@@ -22,13 +24,10 @@
       body {
         margin: 0;
         min-height: 100vh;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
+        padding: 0;
         position: relative;
         overflow-x: hidden;
-        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-family: "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         color: #17324a;
         background:
           linear-gradient(122deg, rgba(20, 52, 79, 0.92) 0%, rgba(24, 86, 136, 0.86) 44%, rgba(23, 184, 179, 0.72) 100%),
@@ -122,6 +121,14 @@
         z-index: 1;
       }
 
+      .guide-page-main {
+        padding: 20px;
+        min-height: calc(100vh - 80px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
       .guide-kicker {
         margin: 0;
         font-size: 12px;
@@ -171,7 +178,7 @@
 
       .guide-title {
         margin: 0;
-        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         font-size: clamp(1.68rem, 3.15vw, 2.58rem);
         line-height: 1;
         font-weight: 800;
@@ -229,7 +236,7 @@
         margin: 0;
         font-size: clamp(1.18rem, 1.55vw, 1.5rem);
         line-height: 1.04;
-        font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         font-weight: 760;
         letter-spacing: -0.02em;
         color: var(--guide-primary);
@@ -293,7 +300,7 @@
       }
 
       @media (max-width: 760px) {
-        body {
+        .guide-page-main {
           padding: 14px;
         }
 
@@ -330,17 +337,42 @@
     </style>
   </head>
   <body>
+    <nav class="home-nav">
+      <div class="home-nav__left">
+        <a href="{{ url_for('auth.homepage') }}" class="home-nav__brand home-nav__brand--portal">
+          <img
+            class="home-nav__portal-image"
+            src="{{ url_for('static', filename='img/team_tahoe_logo_nav.png') }}"
+            alt="Direct Evolution Monitoring Portal logo"
+          >
+        </a>
+      </div>
+      <div class="home-nav__right">
+        <div class="home-nav__navlinks" aria-label="Primary navigation">
+          <a href="{{ url_for('auth.homepage') }}" class="home-nav__navlink">Home</a>
+          <a href="{{ url_for('staging.create_experiment') }}" class="home-nav__navlink">Workspace</a>
+        </div>
+        <a href="/guide/" class="home-nav__navlink home-nav__navlink--active" aria-current="page">User guide</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('auth.settings') }}" class="home-nav__iconbtn" aria-label="Account" title="{{ current_user.username }}">
+          <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>
+            <path d="M4.5 20a7.5 7.5 0 0 1 15 0"></path>
+          </svg>
+        </a>
+        <a href="{{ url_for('auth.logout') }}" class="home-nav__logout">Logout</a>
+        {% else %}
+        <a href="{{ url_for('auth.homepage', auth='login') }}" class="home-nav__signin">Sign in</a>
+        <a href="{{ url_for('auth.homepage', auth='register') }}" class="home-nav__signup">Sign up</a>
+        {% endif %}
+      </div>
+    </nav>
+
     <div class="guide-dna" aria-hidden="true">
       <div class="guide-dna__track" data-guide-dna-track></div>
     </div>
-    <main class="guide-shell">
-      <div class="guide-topbar">
-        <p class="guide-kicker">User Guide</p>
-        <div class="guide-navlinks" aria-label="Guide navigation shortcuts">
-          <a class="guide-navlink" href="{{ url_for('auth.homepage') }}">Home</a>
-          <a class="guide-navlink" href="{{ url_for('staging.create_experiment') }}">Workspace</a>
-        </div>
-      </div>
+    <main class="guide-page-main">
+      <div class="guide-shell">
       <h1 class="guide-title">Choose a documentation path</h1>
       <p class="guide-subtitle">
         Start from the main guide home, jump into parsing and QC, review database and schema
@@ -430,6 +462,7 @@
           <span class="guide-card__cta">Open GitHub &rarr;</span>
         </a>
       </section>
+      </div>
     </main>
 
     <script>
