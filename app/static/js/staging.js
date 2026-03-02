@@ -124,6 +124,11 @@ function initRunLoader() {
 
   const titleEl = document.getElementById('runLoaderTitle');
   const textEl = document.getElementById('runLoaderText');
+  const progressFillEl = document.getElementById('runLoaderProgressFill');
+  const progressValueEl = document.getElementById('runLoaderProgressValue');
+
+  let progressTimer = null;
+  let progressValue = 0;
 
   const copy = {
     sequence: {
@@ -140,15 +145,52 @@ function initRunLoader() {
     const content = copy[mode] || copy.analysis;
     if (titleEl) titleEl.textContent = content.title;
     if (textEl) textEl.textContent = content.text;
+    startProgress(mode);
     loader.classList.add('is-visible');
     loader.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-run-loading');
   };
 
   const hideLoader = () => {
+    stopProgress();
     loader.classList.remove('is-visible');
     loader.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-run-loading');
+  };
+
+  const renderProgress = () => {
+    if (progressFillEl) progressFillEl.style.width = `${progressValue}%`;
+    if (progressValueEl) progressValueEl.textContent = `${Math.round(progressValue)}%`;
+  };
+
+  const stopProgress = () => {
+    if (progressTimer) {
+      window.clearInterval(progressTimer);
+      progressTimer = null;
+    }
+  };
+
+  const startProgress = (mode) => {
+    stopProgress();
+    progressValue = 6;
+    renderProgress();
+
+    const cap = mode === 'sequence' ? 94 : 88;
+    const step = mode === 'sequence' ? 1.4 : 2.2;
+
+    progressTimer = window.setInterval(() => {
+      if (progressValue >= cap) {
+        progressValue = cap;
+        renderProgress();
+        stopProgress();
+        return;
+      }
+
+      const remaining = cap - progressValue;
+      const increment = Math.max(0.35, Math.min(step, remaining * 0.12));
+      progressValue = Math.min(cap, progressValue + increment);
+      renderProgress();
+    }, 900);
   };
 
   const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);

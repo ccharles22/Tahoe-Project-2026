@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Experiment Workflow</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css', v='20260302b') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css', v='20260302b') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css', v='20260302c') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css', v='20260302c') }}">
     <link rel="icon" type="image/png" sizes="128x128" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
   </head>
@@ -190,6 +190,15 @@
         <p class="run-loader__text" id="runLoaderText">
           The portal is processing your experiment. This view will update automatically when the run finishes.
         </p>
+        <div class="run-loader__progress" aria-hidden="true">
+          <div class="run-loader__progress-track">
+            <div class="run-loader__progress-fill" id="runLoaderProgressFill"></div>
+          </div>
+          <div class="run-loader__progress-meta">
+            <span class="run-loader__progress-label">Progress</span>
+            <span class="run-loader__progress-value" id="runLoaderProgressValue">0%</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1291,6 +1300,6 @@
       </main>
 </div>
 
-    <script src="{{ url_for('static', filename='js/staging.js', v='20260302b') }}"></script>
+    <script src="{{ url_for('static', filename='js/staging.js', v='20260302c') }}"></script>
   </body>
 </html>
