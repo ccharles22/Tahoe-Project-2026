@@ -66,4 +66,4 @@ This repo also includes an end-to-end PostgreSQL analysis/visualization flow for
 
 
 ### Acknowledgements 
-Thank you to Professor Conrad Bessant and Matteo Fumagalli  for your support.
+Thank you to Professor Conrad Bessant and Dr Matteo Fumagalli  for your support.
