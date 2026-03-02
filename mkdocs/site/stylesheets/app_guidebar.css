@@ -248,15 +248,15 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   display: block;
   position: relative;
   z-index: 1;
-  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 32px), 88rem);
+  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) + 72px), 96rem);
   margin: 0 auto;
-  padding: 0 10px;
+  padding: 0 16px;
 }
 
 .md-tabs__list {
   display: flex !important;
   align-items: stretch;
-  gap: 2px;
+  gap: 0;
   min-height: 56px;
   contain: none;
   flex-wrap: nowrap;
@@ -267,11 +267,22 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 }
 
 .md-tabs__item {
+  position: relative;
   height: auto;
   padding-left: 0 !important;
   padding-right: 0 !important;
   flex: 1 1 0;
   min-width: 0;
+}
+
+.md-tabs__item + .md-tabs__item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 14px;
+  bottom: 14px;
+  width: 1px;
+  background: rgba(224, 245, 255, 0.14);
 }
 
 .md-tabs__link {
@@ -280,10 +291,10 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
   justify-content: center;
   min-height: 56px;
   min-width: 0;
-  padding: 12px 8px 9px;
+  padding: 12px 14px 9px;
   margin-top: 0 !important;
   white-space: nowrap;
-  font-size: 0.74rem;
+  font-size: 0.75rem;
   line-height: 1.2;
   pointer-events: auto;
   cursor: pointer;
@@ -326,7 +337,7 @@ html.app-guidebar-transition-enabled.app-guidebar-page-leaving .md-sidebar--seco
 }
 
 .md-grid {
-  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 56px), 76rem);
+  max-width: min(calc(100vw - (var(--app-guidebar-rail-width) * 2) - 40px), 82rem);
 }
 
 @media (max-width: 900px) {
