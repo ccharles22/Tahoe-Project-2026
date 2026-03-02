@@ -30,8 +30,8 @@
         <div class="home-nav__navlinks" aria-label="Primary navigation">
           <a href="{{ url_for('auth.homepage') }}" class="home-nav__navlink">Home</a>
           <a href="{{ url_for('staging.create_experiment') }}" class="home-nav__navlink">Workspace</a>
+          <a href="/guide/" class="home-nav__navlink">User Guide</a>
         </div>
-        <a href="/guide/" class="home-nav__navlink">User Guide</a>
         <a href="{{ url_for('auth.settings') }}" class="home-nav__iconbtn" aria-label="Account settings" aria-current="page" title="{{ current_user.username }}">
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
             <path d="M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"></path>

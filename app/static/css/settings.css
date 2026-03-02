@@ -103,6 +103,11 @@
   color: #ffffff;
 }
 
+.settings-body .home-nav__navlinks {
+  gap: 18px;
+  margin-right: 4px;
+}
+
 .settings-body .home-nav__navlink:hover,
 .settings-body .home-nav__navlink:focus-visible {
   color: #ffffff;
