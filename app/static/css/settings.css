@@ -97,6 +97,22 @@
   height: clamp(72px, 8.4vw, 116px);
 }
 
+.settings-body .home-nav__brand,
+.settings-body .home-nav__navlink,
+.settings-body .home-nav__user {
+  color: #ffffff;
+}
+
+.settings-body .home-nav__navlink:hover,
+.settings-body .home-nav__navlink:focus-visible {
+  color: #ffffff;
+  border-bottom-color: rgba(154, 228, 255, 0.55);
+}
+
+.settings-body .home-nav__navlink--active {
+  color: #ffffff;
+}
+
 .home-nav__iconbtn[aria-current="page"] {
   border-color: var(--nav-border-strong);
   color: var(--nav-text-active);
