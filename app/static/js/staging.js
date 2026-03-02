@@ -151,33 +151,10 @@ function initRunLoader() {
     document.body.classList.remove('is-run-loading');
   };
 
-  const readJsonPayload = async (response) => {
-    const contentType = (response.headers.get('content-type') || '').toLowerCase();
-    if (!contentType.includes('application/json')) {
-      return null;
-    }
-    return response.json();
-  };
-
-  const navigateToWorkspace = () => {
-    const targetUrl = new URL(window.location.href);
-    targetUrl.searchParams.set('_refresh', String(Date.now()));
-    window.location.assign(targetUrl.toString());
-  };
-
-  const handleNonJsonResponse = (response) => {
-    if (response.redirected && response.url) {
-      window.location.assign(response.url);
-      return;
-    }
-    navigateToWorkspace();
-  };
-
   document
     .querySelectorAll('form[action*="/sequence/run"], form[action*="/analysis/run"]')
     .forEach((form) => {
-      form.addEventListener('submit', async (event) => {
-        event.preventDefault();
+      form.addEventListener('submit', () => {
         if (form.dataset.submitting === 'true') return;
 
         const mode = form.action.includes('/sequence/run') ? 'sequence' : 'analysis';
@@ -185,56 +162,6 @@ function initRunLoader() {
         form.dataset.submitting = 'true';
         if (submitBtn) submitBtn.classList.add('is-loading');
         showLoader(mode);
-
-        try {
-          const response = await fetch(form.action, {
-            method: form.method || 'POST',
-            body: new FormData(form),
-            credentials: 'same-origin',
-            redirect: 'follow',
-            headers: {
-              'X-Requested-With': 'XMLHttpRequest',
-            },
-          });
-
-          if (mode === 'sequence') {
-            const payload = await readJsonPayload(response);
-            if (!payload) {
-              handleNonJsonResponse(response);
-              return;
-            }
-            if (payload.state === 'completed') {
-              window.location.reload();
-              return;
-            }
-            if (payload.state === 'failed') {
-              const rawTarget = payload.redirect_url || window.location.href;
-              const targetUrl = new URL(rawTarget, window.location.href);
-              targetUrl.searchParams.set('_refresh', String(Date.now()));
-              window.location.assign(targetUrl.toString());
-              return;
-            }
-            throw new Error(`Unexpected sequence state: ${payload.state}`);
-          }
-
-          const payload = await readJsonPayload(response);
-          if (!payload) {
-            handleNonJsonResponse(response);
-            return;
-          }
-          if (payload.state === 'completed' || payload.state === 'failed') {
-            const rawTarget = payload.redirect_url || window.location.href;
-            const targetUrl = new URL(rawTarget, window.location.href);
-            targetUrl.searchParams.set('_refresh', String(Date.now()));
-            window.location.assign(targetUrl.toString());
-            return;
-          }
-
-          throw new Error(`Unexpected analysis state: ${payload.state}`);
-        } catch (error) {
-          console.error('Run request failed:', error);
-          navigateToWorkspace();
-        }
       });
     });
 }
