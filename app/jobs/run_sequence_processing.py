@@ -157,20 +157,17 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
                     fallback_search=settings.FALLBACK_SEARCH,
                 )
                 
-                # Flag QC-level failures that don't raise exceptions
-                if (
-                    not seq_result.cds_dna
-                    or seq_result.protein_aa is None
-                    or seq_result.qc.has_frameshift
-                    or seq_result.qc.has_premature_stop
-                ):
+                # Step 3 already handles upload/data QC. Keep sequence-level QC
+                # metadata for auditability, but only treat true processing
+                # failures (no CDS or no translated protein) as Step 4 errors.
+                if not seq_result.cds_dna or seq_result.protein_aa is None:
                     had_variant_errors = True
                     if not seq_result.cds_dna:
                         logger.warning(
                             "Variant %d: no CDS extracted (experiment %s)",
                             variant_id, experiment_id,
                         )
-                    elif seq_result.protein_aa is None:
+                    else:
                         logger.warning(
                             "Variant %d: translation failed (experiment %s)",
                             variant_id, experiment_id,
