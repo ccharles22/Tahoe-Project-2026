@@ -772,13 +772,6 @@
             {% if parsing_result.warnings and parsing_result.warnings|length > 0 %}
               <details class="details warning-insights" {% if not parsing_result.success %}open{% endif %}>
                 <summary>Warnings ({{ parsing_result.warnings|length }})</summary>
-                <div class="warning-insights__actions">
-                  {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
-                    <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download QC report</a>
-                  {% else %}
-                    <span class="btn btn--sm btn--ghost btn--disabled" aria-disabled="true">Download QC report</span>
-                  {% endif %}
-                </div>
                 <div class="warning-insights__summary" data-warning-summary>
                   {{ parsing_result.warnings|length }} warnings detected.
                 </div>
@@ -849,9 +842,6 @@
                 <input type="hidden" name="experiment_id" value="{{ experiment_id }}">
                 <button class="btn btn--primary" type="submit">Run now</button>
               </form>
-              {% if analysis_outputs and analysis_outputs.qc and analysis_outputs.qc.exists %}
-                <a class="btn" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">Download debug CSV</a>
-              {% endif %}
             </div>
             <details class="details">
               <summary>Show technical details</summary>
@@ -1239,12 +1229,6 @@
               <a class="btn btn--ghost" href="{{ analysis_outputs.top10.url }}" target="_blank" rel="noopener">Top 10 CSV</a>
             {% else %}
               <span class="btn btn--ghost btn--disabled" aria-disabled="true">Top 10 CSV</span>
-            {% endif %}
-
-            {% if analysis_outputs.qc and analysis_outputs.qc.exists %}
-              <a class="btn btn--ghost" href="{{ analysis_outputs.qc.url }}" target="_blank" rel="noopener">QC debug CSV</a>
-            {% else %}
-              <span class="btn btn--ghost btn--disabled" aria-disabled="true">QC debug CSV</span>
             {% endif %}
 
             {% if analysis_outputs.mutation_report and analysis_outputs.mutation_report.exists %}
