@@ -238,6 +238,104 @@ def _safe_codon(dna: str, codon_index_1based: Optional[int]) -> Optional[str]:
     return dna[i0:i1]
 
 
+def _detect_compensating_codon_indel(
+        wt_cds_dna: str,
+        var_cds_dna: str,
+) -> Optional[Tuple[List[MutationRecord], MutationCounts]]:
+    """
+    Detect a paired insertion/deletion hidden inside equal-length CDS strings.
+
+    Some equal-length variants are better explained by "insert one codon / delete
+    one codon" than by a cascade of substitutions. When removing one codon from
+    the WT and a different codon from the variant makes the remaining codon lists
+    identical, we treat the case as a compensating indel pair.
+    """
+    wt_codons = [wt_cds_dna[i : i + 3] for i in range(0, len(wt_cds_dna), 3)]
+    var_codons = [var_cds_dna[i : i + 3] for i in range(0, len(var_cds_dna), 3)]
+    mismatch_positions = [
+        idx for idx, (wt_codon, var_codon) in enumerate(zip(wt_codons, var_codons))
+        if wt_codon != var_codon
+    ]
+
+    if len(mismatch_positions) < 2:
+        return None
+
+    for delete_idx in mismatch_positions:
+        wt_without = wt_codons[:delete_idx] + wt_codons[delete_idx + 1 :]
+        for insert_idx in mismatch_positions:
+            if insert_idx == delete_idx:
+                continue
+            var_without = var_codons[:insert_idx] + var_codons[insert_idx + 1 :]
+            if wt_without != var_without:
+                continue
+
+            deleted_codon = wt_codons[delete_idx]
+            inserted_codon = var_codons[insert_idx]
+            deleted_aa = translate_dna(
+                deleted_codon,
+                table=settings.GENETIC_CODE_TABLE,
+                to_stop=False,
+            )
+            inserted_aa = translate_dna(
+                inserted_codon,
+                table=settings.GENETIC_CODE_TABLE,
+                to_stop=False,
+            )
+
+            mutations = [
+                MutationRecord(
+                    mutation_type="INSERTION",
+                    codon_index_1based=insert_idx + 1,
+                    aa_position_1based=insert_idx + 1,
+                    wt_codon=None,
+                    var_codon=inserted_codon,
+                    wt_aa=None,
+                    var_aa=inserted_aa,
+                    notes="Compensating in-frame insertion inferred from codon realignment.",
+                ),
+                MutationRecord(
+                    mutation_type="DELETION",
+                    codon_index_1based=delete_idx + 1,
+                    aa_position_1based=delete_idx + 1,
+                    wt_codon=deleted_codon,
+                    var_codon=None,
+                    wt_aa=deleted_aa,
+                    var_aa=None,
+                    notes="Compensating in-frame deletion inferred from codon realignment.",
+                ),
+            ]
+            return mutations, MutationCounts(synonymous=0, nonsynonymous=2, total=2)
+
+    return None
+
+
+def _needs_variant_remap(
+        protein_aa: Optional[str],
+        wt_protein_aa: str,
+        has_frameshift: bool,
+) -> bool:
+    """
+    Decide whether the extracted variant CDS is unreliable enough to warrant remapping.
+
+    This compatibility hook exists for two reasons:
+        - sequence extraction tests patch it directly to force the "no remap" path
+        - the processing pipeline still needs a single place to decide whether a
+          per-variant remap is more appropriate than trusting the current extract
+
+    The current policy is deliberately conservative:
+        - any translation failure requires remapping
+        - any frameshift requires remapping
+        - severely truncated proteins (<80% WT length) require remapping
+    """
+    if protein_aa is None:
+        return True
+    if has_frameshift:
+        return True
+    if not wt_protein_aa:
+        return False
+    return len(protein_aa) < max(1, int(0.8 * len(wt_protein_aa)))
+
+
 # ============================================================================
 # Main Sequence Processing Functions
 # ============================================================================
@@ -579,9 +677,27 @@ def process_variant_plasmid(
         notes=notes,     
     )
     
-    if fallback_search and (protein is None or has_frameshift):
-        # repeat mapping for this variant only
-        pass
+    remap_needed = _needs_variant_remap(
+        protein,
+        wt_mapping.wt_protein_aa,
+        has_frameshift,
+    )
+
+    if fallback_search and remap_needed:
+        try:
+            remapped = map_wt_gene_in_plasmid(wt_mapping.wt_protein_aa, plasmid)
+            return process_variant_plasmid(
+                plasmid,
+                remapped,
+                fallback_search=False,
+                wt_plasmid=wt_plasmid,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Variant remap failed; keeping primary extraction. %s: %s",
+                type(exc).__name__,
+                exc,
+            )
 
     return VariantSeqResult(
         cds_start_0based=cds_start,
@@ -721,8 +837,30 @@ def call_indels_via_protein_alignment(
             )
             continue
 
-        # Match
+        # Match at the amino-acid level; still capture synonymous codon swaps
         if wa == va:
+            wt_codon = _safe_codon(wt_cds_dna, wt_pos)
+            var_codon = _safe_codon(var_cds_dna, var_pos)
+            if (
+                wa != "-"
+                and wt_codon
+                and var_codon
+                and wt_codon != var_codon
+            ):
+                total += 1
+                syn += 1
+                muts.append(
+                    MutationRecord(
+                        mutation_type="SYNONYMOUS",
+                        codon_index_1based=wt_pos,
+                        aa_position_1based=wt_pos,
+                        wt_codon=wt_codon,
+                        var_codon=var_codon,
+                        wt_aa=wa,
+                        var_aa=va,
+                        notes="Synonymous codon swap retained through alignment.",
+                    )
+                )
             continue
 
         # Mismatch (subsitution at aligned position)
@@ -842,12 +980,27 @@ def call_mutations_against_wt(
     if len(wt) != len(var):
         return call_indels_via_protein_alignment(wt, var)
 
+    mismatch_count = 0
+    codons = len(wt) // 3
+    for i in range(codons):
+        if wt[i * 3 : i * 3 + 3] != var[i * 3 : i * 3 + 3]:
+            mismatch_count += 1
+
+    if mismatch_count >= 2:
+        compensating = _detect_compensating_codon_indel(wt, var)
+        if compensating is not None:
+            return compensating
+
+        aln_muts, aln_counts = call_indels_via_protein_alignment(wt, var)
+        aln_types = {m.mutation_type for m in aln_muts}
+        if {"INSERTION", "DELETION"} & aln_types and aln_counts.total <= mismatch_count:
+            return aln_muts, aln_counts
+
     muts: List[MutationRecord] = []
     syn = 0
     nonsyn = 0
     total = 0
 
-    codons = len(wt) // 3
     for i in range(codons):
         wt_codon = wt[i * 3 : i * 3 + 3]
         var_codon = var[i * 3 : i * 3 + 3]
