@@ -296,9 +296,14 @@ def load_kpis(experiment_id):
         gen_row = db.session.execute(
             text(
                 """
-                SELECT MIN(generation_number) AS min_gen, MAX(generation_number) AS max_gen
-                FROM generations
-                WHERE experiment_id = :eid
+                SELECT MIN(g.generation_number) AS min_gen,
+                       MAX(g.generation_number) AS max_gen
+                FROM generations g
+                WHERE g.experiment_id = :eid
+                  AND EXISTS (
+                      SELECT 1 FROM variants v
+                      WHERE v.generation_id = g.generation_id
+                  )
                 """
             ),
             {'eid': experiment_id},
@@ -357,15 +362,21 @@ def load_kpis(experiment_id):
             ),
             {'eid': experiment_id},
         ).scalar()
+        # Count variants with ANY mutations (including synonymous)
+        # using the total mutation count metric instead of the
+        # mutations table which excludes synonymous-only variants.
         mut_count = db.session.execute(
             text(
-                """
-                SELECT COUNT(DISTINCT m.variant_id)
-                FROM mutations m
-                JOIN variants v ON v.variant_id = m.variant_id
+                f"""
+                WITH latest_total AS (
+                  {LATEST_MUTATION_TOTAL_SQL}
+                )
+                SELECT COUNT(DISTINCT lt.variant_id)
+                FROM latest_total lt
+                JOIN variants v ON v.variant_id = lt.variant_id
                 JOIN generations g ON g.generation_id = v.generation_id
                 WHERE g.experiment_id = :eid
-                  AND m.mutation_type = 'protein'
+                  AND lt.total_mutations > 0
                 """
             ),
             {'eid': experiment_id},
@@ -401,35 +412,46 @@ def load_kpis(experiment_id):
                 f"{str(r['mutation_label'])} ({int(r['mutation_count'])})" for r in top_mut_rows
             )
 
-        syn_non_syn = db.session.execute(
+        # Synonymous count from metrics (synonymous mutations are not
+        # written to the mutations table).
+        syn_row = db.session.execute(
             text(
                 f"""
                 WITH latest_syn AS (
                   {LATEST_SYNONYMOUS_COUNTS_SQL}
-                ),
-                latest_non_syn AS (
-                  {LATEST_NONSYNONYMOUS_COUNTS_SQL}
                 )
-                SELECT
-                  COALESCE(SUM(ls.syn_count), 0) AS syn_count,
-                  COALESCE(SUM(ln.non_syn_count), 0) AS non_syn_count
-                FROM generations g
-                LEFT JOIN variants v ON v.generation_id = g.generation_id
-                LEFT JOIN latest_syn ls ON ls.variant_id = v.variant_id
-                LEFT JOIN latest_non_syn ln ON ln.variant_id = v.variant_id
+                SELECT COALESCE(SUM(ls.syn_count), 0) AS syn_count
+                FROM latest_syn ls
+                JOIN variants v ON v.variant_id = ls.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
                 WHERE g.experiment_id = :eid
                 """
             ),
             {'eid': experiment_id},
-        ).mappings().first()
-        if syn_non_syn:
-            syn_count = int(syn_non_syn['syn_count'] or 0)
-            non_syn_count = int(syn_non_syn['non_syn_count'] or 0)
-            if syn_count > 0 or non_syn_count > 0:
-                if non_syn_count > 0:
-                    kpi['syn_non_syn_ratio'] = f"{syn_count}:{non_syn_count} ({(syn_count / non_syn_count):.2f})"
-                else:
-                    kpi['syn_non_syn_ratio'] = f"{syn_count}:0"
+        ).scalar()
+        # Nonsynonymous count directly from the mutations table
+        # (the mutation_nonsynonymous_count metric incorrectly
+        # includes indels so we count protein mutations instead).
+        non_syn_row = db.session.execute(
+            text(
+                """
+                SELECT COUNT(*)
+                FROM mutations m
+                JOIN variants v ON v.variant_id = m.variant_id
+                JOIN generations g ON g.generation_id = v.generation_id
+                WHERE g.experiment_id = :eid
+                  AND m.mutation_type = 'protein'
+                """
+            ),
+            {'eid': experiment_id},
+        ).scalar()
+        syn_count = int(syn_row or 0)
+        non_syn_count = int(non_syn_row or 0)
+        if syn_count > 0 or non_syn_count > 0:
+            if non_syn_count > 0:
+                kpi['syn_non_syn_ratio'] = f"{syn_count}:{non_syn_count} ({(syn_count / non_syn_count):.2f})"
+            else:
+                kpi['syn_non_syn_ratio'] = f"{syn_count}:0"
     except Exception:
         db.session.rollback()
         return kpi
