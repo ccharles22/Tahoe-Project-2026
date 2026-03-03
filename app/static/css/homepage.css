@@ -1450,7 +1450,7 @@ a:hover { text-decoration: underline; }
 
 .home-footer__grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 24px;
 }
 
@@ -1511,6 +1511,29 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
   line-height: 1.6;
   color: rgba(226, 243, 255, .88);
+}
+
+.home-footer__legal {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: rgba(220, 240, 255, .78);
+}
+
+.home-footer__legal a {
+  color: rgba(236, 248, 255, .92);
+  text-decoration: none;
+}
+
+.home-footer__legal a:hover {
+  color: #ffffff;
+  text-decoration: underline;
+}
+
+.home-footer__legal-sep {
+  color: rgba(214, 236, 255, .44);
 }
 
 .home-results-card__header {
@@ -2208,7 +2231,7 @@ a:hover { text-decoration: underline; }
     padding: 36px 20px 42px;
   }
   .home-footer__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 20px;
   }
 }
@@ -2353,7 +2376,7 @@ a:hover { text-decoration: underline; }
     padding: 28px 16px 34px;
   }
   .home-footer__grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 18px;
   }
   .home-footer__title {
@@ -2366,6 +2389,10 @@ a:hover { text-decoration: underline; }
   .home-footer__list span,
   .home-footer__note p {
     font-size: 12px;
+  }
+  .home-footer__legal {
+    font-size: 11px;
+    gap: 6px;
   }
   .auth-sheet__panel {
     height: 100vh;

@@ -471,11 +471,29 @@
             <li><span>Activity Landscape</span></li>
           </ul>
         </section>
+
+        <section class="home-footer__group" aria-label="Contact and support">
+          <h3 class="home-footer__heading">Contact &amp; Support</h3>
+          <ul class="home-footer__list">
+            <li><a href="mailto:team.tahoe@bio727p.local">Contact Us</a></li>
+            <li><a href="/guide/">Documentation Help</a></li>
+            <li><a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('staging.create_experiment') }}">Open Workspace</a></li>
+            <li><span>Team Tahoe &middot; MSc Bioinformatics</span></li>
+          </ul>
+        </section>
       </div>
 
       <div class="home-footer__note">
         <span class="home-footer__note-line"></span>
         <p>The portal combines experiment tracking, sequence processing, metric computation, and result interpretation in one directed evolution workspace.</p>
+      </div>
+
+      <div class="home-footer__legal">
+        <span>&copy; 2025&ndash;2026 Team Tahoe</span>
+        <span class="home-footer__legal-sep">&middot;</span>
+        <span>Educational project for BIO727P</span>
+        <span class="home-footer__legal-sep">&middot;</span>
+        <a href="/guide/">User Guide</a>
       </div>
     </div>
   </footer>
