@@ -1221,10 +1221,25 @@ a:hover { text-decoration: underline; }
 }
 
 /* Latest insights section */
+.home-insights-band {
+  position: relative;
+  z-index: 1;
+  margin-top: clamp(64px, 8vw, 112px);
+  margin-bottom: 0;
+  padding: clamp(28px, 4vw, 56px) 0;
+  background:
+    linear-gradient(
+      138deg,
+      rgba(16, 50, 86, .985) 0%,
+      rgba(21, 86, 146, .97) 52%,
+      rgba(28, 120, 188, .95) 100%
+    );
+}
+
 .home-insights {
   width: min(1380px, 100%);
-  margin-top: clamp(64px, 8vw, 112px);
-  margin-bottom: clamp(36px, 5vw, 72px);
+  margin-top: 0;
+  margin-bottom: 0;
   margin-inline: auto;
   padding: clamp(24px, 3vw, 40px);
   display: grid;
@@ -2385,9 +2400,11 @@ a:hover { text-decoration: underline; }
 }
 
 @media (max-width: 640px) {
-  .home-insights {
+  .home-insights-band {
     margin-top: 36px;
-    margin-bottom: 28px;
+    padding: 20px 0;
+  }
+  .home-insights {
     padding: 16px 12px;
     border-radius: 18px;
   }
