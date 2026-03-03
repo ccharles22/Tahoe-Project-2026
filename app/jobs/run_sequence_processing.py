@@ -84,6 +84,89 @@ def _process_one_variant(
     )
 
 
+def _apply_mutation_sanity_guard(
+    item: VariantAnalysisItem,
+    wt_mapping: WTMapping,
+) -> VariantAnalysisItem:
+    """
+    Suppress biologically implausible mutation profiles from persistence.
+
+    This guard catches the known failure mode where a badly mapped short protein
+    is paired with an unrealistically large mutation count.
+    """
+    protein = item.result.protein_aa
+    if not protein:
+        return item
+
+    total_mutations = int(item.counts.total or 0)
+    protein_len = len(protein)
+    wt_len = len(wt_mapping.wt_protein_aa or "")
+
+    short_protein_max_len = int(
+        getattr(settings, "MUTATION_SANITY_SHORT_PROTEIN_MAX_LEN", 8)
+    )
+    short_protein_min_mutations = int(
+        getattr(settings, "MUTATION_SANITY_SHORT_PROTEIN_MIN_MUTATIONS", 100)
+    )
+    severe_ratio_threshold = float(
+        getattr(settings, "MUTATION_SANITY_WT_RATIO_THRESHOLD", 0.75)
+    )
+    severe_ratio_min_len = int(
+        getattr(settings, "MUTATION_SANITY_RATIO_MIN_PROTEIN_LEN", 30)
+    )
+    absolute_max = int(
+        getattr(settings, "MUTATION_SANITY_ABSOLUTE_MAX", 150)
+    )
+    wt_fraction_max = float(
+        getattr(settings, "MUTATION_SANITY_WT_FRACTION_MAX", 0.20)
+    )
+
+    suspicious_short = (
+        protein_len <= short_protein_max_len
+        and total_mutations >= short_protein_min_mutations
+    )
+    suspicious_ratio = (
+        wt_len > 0
+        and protein_len <= max(severe_ratio_min_len, int(0.10 * wt_len))
+        and total_mutations >= int(wt_len * severe_ratio_threshold)
+    )
+    outlier_threshold = max(absolute_max, int(wt_len * wt_fraction_max)) if wt_len > 0 else absolute_max
+    suspicious_outlier = total_mutations > outlier_threshold
+
+    if not (suspicious_short or suspicious_ratio or suspicious_outlier):
+        return item
+
+    note = (
+        "Mutation sanity guard: implausible mutation profile detected "
+        f"(protein_len={protein_len}, total_mutations={total_mutations}, wt_len={wt_len}, "
+        f"outlier_threshold={outlier_threshold}). "
+        "Marked as failed to avoid contaminating mutation-level summaries."
+    )
+    existing_note = item.result.qc.notes or ""
+    qc_note = f"{existing_note} {note}".strip()
+
+    guarded_result = VariantSeqResult(
+        cds_start_0based=item.result.cds_start_0based,
+        cds_end_0based_excl=item.result.cds_end_0based_excl,
+        strand=item.result.strand,
+        frame=item.result.frame,
+        cds_dna=item.result.cds_dna,
+        protein_aa=None,
+        qc=QCFlags(
+            has_ambiguous_bases=item.result.qc.has_ambiguous_bases,
+            has_frameshift=item.result.qc.has_frameshift,
+            has_premature_stop=item.result.qc.has_premature_stop,
+            notes=qc_note,
+        ),
+    )
+    return VariantAnalysisItem(
+        variant_id=item.variant_id,
+        result=guarded_result,
+        counts=_empty_counts(),
+        mutations=[],
+    )
+
+
 def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False) -> None:
     """
     Run the full variant-analysis pipeline for one experiment.
@@ -193,6 +276,14 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
                     fallback,
                     wt_plasmid_norm,
                 )
+                guarded_item = _apply_mutation_sanity_guard(item, wt_mapping)
+                if guarded_item is not item:
+                    logger.warning(
+                        "Variant %d flagged by mutation sanity guard in experiment %s.",
+                        variant_id,
+                        experiment_id,
+                    )
+                item = guarded_item
                 if (
                     not item.result.cds_dna
                     or item.result.protein_aa is None

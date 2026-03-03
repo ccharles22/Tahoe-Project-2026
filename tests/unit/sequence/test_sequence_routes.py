@@ -67,6 +67,48 @@ def test_run_processing_honours_explicit_force_reprocess():
     submit.assert_called_once_with(103, force_reprocess=True)
 
 
+def test_run_processing_defaults_to_force_reprocess_true():
+    from app.blueprints.sequence.routes import run_processing
+
+    app = _build_app()
+    engine = object()
+    with app.test_request_context(
+        "/api/experiments/103/run",
+        method="POST",
+        json={},
+    ):
+        with patch("app.blueprints.sequence.routes.get_engine", return_value=engine), \
+             patch("app.blueprints.sequence.routes.db_repo.get_experiment_status", return_value="ANALYSED"), \
+             patch("app.blueprints.sequence.routes.db_repo.has_uniprot_staging", return_value=False), \
+             patch("app.blueprints.sequence.routes.submit_sequence_processing") as submit:
+            response, status_code = run_processing(103)
+
+    assert status_code == 202
+    assert response.get_json()["status"] == "ANALYSIS_RUNNING"
+    submit.assert_called_once_with(103, force_reprocess=True)
+
+
+def test_run_processing_allows_explicit_force_reprocess_false():
+    from app.blueprints.sequence.routes import run_processing
+
+    app = _build_app()
+    engine = object()
+    with app.test_request_context(
+        "/api/experiments/103/run",
+        method="POST",
+        json={"force_reprocess": False},
+    ):
+        with patch("app.blueprints.sequence.routes.get_engine", return_value=engine), \
+             patch("app.blueprints.sequence.routes.db_repo.get_experiment_status", return_value="ANALYSED"), \
+             patch("app.blueprints.sequence.routes.db_repo.has_uniprot_staging", return_value=False), \
+             patch("app.blueprints.sequence.routes.submit_sequence_processing") as submit:
+            response, status_code = run_processing(103)
+
+    assert status_code == 202
+    assert response.get_json()["status"] == "ANALYSIS_RUNNING"
+    submit.assert_called_once_with(103, force_reprocess=False)
+
+
 def test_stage_wt_clears_cached_wt_mapping():
     from app.blueprints.sequence.routes import stage_wt
 

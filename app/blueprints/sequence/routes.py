@@ -61,7 +61,9 @@ def run_processing(experiment_id: int):
             }
         ), 409
 
-    force_reprocess = bool(payload.get("force_reprocess", False))
+    # Default to full overwrite reruns so mutation outputs are refreshed
+    # deterministically unless callers explicitly opt out.
+    force_reprocess = bool(payload.get("force_reprocess", True))
     if db_repo.has_uniprot_staging(engine, experiment_id):
         force_reprocess = True
 

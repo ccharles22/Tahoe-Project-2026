@@ -409,6 +409,126 @@ class TestRunSequenceProcessingDirect:
             for p in patches.values():
                 p.stop()
 
+    def test_mutation_sanity_guard_marks_implausible_profiles_failed(self):
+        """Short proteins with implausibly huge mutation counts should be suppressed."""
+        patches = _patch_pipeline()
+        mocks = {k: p.start() for k, p in patches.items()}
+
+        short_protein_result = VariantSeqResult(
+            cds_start_0based=100,
+            cds_end_0based_excl=118,
+            strand="PLUS",
+            frame=0,
+            cds_dna="ATGGCTGCTGCTGCTGCT",
+            protein_aa="MAAAA",
+            qc=QCFlags(
+                has_ambiguous_bases=False,
+                has_frameshift=False,
+                has_premature_stop=False,
+            ),
+        )
+        huge_counts = MutationCounts(synonymous=0, nonsynonymous=874, total=874)
+        huge_mutation = MutationRecord(
+            mutation_type="NONSYNONYMOUS",
+            codon_index_1based=1,
+            aa_position_1based=1,
+            wt_codon="GCT",
+            var_codon="GTT",
+            wt_aa="A",
+            var_aa="V",
+        )
+
+        mocks["process_variant"].side_effect = [short_protein_result, FAKE_SEQ_RESULT]
+        mocks["call_mutations"].side_effect = [
+            ([huge_mutation], huge_counts),
+            ([FAKE_MUTATION], FAKE_COUNTS),
+        ]
+
+        try:
+            from app.jobs.run_sequence_processing import run_sequence_processing
+
+            run_sequence_processing(FAKE_EXPERIMENT_ID, force_reprocess=True)
+
+            status_calls = mocks["update_status"].call_args_list
+            assert status_calls[-1].args[2] == "ANALYSED_WITH_ERRORS"
+
+            inserted_items = mocks["batch_insert"].call_args.kwargs["items"]
+            assert len(inserted_items) == 2
+
+            guarded = inserted_items[0]
+            assert guarded.variant_id == 1
+            assert guarded.result.protein_aa is None
+            assert guarded.counts.total == 0
+            assert guarded.mutations == []
+            assert "Mutation sanity guard" in (guarded.result.qc.notes or "")
+        finally:
+            for p in patches.values():
+                p.stop()
+
+    def test_mutation_sanity_guard_filters_hundreds_on_long_proteins(self):
+        """Hundreds-level mutation counts should be suppressed even on long proteins."""
+        patches = _patch_pipeline()
+        mocks = {k: p.start() for k, p in patches.items()}
+
+        long_wt_mapping = WTMapping(
+            strand="PLUS",
+            frame=0,
+            cds_start_0based=100,
+            cds_end_0based_excl=2740,
+            wt_cds_dna="ATG" + "GCT" * 879,
+            wt_protein_aa="M" + "A" * 879,
+            match_identity_pct=100.0,
+            alignment_score=500.0,
+        )
+        long_protein_result = VariantSeqResult(
+            cds_start_0based=100,
+            cds_end_0based_excl=2740,
+            strand="PLUS",
+            frame=0,
+            cds_dna="ATG" + "GCT" * 879,
+            protein_aa="M" + "A" * 879,
+            qc=QCFlags(
+                has_ambiguous_bases=False,
+                has_frameshift=False,
+                has_premature_stop=False,
+            ),
+        )
+        huge_counts = MutationCounts(synonymous=0, nonsynonymous=615, total=615)
+        huge_mutation = MutationRecord(
+            mutation_type="NONSYNONYMOUS",
+            codon_index_1based=1,
+            aa_position_1based=1,
+            wt_codon="GCT",
+            var_codon="GTT",
+            wt_aa="A",
+            var_aa="V",
+        )
+
+        mocks["load_wt_mapping"].return_value = long_wt_mapping
+        mocks["process_variant"].side_effect = [long_protein_result, FAKE_SEQ_RESULT]
+        mocks["call_mutations"].side_effect = [
+            ([huge_mutation], huge_counts),
+            ([FAKE_MUTATION], FAKE_COUNTS),
+        ]
+
+        try:
+            from app.jobs.run_sequence_processing import run_sequence_processing
+
+            run_sequence_processing(FAKE_EXPERIMENT_ID, force_reprocess=True)
+
+            inserted_items = mocks["batch_insert"].call_args.kwargs["items"]
+            assert len(inserted_items) == 2
+
+            guarded = inserted_items[0]
+            assert guarded.variant_id == 1
+            assert guarded.result.protein_aa is None
+            assert guarded.counts.total == 0
+            assert guarded.mutations == []
+            assert "outlier_threshold=" in (guarded.result.qc.notes or "")
+        finally:
+            for p in patches.values():
+                p.stop()
+
 
 class TestProcessVariantNonZeroFrame:
     """Verify that non-zero reading frames are handled correctly.

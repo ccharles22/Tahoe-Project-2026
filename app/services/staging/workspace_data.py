@@ -66,6 +66,21 @@ JOIN (
 ) latest ON latest.metric_id = m.metric_id
 """
 
+LATEST_SUCCESS_VSA_SQL = """
+SELECT DISTINCT ON (vsa.variant_id)
+  vsa.variant_id,
+  vsa.status,
+  vsa.qc_flags
+FROM variant_sequence_analysis vsa
+JOIN variants v ON v.variant_id = vsa.variant_id
+JOIN generations g ON g.generation_id = v.generation_id
+WHERE g.experiment_id = :eid
+ORDER BY
+  vsa.variant_id,
+  COALESCE(vsa.updated_at, vsa.created_at) DESC,
+  vsa.vsa_id DESC
+"""
+
 
 def load_top10_rows(csv_path, experiment_id):
     """Load top-10 rows from generated CSV and attach variant ids when possible."""
@@ -347,25 +362,30 @@ def load_kpis(experiment_id):
 
         analysed_count = db.session.execute(
             text(
-                """
-                SELECT COUNT(DISTINCT vsa.variant_id)
-                FROM variant_sequence_analysis vsa
-                JOIN variants v ON v.variant_id = vsa.variant_id
-                JOIN generations g ON g.generation_id = v.generation_id
-                WHERE g.experiment_id = :eid
+                f"""
+                WITH latest_vsa AS (
+                  {LATEST_SUCCESS_VSA_SQL}
+                )
+                SELECT COUNT(*) AS analysed_variants
+                FROM latest_vsa
+                WHERE status = 'success'
                 """
             ),
             {'eid': experiment_id},
         ).scalar()
         mut_count = db.session.execute(
             text(
-                """
-                SELECT COUNT(DISTINCT m.variant_id)
-                FROM mutations m
-                JOIN variants v ON v.variant_id = m.variant_id
-                JOIN generations g ON g.generation_id = v.generation_id
-                WHERE g.experiment_id = :eid
-                  AND m.mutation_type = 'protein'
+                f"""
+                WITH latest_vsa AS (
+                  {LATEST_SUCCESS_VSA_SQL}
+                )
+                SELECT COUNT(*) AS mutated_variants
+                FROM latest_vsa
+                WHERE status = 'success'
+                  AND COALESCE(
+                    CAST(NULLIF(qc_flags->'mutation_counts'->>'nonsynonymous', '') AS integer),
+                    0
+                  ) > 0
                 """
             ),
             {'eid': experiment_id},
@@ -377,15 +397,21 @@ def load_kpis(experiment_id):
 
         top_mut_rows = db.session.execute(
             text(
-                """
+                f"""
+                WITH latest_vsa AS (
+                  {LATEST_SUCCESS_VSA_SQL}
+                )
                 SELECT
                   CONCAT(m.original, m.position::text, m.mutated) AS mutation_label,
                   COUNT(*) AS mutation_count
                 FROM mutations m
+                JOIN latest_vsa lv ON lv.variant_id = m.variant_id
                 JOIN variants v ON v.variant_id = m.variant_id
                 JOIN generations g ON g.generation_id = v.generation_id
                 WHERE g.experiment_id = :eid
+                  AND lv.status = 'success'
                   AND m.mutation_type = 'protein'
+                  AND m.is_synonymous = FALSE
                   AND m.original IS NOT NULL
                   AND m.mutated IS NOT NULL
                   AND m.position IS NOT NULL
@@ -404,7 +430,10 @@ def load_kpis(experiment_id):
         syn_non_syn = db.session.execute(
             text(
                 f"""
-                WITH latest_syn AS (
+                WITH latest_vsa AS (
+                  {LATEST_SUCCESS_VSA_SQL}
+                ),
+                latest_syn AS (
                   {LATEST_SYNONYMOUS_COUNTS_SQL}
                 ),
                 latest_non_syn AS (
@@ -415,9 +444,11 @@ def load_kpis(experiment_id):
                   COALESCE(SUM(ln.non_syn_count), 0) AS non_syn_count
                 FROM generations g
                 LEFT JOIN variants v ON v.generation_id = g.generation_id
+                LEFT JOIN latest_vsa lv ON lv.variant_id = v.variant_id
                 LEFT JOIN latest_syn ls ON ls.variant_id = v.variant_id
                 LEFT JOIN latest_non_syn ln ON ln.variant_id = v.variant_id
                 WHERE g.experiment_id = :eid
+                  AND lv.status = 'success'
                 """
             ),
             {'eid': experiment_id},

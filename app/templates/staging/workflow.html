@@ -862,53 +862,6 @@
           {% endif %}
         </section>
 
-        <div class="variant-modal variant-drawer" id="variantModal" aria-hidden="true">
-          <div class="variant-modal__backdrop js-close-variant-modal"></div>
-          <div class="variant-modal__card variant-drawer__card" role="dialog" aria-modal="true" aria-labelledby="variantModalTitle">
-            <button type="button" class="variant-modal__close js-close-variant-modal" aria-label="Close">&times;</button>
-            <h3 class="variant-modal__title" id="variantModalTitle">Variant Details</h3>
-            <div class="kv">
-              <div class="kv__row"><span>Rank</span><strong id="modalRank">-</strong></div>
-              <div class="kv__row"><span>Variant ID</span><strong id="modalVariantId">-</strong></div>
-              <div class="kv__row"><span>Generation</span><strong id="modalGeneration">-</strong></div>
-              <div class="kv__row"><span>Parent variant</span><strong id="modalParentVariant">-</strong></div>
-              <div class="kv__row"><span>Variant</span><strong id="modalVariant">-</strong></div>
-              <div class="kv__row"><span>Activity score</span><strong id="modalActivity">-</strong></div>
-              <div class="kv__row"><span>DNA yield</span><strong id="modalDnaYield">-</strong></div>
-              <div class="kv__row"><span>Protein yield</span><strong id="modalProteinYield">-</strong></div>
-              <div class="kv__row"><span>QC notes</span><strong id="modalQcNote">-</strong></div>
-            </div>
-            <div class="variant-modal__block">
-              <div class="variant-modal__subtitle">Mutations (WT vs Variant)</div>
-              <div class="variant-modal__mut-wrap">
-                <table class="variant-modal__mut-table">
-                  <thead>
-                    <tr>
-                      <th>Type</th>
-                      <th>AA</th>
-                      <th>NT</th>
-                      <th>Pos</th>
-                    </tr>
-                  </thead>
-                  <tbody id="modalMutationsBody">
-                    <tr><td colspan="4">No mutation data.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-            <div class="variant-modal__block">
-              <div class="variant-modal__subtitle">Protein snippet around mutation</div>
-              <pre class="variant-modal__snippet" id="modalProteinSnippet">-</pre>
-            </div>
-            <div class="variant-modal__downloads">
-              <a class="btn btn--sm" id="modalDownloadDna" href="#" target="_blank" rel="noopener">FASTA (DNA)</a>
-              <a class="btn btn--sm" id="modalDownloadProtein" href="#" target="_blank" rel="noopener">Protein FASTA</a>
-              <a class="btn btn--sm" id="modalDownloadMutCsv" href="#" target="_blank" rel="noopener">Mutation report (CSV)</a>
-              <a class="btn btn--sm" id="modalFullVariantPage" href="#" target="_blank" rel="noopener">Full variant page</a>
-            </div>
-          </div>
-        </div>
-
         <section class="panel visuals-panel panel--primary" data-panel="E">
           <div class="panel__header">
             <div class="panel__header-main panel__header-main--major">

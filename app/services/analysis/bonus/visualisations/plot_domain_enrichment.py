@@ -1,103 +1,180 @@
-"""Bonus visualisations for domain-level mutation enrichment summaries."""
-
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import argparse
 from pathlib import Path
 from typing import Literal, Optional
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 from app.services.analysis.bonus.database.postgres import get_connection
+
+
+# ------------------------------------------------------------------ #
+# Metric display helpers
+# ------------------------------------------------------------------ #
+_METRIC_LABELS = {
+    "nonsyn_count": "Non-synonymous mutations",
+    "nonsyn_per_residue": "Non-synonymous mutations per residue",
+}
+
+
+def _metric_label(metric: str) -> str:
+    return _METRIC_LABELS.get(metric, metric)
 
 
 def plot_domain_enrichment(
     generation_id: Optional[int] = None,
     metric: Literal["nonsyn_count", "nonsyn_per_residue"] = "nonsyn_count",
-    single_generation: bool = False,
     out_path: Path | str = "outputs/domain_enrichment_heatmap.html",
 ) -> Path:
     """Bar chart for a single generation, or cross-generation heatmap when generation_id is None."""
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
-    if generation_id is None:
-        raise ValueError("generation_id is required to resolve the target experiment.")
-
+    # ---- Fetch data, joining generations to get generation_number ----
     sql = """
-      WITH target_experiment AS (
-        SELECT e.experiment_id, e.wt_id
-        FROM generations g
-        JOIN experiments e ON e.experiment_id = g.experiment_id
-        WHERE g.generation_id = %s
-        LIMIT 1
-      )
-      SELECT
-        v.generation_id,
-        MIN(COALESCE(pf.description, pf.feature_type)) AS domain_label,
-        COUNT(*) FILTER (WHERE m.is_synonymous IS FALSE) AS nonsyn_count,
-        COUNT(*) FILTER (WHERE m.is_synonymous IS TRUE) AS syn_count,
-        COUNT(*) AS total_protein_mutations,
-        (pf.end_position - pf.start_position + 1) AS domain_length,
-        COUNT(*) FILTER (WHERE m.is_synonymous IS FALSE)::float
-          / NULLIF((pf.end_position - pf.start_position + 1), 0) AS nonsyn_per_residue
-      FROM target_experiment te
-      JOIN generations g
-        ON g.experiment_id = te.experiment_id
-      JOIN variants v
-        ON v.generation_id = g.generation_id
-      JOIN mutations m
-        ON m.variant_id = v.variant_id
-       AND m.mutation_type = 'protein'
-      JOIN protein_features pf
-        ON pf.wt_id = te.wt_id
-       AND m.position BETWEEN pf.start_position AND pf.end_position
-      WHERE (%s IS FALSE OR v.generation_id = %s)
-      GROUP BY
-        v.generation_id,
-        pf.feature_type,
-        pf.start_position,
-        pf.end_position
+      SELECT g.generation_number AS generation,
+             d.domain_label,
+             d.nonsyn_count,
+             d.syn_count,
+             d.total_protein_mutations,
+             d.domain_length,
+             d.nonsyn_per_residue
+      FROM mv_domain_mutation_enrichment d
+      JOIN generations g ON g.generation_id = d.generation_id
     """
-    params = (int(generation_id), single_generation, int(generation_id))
+    params: tuple = ()
+    if generation_id is not None:
+        sql += " WHERE d.generation_id = %s"
+        params = (int(generation_id),)
 
     with get_connection() as conn:
         df = pd.read_sql_query(sql, conn, params=params)
 
     if df.empty:
         raise RuntimeError(
-            "No domain-linked protein mutations were found for this experiment. "
-            "Domain enrichment requires both protein features and protein mutation rows."
+            "No rows found in mv_domain_mutation_enrichment. "
+            "Did you build/refresh the MV with valid protein_features (wt_id mapping)?"
         )
 
-    if single_generation:
+    # ---- Single-generation bar chart ----
+    if generation_id is not None:
+        gen_num = int(df["generation"].iloc[0]) if "generation" in df.columns else generation_id
         df = df.sort_values(metric, ascending=False).head(25)
         fig = px.bar(
             df,
             x=metric,
             y="domain_label",
             orientation="h",
-            title=f"Domain Enrichment (Gen {generation_id})",
+            title=f"Domain Enrichment --- Generation {gen_num}",
             hover_data=["domain_length", "syn_count", "total_protein_mutations"],
+            color=metric,
+            color_continuous_scale="Viridis",
         )
-        fig.update_layout(yaxis_title="Domain/Region", xaxis_title=metric)
+        fig.update_layout(
+            yaxis_title="Domain / Region",
+            xaxis_title=_metric_label(metric),
+            plot_bgcolor="white",
+            font=dict(size=12),
+        )
         fig.write_html(str(out_path))
         return out_path
 
-    heat = df.pivot_table(index="domain_label", columns="generation_id", values=metric, fill_value=0)
-    fig = px.imshow(
-        heat,
-        aspect="auto",
-        title=f"Domain-level Mutation Enrichment by Generation ({metric})",
-        labels=dict(x="Generation", y="Domain/Region", color=metric),
+    # ---- Cross-generation heatmap ----
+    heat = df.pivot_table(
+        index="domain_label",
+        columns="generation",
+        values=metric,
+        fill_value=0,
     )
+    # Sort columns numerically (generation 1, 2, ..., 10)
+    heat = heat.reindex(sorted(heat.columns), axis=1)
+    # Rename columns to "Gen 1", "Gen 2", etc.
+    heat.columns = [f"Gen {int(c)}" for c in heat.columns]
+
+    # Sort rows so the domain with the highest total appears at the top
+    heat["_total"] = heat.sum(axis=1)
+    heat = heat.sort_values("_total", ascending=True)
+    heat = heat.drop(columns="_total")
+
+    # Build the heatmap with go.Heatmap for full control
+    z = heat.values
+    x_labels = list(heat.columns)
+    y_labels = list(heat.index)
+
+    # Annotation text: show actual values inside cells
+    annotations: list[dict] = []
+    for i, y_lab in enumerate(y_labels):
+        for j, x_lab in enumerate(x_labels):
+            val = z[i][j]
+            # Format large numbers compactly
+            if metric == "nonsyn_per_residue":
+                text = f"{val:.2f}" if val else ""
+            else:
+                text = f"{int(val):,}" if val else ""
+            annotations.append(dict(
+                x=x_lab,
+                y=y_lab,
+                text=text,
+                font=dict(
+                    size=10,
+                    color="white" if val > (np.max(z) * 0.6) else "#333333",
+                ),
+                showarrow=False,
+                xref="x",
+                yref="y",
+            ))
+
+    fig = go.Figure(data=go.Heatmap(
+        z=z,
+        x=x_labels,
+        y=y_labels,
+        colorscale="YlOrRd",
+        colorbar=dict(
+            title=dict(text=_metric_label(metric), font=dict(size=12)),
+            thickness=15,
+            len=0.75,
+        ),
+        hovertemplate=(
+            "<b>%{y}</b><br>"
+            "Generation: %{x}<br>"
+            f"{_metric_label(metric)}: " + "%{z:,}<extra></extra>"
+        ),
+        xgap=2,
+        ygap=2,
+    ))
+
+    fig.update_layout(
+        title=dict(
+            text=f"Domain-level Mutation Enrichment by Generation",
+            font=dict(size=16),
+        ),
+        xaxis=dict(
+            title="Generation",
+            side="bottom",
+            tickangle=0,
+            dtick=1,
+        ),
+        yaxis=dict(
+            title="Domain / Region",
+            autorange="reversed",
+        ),
+        annotations=annotations,
+        plot_bgcolor="white",
+        margin=dict(l=160, r=80, t=70, b=60),
+        height=max(350, len(y_labels) * 60 + 120),
+        width=max(600, len(x_labels) * 70 + 250),
+        font=dict(family="Arial, sans-serif", size=12),
+    )
+
     fig.write_html(str(out_path))
     return out_path
 
 
 def main():
-    """CLI entrypoint for exporting domain-enrichment visualisations."""
     ap = argparse.ArgumentParser(description="Plot domain-level mutation enrichment heatmap.")
     ap.add_argument("--generation-id", type=int, required=False, help="Optional: filter to one generation.")
     ap.add_argument("--metric", choices=["nonsyn_count", "nonsyn_per_residue"], default="nonsyn_count")

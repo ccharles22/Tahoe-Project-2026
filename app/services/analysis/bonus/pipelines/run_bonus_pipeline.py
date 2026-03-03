@@ -328,6 +328,11 @@ def run_pipeline(
             perplexity=perplexity,
             refresh_view=False,
         )
+        
+        # Refresh domain enrichment view after embeddings are computed
+        mv_failures = refresh_materialized_views(["mv_domain_mutation_enrichment"])
+        for view, error in mv_failures.items():
+            print(f"[warn] Failed to refresh {view}: {error}")
     else:
         print(
             f"[warn] No activity_score metrics found for generation_id={generation_id}. "
@@ -386,9 +391,8 @@ def run_pipeline(
     out_domain_heat = _run_plot(
         "Domain heatmap",
         plot_domain_enrichment,
-        generation_id=generation_id,
+        generation_id=None,
         metric="nonsyn_count",
-        single_generation=False,
         out_path=outputs_dir / "domain_enrichment_heatmap.html",
         placeholder_title="Domain Heatmap",
         placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or protein mutation data are missing.",
@@ -400,7 +404,6 @@ def run_pipeline(
         plot_domain_enrichment,
         generation_id=generation_id,
         metric="nonsyn_count",
-        single_generation=True,
         out_path=outputs_dir / "domain_enrichment_latest.html",
         placeholder_title="Domain by Generation",
         placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",

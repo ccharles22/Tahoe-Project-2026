@@ -1371,7 +1371,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   gap: 8px;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -1969,11 +1969,14 @@ a:hover { text-decoration: underline; }
 }
 
 .analysis-studio__header {
+  position: relative;
+  z-index: 2;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 10px;
+  overflow: visible;
 }
 
 .analysis-studio__title {
@@ -1984,7 +1987,7 @@ a:hover { text-decoration: underline; }
 
 .analysis-studio__title--strong {
   display: inline-block;
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   font-size: clamp(2rem, 4vw, 3rem);
   line-height: 0.95;
   font-weight: 900;
@@ -2000,6 +2003,7 @@ a:hover { text-decoration: underline; }
 
 .analysis-title-info {
   position: relative;
+  z-index: 1200;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -2011,14 +2015,14 @@ a:hover { text-decoration: underline; }
   color: #106d6c;
   font-size: 1.1rem;
   font-weight: 700;
-  font-family: Arial, sans-serif;
+  font-family: inherit;
   cursor: help;
   flex-shrink: 0;
 }
 
 .analysis-title-info__tip {
   position: absolute;
-  top: calc(100% + 10px);
+  bottom: calc(100% + 10px);
   right: 0;
   width: min(320px, 78vw);
   padding: 12px 14px;
@@ -2029,16 +2033,30 @@ a:hover { text-decoration: underline; }
   line-height: 1.45;
   box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
   opacity: 0;
-  transform: translateY(-6px);
+  transform: translateY(6px);
   pointer-events: none;
   transition: opacity 140ms var(--ease), transform 140ms var(--ease);
-  z-index: 5;
+  z-index: 9999;
 }
 
 .analysis-title-info:hover .analysis-title-info__tip,
 .analysis-title-info:focus-visible .analysis-title-info__tip {
   opacity: 1;
   transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+  .analysis-title-info__tip {
+    right: auto;
+    left: 50%;
+    width: min(320px, 92vw);
+    transform: translate(-50%, 6px);
+  }
+
+  .analysis-title-info:hover .analysis-title-info__tip,
+  .analysis-title-info:focus-visible .analysis-title-info__tip {
+    transform: translate(-50%, 0);
+  }
 }
 
 .analysis-studio__hint {

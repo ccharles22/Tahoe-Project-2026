@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Top 10 – Experiment {{ experiment_id }}</title>
     <style>
+      @import url("https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=general-sans@400,500,600,700&display=swap");
+
       :root {
         --ink: #122033;
         --muted: #5f7085;
@@ -22,7 +24,7 @@
       body {
         margin: 0;
         padding: 8px;
-        font-family: Georgia, "Times New Roman", serif;
+        font-family: "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         color: var(--ink);
         background:
           radial-gradient(circle at top right, #e7f5f0, transparent 35%),
@@ -50,6 +52,7 @@
 
       .hero h1 {
         margin: 0;
+        font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
         font-size: clamp(2rem, 4vw, 3.2rem);
         line-height: 0.95;
       }
@@ -61,7 +64,7 @@
       .panel {
         background: rgba(255, 255, 255, 0.92);
         border: 1px solid rgba(217, 226, 236, 0.9);
-        border-radius: 24px;
+        border-radius: 0;
         box-shadow: 0 18px 46px rgba(15, 23, 42, 0.08);
         overflow: hidden;
       }
@@ -103,7 +106,7 @@
 
       .btn {
         border: 0;
-        border-radius: 999px;
+        border-radius: 0;
         padding: 8px 12px;
         background: var(--ink);
         color: #fff;
@@ -117,6 +120,7 @@
 
       .info-chip {
         position: relative;
+        z-index: 1200;
         display: inline-flex;
         justify-content: center;
         align-items: center;
@@ -127,13 +131,13 @@
         background: rgba(16, 109, 108, 0.12);
         color: var(--accent);
         font-weight: 700;
-        font-family: Arial, sans-serif;
+        font-family: inherit;
         cursor: help;
       }
 
       .info-chip__tip {
         position: absolute;
-        top: calc(100% + 10px);
+        bottom: calc(100% + 10px);
         right: 0;
         width: min(340px, 80vw);
         padding: 12px 14px;
@@ -144,9 +148,10 @@
         line-height: 1.45;
         box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
         opacity: 0;
-        transform: translateY(-6px);
+        transform: translateY(6px);
         pointer-events: none;
         transition: opacity 140ms ease, transform 140ms ease;
+        z-index: 9999;
       }
 
       .info-chip:hover .info-chip__tip,
@@ -160,19 +165,21 @@
         overflow-y: visible;
         max-height: none;
         border: 1px solid var(--line);
-        border-radius: 18px;
+        border-radius: 0;
       }
 
       table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 740px;
+        min-width: 0;
+        table-layout: fixed;
       }
 
       th, td {
-        padding: 7px 10px;
+        padding: 6px 8px;
         border-bottom: 1px solid var(--line);
         vertical-align: middle;
+        overflow-wrap: anywhere;
       }
 
       th {
@@ -212,18 +219,18 @@
         min-width: 2rem;
         justify-content: center;
         padding: 4px 10px;
-        border-radius: 999px;
+        border-radius: 0;
         background: var(--paper);
         font-weight: 700;
       }
 
       .score-cell {
-        min-width: 200px;
+        min-width: 0;
       }
 
       .score-stack {
         display: grid;
-        gap: 6px;
+        gap: 0;
       }
 
       .score-value {
@@ -231,27 +238,13 @@
         font-weight: 700;
       }
 
-      .score-bar {
-        width: 100%;
-        height: 8px;
-        border-radius: 999px;
-        background: #e6edf2;
-        overflow: hidden;
-      }
-
-      .score-bar > span {
-        display: block;
-        height: 100%;
-        border-radius: inherit;
-        background: linear-gradient(90deg, var(--accent) 0%, #59b7a9 100%);
-      }
-
       .mut-chip {
         display: inline-flex;
         padding: 4px 10px;
-        border-radius: 999px;
-        background: var(--warn-soft);
-        color: var(--warn);
+        border-radius: 0;
+        background: transparent;
+        color: var(--ink);
+        border: 1px solid var(--line);
         font-weight: 700;
         font-variant-numeric: tabular-nums;
       }
@@ -270,9 +263,145 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        text-decoration: none;
+        text-decoration: underline;
         color: var(--accent);
         font-weight: 700;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        font: inherit;
+        cursor: pointer;
+      }
+
+      .variant-drawer {
+        position: fixed;
+        inset: 0;
+        z-index: 60;
+        display: none;
+      }
+
+      .variant-drawer.is-open {
+        display: block;
+      }
+
+      .variant-drawer__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+      }
+
+      .variant-drawer__card {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: min(620px, 100vw);
+        height: 100%;
+        background: #fff;
+        border-left: 1px solid var(--line);
+        box-shadow: 0 18px 46px rgba(15, 23, 42, 0.2);
+        padding: 16px;
+        overflow-y: auto;
+      }
+
+      .variant-drawer__close {
+        position: absolute;
+        right: 10px;
+        top: 10px;
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font-size: 26px;
+        line-height: 1;
+        cursor: pointer;
+      }
+
+      .variant-drawer__close:hover {
+        color: var(--ink);
+      }
+
+      .variant-drawer__title {
+        margin: 0 0 10px;
+        font-size: 1.1rem;
+      }
+
+      .kv {
+        display: grid;
+        gap: 8px;
+      }
+
+      .kv__row {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .kv__row span {
+        color: var(--muted);
+      }
+
+      .drawer-block {
+        margin-top: 14px;
+      }
+
+      .drawer-subtitle {
+        margin: 0 0 8px;
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .mut-wrap {
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+
+      .mut-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .mut-table th,
+      .mut-table td {
+        text-align: left;
+        font-size: 0.82rem;
+        padding: 8px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .mut-table th {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        background: #f6f8fa;
+      }
+
+      .mut-table tr:last-child td {
+        border-bottom: 0;
+      }
+
+      .drawer-snippet {
+        margin: 0;
+        padding: 10px;
+        border: 1px solid var(--line);
+        background: #f6f8fa;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        font-size: 0.82rem;
+      }
+
+      .drawer-actions {
+        margin-top: 14px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .drawer-actions .btn {
+        text-decoration: none;
       }
 
       .image-shell {
@@ -299,7 +428,17 @@
         body { padding: 12px; }
         .panel__head,
         .panel__body { padding-left: 16px; padding-right: 16px; }
-        .score-cell { min-width: 180px; }
+        th, td { padding: 5px 6px; }
+        .info-chip__tip {
+          right: auto;
+          left: 50%;
+          width: min(340px, 92vw);
+          transform: translate(-50%, 6px);
+        }
+        .info-chip:hover .info-chip__tip,
+        .info-chip:focus-visible .info-chip__tip {
+          transform: translate(-50%, 0);
+        }
       }
     </style>
   </head>
@@ -318,7 +457,7 @@
           </button>
         </div>
         <p>
-          Experiment {{ experiment_id }}. Sort the live table, compare activity bars,
+          Experiment {{ experiment_id }}. Sort the live table, compare activity scores,
           and copy the current rows as CSV without leaving the page.
         </p>
       </header>
@@ -356,13 +495,13 @@
                 </thead>
                 <tbody>
                   {% for row in top10_rows %}
-                    {% set bar_width = (row.activity_score / top10_max_score * 100) if top10_max_score else 0 %}
                     <tr
                       data-rank="{{ row.rank }}"
                       data-generation="{{ row.generation_number }}"
                       data-index="{{ row.plasmid_variant_index }}"
                       data-score="{{ '%.12f'|format(row.activity_score) }}"
                       data-mutations="{{ '' if row.total_mutations is none else row.total_mutations }}"
+                      data-variant-id="{{ row.variant_id }}"
                     >
                       <td><span class="rank-pill">#{{ row.rank }}</span></td>
                       <td>{{ row.generation_number }}</td>
@@ -370,7 +509,6 @@
                       <td class="score-cell">
                         <div class="score-stack">
                           <span class="score-value">{{ '%.3f'|format(row.activity_score) }}</span>
-                          <span class="score-bar"><span data-width="{{ '%.2f'|format(bar_width) }}"></span></span>
                         </div>
                       </td>
                       <td>
@@ -379,9 +517,7 @@
                         </span>
                       </td>
                       <td class="actions">
-                        <a class="row-link" href="/staging/variant/{{ row.variant_id }}" target="_blank" rel="noopener">
-                          View
-                        </a>
+                        <button class="row-link js-view-variant" type="button">View Variant</button>
                       </td>
                     </tr>
                   {% endfor %}
@@ -397,12 +533,176 @@
       </section>
 
     </main>
+    <div class="variant-drawer" id="variantDrawer" aria-hidden="true">
+      <div class="variant-drawer__backdrop js-close-variant-drawer"></div>
+      <div class="variant-drawer__card" role="dialog" aria-modal="true" aria-labelledby="variantDrawerTitle">
+        <button type="button" class="variant-drawer__close js-close-variant-drawer" aria-label="Close">&times;</button>
+        <h3 class="variant-drawer__title" id="variantDrawerTitle">Variant Details</h3>
+        <div class="kv">
+          <div class="kv__row"><span>Rank</span><strong id="drawerRank">-</strong></div>
+          <div class="kv__row"><span>Variant ID</span><strong id="drawerVariantId">-</strong></div>
+          <div class="kv__row"><span>Generation</span><strong id="drawerGeneration">-</strong></div>
+          <div class="kv__row"><span>Parent variant</span><strong id="drawerParentVariant">-</strong></div>
+          <div class="kv__row"><span>Variant index</span><strong id="drawerVariantIndex">-</strong></div>
+          <div class="kv__row"><span>Activity score</span><strong id="drawerActivity">-</strong></div>
+          <div class="kv__row"><span>DNA yield</span><strong id="drawerDnaYield">-</strong></div>
+          <div class="kv__row"><span>Protein yield</span><strong id="drawerProteinYield">-</strong></div>
+          <div class="kv__row"><span>QC note</span><strong id="drawerQcNote">-</strong></div>
+        </div>
+        <div class="drawer-block">
+          <p class="drawer-subtitle">Mutations (WT vs Variant)</p>
+          <div class="mut-wrap">
+            <table class="mut-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>AA</th>
+                  <th>NT</th>
+                  <th>Pos</th>
+                </tr>
+              </thead>
+              <tbody id="drawerMutationsBody">
+                <tr><td colspan="4">No mutation data.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="drawer-block">
+          <p class="drawer-subtitle">Protein snippet around mutation</p>
+          <pre class="drawer-snippet" id="drawerProteinSnippet">-</pre>
+        </div>
+        <div class="drawer-actions">
+          <a class="btn" id="drawerDownloadDna" href="#" target="_blank" rel="noopener">FASTA (DNA)</a>
+          <a class="btn" id="drawerDownloadProtein" href="#" target="_blank" rel="noopener">Protein FASTA</a>
+          <a class="btn" id="drawerDownloadMutCsv" href="#" target="_blank" rel="noopener">Mutation CSV</a>
+          <a class="btn" id="drawerFullVariantPage" href="#" target="_blank" rel="noopener">Full Variant Page</a>
+        </div>
+      </div>
+    </div>
 
     <script>
       (function () {
         const table = document.getElementById("top10Table");
         const copyBtn = document.getElementById("copyCsvBtn");
         const copyHint = document.getElementById("copyHint");
+        const drawer = document.getElementById("variantDrawer");
+        const drawerEls = {
+          rank: document.getElementById("drawerRank"),
+          variantId: document.getElementById("drawerVariantId"),
+          generation: document.getElementById("drawerGeneration"),
+          parentVariant: document.getElementById("drawerParentVariant"),
+          variantIndex: document.getElementById("drawerVariantIndex"),
+          activity: document.getElementById("drawerActivity"),
+          dnaYield: document.getElementById("drawerDnaYield"),
+          proteinYield: document.getElementById("drawerProteinYield"),
+          qcNote: document.getElementById("drawerQcNote"),
+          mutationsBody: document.getElementById("drawerMutationsBody"),
+          proteinSnippet: document.getElementById("drawerProteinSnippet"),
+          dnaLink: document.getElementById("drawerDownloadDna"),
+          proteinLink: document.getElementById("drawerDownloadProtein"),
+          mutCsvLink: document.getElementById("drawerDownloadMutCsv"),
+          fullVariantPage: document.getElementById("drawerFullVariantPage"),
+        };
+
+        const fmtNum = (value) => {
+          const num = Number(value);
+          return Number.isFinite(num) ? num.toFixed(3) : "-";
+        };
+
+        const setText = (el, value) => {
+          if (!el) return;
+          el.textContent = value === null || value === undefined || value === "" ? "-" : String(value);
+        };
+
+        const renderMutationRows = (mutations) => {
+          if (!drawerEls.mutationsBody) return;
+          if (!mutations || mutations.length === 0) {
+            drawerEls.mutationsBody.innerHTML = '<tr><td colspan="4">No mutation data.</td></tr>';
+            return;
+          }
+          drawerEls.mutationsBody.innerHTML = mutations.map((m) => {
+            const aa = `${m.wt_aa || "-"} -> ${m.var_aa || "-"}`;
+            const nt = `${m.wt_codon || "-"} -> ${m.var_codon || "-"}`;
+            const pos = m.aa_position || m.codon_index || "-";
+            return `<tr>
+              <td>${m.mutation_type || "-"}</td>
+              <td>${aa}</td>
+              <td>${nt}</td>
+              <td>${pos}</td>
+            </tr>`;
+          }).join("");
+        };
+
+        const closeDrawer = () => {
+          if (!drawer) return;
+          drawer.classList.remove("is-open");
+          drawer.setAttribute("aria-hidden", "true");
+        };
+
+        const openDrawer = () => {
+          if (!drawer) return;
+          drawer.classList.add("is-open");
+          drawer.setAttribute("aria-hidden", "false");
+        };
+
+        async function openVariantDrawer(row) {
+          const variantId = row.dataset.variantId;
+          if (!variantId) return;
+
+          setText(drawerEls.rank, `#${row.dataset.rank || "-"}`);
+          setText(drawerEls.variantId, variantId);
+          setText(drawerEls.generation, row.dataset.generation);
+          setText(drawerEls.parentVariant, "-");
+          setText(drawerEls.variantIndex, row.dataset.index);
+          setText(drawerEls.activity, fmtNum(row.dataset.score));
+          setText(drawerEls.dnaYield, "-");
+          setText(drawerEls.proteinYield, "-");
+          setText(drawerEls.qcNote, "-");
+          renderMutationRows([]);
+          if (drawerEls.proteinSnippet) drawerEls.proteinSnippet.textContent = "-";
+          if (drawerEls.dnaLink) drawerEls.dnaLink.href = "#";
+          if (drawerEls.proteinLink) drawerEls.proteinLink.href = "#";
+          if (drawerEls.mutCsvLink) drawerEls.mutCsvLink.href = "#";
+          if (drawerEls.fullVariantPage) drawerEls.fullVariantPage.href = "#";
+
+          openDrawer();
+
+          try {
+            const resp = await fetch(`/staging/variant/${variantId}/details`, { credentials: "same-origin" });
+            if (!resp.ok) return;
+            const data = await resp.json();
+
+            setText(drawerEls.variantId, data.variant_id);
+            setText(drawerEls.generation, data.generation_number);
+            setText(drawerEls.parentVariant, data.parent_variant_id ?? "None");
+            setText(drawerEls.variantIndex, data.variant_index);
+            setText(
+              drawerEls.activity,
+              data.activity_score !== null && data.activity_score !== undefined ? fmtNum(data.activity_score) : "-"
+            );
+            setText(
+              drawerEls.dnaYield,
+              data.dna_yield !== null && data.dna_yield !== undefined ? fmtNum(data.dna_yield) : "-"
+            );
+            setText(
+              drawerEls.proteinYield,
+              data.protein_yield !== null && data.protein_yield !== undefined ? fmtNum(data.protein_yield) : "-"
+            );
+            setText(drawerEls.qcNote, data.qc_note || "-");
+            if (drawerEls.proteinSnippet) drawerEls.proteinSnippet.textContent = data.protein_snippet || "Not available";
+            renderMutationRows(data.mutations || []);
+
+            if (data.download_urls) {
+              if (drawerEls.dnaLink) drawerEls.dnaLink.href = data.download_urls.dna_fasta || "#";
+              if (drawerEls.proteinLink) drawerEls.proteinLink.href = data.download_urls.protein_fasta || "#";
+              if (drawerEls.mutCsvLink) drawerEls.mutCsvLink.href = data.download_urls.mutation_csv || "#";
+            }
+            if (drawerEls.fullVariantPage) drawerEls.fullVariantPage.href = data.full_variant_url || "#";
+          } catch (_) {
+            // Keep drawer open with fallback values.
+          }
+        }
+
         if (!table) {
           if (copyBtn) copyBtn.disabled = true;
           return;
@@ -410,12 +710,6 @@
 
         const tbody = table.querySelector("tbody");
         const rows = Array.from(tbody.querySelectorAll("tr"));
-        rows.forEach((row) => {
-          const bar = row.querySelector(".score-bar > span[data-width]");
-          if (!bar) return;
-          const width = Number(bar.dataset.width);
-          bar.style.width = `${Number.isFinite(width) ? Math.max(0, Math.min(width, 100)) : 0}%`;
-        });
         let currentSort = { key: "rank", direction: "asc" };
 
         const compare = {
@@ -460,11 +754,28 @@
 
         rows.forEach((row) => {
           row.addEventListener("click", (event) => {
-            if (event.target.closest("a")) return;
+            if (event.target.closest("button.js-view-variant")) return;
             rows.forEach((other) => other.classList.remove("is-active"));
             row.classList.add("is-active");
           });
         });
+
+        table.querySelectorAll(".js-view-variant").forEach((btn) => {
+          btn.addEventListener("click", (event) => {
+            const row = event.currentTarget.closest("tr");
+            if (!row) return;
+            openVariantDrawer(row);
+          });
+        });
+
+        if (drawer) {
+          document.querySelectorAll(".js-close-variant-drawer").forEach((el) => {
+            el.addEventListener("click", closeDrawer);
+          });
+          document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape") closeDrawer();
+          });
+        }
 
         async function copyCsv() {
           const header = ["rank", "generation_number", "plasmid_variant_index", "activity_score", "total_mutations"];
@@ -487,7 +798,7 @@
           }
         }
 
-        copyBtn.addEventListener("click", copyCsv);
+        if (copyBtn) copyBtn.addEventListener("click", copyCsv);
       })();
     </script>
   </body>

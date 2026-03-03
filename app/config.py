@@ -63,6 +63,26 @@ class Settings:
     # when fixed-coordinate extraction drifts.
     FALLBACK_SEARCH: bool = _get_bool("FALLBACK_SEARCH", True)
 
+    # Mutation sanity guard thresholds for suppressing implausible outputs.
+    MUTATION_SANITY_SHORT_PROTEIN_MAX_LEN: int = _get_int(
+        "MUTATION_SANITY_SHORT_PROTEIN_MAX_LEN", 8
+    )
+    MUTATION_SANITY_SHORT_PROTEIN_MIN_MUTATIONS: int = _get_int(
+        "MUTATION_SANITY_SHORT_PROTEIN_MIN_MUTATIONS", 100
+    )
+    MUTATION_SANITY_WT_RATIO_THRESHOLD: float = _get_float(
+        "MUTATION_SANITY_WT_RATIO_THRESHOLD", 0.75
+    )
+    MUTATION_SANITY_RATIO_MIN_PROTEIN_LEN: int = _get_int(
+        "MUTATION_SANITY_RATIO_MIN_PROTEIN_LEN", 30
+    )
+    MUTATION_SANITY_ABSOLUTE_MAX: int = _get_int(
+        "MUTATION_SANITY_ABSOLUTE_MAX", 150
+    )
+    MUTATION_SANITY_WT_FRACTION_MAX: float = _get_float(
+        "MUTATION_SANITY_WT_FRACTION_MAX", 0.20
+    )
+
 
 # Global settings instance
 settings = Settings()
