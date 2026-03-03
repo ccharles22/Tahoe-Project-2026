@@ -82,8 +82,13 @@ SELECT
   v.plasmid_variant_index,
   act.activity_score,
   COALESCE(
-    mt.total_mutations,
-    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer)
+    CASE
+      WHEN jsonb_typeof(v.extra_metadata->'sequence_analysis'->'mutations') = 'array'
+      THEN jsonb_array_length(v.extra_metadata->'sequence_analysis'->'mutations')
+      ELSE NULL
+    END,
+    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
+    mt.total_mutations
   ) AS total_mutations
 FROM variants v
 JOIN generations g ON g.generation_id = v.generation_id
@@ -398,8 +403,13 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
       v.plasmid_variant_index,
       act.activity_score,
       COALESCE(
-        mt.total_mutations,
-        CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer)
+        CASE
+          WHEN jsonb_typeof(v.extra_metadata->'sequence_analysis'->'mutations') = 'array'
+          THEN jsonb_array_length(v.extra_metadata->'sequence_analysis'->'mutations')
+          ELSE NULL
+        END,
+        CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
+        mt.total_mutations
       ) AS total_mutations
     FROM variants v
     JOIN generations g ON g.generation_id = v.generation_id
