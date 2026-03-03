@@ -1983,6 +1983,72 @@ a:hover { text-decoration: underline; }
   min-height: 100vh;
 }
 
+.auth-sheet .auth-visual--dna::before,
+.auth-sheet .auth-visual--dna::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.auth-sheet .auth-visual--dna::before {
+  z-index: 1;
+  background:
+    radial-gradient(circle at 20% 24%, rgba(29, 211, 200, .16) 0%, transparent 34%),
+    radial-gradient(circle at 78% 26%, rgba(30, 144, 255, .14) 0%, transparent 28%),
+    radial-gradient(circle at 54% 78%, rgba(123, 245, 170, .14) 0%, transparent 36%);
+}
+
+.auth-sheet .auth-visual--dna::after {
+  z-index: 2;
+  background:
+    linear-gradient(180deg, rgba(13, 40, 64, .76) 0%, rgba(13, 40, 64, .18) 18%, rgba(13, 40, 64, .04) 50%, rgba(13, 40, 64, .18) 82%, rgba(13, 40, 64, .74) 100%);
+}
+
+.auth-sheet .auth-visual > :not(.auth-visual__dna) {
+  position: relative;
+  z-index: 3;
+}
+
+.auth-sheet .auth-visual__dna {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: .5;
+  z-index: 0;
+}
+
+.auth-sheet .auth-visual__dna-track {
+  position: absolute;
+  inset: -8% -4%;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 22px 0 36px;
+  transform: rotate(-3deg) scale(1.02);
+  font-family: "SF Mono", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(11px, .92vw, 14px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  animation: homeDnaScroll 30s linear infinite;
+  will-change: transform;
+}
+
+.auth-sheet .auth-visual__dna-row {
+  display: block;
+  white-space: nowrap;
+  opacity: .88;
+  text-shadow:
+    0 0 10px rgba(12, 44, 72, .28),
+    0 0 18px rgba(12, 44, 72, .14);
+}
+
+.auth-sheet .auth-visual__dna-row:nth-child(4n) { opacity: .72; }
+.auth-sheet .auth-visual__dna-row:nth-child(3n) { opacity: .82; }
+
 @media (max-width: 960px) {
   .home-results-shell {
     grid-template-columns: 1fr;
@@ -2168,5 +2234,4 @@ a:hover { text-decoration: underline; }
   }
   .auth-sheet .text-link { font-size: 11px; }
 }
-
 

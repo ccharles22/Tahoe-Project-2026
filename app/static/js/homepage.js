@@ -19,6 +19,7 @@
     const stageVisual = document.querySelector("[data-home-stage-visual]");
     const stageVisualTitle = document.querySelector("[data-home-stage-visual-title]");
     const dnaTrack = document.querySelector("[data-home-dna-track]");
+    const authDnaTracks = document.querySelectorAll("[data-auth-dna-track]");
     const homeNav = document.querySelector(".home-nav");
     const heroSection = document.querySelector(".home-hero");
     const resultsTrack = document.querySelector("[data-home-carousel-track]");
@@ -33,12 +34,12 @@
       "sequence": "Process Sequences",
     };
 
-    function buildDnaBackground() {
-      if (!dnaTrack) return;
+    function buildDnaTrack(track, { rowHeight, minRows, heightScale, widthFactor, widthOffset } = {}) {
+      if (!track) return;
 
-      const dnaRowHeight = window.innerWidth <= 640 ? 19 : 22;
-      const rowCount = Math.max(24, Math.ceil((window.innerHeight * 1.9) / dnaRowHeight));
-      const baseCount = Math.max(132, Math.ceil(window.innerWidth / 10) + 44);
+      const dnaRowHeight = window.innerWidth <= 640 ? rowHeight - 2 : rowHeight;
+      const rowCount = Math.max(minRows, Math.ceil((window.innerHeight * heightScale) / dnaRowHeight));
+      const baseCount = Math.max(96, Math.ceil(window.innerWidth / (10 / widthFactor)) + widthOffset);
       const bases = ["A", "C", "G", "T"];
 
       const createRow = () => {
@@ -54,10 +55,30 @@
       for (let idx = 0; idx < rowCount; idx += 1) {
         firstSet += createRow();
       }
-      dnaTrack.innerHTML = `${firstSet}${firstSet}`;
+      track.innerHTML = `${firstSet}${firstSet}`;
       if (reduceMotion) {
-        dnaTrack.style.transform = "rotate(0deg) scale(1.02)";
+        track.style.transform = "rotate(0deg) scale(1.02)";
       }
+    }
+
+    function buildDnaBackground() {
+      buildDnaTrack(dnaTrack, {
+        rowHeight: 22,
+        minRows: 24,
+        heightScale: 1.9,
+        widthFactor: 1,
+        widthOffset: 44,
+      });
+
+      authDnaTracks.forEach((track) => {
+        buildDnaTrack(track, {
+          rowHeight: 20,
+          minRows: 22,
+          heightScale: 1.6,
+          widthFactor: 0.88,
+          widthOffset: 28,
+        });
+      });
     }
 
     function setActiveStage(stageId) {
