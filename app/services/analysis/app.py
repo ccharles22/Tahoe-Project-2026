@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 import time
 from flask import Flask, render_template, request
+import pandas as pd
 
 from .database import get_conn
 from .queries import (
@@ -54,7 +55,9 @@ def register_analysis_routes(target_app: Flask) -> None:
                         "generation_number": int(row.generation_number),
                         "plasmid_variant_index": str(row.plasmid_variant_index),
                         "activity_score": score,
-                        "total_mutations": int(row.total_mutations),
+                        "total_mutations": (
+                            None if pd.isna(row.total_mutations) else int(row.total_mutations)
+                        ),
                     }
                 )
 

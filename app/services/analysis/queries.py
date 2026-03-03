@@ -83,10 +83,8 @@ SELECT
   act.activity_score,
   COALESCE(
     mt.total_mutations,
-    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
-    tm.total_mut_count,
-    0
-  )::int AS total_mutations
+    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer)
+  ) AS total_mutations
 FROM variants v
 JOIN generations g ON g.generation_id = v.generation_id
 JOIN (
@@ -95,11 +93,6 @@ JOIN (
 LEFT JOIN (
   {LATEST_MUTATION_TOTAL_SQL}
 ) mt ON mt.variant_id = v.variant_id
-LEFT JOIN (
-  SELECT variant_id, COUNT(*) AS total_mut_count
-  FROM mutations
-  GROUP BY variant_id
-) tm ON tm.variant_id = v.variant_id
 WHERE g.experiment_id = %s
 ORDER BY act.activity_score DESC
 LIMIT 10;
@@ -406,21 +399,13 @@ def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
       act.activity_score,
       COALESCE(
         mt.total_mutations,
-        CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
-        pm.protein_mutations,
-        0
-      )::int AS total_mutations
+        CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer)
+      ) AS total_mutations
     FROM variants v
     JOIN generations g ON g.generation_id = v.generation_id
     LEFT JOIN (
       {LATEST_MUTATION_TOTAL_SQL}
     ) mt ON mt.variant_id = v.variant_id
-    LEFT JOIN (
-      SELECT variant_id, COUNT(*) AS protein_mutations
-      FROM mutations
-      WHERE mutation_type = 'protein'
-      GROUP BY variant_id
-    ) pm ON pm.variant_id = v.variant_id
     LEFT JOIN (
       {LATEST_ACTIVITY_SCORE_SQL}
     ) act ON act.variant_id = v.variant_id

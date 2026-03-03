@@ -256,6 +256,11 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .mut-chip--na {
+        background: var(--paper);
+        color: var(--muted);
+      }
+
       .actions {
         display: flex;
         justify-content: flex-end;
@@ -357,7 +362,7 @@
                       data-generation="{{ row.generation_number }}"
                       data-index="{{ row.plasmid_variant_index }}"
                       data-score="{{ '%.12f'|format(row.activity_score) }}"
-                      data-mutations="{{ row.total_mutations }}"
+                      data-mutations="{{ '' if row.total_mutations is none else row.total_mutations }}"
                     >
                       <td><span class="rank-pill">#{{ row.rank }}</span></td>
                       <td>{{ row.generation_number }}</td>
@@ -368,7 +373,11 @@
                           <span class="score-bar"><span data-width="{{ '%.2f'|format(bar_width) }}"></span></span>
                         </div>
                       </td>
-                      <td><span class="mut-chip">{{ row.total_mutations }}</span></td>
+                      <td>
+                        <span class="mut-chip{% if row.total_mutations is none %} mut-chip--na{% endif %}">
+                          {{ row.total_mutations if row.total_mutations is not none else 'N/A' }}
+                        </span>
+                      </td>
                       <td class="actions">
                         <a class="row-link" href="/staging/variant/{{ row.variant_id }}" target="_blank" rel="noopener">
                           View
@@ -418,7 +427,11 @@
             return Number.isFinite(num) ? num : raw.toLowerCase();
           },
           score: (row) => Number(row.dataset.score),
-          mutations: (row) => Number(row.dataset.mutations),
+          mutations: (row) => {
+            const raw = row.dataset.mutations;
+            if (raw === "") return Number.POSITIVE_INFINITY;
+            return Number(raw);
+          },
         };
 
         function sortRows(key) {

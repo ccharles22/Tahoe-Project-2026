@@ -84,10 +84,8 @@ def load_top10_rows(csv_path, experiment_id):
                   act.activity_score,
                   COALESCE(
                     mt.total_mutations,
-                    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
-                    tm.total_mut_count,
-                    0
-                  )::int AS total_mutations
+                    CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer)
+                  ) AS total_mutations
                 FROM variants v
                 JOIN generations g ON g.generation_id = v.generation_id
                 JOIN (
@@ -96,11 +94,6 @@ def load_top10_rows(csv_path, experiment_id):
                 LEFT JOIN (
                   {LATEST_MUTATION_TOTAL_SQL}
                 ) mt ON mt.variant_id = v.variant_id
-                LEFT JOIN (
-                  SELECT variant_id, COUNT(*) AS total_mut_count
-                  FROM mutations
-                  GROUP BY variant_id
-                ) tm ON tm.variant_id = v.variant_id
                 WHERE g.experiment_id = :eid
                 ORDER BY act.activity_score DESC
                 LIMIT 10
@@ -114,7 +107,9 @@ def load_top10_rows(csv_path, experiment_id):
             if row['activity_score'] is not None:
                 activity_value = float(row['activity_score'])
 
-            mutation_count = int(row['total_mutations'] or 0)
+            mutation_count = None
+            if row['total_mutations'] is not None:
+                mutation_count = int(row['total_mutations'])
             rows.append(
                 {
                     'rank': idx,
@@ -126,7 +121,7 @@ def load_top10_rows(csv_path, experiment_id):
                     'activity_score_value': activity_value,
                     'protein_mutations': mutation_count,
                     'variant_id': int(row['variant_id']),
-                    'is_mutant': mutation_count > 0,
+                    'is_mutant': mutation_count is not None and mutation_count > 0,
                     'qc_flagged': False,
                 }
             )
@@ -156,10 +151,12 @@ def load_top10_rows(csv_path, experiment_id):
                         activity_value = float(str(activity_raw).strip())
                     except Exception:
                         activity_value = None
-                    try:
-                        mutation_count = int(float(str(mut_raw).strip()))
-                    except Exception:
-                        mutation_count = 0
+                    mutation_count = None
+                    if str(mut_raw).strip():
+                        try:
+                            mutation_count = int(float(str(mut_raw).strip()))
+                        except Exception:
+                            mutation_count = None
 
                     rows.append(
                         {
@@ -172,7 +169,7 @@ def load_top10_rows(csv_path, experiment_id):
                             'activity_score_value': activity_value,
                             'protein_mutations': mutation_count,
                             'variant_id': None,
-                            'is_mutant': mutation_count > 0,
+                            'is_mutant': mutation_count is not None and mutation_count > 0,
                             'qc_flagged': False,
                         }
                     )
