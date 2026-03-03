@@ -1239,7 +1239,7 @@ a:hover { text-decoration: underline; }
 
 .home-insights__intro {
   display: grid;
-  align-content: start;
+  align-content: center;
   gap: 12px;
   padding: clamp(8px, 1vw, 14px);
 }
