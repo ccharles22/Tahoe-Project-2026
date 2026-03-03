@@ -412,6 +412,74 @@
     </div>
   </section>
 
+  <footer class="home-footer" aria-label="Site information">
+    <div class="home-footer__inner">
+      <div class="home-footer__meta">
+        <p class="home-footer__eyebrow">Release UI_test | Portal Overview</p>
+        <h2 class="home-footer__title">Direct Evolution Monitoring Portal</h2>
+        <p class="home-footer__subtitle">Team Tahoe &middot; 2025&ndash;2026</p>
+      </div>
+
+      <div class="home-footer__grid">
+        <section class="home-footer__group" aria-label="Platform links">
+          <h3 class="home-footer__heading">Platform</h3>
+          <ul class="home-footer__list">
+            <li><a href="{{ url_for('auth.homepage') }}">Home</a></li>
+            <li><a href="{{ url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('staging.create_experiment') }}">Workspace</a></li>
+            <li><a href="/guide/">User Guide</a></li>
+            {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('auth.settings') }}">Account Settings</a></li>
+            {% else %}
+            <li><a href="{{ url_for('auth.homepage', auth='login') }}" data-auth-open="login">Sign In</a></li>
+            {% endif %}
+          </ul>
+        </section>
+
+        <section class="home-footer__group" aria-label="Workflow steps">
+          <h3 class="home-footer__heading">Workflow</h3>
+          <ul class="home-footer__list">
+            <li><span>Fetch Experiment Wild-Type</span></li>
+            <li><span>Validate Plasmid</span></li>
+            <li><span>Upload Data</span></li>
+            <li><span>Process Sequences</span></li>
+            <li><span>Run Analysis</span></li>
+          </ul>
+        </section>
+
+        <section class="home-footer__group" aria-label="Documentation sections">
+          <h3 class="home-footer__heading">Documentation</h3>
+          <ul class="home-footer__list">
+            <li><a href="/docs/">Home Guide</a></li>
+            <li><a href="/docs/staging_docs/">Staging</a></li>
+            <li><a href="/docs/parsing_qc/">Parsing &amp; QC</a></li>
+            <li><a href="/docs/postgresql_visualization/database/">Database &amp; Schema</a></li>
+            <li><a href="/docs/postgresql_visualization/metrics/">Metric Computations</a></li>
+            <li><a href="/docs/postgresql_visualization/">Visualisation Guide</a></li>
+            <li><a href="/docs/bonus_visualisations/">Bonus Visualisations</a></li>
+          </ul>
+        </section>
+
+        <section class="home-footer__group" aria-label="Outputs overview">
+          <h3 class="home-footer__heading">Outputs</h3>
+          <ul class="home-footer__list">
+            <li><span>Top 10 Variants</span></li>
+            <li><span>Activity Distribution</span></li>
+            <li><span>Variant Lineage</span></li>
+            <li><span>Protein Similarity</span></li>
+            <li><span>Mutation Frequency</span></li>
+            <li><span>Mutation Fingerprint</span></li>
+            <li><span>Activity Landscape</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <div class="home-footer__note">
+        <span class="home-footer__note-line"></span>
+        <p>The portal combines experiment tracking, sequence processing, metric computation, and result interpretation in one directed evolution workspace.</p>
+      </div>
+    </div>
+  </footer>
+
   {% if not current_user.is_authenticated %}
   <div class="auth-sheet" id="auth-sheet" aria-hidden="true">
     <button type="button" class="auth-sheet__backdrop" data-auth-close aria-label="Close"></button>
