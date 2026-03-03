@@ -1395,9 +1395,9 @@ a:hover { text-decoration: underline; }
   background:
     linear-gradient(
       138deg,
-      rgba(18, 62, 96, .98) 0%,
-      rgba(24, 106, 154, .96) 48%,
-      rgba(25, 170, 177, .92) 100%
+      rgba(16, 50, 86, .985) 0%,
+      rgba(21, 86, 146, .97) 52%,
+      rgba(28, 120, 188, .95) 100%
     );
   overflow: hidden;
 }
@@ -1407,8 +1407,8 @@ a:hover { text-decoration: underline; }
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 12% 18%, rgba(124, 227, 248, .09) 0%, transparent 26%),
-    radial-gradient(circle at 86% 26%, rgba(118, 244, 196, .08) 0%, transparent 24%);
+    radial-gradient(circle at 12% 18%, rgba(138, 214, 255, .11) 0%, transparent 26%),
+    radial-gradient(circle at 86% 26%, rgba(93, 181, 255, .1) 0%, transparent 24%);
   pointer-events: none;
 }
 
