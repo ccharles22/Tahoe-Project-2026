@@ -157,10 +157,6 @@ def create_app():
         os.path.dirname(__file__), "..", "user_guide_mkdocs", "site"
     )
     metrics_site_dir = os.path.abspath(metrics_site_dir)
-    bonus_site_dir = os.path.join(
-        os.path.dirname(__file__), "..", "bonus_visualisations_mkdocs", "bonus_visualisations_mkdocs", "site"
-    )
-    bonus_site_dir = os.path.abspath(bonus_site_dir)
 
     def _mark_docs_no_cache(response):
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
@@ -228,9 +224,6 @@ def create_app():
 
     def _serve_metrics_docs_target(target: str):
         return _serve_docs_target_from(metrics_site_dir, target)
-
-    def _serve_bonus_docs_target(target: str):
-        return _serve_docs_target_from(bonus_site_dir, target)
 
     @app.route("/metrics/")
     @app.route("/metrics/<path:filename>")

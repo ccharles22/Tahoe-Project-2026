@@ -86,7 +86,7 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
 
     wt_protein = str(row[0])
     wt_plasmid = str(row[1])
-    exp_meta_raw = row[2]
+    exp_meta_raw = row[2] if len(row) > 2 else None
 
     exp_meta: Optional[Dict[str, Any]] = None
     if isinstance(exp_meta_raw, dict):
@@ -102,7 +102,12 @@ def get_wt_reference(engine: Engine, experiment_id: int) -> Tuple[str, str]:
     if exp_meta:
         plasmid_override = exp_meta.get("wt_plasmid_sequence")
         if isinstance(plasmid_override, str) and plasmid_override.strip():
-            wt_plasmid = "".join(plasmid_override.split()).upper()
+            cleaned = "".join(plasmid_override.split()).upper()
+            # Only apply the override when it is longer than the DB value.
+            # A CDS-only override (len == aa_len * 3) would disable the
+            # backbone-anchor remap optimisation that needs the full plasmid.
+            if len(cleaned) > len(wt_plasmid):
+                wt_plasmid = cleaned
 
     if staged and staged[0]:
         try:

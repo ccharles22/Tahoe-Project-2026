@@ -187,59 +187,6 @@ a:hover { text-decoration: underline; }
   line-height: 1.6;
 }
 
-.run-loader__progress {
-  width: min(100%, 320px);
-  display: grid;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.run-loader__progress-track {
-  position: relative;
-  width: 100%;
-  height: 10px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: rgba(149, 190, 223, 0.34);
-  box-shadow:
-    inset 0 1px 2px rgba(20, 53, 87, 0.12),
-    0 1px 0 rgba(255, 255, 255, 0.55);
-}
-
-.run-loader__progress-fill {
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 0;
-  border-radius: inherit;
-  background:
-    linear-gradient(90deg, #25d0c5 0%, #1cb7dd 48%, #2b7de1 100%);
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18),
-    0 0 12px rgba(29, 183, 221, 0.22);
-  transition: width .24s var(--ease);
-}
-
-.run-loader__progress-meta {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 12px;
-}
-
-.run-loader__progress-label {
-  color: #5a7790;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.run-loader__progress-value {
-  color: #143557;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
 @keyframes runLoaderRotate {
   from { transform: rotateX(65deg) rotateZ(0deg); }
   to { transform: rotateX(65deg) rotateZ(360deg); }

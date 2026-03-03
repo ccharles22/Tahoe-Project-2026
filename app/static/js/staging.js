@@ -124,11 +124,6 @@ function initRunLoader() {
 
   const titleEl = document.getElementById('runLoaderTitle');
   const textEl = document.getElementById('runLoaderText');
-  const progressFillEl = document.getElementById('runLoaderProgressFill');
-  const progressValueEl = document.getElementById('runLoaderProgressValue');
-
-  let progressTimer = null;
-  let progressValue = 0;
 
   const copy = {
     sequence: {
@@ -141,62 +136,19 @@ function initRunLoader() {
     },
   };
 
-  const showLoader = (mode, {useAutoProgress = true} = {}) => {
+  const showLoader = (mode) => {
     const content = copy[mode] || copy.analysis;
     if (titleEl) titleEl.textContent = content.title;
     if (textEl) textEl.textContent = content.text;
-    if (useAutoProgress) {
-      startProgress(mode);
-    } else {
-      stopProgress();
-      progressValue = 0;
-      renderProgress();
-    }
     loader.classList.add('is-visible');
     loader.setAttribute('aria-hidden', 'false');
     document.body.classList.add('is-run-loading');
   };
 
   const hideLoader = () => {
-    stopProgress();
     loader.classList.remove('is-visible');
     loader.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-run-loading');
-  };
-
-  const renderProgress = () => {
-    if (progressFillEl) progressFillEl.style.width = `${progressValue}%`;
-    if (progressValueEl) progressValueEl.textContent = `${Math.round(progressValue)}%`;
-  };
-
-  const stopProgress = () => {
-    if (progressTimer) {
-      window.clearInterval(progressTimer);
-      progressTimer = null;
-    }
-  };
-
-  const startProgress = (mode) => {
-    stopProgress();
-    progressValue = 6;
-    renderProgress();
-
-    const cap = mode === 'sequence' ? 94 : 88;
-    const step = mode === 'sequence' ? 1.4 : 2.2;
-
-    progressTimer = window.setInterval(() => {
-      if (progressValue >= cap) {
-        progressValue = cap;
-        renderProgress();
-        stopProgress();
-        return;
-      }
-
-      const remaining = cap - progressValue;
-      const increment = Math.max(0.35, Math.min(step, remaining * 0.12));
-      progressValue = Math.min(cap, progressValue + increment);
-      renderProgress();
-    }, 900);
   };
 
   const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
@@ -231,11 +183,6 @@ function initRunLoader() {
           navigateToUrl(redirectUrl);
           return;
         }
-        if (typeof payload.percent_complete === 'number') {
-          stopProgress();
-          progressValue = Math.max(0, Math.min(100, payload.percent_complete));
-          renderProgress();
-        }
         if (payload.state === 'running' || payload.state === 'started' || payload.state === 'idle') {
           window.setTimeout(poll, 3000);
           return;
@@ -260,8 +207,7 @@ function initRunLoader() {
         const submitBtn = form.querySelector('.btn--submit');
         form.dataset.submitting = 'true';
         if (submitBtn) submitBtn.classList.add('is-loading');
-        const useAutoProgress = !(mode === 'sequence' && !isLocalHost);
-        showLoader(mode, {useAutoProgress});
+        showLoader(mode);
 
         if (mode !== 'sequence' || isLocalHost) {
           return;

@@ -1,7 +1,7 @@
 """Query helpers that feed the analysis views and exported reports."""
 
 from __future__ import annotations
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 import pandas as pd
 
 import warnings
@@ -155,16 +155,93 @@ WHERE g.experiment_id = %s;
 """
 
 PROTEIN_MUTATIONS_SQL = """
+WITH table_muts AS (
+  SELECT
+    v.variant_id,
+    m.position,
+    m.original,
+    m.mutated,
+    0 AS source_priority
+  FROM variants v
+  JOIN generations g ON g.generation_id = v.generation_id
+  JOIN mutations m ON m.variant_id = v.variant_id
+  WHERE g.experiment_id = %s
+    AND m.mutation_type = 'protein'
+),
+json_muts AS (
+  SELECT
+    v.variant_id,
+    CAST(NULLIF(jm->>'aa_position_1based', '') AS int) AS position,
+    LEFT(COALESCE(NULLIF(jm->>'wt_aa', ''), '-'), 1) AS original,
+    LEFT(COALESCE(NULLIF(jm->>'var_aa', ''), '-'), 1) AS mutated,
+    1 AS source_priority
+  FROM variants v
+  JOIN generations g ON g.generation_id = v.generation_id
+  CROSS JOIN LATERAL jsonb_array_elements(
+    COALESCE(v.extra_metadata->'sequence_analysis'->'mutations', '[]'::jsonb)
+  ) AS jm
+  WHERE g.experiment_id = %s
+    AND NULLIF(jm->>'aa_position_1based', '') IS NOT NULL
+),
+combined AS (
+  SELECT * FROM table_muts
+  UNION ALL
+  SELECT * FROM json_muts
+),
+ranked AS (
+  SELECT
+    variant_id,
+    position,
+    original,
+    mutated,
+    ROW_NUMBER() OVER (
+      PARTITION BY variant_id, position, original, mutated
+      ORDER BY source_priority
+    ) AS rn
+  FROM combined
+)
 SELECT
-  v.variant_id,
-  m.position,
-  m.original,
-  m.mutated
-FROM variants v
-JOIN generations g ON g.generation_id = v.generation_id
-JOIN mutations m ON m.variant_id = v.variant_id
-WHERE g.experiment_id = %s
-  AND m.mutation_type = 'protein';
+  variant_id,
+  position,
+  original,
+  mutated
+FROM ranked
+WHERE rn = 1;
+"""
+
+NETWORK_DIAGNOSTICS_SQL = """
+WITH exp_variants AS (
+  SELECT v.variant_id, v.protein_sequence
+  FROM variants v
+  JOIN generations g ON g.generation_id = v.generation_id
+  WHERE g.experiment_id = %s
+),
+mutation_counts AS (
+  SELECT
+    COUNT(*)::bigint AS mutation_rows_total,
+    COUNT(*) FILTER (WHERE m.mutation_type = 'protein')::bigint AS mutation_rows_protein,
+    COUNT(*) FILTER (WHERE m.mutation_type = 'dna')::bigint AS mutation_rows_dna
+  FROM mutations m
+  JOIN exp_variants ev ON ev.variant_id = m.variant_id
+),
+json_counts AS (
+  SELECT COUNT(*)::bigint AS json_mutation_rows
+  FROM variants v
+  JOIN generations g ON g.generation_id = v.generation_id
+  CROSS JOIN LATERAL jsonb_array_elements(
+    COALESCE(v.extra_metadata->'sequence_analysis'->'mutations', '[]'::jsonb)
+  ) jm
+  WHERE g.experiment_id = %s
+)
+SELECT
+  (SELECT COUNT(*)::bigint FROM exp_variants) AS variant_count,
+  (SELECT COUNT(*)::bigint FROM exp_variants WHERE protein_sequence IS NOT NULL) AS protein_sequences_available,
+  mc.mutation_rows_total,
+  mc.mutation_rows_protein,
+  mc.mutation_rows_dna,
+  jc.json_mutation_rows
+FROM mutation_counts mc
+CROSS JOIN json_counts jc;
 """
 
 LINEAGE_NODES_SQL = f"""
@@ -228,8 +305,11 @@ ORDER BY experiment_id;
 """
 
 
-def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float]]:
-    """Return strict per-generation WT baselines for Stage 4 normalization."""
+def fetch_wt_baselines(
+    conn,
+    experiment_id: int,
+) -> tuple[Dict[int, Tuple[float, float]], List[int]]:
+    """Return available per-generation WT baselines and missing generation numbers."""
     df = pd.read_sql(WT_BASELINE_SQL, conn, params=(experiment_id,))
     baselines: Dict[int, Tuple[float, float]] = {}
 
@@ -243,14 +323,7 @@ def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float
 
         baselines[int(row["generation_id"])] = (float(dna), float(prot))
 
-    # STRICT check: stop analysis if no valid baselines exist
-    if not baselines:
-        raise ValueError(
-            f"No valid WT baselines found for experiment {experiment_id}. "
-            "Stage 4 normalisation cannot proceed."
-        )
-
-    # STRICT check: enforce one usable WT baseline per generation to keep normalization comparable.
+    # Determine which generations in the experiment do not have a usable WT baseline.
     df_generations = pd.read_sql(
         """
         SELECT generation_id, generation_number
@@ -263,19 +336,14 @@ def fetch_wt_baselines(conn, experiment_id: int) -> Dict[int, Tuple[float, float
     )
     expected = set(df_generations["generation_id"].astype(int).tolist())
     missing_ids = sorted(expected - set(baselines.keys()))
-    if missing_ids:
-        missing_map = (
-            df_generations[df_generations["generation_id"].isin(missing_ids)]
-            .set_index("generation_id")["generation_number"]
-            .to_dict()
-        )
-        missing_gen_nums = [int(missing_map[g]) for g in missing_ids]
-        raise ValueError(
-            f"Missing WT baselines for experiment {experiment_id} generations: "
-            f"{missing_gen_nums}. Stage 4 normalisation cannot proceed."
-        )
+    missing_map = (
+      df_generations[df_generations["generation_id"].isin(missing_ids)]
+      .set_index("generation_id")["generation_number"]
+      .to_dict()
+    )
+    missing_gen_nums = sorted(int(missing_map[g]) for g in missing_ids)
 
-    return baselines
+    return baselines, missing_gen_nums
 
 def fetch_variant_raw(conn, experiment_id: int) -> pd.DataFrame:
     """Load raw DNA and protein yields for every variant in the experiment."""
@@ -295,8 +363,38 @@ def fetch_protein_similarity_nodes(conn, experiment_id: int) -> pd.DataFrame:
     return pd.read_sql(PROTEIN_SIMILARITY_NODES_SQL, conn, params=(experiment_id, experiment_id))
 
 def fetch_protein_mutations(conn, experiment_id: int) -> pd.DataFrame:
-    """Return stored protein mutation rows for network co-occurrence mode."""
-    return pd.read_sql(PROTEIN_MUTATIONS_SQL, conn, params=(experiment_id,))
+  """
+  Return protein mutation rows for network co-occurrence mode.
+
+  Source order is table-first:
+  1) `public.mutations` where `mutation_type='protein'`
+  2) fallback rows reconstructed from `variants.extra_metadata.sequence_analysis.mutations`
+  """
+  return pd.read_sql(PROTEIN_MUTATIONS_SQL, conn, params=(experiment_id, experiment_id))
+
+
+def fetch_network_diagnostics(conn, experiment_id: int) -> Dict[str, int]:
+  """Return counts used to explain network data availability in the UI."""
+  df = pd.read_sql(NETWORK_DIAGNOSTICS_SQL, conn, params=(experiment_id, experiment_id))
+  if df.empty:
+    return {
+      "variant_count": 0,
+      "protein_sequences_available": 0,
+      "mutation_rows_total": 0,
+      "mutation_rows_protein": 0,
+      "mutation_rows_dna": 0,
+      "json_mutation_rows": 0,
+    }
+
+  row = df.iloc[0]
+  return {
+    "variant_count": int(row.get("variant_count") or 0),
+    "protein_sequences_available": int(row.get("protein_sequences_available") or 0),
+    "mutation_rows_total": int(row.get("mutation_rows_total") or 0),
+    "mutation_rows_protein": int(row.get("mutation_rows_protein") or 0),
+    "mutation_rows_dna": int(row.get("mutation_rows_dna") or 0),
+    "json_mutation_rows": int(row.get("json_mutation_rows") or 0),
+  }
 
 def fetch_lineage_nodes(conn, experiment_id: int) -> pd.DataFrame:
     """Load the variant nodes shown in the experiment-local lineage chart."""

@@ -39,7 +39,8 @@ To begin using the portal:
 
 Use the sidebar to navigate between different sections of this guide:
 
-- **[Workflow Guide](workflow/overview.md)** - Detailed instructions for each step
+- **[Stage 2: Protein Selection & Plasmid Validation](workflow/stage2-protein-plasmid.md)** - Fetch WT from UniProt and validate plasmid
+- **[Workflow Overview](workflow/overview.md)** - Complete workflow guide (all steps)
 - **[Troubleshooting](troubleshooting/common-issues.md)** - Solutions to common problems
 - **[FAQs](troubleshooting/faqs.md)** - Frequently asked questions
 

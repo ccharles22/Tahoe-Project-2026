@@ -10,7 +10,7 @@ from .database import get_conn
 from .queries import (
     fetch_top10, fetch_distribution,
     fetch_lineage_nodes, fetch_lineage_edges,
-    fetch_protein_similarity_nodes, fetch_protein_mutations,
+    fetch_protein_similarity_nodes, fetch_protein_mutations, fetch_network_diagnostics,
 )
 
 from .plots.top10 import plot_top10_table
@@ -20,6 +20,10 @@ from .plots.protein_similarity_network import (
     ProteinNetConfig,
     plot_protein_similarity_network,
 )
+
+import logging
+
+logger = logging.getLogger(__name__)
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
 APP_DIR = ROOT_DIR / "app"
@@ -93,8 +97,21 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/protein_similarity/<int:experiment_id>")
     def protein_similarity(experiment_id: int):
-        mode = request.args.get("mode", "identity").strip().lower()
-        if mode not in {"identity", "cooccurrence"}:
+        requested_mode_raw = (request.args.get("mode") or "").strip().lower()
+        if requested_mode_raw in {"identity", "cooccurrence"}:
+            mode = requested_mode_raw
+        else:
+            if requested_mode_raw:
+                logger.warning(
+                    "Invalid protein network mode '%s' for experiment %s; defaulting to identity.",
+                    requested_mode_raw,
+                    experiment_id,
+                )
+            else:
+                logger.info(
+                    "No protein network mode provided for experiment %s; defaulting to identity.",
+                    experiment_id,
+                )
             mode = "identity"
 
         preset = request.args.get("preset", "").strip().lower()
@@ -143,6 +160,15 @@ def register_analysis_routes(target_app: Flask) -> None:
         with get_conn() as conn:
             nodes = fetch_protein_similarity_nodes(conn, experiment_id)
             mutations = fetch_protein_mutations(conn, experiment_id) if mode == "cooccurrence" else None
+            diagnostics = fetch_network_diagnostics(conn, experiment_id)
+
+        mutations_loaded = diagnostics.get("mutation_rows_total", 0)
+        proteins_available = diagnostics.get("protein_sequences_available", 0)
+        network_data_warning = ""
+        if mode == "cooccurrence" and mutations_loaded < 50:
+            network_data_warning = (
+                "Co-occurrence network may be sparse because few mutation rows were persisted."
+            )
 
         suffix = f"{mode}_it{identity_threshold_val:.2f}_ms{min_shared_val}_n{max_nodes_val}"
         if jaccard_threshold_val is not None:
@@ -175,12 +201,19 @@ def register_analysis_routes(target_app: Flask) -> None:
             experiment_id=experiment_id,
             protein_png=f"plots/protein_exp{experiment_id}_{suffix}.png",
             mode=mode,
+            mode_label=("Sequence identity" if mode == "identity" else "Mutation co-occurrence"),
             preset=preset,
             identity_threshold=identity_threshold_val,
             min_shared=min_shared_val,
             jaccard_threshold=jaccard_threshold_val if jaccard_threshold_val is not None else "",
             max_nodes=max_nodes_val,
             max_node_options=sorted(allowed_max_nodes),
+            mutations_loaded=mutations_loaded,
+            proteins_available=proteins_available,
+            mutation_rows_protein=diagnostics.get("mutation_rows_protein", 0),
+            mutation_rows_dna=diagnostics.get("mutation_rows_dna", 0),
+            mutation_rows_json=diagnostics.get("json_mutation_rows", 0),
+            network_data_warning=network_data_warning,
             cache_buster=int(time.time()),
         )
 

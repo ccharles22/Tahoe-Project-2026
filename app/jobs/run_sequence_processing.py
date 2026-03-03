@@ -11,10 +11,11 @@ Usage:
 
 from __future__ import annotations
 
+import os
 import sys
 import logging
 import threading
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from app.config import settings
 from app.services.sequence import db_repo
@@ -23,7 +24,12 @@ from app.services.sequence.sequence_service import (
     map_wt_gene_in_plasmid,
     process_variant_plasmid,
     call_mutations_against_wt,
+    normalise_dna,
     MutationCounts,
+    QCFlags,
+    VariantSeqResult,
+    WTMapping,
+    MutationRecord,
 )
 
 logger = logging.getLogger(__name__)
@@ -43,6 +49,39 @@ def _empty_counts() -> MutationCounts:
     if isinstance(empty, MutationCounts):
         return empty
     return MutationCounts(synonymous=0, nonsynonymous=0, total=0)
+
+
+def _process_one_variant(
+    variant_id: int,
+    variant_plasmid_dna: str,
+    wt_mapping: WTMapping,
+    fallback_search: bool,
+    wt_plasmid: Optional[str] = None,
+) -> VariantAnalysisItem:
+    """Process a single variant — safe for parallel execution via ThreadPoolExecutor."""
+    seq_result = process_variant_plasmid(
+        variant_plasmid_dna,
+        wt_mapping,
+        fallback_search=fallback_search,
+        wt_plasmid=wt_plasmid,
+    )
+    if not seq_result.cds_dna:
+        return VariantAnalysisItem(
+            variant_id=variant_id,
+            result=seq_result,
+            counts=_empty_counts(),
+            mutations=[],
+        )
+    mutations, counts = call_mutations_against_wt(
+        wt_mapping.wt_cds_dna,
+        seq_result.cds_dna,
+    )
+    return VariantAnalysisItem(
+        variant_id=variant_id,
+        result=seq_result,
+        counts=counts,
+        mutations=list(mutations),
+    )
 
 
 def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False) -> None:
@@ -111,28 +150,18 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
         total_variants = len(variants)
         logger.info("Processing %d variants for experiment %s", total_variants, experiment_id)
 
-        log_every_n = max(1, int(getattr(settings, "LOG_EVERY_N", 50)))
+        import time as _time
+        t_start = _time.perf_counter()
+
         batch_size = max(1, int(getattr(settings, "DB_BATCH_SIZE", 25)))
         pending: List[VariantAnalysisItem] = []
         total_flushed = 0
 
-        def _flush_batch(*, reason: str, last_idx: int) -> None:
-            """Persist accumulated items in one transaction and log boundaries."""
+        def _flush_batch(last_idx: int) -> None:
+            """Persist accumulated items in one transaction."""
             nonlocal total_flushed
             if not pending:
                 return
-            batch_len = len(pending)
-            first_variant_id = pending[0].variant_id
-            last_variant_id = pending[-1].variant_id
-            logger.info(
-                "Flushing batch (%s): %d items at %d/%d variants [variant_ids %d..%d]",
-                reason,
-                batch_len,
-                last_idx,
-                total_variants,
-                first_variant_id,
-                last_variant_id,
-            )
             db_repo.insert_variant_analyses_batch(
                 engine,
                 experiment_id=experiment_id,
@@ -140,64 +169,40 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
                 items=list(pending),
                 overwrite=force_reprocess,
             )
-            total_flushed += batch_len
+            total_flushed += len(pending)
             pending.clear()
             logger.info(
-                "Batch flush complete (%s): total persisted so far %d/%d variants",
-                reason,
-                total_flushed,
-                total_variants,
+                "Persisted %d/%d variants (experiment %s)",
+                total_flushed, total_variants, experiment_id,
             )
 
-        for idx, (variant_id, variant_plasmid_dna) in enumerate(variants, start=1):
+        # ------------------------------------------------------------------
+        # Serial variant processing — Python's GIL prevents CPU-bound
+        # parallelism so a tight serial loop is faster than ThreadPoolExecutor
+        # overhead (executor creation per chunk, future allocation, GIL contention).
+        # ------------------------------------------------------------------
+        fallback = settings.FALLBACK_SEARCH
+        # Normalise the WT plasmid once so backbone-anchor remap can use it.
+        wt_plasmid_norm = normalise_dna(wt_plasmid_dna) if wt_plasmid_dna else None
+        for idx, (variant_id, variant_plasmid_dna) in enumerate(variants, 1):
             try:
-                seq_result = process_variant_plasmid(
-                    variant_plasmid_dna, 
+                item = _process_one_variant(
+                    variant_id,
+                    variant_plasmid_dna,
                     wt_mapping,
-                    fallback_search=settings.FALLBACK_SEARCH,
+                    fallback,
+                    wt_plasmid_norm,
                 )
-                
-                # Step 3 already handles upload/data QC. Keep sequence-level QC
-                # metadata for auditability, but only treat true processing
-                # failures (no CDS or no translated protein) as Step 4 errors.
-                if not seq_result.cds_dna or seq_result.protein_aa is None:
+                if (
+                    not item.result.cds_dna
+                    or item.result.protein_aa is None
+                    or item.result.qc.has_frameshift
+                    or item.result.qc.has_premature_stop
+                ):
                     had_variant_errors = True
-                    if not seq_result.cds_dna:
-                        logger.warning(
-                            "Variant %d: no CDS extracted (experiment %s)",
-                            variant_id, experiment_id,
-                        )
-                    else:
-                        logger.warning(
-                            "Variant %d: translation failed (experiment %s)",
-                            variant_id, experiment_id,
-                        )
-
-                if not seq_result.cds_dna:
-                    pending.append(VariantAnalysisItem(
-                        variant_id=variant_id,
-                        result=seq_result,
-                        counts=_empty_counts(),
-                        mutations=[],
-                    ))
-                else:
-                    mutations, counts = call_mutations_against_wt(
-                        wt_mapping.wt_cds_dna,
-                        seq_result.cds_dna,
-                    )
-
-                    pending.append(VariantAnalysisItem(
-                        variant_id=variant_id,
-                        result=seq_result,
-                        counts=counts,
-                        mutations=list(mutations),
-                    ))
-
+                pending.append(item)
             except Exception as e:
                 had_variant_errors = True
-
-                from app.services.sequence.sequence_service import QCFlags, VariantSeqResult 
-
                 qc_only = VariantSeqResult(
                     cds_start_0based=wt_mapping.cds_start_0based,
                     cds_end_0based_excl=wt_mapping.cds_end_0based_excl,
@@ -209,44 +214,31 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
                         has_frameshift=False,
                         has_premature_stop=False,
                         has_ambiguous_bases=False,
-                        notes=f"Variant processing failed: {type(e).__name__}: {e}"
+                        notes=f"Variant processing failed: {type(e).__name__}: {e}",
                     ),
-                )   
+                )
                 pending.append(VariantAnalysisItem(
                     variant_id=variant_id,
                     result=qc_only,
                     counts=_empty_counts(),
                     mutations=[],
                 ))
-
-                logger.exception(
-                    "Error processing variant %d in experiment %s. Recorded QC-only result.",
-                    variant_id,
-                    experiment_id,
+                logger.warning(
+                    "Variant %d failed: %s (experiment %s)",
+                    variant_id, e, experiment_id,
                 )
 
-            # Flush batch when it reaches the configured size
+            # Flush when batch is full
             if len(pending) >= batch_size:
-                _flush_batch(reason="batch_size_reached", last_idx=idx)
+                _flush_batch(idx)
 
-            if idx % log_every_n == 0 or idx == total_variants:
-                logger.info(
-                    "Processed %d/%d variants (experiment %s)",
-                    idx, 
-                    total_variants,
-                    experiment_id,
-                )
+        # Flush remaining items
+        _flush_batch(total_variants)
 
-        # Flush any remaining items
+        elapsed = _time.perf_counter() - t_start
         logger.info(
-            "Entering final flush for experiment %s with %d pending variants",
-            experiment_id,
-            len(pending),
-        )
-        _flush_batch(reason="final_flush", last_idx=total_variants)
-        logger.info(
-            "Final flush complete for experiment %s; preparing final status update",
-            experiment_id,
+            "Variant processing completed: %d variants in %.1fs (%.0f ms/variant, experiment %s)",
+            total_variants, elapsed, (elapsed / max(1, total_variants)) * 1000, experiment_id,
         )
         
         final_status = "ANALYSED_WITH_ERRORS" if had_variant_errors else "ANALYSED"

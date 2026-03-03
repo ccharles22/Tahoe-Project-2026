@@ -31,6 +31,11 @@ def get_conn() -> Iterator[psycopg2.extensions.connection]:
     if not url:
         raise RuntimeError("DATABASE_URL not set. Put it in .env or export it.")
 
+    # Strip SQLAlchemy dialect suffixes so psycopg2 can parse the DSN.
+    # e.g. "postgresql+psycopg://…" → "postgresql://…"
+    if url.startswith("postgresql+"):
+        url = "postgresql" + url[url.index("://"):]
+
     conn = psycopg2.connect(url, connect_timeout=5)
 
     try:

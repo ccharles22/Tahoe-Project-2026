@@ -456,12 +456,13 @@ def main() -> None:
         protein_mode = "cooccurrence"
 
     # Scoring mode:
-    # - auto: try WT-based, fallback to median-normalized scoring if WT baselines are missing
-    # - wt: require WT baselines
+    # - auto: use WT-based when any WT baselines exist; fallback only if none exist
+    # - wt: require WT baselines for all generations
     # - fallback: always use WT-free fallback scoring
     scoring_mode = os.getenv("SCORING_MODE", "auto").strip().lower()
     if scoring_mode not in {"auto", "wt", "fallback"}:
         scoring_mode = "auto"
+    require_wt_baseline = _env_bool("STAGE4_REQUIRE_WT_BASELINE", scoring_mode == "wt")
 
     protein_suffix = "" if protein_mode == "identity" else f"_{protein_mode}"
     protein_net_path = OUTPUT_DIR / f"exp_{experiment_id}_protein_similarity{protein_suffix}.png"
@@ -475,32 +476,43 @@ def main() -> None:
             return
 
         # 2) Stage4 scoring selection
-        baselines = None
-        baseline_err: Exception | None = None
-        if scoring_mode in {"auto", "wt"}:
-            try:
-                baselines = fetch_wt_baselines(conn, experiment_id)
-            except Exception as e:
-                baseline_err = e
-                if scoring_mode == "wt":
-                    raise SystemExit(
-                        f"[Stage4] WT-based scoring is required. "
-                        f"Unable to fetch valid WT baselines for experiment {experiment_id}: "
-                        f"{type(e).__name__}: {e}"
-                    )
+        baselines: dict[int, tuple[float, float]] = {}
+        missing_generations: list[int] = []
+        baseline_label = "WT control baseline = 1.0"
 
-        if baselines is not None:
+        if scoring_mode in {"auto", "wt"}:
+            baselines, missing_generations = fetch_wt_baselines(conn, experiment_id)
+
+        if scoring_mode == "wt" and missing_generations:
+            raise SystemExit(
+                "[Stage4] WT-based scoring is required but WT baselines are missing for "
+                f"generation(s): {missing_generations} (experiment {experiment_id})."
+            )
+        if require_wt_baseline and scoring_mode != "fallback" and missing_generations:
+            raise SystemExit(
+                "[Stage4] STAGE4_REQUIRE_WT_BASELINE=true but WT baselines are missing for "
+                f"generation(s): {missing_generations} (experiment {experiment_id})."
+            )
+
+        if baselines:
             print(f"[Stage4] WT baselines found for generations: {len(baselines)}")
-            rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
-            print("[Stage4] Activity score computed using: WT-based")
-        else:
-            if baseline_err is not None:
+            if missing_generations:
                 print(
-                    "[Stage4] WT baselines unavailable; switching to fallback scoring: "
-                    f"{type(baseline_err).__name__}: {baseline_err}"
+                    "[Stage4] Missing WT baselines for generation(s) "
+                    f"{missing_generations}; those generations will be unscored and excluded."
                 )
+            rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
+            print("[Stage4] Activity score computed using: WT-normalised")
+        else:
+            if require_wt_baseline and scoring_mode != "fallback":
+                raise SystemExit(
+                    "[Stage4] STAGE4_REQUIRE_WT_BASELINE=true but no valid WT baselines were found "
+                    f"for experiment {experiment_id}."
+                )
+            baseline_label = "Generation median baseline = 1.0"
+            print("[Stage4] WT baselines unavailable; switching to fallback scoring: no valid WT baselines")
             rows_to_insert, df_with_qc = compute_activity_score_fallback(df_variants)
-            print("[Stage4] Activity score computed using: fallback (generation medians)")
+            print("[Stage4] Activity score computed using: median-normalised fallback")
 
         # ---- QC summary ----
         if "qc_stage4" in df_with_qc.columns:
@@ -551,7 +563,7 @@ def main() -> None:
             )
             return
 
-        plot_activity_distribution(df_dist, str(plot_path))
+        plot_activity_distribution(df_dist, str(plot_path), baseline_label=baseline_label)
         print("[File] Wrote:", plot_path)
 
         # 7) Lineage plot

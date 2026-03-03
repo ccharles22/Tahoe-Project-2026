@@ -17,10 +17,11 @@
     <div class="home-nav__left">
       <a href="{{ url_for('auth.homepage') }}" class="home-nav__brand home-nav__brand--portal" aria-current="page">
         <img
-          class="home-nav__portal-image"
-          src="{{ url_for('static', filename='img/team_tahoe_logo_nav.png') }}"
-          alt="Direct Evolution Monitoring Portal logo"
+          class="home-nav__brand-icon"
+          src="{{ url_for('static', filename='img/webpage_tahoe_logo.png') }}"
+          alt="Portal logo"
         >
+        <span class="home-nav__brand-name home-nav__navlink home-nav__brand-title">Direct Evolution Monitoring Portal</span>
       </a>
     </div>
     <div class="home-nav__right">
@@ -206,115 +207,207 @@
     </div>
 
     <div class="home-results-shell">
-      <header class="home-results-intro">
-        <p class="home-results-intro__eyebrow">What you'll get from a run</p>
-        <div class="home-results-intro__copy">
-          <p class="home-results-intro__text">
-            Explore the standard results this portal generates after sequence processing and analysis.
-          </p>
-        </div>
+      <!-- Centered Header -->
+      <header class="home-results-header">
+        <h2 class="home-results-header__title">What you'll get from a run</h2>
+        <p class="home-results-header__caption">Example outputs (Experiment 175).</p>
       </header>
 
-      <div class="home-results-carousel" aria-label="Results preview carousel">
-        <div class="home-results-grid" data-home-carousel-track>
-        <article class="home-results-card">
-          <div class="home-results-card__header">
-            <p class="home-results-card__kicker">Top Variants</p>
-            <span class="home-results-card__badge">Experiment 128</span>
-          </div>
-          <h3 class="home-results-card__title">Top 10 Performers</h3>
-          <p class="home-results-card__text">
-            Ranked activity output with mutation counts, showing the strongest
-            performers in the experiment at a glance.
-          </p>
-          <div class="home-results-graph-wrap" aria-label="Experiment 128 top 10 preview">
-            <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_128_top10_variants.png') }}" alt="Top 10 variants preview from experiment 128">
-          </div>
-        </article>
-        <article class="home-results-card">
-          <div class="home-results-card__header">
-            <p class="home-results-card__kicker">Lineage</p>
-            <span class="home-results-card__badge">Experiment 128</span>
-          </div>
-          <h3 class="home-results-card__title">Variant Lineage</h3>
-          <p class="home-results-card__text">
-            Follow parent-child relationships across generations to see which
-            branches persist, expand, or disappear over time.
-          </p>
-          <div class="home-results-graph-wrap" aria-label="Example variant lineage graph">
-            <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_128_lineage.png') }}" alt="Variant lineage graph from experiment 128">
-          </div>
-        </article>
-        <article class="home-results-card">
-          <div class="home-results-card__header">
-            <p class="home-results-card__kicker">Distribution</p>
-            <span class="home-results-card__badge">Experiment 128</span>
-          </div>
-          <h3 class="home-results-card__title">Activity Distribution</h3>
-          <p class="home-results-card__text">
-            Compare how activity is distributed across the population and spot
-            shifts in spread, consistency, and standout performers.
-          </p>
-          <div class="home-results-graph-wrap" aria-label="Example activity score distribution graph">
-            <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_128_activity_distribution.png') }}" alt="Activity score distribution by generation from experiment 128">
-          </div>
-        </article>
-        <article class="home-results-card">
-          <div class="home-results-card__header">
-            <p class="home-results-card__kicker">Protein Similarity</p>
-            <span class="home-results-card__badge">Experiment 128</span>
-          </div>
-          <h3 class="home-results-card__title">Protein Network</h3>
-          <p class="home-results-card__text">
-            Explore sequence-level relationships and clustering patterns between
-            variants using the protein similarity network view.
-          </p>
-          <div class="home-results-graph-wrap" aria-label="Example protein similarity graph">
-            <img class="home-results-graph" src="{{ url_for('static', filename='home_preview/exp_128_protein_similarity.png') }}" alt="Protein similarity network from experiment 128">
-          </div>
-        </article>
-        <article class="home-results-card">
-          <div class="home-results-card__header">
-            <p class="home-results-card__kicker">Activity Landscape</p>
-            <span class="home-results-card__badge">Experiment 128</span>
-          </div>
-          <h3 class="home-results-card__title">Activity Landscape</h3>
-          <p class="home-results-card__text">
-            Preview one of the Section 6 bonus views: the interactive activity
-            landscape built from the experiment's dimensionality-reduced outputs.
-          </p>
-          <div class="home-results-graph-wrap" aria-label="Example bonus activity landscape graph">
-            <iframe
-              class="home-results-embed"
-              src="{{ url_for('static', filename='generated/128/bonus/activity_landscape_pca_surface.html') }}"
-              title="Bonus activity landscape from experiment 128"
-              loading="lazy"
-              tabindex="-1"
-            ></iframe>
-          </div>
-        </article>
-        <article class="home-results-card">
-          <div class="home-results-card__header">
-            <p class="home-results-card__kicker">Mutation Fingerprint</p>
-            <span class="home-results-card__badge">Experiment 128</span>
-          </div>
-          <h3 class="home-results-card__title">Mutation Fingerprint</h3>
-          <p class="home-results-card__text">
-            Preview another Section 6 bonus view: a mutation fingerprint that
-            highlights the mutation pattern for a high-performing variant.
-          </p>
-          <div class="home-results-graph-wrap" aria-label="Example bonus mutation fingerprint graph">
-            <iframe
-              class="home-results-embed"
-              src="{{ url_for('static', filename='generated/128/bonus/mutation_fingerprint_variant21448.html') }}"
-              title="Bonus mutation fingerprint from experiment 128"
-              loading="lazy"
-              tabindex="-1"
-            ></iframe>
-          </div>
-        </article>
+      <!-- Gallery Grid -->
+      <div class="home-results-gallery" aria-label="Results preview gallery">
+        
+        <!-- HERO TRIO (3 cards) -->
+        <div class="home-results-hero-trio">
+          
+          <!-- Card 1: Variant Lineage -->
+          <article class="home-results-card home-results-card--hero">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Lineage</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Variant Lineage</h3>
+            <p class="home-results-card__text">
+              Follow parent-child relationships across generations to see which branches persist, expand, or disappear over time.
+            </p>
+            <div class="home-results-graph-wrap">
+              <img class="home-results-graph" src="{{ url_for('static', filename='generated/175/lineage.png') }}" alt="Variant lineage graph from experiment 175">
+            </div>
+          </article>
+
+          <!-- Card 2: Activity Distribution by Generation -->
+          <article class="home-results-card home-results-card--hero">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Distribution</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Activity Distribution by Generation</h3>
+            <p class="home-results-card__text">
+              Violin plot showing how activity is distributed across the population and tracking shifts in spread, consistency, and standout performers across generations.
+            </p>
+            <div class="home-results-graph-wrap">
+              <img class="home-results-graph" src="{{ url_for('static', filename='generated/175/activity_distribution.png') }}" alt="Activity distribution by generation from experiment 175">
+            </div>
+          </article>
+
+          <!-- Card 3: Top 10 Performers -->
+          <article class="home-results-card home-results-card--hero">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Top Variants</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Top 10 Performers</h3>
+            <p class="home-results-card__text">
+              Ranked activity output with mutation counts, showing the strongest performers in the experiment at a glance.
+            </p>
+            <div class="home-results-graph-wrap">
+              <img class="home-results-graph" src="{{ url_for('static', filename='generated/175/top10_variants.png') }}" alt="Top 10 variants preview from experiment 175">
+            </div>
+          </article>
+
         </div>
-        <div class="home-results-dots" data-home-carousel-dots aria-hidden="true"></div>
+
+        <!-- PAIR A: Mutation Insights -->
+        <div class="home-results-pair">
+
+          <!-- Card 4: Mutation Frequency / Hotspots -->
+          <article class="home-results-card">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Mutations</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Mutation Frequency / Hotspots</h3>
+            <p class="home-results-card__text">
+              Interactive visualization showing mutation frequencies across protein positions, highlighting genetic hotspots and preferred mutation sites.
+            </p>
+            <div class="home-results-graph-wrap">
+              <iframe
+                class="home-results-embed"
+                src="{{ url_for('static', filename='generated/175/bonus/mutation_frequency_by_position.html') }}"
+                title="Mutation frequency by position from experiment 175"
+                loading="lazy"
+                tabindex="-1"
+              ></iframe>
+            </div>
+          </article>
+
+          <!-- Card 5: Mutation Fingerprint -->
+          <article class="home-results-card">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Fingerprint</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Mutation Fingerprint</h3>
+            <p class="home-results-card__text">
+              Bonus view highlighting the mutation pattern for a high-performing variant, revealing the genetic signature of fitness gains.
+            </p>
+            <div class="home-results-graph-wrap">
+              <iframe
+                class="home-results-embed"
+                src="{{ url_for('static', filename='generated/175/bonus/mutation_fingerprint_latest.html') }}"
+                title="Bonus mutation fingerprint from experiment 175"
+                loading="lazy"
+                tabindex="-1"
+              ></iframe>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- PAIR B: Networks -->
+        <div class="home-results-pair">
+
+          <!-- Card 6: Protein Similarity Network -->
+          <article class="home-results-card">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Similarity</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Protein Similarity Network</h3>
+            <p class="home-results-card__text">
+              Explore sequence-level relationships and clustering patterns between variants using the protein similarity network view.
+            </p>
+            <div class="home-results-graph-wrap">
+              <img class="home-results-graph" src="{{ url_for('static', filename='generated/175/protein_similarity.png') }}" alt="Protein similarity network from experiment 175">
+            </div>
+          </article>
+
+          <!-- Card 7: 3D Activity Landscape -->
+          <article class="home-results-card">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Landscape</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">3D Activity Landscape</h3>
+            <p class="home-results-card__text">
+              Interactive bonus view: the activity landscape built from dimensionality-reduced outputs (PCA), revealing high-activity regions in sequence space.
+            </p>
+            <div class="home-results-graph-wrap">
+              <iframe
+                class="home-results-embed"
+                src="{{ url_for('static', filename='generated/175/bonus/activity_landscape_pca_surface.html') }}"
+                title="Bonus activity landscape from experiment 175"
+                loading="lazy"
+                tabindex="-1"
+              ></iframe>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- PAIR C: Interpretability -->
+        <div class="home-results-pair">
+
+          <!-- Card 8: Domain Enrichment (was "Mutation co-occurrence network") -->
+          <article class="home-results-card">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Domains</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Domain by Generation</h3>
+            <p class="home-results-card__text">
+              Domain enrichment analysis showing which protein domains are preferentially mutated across generations, revealing functional hotspots.
+            </p>
+            <div class="home-results-graph-wrap">
+              <iframe
+                class="home-results-embed"
+                src="{{ url_for('static', filename='generated/175/bonus/domain_enrichment_heatmap.html') }}"
+                title="Domain enrichment heatmap from experiment 175"
+                loading="lazy"
+                tabindex="-1"
+              ></iframe>
+            </div>
+          </article>
+
+          <!-- Card 9: Placeholder / Additional -->
+          <article class="home-results-card">
+            <div class="home-results-card__header">
+              <p class="home-results-card__kicker">Enrichment</p>
+              <span class="home-results-card__badge">Experiment 175</span>
+            </div>
+            <h3 class="home-results-card__title">Domain Enrichment Details</h3>
+            <p class="home-results-card__text">
+              In-depth domain enrichment view showing statistical significance and functional annotations for mutated domains across the protein.
+            </p>
+            <div class="home-results-graph-wrap">
+              <iframe
+                class="home-results-embed"
+                src="{{ url_for('static', filename='generated/175/bonus/domain_enrichment_latest.html') }}"
+                title="Domain enrichment details from experiment 175"
+                loading="lazy"
+                tabindex="-1"
+              ></iframe>
+            </div>
+          </article>
+
+        </div>
+
+        <!-- Call-to-Action -->
+        <div class="home-results-cta">
+          <a href="{{ url_for('staging.create_experiment') }}" class="home-results-cta__link">
+            View full analysis →
+          </a>
+        </div>
+
       </div>
     </div>
   </section>

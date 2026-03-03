@@ -65,6 +65,36 @@
         font-size: 0.92rem;
       }
 
+      .meta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-top: 2px;
+      }
+
+      .meta-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(245, 247, 250, 0.9);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-size: 0.78rem;
+      }
+
+      .warning-note {
+        margin: 0;
+        padding: 8px 10px;
+        border-radius: 12px;
+        border: 1px solid #f1d7a8;
+        background: #fff7e7;
+        color: #694b00;
+        font-size: 0.83rem;
+      }
+
       form {
         display: grid;
         gap: 6px;
@@ -181,6 +211,14 @@
         </div>
         <div class="panel__body">
           <p class="panel__sub">Experiment {{ experiment_id }}</p>
+          <div class="meta-row">
+            <span class="meta-pill">Mode: {{ mode_label }}</span>
+            <span class="meta-pill">Mutations loaded: {{ mutations_loaded }}</span>
+            <span class="meta-pill">Protein sequences available: {{ proteins_available }}</span>
+          </div>
+          {% if network_data_warning %}
+          <p class="warning-note">{{ network_data_warning }}</p>
+          {% endif %}
 
           <form method="get" action="/protein_similarity/{{ experiment_id }}">
             <label for="mode">

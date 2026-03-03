@@ -93,8 +93,8 @@
 }
 
 .home-nav__portal-image {
-  width: clamp(500px, 54vw, 860px);
-  height: clamp(72px, 8.4vw, 116px);
+  width: 32px;
+  height: 32px;
 }
 
 .settings-body .home-nav__brand,

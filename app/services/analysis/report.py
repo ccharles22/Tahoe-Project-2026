@@ -89,6 +89,13 @@ def compute_activity_score_fallback(
     return rows, d
 
 
+def _env_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _normalize_plasmid_index(value: Any) -> str | None:
     if pd.isna(value):
         return None
@@ -183,6 +190,7 @@ def main():
         )
     exp_output_dir = os.path.join(OUTPUT_DIR, str(experiment_id))
     os.makedirs(exp_output_dir, exist_ok=True)
+    require_wt_baseline = _env_bool("STAGE4_REQUIRE_WT_BASELINE", False)
 
     with get_conn() as conn:
         # 1) Raw variant metrics
@@ -192,16 +200,41 @@ def main():
             print("[Stage4] No variants for this experiment. Exiting.")
             return
 
-        # 2) Try WT-based scoring, fallback to median-based
-        score_mode = "WT-based"
-        try:
-            baselines = fetch_wt_baselines(conn, experiment_id)
-            print(f"[Stage4] WT baselines found: {len(baselines)} generations")
+        # 2) Prefer WT-based scoring and only fallback when no WT baselines exist.
+        baselines, missing_generations = fetch_wt_baselines(conn, experiment_id)
+        baseline_label = "WT control baseline = 1.0"
+
+        if require_wt_baseline and missing_generations:
+            raise RuntimeError(
+                "STAGE4_REQUIRE_WT_BASELINE=true but WT baselines are missing for "
+                f"generation(s): {missing_generations} (experiment {experiment_id})."
+            )
+
+        if baselines:
+            score_mode = "WT-normalised"
+            print(
+                "[Stage4] Using WT scoring with baselines from "
+                f"{len(baselines)} generation(s)."
+            )
+            if missing_generations:
+                print(
+                    "[Stage4] Missing WT baselines for generation(s) "
+                    f"{missing_generations}; variants in those generations will be unscored "
+                    "(qc_stage4=missing_wt_baseline) and excluded from scored plots."
+                )
             rows_to_insert, df_with_qc = compute_stage4_metrics(df_variants, baselines)
-        except Exception as e:
-            score_mode = "fallback (generation-median)"
-            print(f"[Stage4] WT scoring unavailable ({type(e).__name__}: {e})")
-            print("[Stage4] Using fallback scoring.")
+        else:
+            if require_wt_baseline:
+                raise RuntimeError(
+                    "STAGE4_REQUIRE_WT_BASELINE=true but no WT baselines were found "
+                    f"for experiment {experiment_id}."
+                )
+            score_mode = "median-normalised fallback"
+            baseline_label = "Generation median baseline = 1.0"
+            print(
+                "[Stage4] WT scoring unavailable: no valid WT baselines were found; "
+                "using generation-median fallback scoring."
+            )
             rows_to_insert, df_with_qc = compute_activity_score_fallback(df_variants)
 
         print(f"[Stage4] Scoring mode: {score_mode}")
@@ -234,7 +267,7 @@ def main():
         dist_png = os.path.join(exp_output_dir, "activity_distribution.png")
         if not df_dist.empty:
             try:
-                plot_activity_distribution(df_dist, dist_png)
+                plot_activity_distribution(df_dist, dist_png, baseline_label=baseline_label)
                 print(f"[File] {dist_png}")
             except Exception as e:
                 print(f"[Plot] Distribution plot failed: {e}")

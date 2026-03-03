@@ -14,7 +14,11 @@ import pandas as pd
 from matplotlib.patches import Rectangle
 
 
-def plot_activity_distribution(df_dist: pd.DataFrame, out_path: Union[str, Path]) -> None:
+def plot_activity_distribution(
+    df_dist: pd.DataFrame,
+    out_path: Union[str, Path],
+    baseline_label: str = "WT control baseline = 1.0",
+) -> None:
     """Render the violin-style activity distribution plot for one experiment."""
     if df_dist is None or df_dist.empty:
         raise ValueError("df_dist is empty; nothing to plot")
@@ -69,7 +73,7 @@ def plot_activity_distribution(df_dist: pd.DataFrame, out_path: Union[str, Path]
     ax.set_title("Activity Score Distribution by Generation", fontsize=18)
     ax.set_xlabel("Generation", fontsize=14)
     ax.set_ylabel("Activity Score", fontsize=14)
-    ax.axhline(1.0, color="red", linewidth=1.4, alpha=0.8, linestyle="--", label="WT control baseline = 1.0")
+    ax.axhline(1.0, color="red", linewidth=1.4, alpha=0.8, linestyle="--", label=baseline_label)
 
     y_min = float(np.min(mins)) #min value across all generations
     y_max = float(np.max(maxs)) #max value across all generations

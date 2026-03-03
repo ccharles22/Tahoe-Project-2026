@@ -21,14 +21,6 @@ from .. import staging_bp
 
 def _has_persisted_sequence_outputs(experiment_id: int) -> bool:
     """Return True when all variants for the experiment have sequence rows."""
-    counts = _get_sequence_progress_counts(experiment_id)
-    total_variants = counts[0]
-    analysed_variants = counts[1]
-    return total_variants > 0 and analysed_variants >= total_variants
-
-
-def _get_sequence_progress_counts(experiment_id: int) -> tuple[int, int]:
-    """Return total and analysed variant counts for one experiment."""
     try:
         counts = db.session.execute(
             text(
@@ -48,10 +40,10 @@ def _get_sequence_progress_counts(experiment_id: int) -> tuple[int, int]:
         ).mappings().one()
         total_variants = int(counts['total_variants'] or 0)
         analysed_variants = int(counts['analysed_variants'] or 0)
-        return total_variants, analysed_variants
+        return total_variants > 0 and analysed_variants >= total_variants
     except Exception:
         db.session.rollback()
-        return 0, 0
+        return False
 
 
 def _has_sequence_outputs(experiment_id: int) -> bool:
@@ -122,6 +114,28 @@ def _sequence_run_state(experiment_id: int) -> tuple[str, str]:
 
     if session_code == 'failed' or db_status == 'FAILED':
         return 'failed', session_summary or 'Sequence processing failed.'
+
+    # The background thread updates the DB status to ANALYSED or
+    # ANALYSED_WITH_ERRORS but cannot touch the Flask session.  Recognise
+    # these DB states as completion so the polling client stops waiting.
+    if db_status in ('ANALYSED', 'ANALYSED_WITH_ERRORS'):
+        # Opportunistically clear the session-level reprocess flag so that
+        # subsequent page loads also see the run as complete.
+        try:
+            clear_sequence_reprocess_required(experiment_id)
+            save_sequence_status_to_session(
+                experiment_id,
+                {
+                    'status': 'success',
+                    'summary': session_summary or 'Sequence processing completed.',
+                    'technical_details': '',
+                    'completed_at_epoch': int(time.time()),
+                },
+            )
+        except Exception:
+            pass  # best-effort; the DB status is authoritative
+        message = session_summary or 'Sequence processing completed. Mutation outputs were refreshed.'
+        return 'completed', message
 
     if not is_sequence_reprocess_required(experiment_id) and _has_persisted_sequence_outputs(experiment_id):
         message = session_summary or 'Sequence processing completed. Mutation outputs were refreshed.'
@@ -265,19 +279,10 @@ def sequence_status():
 
     exp_id_int = int(experiment_id)
     state, message = _sequence_run_state(exp_id_int)
-    total_variants, analysed_variants = _get_sequence_progress_counts(exp_id_int)
-    percent_complete = 0
-    if total_variants > 0:
-        percent_complete = int(min(100, max(0, round((analysed_variants / total_variants) * 100))))
-    if state == 'completed':
-        percent_complete = 100
     return jsonify(
         {
             'state': state,
             'message': message,
-            'total_variants': total_variants,
-            'analysed_variants': analysed_variants,
-            'percent_complete': percent_complete,
             'redirect_url': url_for(
                 'staging.create_experiment',
                 experiment_id=experiment_id,

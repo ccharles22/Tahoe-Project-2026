@@ -318,9 +318,52 @@
     }
   }
 
+  function initResultsPreviewResize() {
+    const iframes = document.querySelectorAll('.home-results-embed');
+    
+    iframes.forEach((iframe) => {
+      iframe.addEventListener('load', () => {
+        try {
+          const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+          const plotlyDiv = iframeDoc.querySelector('.plotly-graph-div, .js-plotly-plot');
+          
+          if (plotlyDiv && iframe.contentWindow.Plotly) {
+            const resizePlot = () => {
+              iframe.contentWindow.Plotly.Plots.resize(plotlyDiv);
+            };
+            
+            resizePlot();
+            window.addEventListener('resize', resizePlot);
+            
+            const container = iframeDoc.querySelector('.plot-container, .plotly');
+            if (container) {
+              container.style.width = '100%';
+              container.style.height = '100%';
+            }
+          }
+          
+          iframeDoc.body.style.margin = '0';
+          iframeDoc.body.style.padding = '0';
+          iframeDoc.body.style.overflow = 'hidden';
+          
+          const html = iframeDoc.documentElement;
+          if (html) {
+            html.style.overflow = 'hidden';
+          }
+        } catch (e) {
+          // Cross-origin restriction, cannot access iframe content
+        }
+      });
+    });
+  }
+
   if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initHomeMotion);
+    document.addEventListener("DOMContentLoaded", () => {
+      initHomeMotion();
+      initResultsPreviewResize();
+    });
   } else {
     initHomeMotion();
+    initResultsPreviewResize();
   }
 })();
