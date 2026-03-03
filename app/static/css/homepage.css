@@ -1223,11 +1223,12 @@ a:hover { text-decoration: underline; }
 /* Latest insights section */
 .home-insights {
   margin-top: clamp(64px, 8vw, 112px);
-  padding: clamp(30px, 3.6vw, 48px);
+  margin-bottom: clamp(36px, 5vw, 72px);
+  padding: clamp(24px, 3vw, 40px);
   display: grid;
   grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.55fr);
-  gap: clamp(22px, 3vw, 40px);
-  border-radius: 28px;
+  gap: clamp(18px, 2.4vw, 30px);
+  border-radius: 24px;
   border: 1px solid rgba(188, 220, 244, .7);
   background:
     linear-gradient(140deg, rgba(244, 250, 255, .98) 0%, rgba(230, 243, 252, .96) 48%, rgba(220, 239, 250, .95) 100%);
@@ -1239,8 +1240,8 @@ a:hover { text-decoration: underline; }
 .home-insights__intro {
   display: grid;
   align-content: start;
-  gap: 14px;
-  padding: clamp(10px, 1.2vw, 18px);
+  gap: 12px;
+  padding: clamp(8px, 1vw, 14px);
 }
 
 .home-insights__eyebrow {
@@ -1254,7 +1255,7 @@ a:hover { text-decoration: underline; }
 
 .home-insights__title {
   margin: 0;
-  font-size: clamp(28px, 3.4vw, 46px);
+  font-size: clamp(24px, 3vw, 40px);
   line-height: 1.04;
   letter-spacing: -.03em;
   font-weight: 780;
@@ -1264,7 +1265,7 @@ a:hover { text-decoration: underline; }
 
 .home-insights__body {
   margin: 0;
-  font-size: clamp(14px, 1.15vw, 18px);
+  font-size: clamp(13px, 1.05vw, 16px);
   line-height: 1.65;
   color: rgba(12, 28, 53, .74);
   max-width: 48ch;
@@ -1296,14 +1297,14 @@ a:hover { text-decoration: underline; }
 .home-insights__grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(14px, 1.8vw, 22px);
+  gap: clamp(12px, 1.5vw, 18px);
 }
 
 .home-insights__card {
   display: grid;
   gap: 10px;
-  padding: clamp(18px, 2vw, 24px);
-  border-radius: 22px;
+  padding: clamp(16px, 1.7vw, 20px);
+  border-radius: 20px;
   border: 1px solid rgba(177, 212, 237, .72);
   background:
     linear-gradient(145deg, rgba(255, 255, 255, .9) 0%, rgba(243, 249, 255, .82) 100%);
@@ -1321,7 +1322,7 @@ a:hover { text-decoration: underline; }
 
 .home-insights__card-title {
   margin: 0;
-  font-size: clamp(17px, 1.4vw, 22px);
+  font-size: clamp(16px, 1.25vw, 20px);
   line-height: 1.2;
   font-weight: 760;
   letter-spacing: -.02em;
@@ -1330,7 +1331,7 @@ a:hover { text-decoration: underline; }
 
 .home-insights__card-text {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
   color: rgba(12, 28, 53, .72);
 }
@@ -2379,25 +2380,26 @@ a:hover { text-decoration: underline; }
 @media (max-width: 640px) {
   .home-insights {
     margin-top: 36px;
-    padding: 18px 14px;
-    border-radius: 20px;
+    margin-bottom: 28px;
+    padding: 16px 12px;
+    border-radius: 18px;
   }
   .home-insights__intro {
     padding: 4px 2px;
     gap: 10px;
   }
   .home-insights__title {
-    font-size: 26px;
+    font-size: 24px;
   }
   .home-insights__body {
-    font-size: 13px;
+    font-size: 12px;
   }
   .home-insights__card {
-    padding: 16px 14px;
-    border-radius: 18px;
+    padding: 14px 12px;
+    border-radius: 16px;
   }
   .home-insights__card-title {
-    font-size: 16px;
+    font-size: 15px;
   }
   .home-insights__card-text {
     font-size: 12px;
