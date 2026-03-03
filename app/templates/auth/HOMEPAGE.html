@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Dashboard &mdash; Direct Evolution Monitoring</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css', v='20260303a') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css', v='20260303b') }}">
   <link rel="icon" type="image/png" sizes="128x128" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
   <link rel="shortcut icon" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
 </head>
@@ -668,7 +668,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-  <script src="{{ url_for('static', filename='js/homepage.js', v='20260303a') }}"></script>
+  <script src="{{ url_for('static', filename='js/homepage.js', v='20260303b') }}"></script>
   {% if not current_user.is_authenticated %}
   <script src="{{ url_for('static', filename='js/auth_password_toggle.js') }}" defer></script>
   <script src="{{ url_for('static', filename='js/homepage_auth.js') }}" defer></script>
