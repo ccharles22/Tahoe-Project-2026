@@ -756,12 +756,18 @@ def _update_variant_outputs(
                 END,
                 extra_metadata = CASE
                     WHEN :overwrite THEN jsonb_set(
-                        COALESCE(extra_metadata, CAST('{}' AS jsonb)),
+                        CASE
+                            WHEN jsonb_typeof(extra_metadata) = 'object' THEN extra_metadata
+                            ELSE CAST('{}' AS jsonb)
+                        END,
                         '{sequence_analysis}',
                         CAST(:payload AS jsonb)
                     )
                     WHEN (extra_metadata->'sequence_analysis') IS NULL THEN jsonb_set(
-                        COALESCE(extra_metadata, CAST('{}' AS jsonb)),
+                        CASE
+                            WHEN jsonb_typeof(extra_metadata) = 'object' THEN extra_metadata
+                            ELSE CAST('{}' AS jsonb)
+                        END,
                         '{sequence_analysis}',
                         CAST(:payload AS jsonb)
                     )
