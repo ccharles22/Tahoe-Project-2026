@@ -4,7 +4,14 @@
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    linear-gradient(122deg, rgba(20, 52, 79, 0.92) 0%, rgba(24, 86, 136, 0.86) 44%, rgba(23, 184, 179, 0.72) 100%),
+    linear-gradient(
+      126deg,
+      rgba(18, 46, 72, 0.94) 0%,
+      rgba(22, 70, 107, 0.9) 24%,
+      rgba(24, 98, 146, 0.86) 46%,
+      rgba(24, 136, 167, 0.8) 68%,
+      rgba(23, 184, 179, 0.74) 100%
+    ),
     radial-gradient(ellipse 76% 66% at 16% 14%, rgba(95, 216, 255, 0.14) 0%, transparent 66%),
     radial-gradient(circle at 82% 20%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
 }
@@ -34,7 +41,7 @@
 
 .settings-dna::after {
   background:
-    linear-gradient(180deg, rgba(16, 43, 66, 0.72) 0%, rgba(16, 43, 66, 0.14) 18%, rgba(16, 43, 66, 0.04) 50%, rgba(16, 43, 66, 0.18) 82%, rgba(16, 43, 66, 0.68) 100%);
+    linear-gradient(180deg, rgba(16, 43, 66, 0.56) 0%, rgba(16, 43, 66, 0.12) 18%, rgba(16, 43, 66, 0.03) 50%, rgba(16, 43, 66, 0.1) 82%, rgba(16, 43, 66, 0.28) 100%);
 }
 
 .settings-dna__track {

@@ -22,8 +22,9 @@
     const authDnaTracks = document.querySelectorAll("[data-auth-dna-track]");
     const homeNav = document.querySelector(".home-nav");
     const heroSection = document.querySelector(".home-hero");
-    const resultsTrack = document.querySelector("[data-home-carousel-track]");
-    const resultsDots = document.querySelector("[data-home-carousel-dots]");
+    const resultsCarousel = document.querySelector("[data-home-results-carousel]");
+    const resultsTrack = document.querySelector("[data-home-results-track]");
+    const resultsCounter = document.querySelector("[data-home-results-counter]");
     const resultsPreview = document.querySelector(".home-results-preview");
     let activeStageId = "";
     const stageTitles = {
@@ -136,25 +137,49 @@
       const heroBottom = heroSection.getBoundingClientRect().bottom;
       const onDark = navBottom <= heroBottom;
       homeNav.classList.toggle("home-nav--on-dark", onDark);
+      homeNav.classList.toggle("home-nav--compact", window.scrollY > 8);
     };
 
     window.addEventListener("scroll", updateNavContrast, { passive: true });
     window.addEventListener("resize", updateNavContrast);
     updateNavContrast();
 
-    if (resultsTrack) {
-      const resultsCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
-      const dotElements = [];
-      let wheelLock = false;
-      let snapRaf = 0;
+    if (resultsCarousel && resultsTrack) {
+      const sourceCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
+      const totalCards = sourceCards.length;
+      if (totalCards > 0) {
+        const firstClone = sourceCards[0].cloneNode(true);
+        const lastClone = sourceCards[totalCards - 1].cloneNode(true);
+        firstClone.classList.add("is-clone");
+        lastClone.classList.add("is-clone");
+        resultsTrack.insertBefore(lastClone, sourceCards[0]);
+        resultsTrack.appendChild(firstClone);
+      }
 
-      const closestCardIndex = () => {
-        if (!resultsCards.length) return 0;
-        const left = resultsTrack.scrollLeft;
+      const allCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
+      if (allCards.length >= 3) {
+
+      let activePhysicalIndex = 1;
+      let wheelLock = false;
+      let rafId = 0;
+      let isProgrammaticScroll = false;
+
+      const toLogicalIndex = (physicalIdx) => {
+        if (physicalIdx <= 0) return totalCards - 1;
+        if (physicalIdx >= allCards.length - 1) return 0;
+        return physicalIdx - 1;
+      };
+
+      const cardCenterTarget = (card) =>
+        card.offsetLeft - ((resultsCarousel.clientWidth - card.offsetWidth) / 2);
+
+      const closestPhysicalIndex = () => {
+        const viewportCenter = resultsCarousel.scrollLeft + (resultsCarousel.clientWidth / 2);
         let bestIdx = 0;
-        let bestDelta = Infinity;
-        resultsCards.forEach((card, idx) => {
-          const delta = Math.abs(card.offsetLeft - left);
+        let bestDelta = Number.POSITIVE_INFINITY;
+        allCards.forEach((card, idx) => {
+          const cardCenter = card.offsetLeft + (card.offsetWidth / 2);
+          const delta = Math.abs(cardCenter - viewportCenter);
           if (delta < bestDelta) {
             bestDelta = delta;
             bestIdx = idx;
@@ -163,93 +188,103 @@
         return bestIdx;
       };
 
-      const snapToCard = (idx) => {
-        if (!resultsCards.length) return;
-        const clamped = Math.max(0, Math.min(resultsCards.length - 1, idx));
-        resultsTrack.scrollTo({
-          left: resultsCards[clamped].offsetLeft,
+      const updateCounter = (physicalIdx) => {
+        if (!resultsCounter) return;
+        const logicalIdx = toLogicalIndex(physicalIdx);
+        const title = allCards[physicalIdx].dataset.resultTitle || "";
+        resultsCounter.textContent = `${logicalIdx + 1} / ${totalCards} - ${title}`;
+      };
+
+      const updateCardStates = (physicalIdx) => {
+        const logicalIdx = toLogicalIndex(physicalIdx);
+        const prevLogical = (logicalIdx - 1 + totalCards) % totalCards;
+        const nextLogical = (logicalIdx + 1) % totalCards;
+        const isEdgeClone = physicalIdx === 0 || physicalIdx === allCards.length - 1;
+
+        allCards.forEach((card, idx) => {
+          const cardLogical = toLogicalIndex(idx);
+          const isActive = idx === physicalIdx;
+          const isSide = !isActive && !isEdgeClone && (cardLogical === prevLogical || cardLogical === nextLogical);
+          card.classList.toggle("is-active", isActive);
+          card.classList.toggle("is-side", isSide);
+        });
+
+        updateCounter(physicalIdx);
+      };
+
+      const jumpToPhysical = (physicalIdx) => {
+        const card = allCards[physicalIdx];
+        if (!card) return;
+        isProgrammaticScroll = true;
+        resultsCarousel.scrollTo({
+          left: cardCenterTarget(card),
           behavior: "auto",
         });
-        updateActiveDot(clamped);
-      };
-
-      const updateActiveDot = (activeIdx) => {
-        if (!dotElements.length) return;
-        dotElements.forEach((dot, idx) => {
-          dot.classList.toggle("is-active", idx === activeIdx);
+        activePhysicalIndex = physicalIdx;
+        updateCardStates(physicalIdx);
+        requestAnimationFrame(() => {
+          isProgrammaticScroll = false;
         });
       };
 
-      if (resultsDots && resultsCards.length > 1) {
-        resultsCards.forEach((_, idx) => {
-          const dot = document.createElement("span");
-          dot.className = "home-results-dot";
-          dotElements.push(dot);
-          resultsDots.appendChild(dot);
-          if (idx === 0) dot.classList.add("is-active");
+      const snapToPhysical = (physicalIdx, behavior = "smooth") => {
+        const clamped = Math.max(0, Math.min(allCards.length - 1, physicalIdx));
+        const card = allCards[clamped];
+        if (!card) return;
+        activePhysicalIndex = clamped;
+        resultsCarousel.scrollTo({
+          left: cardCenterTarget(card),
+          behavior,
         });
-      }
+        updateCardStates(clamped);
+      };
 
-      resultsTrack.addEventListener("wheel", (event) => {
+      const handleLoopEdge = () => {
+        if (activePhysicalIndex === 0) {
+          jumpToPhysical(totalCards);
+          return;
+        }
+        if (activePhysicalIndex === allCards.length - 1) {
+          jumpToPhysical(1);
+        }
+      };
+
+      resultsCarousel.addEventListener("wheel", (event) => {
         const absY = Math.abs(event.deltaY);
         const absX = Math.abs(event.deltaX);
-        if (absY < 4 && absX < 4) return;
+        if (absY < 3 && absX < 3) return;
         event.preventDefault();
         if (wheelLock) return;
         wheelLock = true;
 
-        const currentIdx = closestCardIndex();
         const direction = (absX > absY ? event.deltaX : event.deltaY) > 0 ? 1 : -1;
-        snapToCard(currentIdx + direction);
+        snapToPhysical(activePhysicalIndex + direction, reduceMotion ? "auto" : "smooth");
 
         window.setTimeout(() => {
           wheelLock = false;
-        }, 120);
+        }, 170);
       }, { passive: false });
 
-      let isPointerDown = false;
-      let dragStartX = 0;
-      let dragStartScroll = 0;
-
-      resultsTrack.addEventListener("pointerdown", (event) => {
-        isPointerDown = true;
-        dragStartX = event.clientX;
-        dragStartScroll = resultsTrack.scrollLeft;
-        resultsTrack.classList.add("is-dragging");
-        resultsTrack.setPointerCapture(event.pointerId);
-      });
-
-      resultsTrack.addEventListener("pointermove", (event) => {
-        if (!isPointerDown) return;
-        const delta = event.clientX - dragStartX;
-        resultsTrack.scrollLeft = dragStartScroll - delta;
-      });
-
-      const endDrag = (event) => {
-        if (!isPointerDown) return;
-        isPointerDown = false;
-        resultsTrack.classList.remove("is-dragging");
-        if (event && event.pointerId != null && resultsTrack.hasPointerCapture(event.pointerId)) {
-          resultsTrack.releasePointerCapture(event.pointerId);
-        }
-      };
-
-      resultsTrack.addEventListener("pointerup", endDrag);
-      resultsTrack.addEventListener("pointercancel", endDrag);
-      resultsTrack.addEventListener("pointerleave", endDrag);
-
-      resultsTrack.addEventListener("scroll", () => {
-        if (!dotElements.length) return;
-        if (snapRaf) cancelAnimationFrame(snapRaf);
-        snapRaf = requestAnimationFrame(() => {
-          snapRaf = 0;
-          updateActiveDot(closestCardIndex());
+      resultsCarousel.addEventListener("scroll", () => {
+        if (isProgrammaticScroll) return;
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => {
+          rafId = 0;
+          const nearestIdx = closestPhysicalIndex();
+          if (nearestIdx !== activePhysicalIndex) {
+            activePhysicalIndex = nearestIdx;
+            updateCardStates(nearestIdx);
+          }
+          handleLoopEdge();
         });
       }, { passive: true });
 
       window.addEventListener("resize", () => {
-        snapToCard(closestCardIndex());
+        jumpToPhysical(activePhysicalIndex);
       });
+
+        jumpToPhysical(1);
+      }
     }
 
     if (stageCards.length) {
