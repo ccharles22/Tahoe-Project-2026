@@ -80,6 +80,37 @@
         flex-wrap: wrap;
       }
 
+      .subpanel {
+        display: grid;
+        gap: 8px;
+        padding-top: 6px;
+        border-top: 1px solid var(--line);
+      }
+
+      .subpanel__head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .subpanel__title {
+        margin: 0;
+        font-size: 1.22rem;
+        line-height: 1.1;
+      }
+
+      .subpanel__meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px 14px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .plot-image--secondary {
+        max-height: min(340px, 40vh);
+      }
+
       .link-btn {
         display: inline-flex;
         align-items: center;
@@ -157,6 +188,24 @@
         <div class="panel__body">
           <p class="panel__sub">Experiment {{ experiment_id }}</p>
           <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}" alt="Lineage graph for experiment {{ experiment_id }}">
+          <section class="subpanel" aria-labelledby="expression-trend-title">
+            <div class="subpanel__head">
+              <h2 class="subpanel__title" id="expression-trend-title">Relative Expression Trend</h2>
+              <button class="info-chip" type="button" aria-label="What this trend shows">
+                i
+                <span class="info-chip__tip">
+                  This companion trend shows how protein expression changes across generations.
+                  The line tracks the mean relative expression per generation, normalised to the
+                  WT protein baseline when available, otherwise to the generation median.
+                </span>
+              </button>
+            </div>
+            <div class="subpanel__meta">
+              <span>{{ expression_pvalue_label }}</span>
+              <span>{{ expression_baseline_label }}</span>
+            </div>
+            <img class="plot-image plot-image--secondary" src="{{ url_for('static', filename=expression_png) }}" alt="Relative expression trend for experiment {{ experiment_id }}">
+          </section>
           <div class="actions">
             <a class="link-btn" href="/lineage/{{ experiment_id }}">Refresh lineage</a>
             <a class="link-btn" href="/protein_similarity/{{ experiment_id }}">Open protein network</a>

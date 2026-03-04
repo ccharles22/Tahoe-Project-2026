@@ -789,3 +789,93 @@ def plot_layered_lineage(
     fig.tight_layout(pad=1.6)
     fig.savefig(out_path, dpi=config.dpi)
     plt.close(fig)
+
+
+def plot_relative_expression_trend(
+    trend: pd.DataFrame,
+    out_path: str | Path | PathLike[str],
+    *,
+    title: str = "Relative Expression by Generation",
+    figsize: tuple[float, float] = (14, 4.2),
+    dpi: int = 220,
+) -> None:
+    """Render a generation-wise relative-expression trend line."""
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    fig, ax = plt.subplots(figsize=figsize)
+
+    if trend is None or trend.empty:
+        ax.set_title(title, fontsize=15)
+        ax.text(
+            0.5,
+            0.5,
+            "No relative expression data available",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=11,
+            color="#5f7085",
+        )
+        ax.set_axis_off()
+    else:
+        x = pd.to_numeric(trend["generation_number"], errors="coerce")
+        mean_y = pd.to_numeric(trend["mean_relative_expression"], errors="coerce")
+        min_y = pd.to_numeric(trend["min_relative_expression"], errors="coerce")
+        max_y = pd.to_numeric(trend["max_relative_expression"], errors="coerce")
+
+        valid = ~(x.isna() | mean_y.isna())
+        x = x[valid].to_numpy(dtype=float)
+        mean_arr = mean_y[valid].to_numpy(dtype=float)
+        min_arr = min_y[valid].to_numpy(dtype=float)
+        max_arr = max_y[valid].to_numpy(dtype=float)
+
+        ax.set_title(title, fontsize=15)
+        ax.axhline(
+            1.0,
+            color="#d64545",
+            linestyle="--",
+            linewidth=1.4,
+            alpha=0.85,
+            label="Baseline = 1.0",
+        )
+
+        if len(x):
+            ax.fill_between(
+                x,
+                min_arr,
+                max_arr,
+                color="#7cb5ec",
+                alpha=0.22,
+                linewidth=0,
+                label="Generation range",
+            )
+            ax.plot(
+                x,
+                mean_arr,
+                color="#0b5fff",
+                linewidth=2.8,
+                marker="o",
+                markersize=6.5,
+                markerfacecolor="#ffffff",
+                markeredgecolor="#0b5fff",
+                markeredgewidth=1.5,
+                label="Mean relative expression",
+                zorder=3,
+            )
+
+        ax.set_xlabel("Generation", fontsize=11)
+        ax.set_ylabel("Relative expression", fontsize=11)
+        if len(x):
+            ax.set_xticks(sorted({int(v) for v in x}))
+            ymin = np.nanmin(np.concatenate([min_arr, [1.0]]))
+            ymax = np.nanmax(np.concatenate([max_arr, [1.0]]))
+            pad = max((ymax - ymin) * 0.12, 0.2)
+            ax.set_ylim(max(0.0, ymin - pad), ymax + pad)
+        ax.grid(True, axis="y", linewidth=0.75, alpha=0.25)
+        ax.grid(True, axis="x", linewidth=0.5, alpha=0.12)
+        ax.legend(frameon=False, loc="upper left", fontsize=9)
+
+    fig.tight_layout(pad=1.4)
+    fig.savefig(out_path, dpi=dpi)
+    plt.close(fig)
