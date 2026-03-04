@@ -187,7 +187,7 @@
         </div>
         <div class="panel__body">
           <p class="panel__sub">Experiment {{ experiment_id }}</p>
-          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}" alt="Lineage graph for experiment {{ experiment_id }}">
+          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}?v={{ cache_bust }}" alt="Lineage graph for experiment {{ experiment_id }}">
           <section class="subpanel" aria-labelledby="expression-trend-title">
             <div class="subpanel__head">
               <h2 class="subpanel__title" id="expression-trend-title">Relative Expression Trend</h2>
@@ -202,9 +202,10 @@
             </div>
             <div class="subpanel__meta">
               <span>{{ expression_pvalue_label }}</span>
+              <span>{{ expression_pearson_label }}</span>
               <span>{{ expression_baseline_label }}</span>
             </div>
-            <img class="plot-image plot-image--secondary" src="{{ url_for('static', filename=expression_png) }}" alt="Relative expression trend for experiment {{ experiment_id }}">
+            <img class="plot-image plot-image--secondary" src="{{ url_for('static', filename=expression_png) }}?v={{ cache_bust }}" alt="Relative expression trend for experiment {{ experiment_id }}">
           </section>
           <div class="actions">
             <a class="link-btn" href="/lineage/{{ experiment_id }}">Refresh lineage</a>

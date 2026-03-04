@@ -46,11 +46,20 @@ def _format_pvalue_label(pvalue: float | None) -> str:
     return f"Trend p-value: {pvalue:.3f}"
 
 
-def _build_expression_trend(conn, experiment_id: int) -> tuple[pd.DataFrame, str, float | None]:
-    """Compute per-generation relative protein expression and a trend p-value."""
+def _format_pearson_label(rvalue: float | None) -> str:
+    """Return a human-readable Pearson correlation label."""
+    if rvalue is None or not np.isfinite(rvalue):
+        return "Pearson r: unavailable"
+    return f"Pearson r: {rvalue:.3f}"
+
+
+def _build_expression_trend(
+    conn, experiment_id: int
+) -> tuple[pd.DataFrame, str, float | None, float | None]:
+    """Compute per-generation relative protein expression and trend statistics."""
     raw = fetch_variant_raw(conn, experiment_id)
     if raw.empty:
-        return pd.DataFrame(), "No expression baseline available", None
+        return pd.DataFrame(), "No expression baseline available", None, None
 
     baselines, missing_generations = fetch_wt_baselines(conn, experiment_id)
     baseline_lookup = {gid: values[1] for gid, values in baselines.items()}
@@ -62,7 +71,7 @@ def _build_expression_trend(conn, experiment_id: int) -> tuple[pd.DataFrame, str
     df = df.dropna(subset=["generation_id", "generation_number", "protein_yield_raw"])
 
     if df.empty:
-        return pd.DataFrame(), "No expression baseline available", None
+        return pd.DataFrame(), "No expression baseline available", None, None
 
     df["generation_id"] = df["generation_id"].astype(int)
     df["generation_number"] = df["generation_number"].astype(int)
@@ -81,7 +90,7 @@ def _build_expression_trend(conn, experiment_id: int) -> tuple[pd.DataFrame, str
 
     if df.empty:
         label = "Relative to generation median"
-        return pd.DataFrame(), label, None
+        return pd.DataFrame(), label, None, None
 
     df["relative_expression"] = df["protein_yield_raw"] / df["expression_baseline"]
 
@@ -96,6 +105,7 @@ def _build_expression_trend(conn, experiment_id: int) -> tuple[pd.DataFrame, str
     )
 
     pvalue: float | None = None
+    rvalue: float | None = None
     if (
         linregress is not None
         and len(trend) >= 2
@@ -106,13 +116,14 @@ def _build_expression_trend(conn, experiment_id: int) -> tuple[pd.DataFrame, str
             trend["mean_relative_expression"].to_numpy(dtype=float),
         )
         pvalue = float(result.pvalue)
+        rvalue = float(result.rvalue)
 
     if missing_generations:
         label = "Relative to WT baseline when available; otherwise generation median"
     else:
         label = "Relative to WT baseline"
 
-    return trend, label, pvalue
+    return trend, label, pvalue, rvalue
 
 def register_analysis_routes(target_app: Flask) -> None:
     """Attach the analysis views to an existing Flask app instance."""
@@ -173,10 +184,12 @@ def register_analysis_routes(target_app: Flask) -> None:
         with get_conn() as conn:
             nodes = fetch_lineage_nodes(conn, experiment_id)
             edges = fetch_lineage_edges(conn, experiment_id)
-            expression_trend, expression_baseline_label, expression_pvalue = _build_expression_trend(
-                conn,
-                experiment_id,
-            )
+            (
+                expression_trend,
+                expression_baseline_label,
+                expression_pvalue,
+                expression_rvalue,
+            ) = _build_expression_trend(conn, experiment_id)
 
         out_path = plots_dir / f"lineage_exp{experiment_id}.png"
         expr_out_path = plots_dir / f"lineage_expr_exp{experiment_id}.png"
@@ -190,15 +203,20 @@ def register_analysis_routes(target_app: Flask) -> None:
             expression_png=f"plots/lineage_expr_exp{experiment_id}.png",
             expression_baseline_label=expression_baseline_label,
             expression_pvalue_label=_format_pvalue_label(expression_pvalue),
+            expression_pearson_label=_format_pearson_label(expression_rvalue),
+            cache_bust=int(time.time()),
         )
 
     @target_app.route("/protein_similarity/<int:experiment_id>")
     def protein_similarity(experiment_id: int):
-        mode = "cooccurrence"
+        mode = request.args.get("mode", "cooccurrence").strip().lower()
+        if mode not in {"cooccurrence", "pearson"}:
+            mode = "cooccurrence"
 
         preset = request.args.get("preset", "").strip().lower()
         min_shared = request.args.get("min_shared", "1")
         jaccard_threshold = request.args.get("jaccard_threshold", "")
+        pearson_threshold = request.args.get("pearson_threshold", "0.20")
         max_nodes = request.args.get("max_nodes", "20")
 
         allowed_max_nodes = {20, 30, 40, 50, 80, 120, 250}
@@ -216,13 +234,19 @@ def register_analysis_routes(target_app: Flask) -> None:
                 jaccard_threshold_val = None
 
         try:
+            pearson_threshold_val = float(pearson_threshold)
+        except ValueError:
+            pearson_threshold_val = 0.20
+        pearson_threshold_val = float(np.clip(pearson_threshold_val, -1.0, 1.0))
+
+        try:
             max_nodes_val = int(max_nodes)
         except ValueError:
             max_nodes_val = 40
         if max_nodes_val not in allowed_max_nodes:
             max_nodes_val = 20
 
-        if preset in {"sparse", "medium", "dense"}:
+        if mode == "cooccurrence" and preset in {"sparse", "medium", "dense"}:
             preset_map = {
                 "sparse": (4, 0.20),
                 "medium": (2, 0.10),
@@ -239,23 +263,38 @@ def register_analysis_routes(target_app: Flask) -> None:
         proteins_available = diagnostics.get("protein_sequences_available", 0)
         network_data_warning = ""
         if mutations_loaded < 50:
-            network_data_warning = (
-                "Co-occurrence network may be sparse because few mutation rows were persisted."
-            )
+            if mode == "pearson":
+                network_data_warning = (
+                    "Pearson network may be sparse because few mutation rows were persisted."
+                )
+            else:
+                network_data_warning = (
+                    "Co-occurrence network may be sparse because few mutation rows were persisted."
+                )
 
-        suffix = f"{mode}_ms{min_shared_val}_n{max_nodes_val}"
-        if jaccard_threshold_val is not None:
-            suffix = f"{suffix}_jt{jaccard_threshold_val:.2f}"
+        suffix = f"{mode}_n{max_nodes_val}"
+        if mode == "cooccurrence":
+            suffix = f"{suffix}_ms{min_shared_val}"
+            if jaccard_threshold_val is not None:
+                suffix = f"{suffix}_jt{jaccard_threshold_val:.2f}"
+        elif mode == "pearson":
+            suffix = f"{suffix}_pt{pearson_threshold_val:.2f}"
         out_path = plots_dir / f"protein_exp{experiment_id}_{suffix}.png"
 
-        title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
+        if mode == "pearson":
+            title = f"Protein Pearson Correlation Network (Top {max_nodes_val} Variants by Activity)"
+            mode_label = "Pearson correlation"
+        else:
+            title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
+            mode_label = "Mutation co-occurrence"
         config = ProteinNetConfig(
             title=title,
             cooccur_min_shared_mutations=min_shared_val,
             cooccur_jaccard_threshold=jaccard_threshold_val,
+            pearson_threshold=pearson_threshold_val,
             top_n_by_activity=max_nodes_val,
             max_nodes_final=max_nodes_val,
-            mode="cooccurrence",
+            mode=mode,
         )
 
         plot_protein_similarity_network(
@@ -271,10 +310,11 @@ def register_analysis_routes(target_app: Flask) -> None:
             experiment_id=experiment_id,
             protein_png=f"plots/protein_exp{experiment_id}_{suffix}.png",
             mode=mode,
-            mode_label="Mutation co-occurrence",
+            mode_label=mode_label,
             preset=preset,
             min_shared=min_shared_val,
             jaccard_threshold=jaccard_threshold_val if jaccard_threshold_val is not None else "",
+            pearson_threshold=pearson_threshold_val,
             max_nodes=max_nodes_val,
             max_node_options=sorted(allowed_max_nodes),
             mutations_loaded=mutations_loaded,
