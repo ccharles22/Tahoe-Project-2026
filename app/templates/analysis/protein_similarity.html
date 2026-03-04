@@ -320,15 +320,9 @@
             <form method="get" action="/protein_similarity/{{ experiment_id }}" id="networkControlsForm" class="controls-card">
               <div class="controls-grid">
                 <section class="control-group control-group--network">
-                  <h2 class="control-group__title">Network Type</h2>
+                  <h2 class="control-group__title">Network Settings</h2>
                   <div class="control-group__fields control-group__fields--stacked">
-                    <label for="mode">
-                      Mode
-                      <select name="mode" id="mode">
-                        <option value="identity" {% if mode == 'identity' %}selected{% endif %}>Sequence identity</option>
-                        <option value="cooccurrence" {% if mode == 'cooccurrence' %}selected{% endif %}>Mutation co-occurrence</option>
-                      </select>
-                    </label>
+                    <input type="hidden" name="mode" value="cooccurrence">
 
                     <label for="preset">
                       Preset
@@ -345,21 +339,6 @@
                 <section class="control-group control-group--thresholds">
                   <h2 class="control-group__title">Filters / Thresholds</h2>
                   <div class="control-group__fields">
-                    <div data-mode="identity">
-                      <label for="identity_threshold">
-                        Identity threshold
-                        <input
-                          type="number"
-                          id="identity_threshold"
-                          name="identity_threshold"
-                          step="0.01"
-                          min="0"
-                          max="1"
-                          value="{{ identity_threshold }}"
-                        >
-                      </label>
-                    </div>
-
                     <div data-mode="cooccurrence">
                       <label for="min_shared">
                         Min shared mutations
@@ -426,52 +405,36 @@
       const controlsForm = document.getElementById("networkControlsForm");
       const applyBtn = document.getElementById("applyBtn");
       const controlsStatus = document.getElementById("controlsStatus");
-      const modeSelect = document.getElementById("mode");
       const presetSelect = document.getElementById("preset");
-      const identityInput = document.getElementById("identity_threshold");
       const minSharedInput = document.getElementById("min_shared");
       const jaccardInput = document.getElementById("jaccard_threshold");
       const modeSections = document.querySelectorAll("[data-mode]");
-      const trackedInputs = [modeSelect, presetSelect, identityInput, minSharedInput, jaccardInput, document.getElementById("max_nodes")];
+      const trackedInputs = [presetSelect, minSharedInput, jaccardInput, document.getElementById("max_nodes")];
 
       function applyMode() {
-        const mode = modeSelect.value;
         modeSections.forEach((section) => {
-          section.style.display = section.getAttribute("data-mode") === mode ? "block" : "none";
+          section.style.display = section.getAttribute("data-mode") === "cooccurrence" ? "block" : "none";
         });
       }
 
       function setThresholdEnabledState() {
         const isCustom = !presetSelect.value;
-        if (modeSelect.value === "identity") {
-          identityInput.disabled = !isCustom;
-          minSharedInput.disabled = true;
-          jaccardInput.disabled = true;
-        } else {
-          identityInput.disabled = true;
-          minSharedInput.disabled = !isCustom;
-          jaccardInput.disabled = !isCustom;
-        }
+        minSharedInput.disabled = !isCustom;
+        jaccardInput.disabled = !isCustom;
       }
 
       function applyPreset() {
         const preset = presetSelect.value;
-        const mode = modeSelect.value;
         if (preset) {
-          if (mode === "identity") {
-            const identityMap = { sparse: 0.98, medium: 0.95, dense: 0.90 };
-            identityInput.value = identityMap[preset] ?? identityInput.value;
-          } else {
-            const cooccurMap = {
-              sparse: { minShared: 4, jaccard: 0.20 },
-              medium: { minShared: 2, jaccard: 0.10 },
-              dense: { minShared: 1, jaccard: "" },
-            };
-            const values = cooccurMap[preset];
-            if (values) {
-              minSharedInput.value = values.minShared;
-              jaccardInput.value = values.jaccard;
-            }
+          const cooccurMap = {
+            sparse: { minShared: 4, jaccard: 0.20 },
+            medium: { minShared: 2, jaccard: 0.10 },
+            dense: { minShared: 1, jaccard: "" },
+          };
+          const values = cooccurMap[preset];
+          if (values) {
+            minSharedInput.value = values.minShared;
+            jaccardInput.value = values.jaccard;
           }
         }
         setThresholdEnabledState();
@@ -495,12 +458,6 @@
         }
       }
 
-      modeSelect.addEventListener("change", () => {
-        applyMode();
-        setThresholdEnabledState();
-        if (presetSelect.value) applyPreset();
-        updateDirtyState();
-      });
       presetSelect.addEventListener("change", () => {
         applyPreset();
         updateDirtyState();

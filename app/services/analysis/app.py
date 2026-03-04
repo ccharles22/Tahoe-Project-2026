@@ -194,35 +194,14 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/protein_similarity/<int:experiment_id>")
     def protein_similarity(experiment_id: int):
-        requested_mode_raw = (request.args.get("mode") or "").strip().lower()
-        if requested_mode_raw in {"identity", "cooccurrence"}:
-            mode = requested_mode_raw
-        else:
-            if requested_mode_raw:
-                logger.warning(
-                    "Invalid protein network mode '%s' for experiment %s; defaulting to identity.",
-                    requested_mode_raw,
-                    experiment_id,
-                )
-            else:
-                logger.info(
-                    "No protein network mode provided for experiment %s; defaulting to identity.",
-                    experiment_id,
-                )
-            mode = "identity"
+        mode = "cooccurrence"
 
         preset = request.args.get("preset", "").strip().lower()
-        identity_threshold = request.args.get("identity_threshold", "0.95")
         min_shared = request.args.get("min_shared", "1")
         jaccard_threshold = request.args.get("jaccard_threshold", "")
-        max_nodes = request.args.get("max_nodes", "40")
+        max_nodes = request.args.get("max_nodes", "20")
 
         allowed_max_nodes = {20, 30, 40, 50, 80, 120, 250}
-
-        try:
-            identity_threshold_val = float(identity_threshold)
-        except ValueError:
-            identity_threshold_val = 0.95
 
         try:
             min_shared_val = max(1, int(min_shared))
@@ -241,48 +220,42 @@ def register_analysis_routes(target_app: Flask) -> None:
         except ValueError:
             max_nodes_val = 40
         if max_nodes_val not in allowed_max_nodes:
-            max_nodes_val = 40
+            max_nodes_val = 20
 
         if preset in {"sparse", "medium", "dense"}:
-            if mode == "identity":
-                identity_threshold_val = {"sparse": 0.98, "medium": 0.95, "dense": 0.90}[preset]
-            else:
-                preset_map = {
-                    "sparse": (4, 0.20),
-                    "medium": (2, 0.10),
-                    "dense": (1, None),
-                }
-                min_shared_val, jaccard_threshold_val = preset_map[preset]
+            preset_map = {
+                "sparse": (4, 0.20),
+                "medium": (2, 0.10),
+                "dense": (1, None),
+            }
+            min_shared_val, jaccard_threshold_val = preset_map[preset]
 
         with get_conn() as conn:
             nodes = fetch_protein_similarity_nodes(conn, experiment_id)
-            mutations = fetch_protein_mutations(conn, experiment_id) if mode == "cooccurrence" else None
+            mutations = fetch_protein_mutations(conn, experiment_id)
             diagnostics = fetch_network_diagnostics(conn, experiment_id)
 
         mutations_loaded = diagnostics.get("mutation_rows_total", 0)
         proteins_available = diagnostics.get("protein_sequences_available", 0)
         network_data_warning = ""
-        if mode == "cooccurrence" and mutations_loaded < 50:
+        if mutations_loaded < 50:
             network_data_warning = (
                 "Co-occurrence network may be sparse because few mutation rows were persisted."
             )
 
-        suffix = f"{mode}_it{identity_threshold_val:.2f}_ms{min_shared_val}_n{max_nodes_val}"
+        suffix = f"{mode}_ms{min_shared_val}_n{max_nodes_val}"
         if jaccard_threshold_val is not None:
             suffix = f"{suffix}_jt{jaccard_threshold_val:.2f}"
         out_path = plots_dir / f"protein_exp{experiment_id}_{suffix}.png"
 
-        if mode == "identity":
-            title = f"Protein Similarity Network (Top {max_nodes_val} Variants by Activity)"
-        else:
-            title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
+        title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
         config = ProteinNetConfig(
             title=title,
-            identity_threshold=identity_threshold_val,
             cooccur_min_shared_mutations=min_shared_val,
             cooccur_jaccard_threshold=jaccard_threshold_val,
             top_n_by_activity=max_nodes_val,
             max_nodes_final=max_nodes_val,
+            mode="cooccurrence",
         )
 
         plot_protein_similarity_network(
@@ -298,9 +271,8 @@ def register_analysis_routes(target_app: Flask) -> None:
             experiment_id=experiment_id,
             protein_png=f"plots/protein_exp{experiment_id}_{suffix}.png",
             mode=mode,
-            mode_label=("Sequence identity" if mode == "identity" else "Mutation co-occurrence"),
+            mode_label="Mutation co-occurrence",
             preset=preset,
-            identity_threshold=identity_threshold_val,
             min_shared=min_shared_val,
             jaccard_threshold=jaccard_threshold_val if jaccard_threshold_val is not None else "",
             max_nodes=max_nodes_val,

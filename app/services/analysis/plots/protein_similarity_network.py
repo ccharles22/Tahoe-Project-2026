@@ -28,7 +28,7 @@ class ProteinNetConfig:
 	# plotting
 	figsize: tuple[float, float] = (14, 8)
 	dpi: int = 200
-	title: str = "Protein Similarity Network"
+	title: str = "Protein Co-Occurrence Network"
 	label_mode: LabelMode = "top10"
 	label_fontsize: int = 8
 
@@ -50,8 +50,8 @@ class ProteinNetConfig:
 	layout_seed: int = 7
 
 	# similarity rule
-	identity_threshold: float = 0.95      # connect if identity > this threshold
-	mode: NetworkMode = "identity"         # identity = sequence; cooccurrence = shared mutations
+	identity_threshold: float = 0.95      # retained for legacy identity support
+	mode: NetworkMode = "cooccurrence"     # default to shared mutation co-occurrence
 
 	# co-occurrence rule (variant-variant edges from shared protein mutations)
 	cooccur_min_shared_mutations: int = 1
