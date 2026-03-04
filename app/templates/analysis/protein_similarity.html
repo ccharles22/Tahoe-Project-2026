@@ -322,11 +322,17 @@
                 <section class="control-group control-group--network">
                   <h2 class="control-group__title">Network Settings</h2>
                   <div class="control-group__fields control-group__fields--stacked">
-                    <input type="hidden" name="mode" value="cooccurrence">
+                    <label for="mode">
+                      Network type
+                      <select name="mode" id="mode">
+                        <option value="cooccurrence" {% if mode == 'cooccurrence' %}selected{% endif %}>Mutation co-occurrence</option>
+                        <option value="pearson" {% if mode == 'pearson' %}selected{% endif %}>Pearson correlation</option>
+                      </select>
+                    </label>
 
                     <label for="preset">
                       Preset
-                      <select name="preset" id="preset">
+                      <select name="preset" id="preset" {% if mode != 'cooccurrence' %}disabled{% endif %}>
                         <option value="" {% if not preset %}selected{% endif %}>Custom</option>
                         <option value="sparse" {% if preset == 'sparse' %}selected{% endif %}>Sparse</option>
                         <option value="medium" {% if preset == 'medium' %}selected{% endif %}>Medium</option>
@@ -368,6 +374,22 @@
                       </label>
                     </div>
 
+                    <div data-mode="pearson">
+                      <label for="pearson_threshold">
+                        Pearson threshold
+                        <input
+                          type="number"
+                          id="pearson_threshold"
+                          name="pearson_threshold"
+                          step="0.05"
+                          min="-1"
+                          max="1"
+                          value="{{ pearson_threshold }}"
+                          {% if mode != 'pearson' %}disabled{% endif %}
+                        >
+                      </label>
+                    </div>
+
                     <label for="max_nodes">
                       Variants shown
                       <select id="max_nodes" name="max_nodes">
@@ -405,19 +427,37 @@
       const controlsForm = document.getElementById("networkControlsForm");
       const applyBtn = document.getElementById("applyBtn");
       const controlsStatus = document.getElementById("controlsStatus");
+      const modeSelect = document.getElementById("mode");
       const presetSelect = document.getElementById("preset");
       const minSharedInput = document.getElementById("min_shared");
       const jaccardInput = document.getElementById("jaccard_threshold");
+      const pearsonInput = document.getElementById("pearson_threshold");
       const modeSections = document.querySelectorAll("[data-mode]");
-      const trackedInputs = [presetSelect, minSharedInput, jaccardInput, document.getElementById("max_nodes")];
+      const trackedInputs = [modeSelect, presetSelect, minSharedInput, jaccardInput, pearsonInput, document.getElementById("max_nodes")];
 
       function applyMode() {
+        const mode = modeSelect.value;
         modeSections.forEach((section) => {
-          section.style.display = section.getAttribute("data-mode") === "cooccurrence" ? "block" : "none";
+          section.style.display = section.getAttribute("data-mode") === mode ? "block" : "none";
         });
+        const isCooccurrence = mode === "cooccurrence";
+        presetSelect.disabled = !isCooccurrence;
+        if (!isCooccurrence) {
+          minSharedInput.disabled = true;
+          jaccardInput.disabled = true;
+          pearsonInput.disabled = false;
+        } else {
+          pearsonInput.disabled = true;
+          setThresholdEnabledState();
+        }
       }
 
       function setThresholdEnabledState() {
+        if (modeSelect.value !== "cooccurrence") {
+          minSharedInput.disabled = true;
+          jaccardInput.disabled = true;
+          return;
+        }
         const isCustom = !presetSelect.value;
         minSharedInput.disabled = !isCustom;
         jaccardInput.disabled = !isCustom;
@@ -458,6 +498,10 @@
         }
       }
 
+      modeSelect.addEventListener("change", () => {
+        applyMode();
+        updateDirtyState();
+      });
       presetSelect.addEventListener("change", () => {
         applyPreset();
         updateDirtyState();
