@@ -558,3 +558,184 @@ function initWarningInsights() {
 }
 
 initWarningInsights();
+
+function initSidebarCollapseToggle() {
+  const toggleBtn = document.getElementById('sidebarRailToggle');
+  const body = document.body;
+  if (!toggleBtn || !body || !body.classList.contains('staging-page')) return;
+
+  const key = 'stagingSidebarCollapsed';
+  const setState = (collapsed) => {
+    body.classList.toggle('sidebar-collapsed', collapsed);
+    toggleBtn.setAttribute('aria-pressed', collapsed ? 'true' : 'false');
+    toggleBtn.setAttribute('aria-label', collapsed ? 'Show sidebar' : 'Hide sidebar');
+    toggleBtn.innerHTML = collapsed ? '&#x25B6;' : '&#x25C0;';
+  };
+
+  setState(localStorage.getItem(key) === 'true');
+
+  toggleBtn.addEventListener('click', () => {
+    const next = !body.classList.contains('sidebar-collapsed');
+    setState(next);
+    localStorage.setItem(key, next ? 'true' : 'false');
+  });
+}
+
+function initTop10TableTools() {
+  const table = document.querySelector('.js-top10-dashboard-table');
+  if (!table) return;
+  const tbody = table.querySelector('tbody');
+  if (!tbody) return;
+
+  const parseCellValue = (row, key, type) => {
+    const raw = row.dataset[key] || '';
+    if (type === 'number') {
+      const value = Number(raw);
+      return Number.isFinite(value) ? value : Number.NEGATIVE_INFINITY;
+    }
+    return raw.toLowerCase();
+  };
+
+  const clearSortState = () => {
+    table.querySelectorAll('.js-top10-sort').forEach((btn) => {
+      btn.classList.remove('is-sorted');
+      btn.dataset.sortOrder = '';
+      btn.setAttribute('aria-sort', 'none');
+    });
+  };
+
+  table.querySelectorAll('.js-top10-sort').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.getAttribute('data-sort-key');
+      const type = btn.getAttribute('data-sort-type') || 'string';
+      if (!key) return;
+
+      const nextOrder = btn.dataset.sortOrder === 'asc' ? 'desc' : 'asc';
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      rows.sort((a, b) => {
+        const av = parseCellValue(a, key, type);
+        const bv = parseCellValue(b, key, type);
+        if (av === bv) return 0;
+        if (nextOrder === 'asc') return av > bv ? 1 : -1;
+        return av < bv ? 1 : -1;
+      });
+      rows.forEach((row) => tbody.appendChild(row));
+
+      clearSortState();
+      btn.classList.add('is-sorted');
+      btn.dataset.sortOrder = nextOrder;
+      btn.setAttribute('aria-sort', nextOrder === 'asc' ? 'ascending' : 'descending');
+    });
+  });
+
+  const copyBtn = document.querySelector('.js-copy-top10-csv');
+  if (!copyBtn) return;
+  copyBtn.addEventListener('click', async () => {
+    const headers = Array.from(table.querySelectorAll('thead th')).map((th) => {
+      const btn = th.querySelector('button');
+      return (btn ? btn.textContent : th.textContent || '').trim();
+    });
+    const rows = Array.from(tbody.querySelectorAll('tr')).map((row) =>
+      Array.from(row.querySelectorAll('td')).map((td) => `"${(td.textContent || '').trim().replace(/"/g, '""')}"`).join(',')
+    );
+    const csvText = [headers.join(','), ...rows].join('\n');
+    let copied = false;
+    try {
+      await navigator.clipboard.writeText(csvText);
+      copied = true;
+    } catch (_) {
+      copied = false;
+    }
+
+    copyBtn.textContent = copied ? 'Copied' : 'Copy failed';
+    window.setTimeout(() => {
+      copyBtn.textContent = 'Copy as CSV';
+    }, 1400);
+  });
+}
+
+function initCoreResultsTabs() {
+  const buttons = Array.from(document.querySelectorAll('.js-core-tab-btn[data-tab-target]'));
+  const panels = Array.from(document.querySelectorAll('.js-core-tab-panel[id]'));
+  if (!buttons.length || !panels.length) return;
+
+  const setActive = (targetId) => {
+    buttons.forEach((btn) => {
+      const active = btn.getAttribute('data-tab-target') === targetId;
+      btn.classList.toggle('is-active', active);
+    });
+    panels.forEach((panel) => {
+      panel.classList.toggle('is-active', panel.id === targetId);
+    });
+  };
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const targetId = btn.getAttribute('data-tab-target') || '';
+      if (targetId) setActive(targetId);
+    });
+  });
+
+  const initial = buttons.find((btn) => btn.classList.contains('is-active'));
+  setActive(initial ? (initial.getAttribute('data-tab-target') || 'core-top10') : 'core-top10');
+}
+
+function initAdvancedVisualTabs() {
+  const buttons = Array.from(document.querySelectorAll('.js-advanced-tab-btn[data-src]'));
+  const frame = document.getElementById('advancedTabsFrame');
+  const title = document.getElementById('advancedTabsTitle');
+  const description = document.getElementById('advancedTabsDescription');
+  const downloads = document.getElementById('advancedTabsDownloads');
+  if (!buttons.length || !frame || !title || !description || !downloads) return;
+
+  const renderDownloads = (src, png) => {
+    downloads.innerHTML = '';
+    const openLink = document.createElement('a');
+    openLink.className = 'btn btn--sm btn--ghost';
+    openLink.href = src;
+    openLink.target = '_blank';
+    openLink.rel = 'noopener';
+    openLink.textContent = 'Open in new tab';
+    downloads.appendChild(openLink);
+
+    if (png) {
+      const pngLink = document.createElement('a');
+      pngLink.className = 'btn btn--sm btn--ghost';
+      pngLink.href = png;
+      pngLink.target = '_blank';
+      pngLink.rel = 'noopener';
+      pngLink.textContent = 'Download PNG';
+      downloads.appendChild(pngLink);
+    }
+  };
+
+  const setActive = (btn) => {
+    const src = btn.getAttribute('data-src') || '';
+    if (!src) return;
+
+    buttons.forEach((item) => item.classList.toggle('is-active', item === btn));
+    const nextTitle = btn.getAttribute('data-title') || 'Advanced visualisation';
+    const nextDescription = btn.getAttribute('data-description') || '';
+    const nextPng = btn.getAttribute('data-png') || '';
+
+    title.textContent = nextTitle;
+    description.textContent = nextDescription;
+    frame.title = nextTitle;
+    if (frame.getAttribute('src') !== src) {
+      frame.setAttribute('src', src);
+    }
+    renderDownloads(src, nextPng);
+  };
+
+  buttons.forEach((btn) => {
+    btn.addEventListener('click', () => setActive(btn));
+  });
+
+  const initial = buttons.find((btn) => btn.classList.contains('is-active')) || buttons[0];
+  if (initial) setActive(initial);
+}
+
+initTop10TableTools();
+initCoreResultsTabs();
+initAdvancedVisualTabs();
+initSidebarCollapseToggle();
