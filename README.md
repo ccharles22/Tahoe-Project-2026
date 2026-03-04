@@ -4,9 +4,10 @@
 
 ## Overview
 
-The **Direct Evolution Monitoring (DEM) Portal** is a web-based platform developed by **Team Tahoe** for the MSc Bioinformatics Software Development Group Project (2025–2026).
+The **Direct Evolution Monitoring (DEM) Portal** is a web-based platform developed by **Team Tahoe** for the MSc Bioinformatics BIO727P Software Development Group Project (2025–2026).
 
-The portal enables users to **track, analyse, and visualise** data generated from automated directed evolution experiments. It supports the **Design–Build–Test–Learn (DBTL)** cycle by providing an integrated environment for managing experimental data and monitoring evolutionary progress.
+The portal enables users to **track, analyse, and visualise** data generated from automated directed evolution experiments. It supports the **Design–Build–Test–Learn (DBTL)** cycle by providing an integrated environment for managing experimental data and monitoring evolutionary progress. 
+This portal is designed to make core experimental signals easier to read, compare, and explain. From DNA and protein yield to activity-normalised enzyme efficiency, each run turns raw measurements into interpretable evidence for selection decisions.
 
 The system focuses on analysing directed evolution experiments aimed at improving **DNA polymerase performance**.
 
@@ -163,14 +164,13 @@ The system demonstrates:
 
 ---
 
-## Team
--
--
--
--
--
+## Team Tahoe
+- LUCIANI, Maria-Paola
+- OAKARR, Luke
+- CHARLES, Candice
+- ARAKIT-OSIRE, Patricia
+- PUVANESWARAN, Reman
 
-**Team Tahoe**
 
 ---
 
