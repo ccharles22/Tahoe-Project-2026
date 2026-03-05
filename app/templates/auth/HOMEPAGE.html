@@ -377,10 +377,105 @@
               <p class="home-results-card__micro">EXPERIMENT 175</p>
               <h3 class="home-results-card__title">Domain Enrichment Details</h3>
             </article>
+
+            <article class="home-results-card" data-result-title="Activity Distribution by Generation (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/activity_distribution.png') }}" alt="Activity distribution by generation from experiment 243">
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Activity Distribution by Generation</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Variant Lineage (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/lineage.png') }}" alt="Variant lineage graph from experiment 243">
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Variant Lineage</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Top 10 Performers (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/top10_variants.png') }}" alt="Top 10 variants preview from experiment 243">
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Top 10 Performers</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Mutation Frequency / Hotspots (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <iframe
+                  class="home-results-embed"
+                  src="{{ url_for('static', filename='generated/243/bonus/mutation_frequency_by_position.html') }}"
+                  title="Mutation frequency by position from experiment 243"
+                  loading="lazy"
+                  tabindex="-1"
+                ></iframe>
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Mutation Frequency / Hotspots</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Mutation Fingerprint (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <iframe
+                  class="home-results-embed"
+                  src="{{ url_for('static', filename='generated/243/bonus/mutation_fingerprint_latest.html') }}"
+                  title="Mutation fingerprint preview from experiment 243"
+                  loading="lazy"
+                  tabindex="-1"
+                ></iframe>
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Mutation Fingerprint</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Protein Similarity Network (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/protein_similarity.png') }}" alt="Protein similarity network from experiment 243">
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Protein Similarity Network</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="3D Activity Landscape (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/bonus/activity_surface_pca.png') }}" alt="3D activity landscape from experiment 243">
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">3D Activity Landscape</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Domain by Generation (heatmap) (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <iframe
+                  class="home-results-embed"
+                  src="{{ url_for('static', filename='generated/243/bonus/domain_enrichment_heatmap.html') }}"
+                  title="Domain by generation heatmap from experiment 243"
+                  loading="lazy"
+                  tabindex="-1"
+                ></iframe>
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Domain by Generation (heatmap)</h3>
+            </article>
+
+            <article class="home-results-card" data-result-title="Mutation Trajectory (Top 10) (Exp 243)">
+              <div class="home-results-graph-wrap">
+                <iframe
+                  class="home-results-embed"
+                  src="{{ url_for('static', filename='generated/243/bonus/mutation_trajectory_top10.html') }}"
+                  title="Mutation trajectory for top 10 variants from experiment 243"
+                  loading="lazy"
+                  tabindex="-1"
+                ></iframe>
+              </div>
+              <p class="home-results-card__micro">EXPERIMENT 243</p>
+              <h3 class="home-results-card__title">Mutation Trajectory (Top 10)</h3>
+            </article>
           </div>
         </div>
-
-        <p class="home-results-counter" data-home-results-counter>1 / 9 - Activity Distribution by Generation</p>
+        <p class="home-results-counter" data-home-results-counter>1 / 18 - Activity Distribution by Generation</p>
 </div>
     </div>
   </section>
