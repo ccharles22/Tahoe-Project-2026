@@ -1,0 +1,226 @@
+/* Homepage-style header for MkDocs */
+
+:root {
+  --nav-text: #2d4a68;
+  --nav-text-strong: #123758;
+  --nav-text-active: #0f3354;
+  --nav-control-text: #183656;
+  --nav-border: rgba(30, 38, 46, 0.22);
+  --nav-border-strong: rgba(30, 38, 46, 0.34);
+  --nav-control-bg: rgba(255, 255, 255, 0.74);
+  --nav-control-bg-hover: rgba(255, 255, 255, 0.92);
+}
+
+[data-theme="dark"] {
+  --nav-text: rgba(233, 243, 255, 0.9);
+  --nav-text-strong: #ffffff;
+  --nav-text-active: #ffffff;
+  --nav-control-text: #f0f6ff;
+  --nav-border: rgba(255, 255, 255, 0.36);
+  --nav-border-strong: rgba(255, 255, 255, 0.58);
+  --nav-control-bg: rgba(7, 25, 42, 0.32);
+  --nav-control-bg-hover: rgba(7, 25, 42, 0.52);
+}
+
+/* Override Material theme header */
+.md-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 28px !important;
+  height: 84px !important;
+  background: transparent !important;
+  border-bottom: none !important;
+  box-shadow: none !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100 !important;
+  transition:
+    height .18s cubic-bezier(.645,.045,.355,1),
+    padding .18s cubic-bezier(.645,.045,.355,1),
+    background-color .18s cubic-bezier(.645,.045,.355,1),
+    border-color .18s cubic-bezier(.645,.045,.355,1),
+    box-shadow .18s cubic-bezier(.645,.045,.355,1),
+    -webkit-backdrop-filter .18s cubic-bezier(.645,.045,.355,1),
+    backdrop-filter .18s cubic-bezier(.645,.045,.355,1);
+}
+
+.md-header__inner {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  max-width: none !important;
+}
+
+.md-logo {
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 1;
+  min-width: 0;
+}
+
+.md-logo__link {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--nav-text-strong);
+  transition: color .15s cubic-bezier(.645,.045,.355,1);
+}
+
+.md-logo__link:hover {
+  color: var(--nav-text-active) !important;
+  text-decoration: none;
+}
+
+.mkdocs-logo__icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  box-shadow: 0 8px 14px rgba(18, 56, 93, 0.12);
+  object-fit: contain;
+}
+
+.mkdocs-logo__name,
+.md-header__title {
+  font-size: 20px !important;
+  font-weight: 750 !important;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+  color: var(--nav-text-active);
+  text-shadow: 0 0 14px rgba(157, 211, 255, 0.45);
+}
+
+.mkdocs-nav__container {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  width: 100% !important;
+}
+
+.md-header__nav {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1;
+  justify-content: center !important;
+  margin: 0 16px;
+}
+
+.md-tabs {
+  display: flex !important;
+  height: auto !important;
+  background: transparent !important;
+  border-bottom: none !important;
+}
+
+.md-tabs__list {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px;
+  margin: 0 !important;
+}
+
+.md-tabs__item {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.md-tabs__link {
+  font-size: 17px !important;
+  font-weight: 650 !important;
+  color: var(--nav-text);
+  padding: 4px 0 !important;
+  border-bottom: 2px solid transparent !important;
+  text-decoration: none;
+  transition: color .15s cubic-bezier(.645,.045,.355,1), border-color .15s cubic-bezier(.645,.045,.355,1) !important;
+}
+
+.md-tabs__link:hover {
+  color: var(--nav-text-strong) !important;
+  border-bottom-color: rgba(42, 125, 225, 0.35) !important;
+  text-decoration: none;
+}
+
+.md-tabs__link--active {
+  color: var(--nav-text-active) !important;
+  border-bottom-color: #2a7de1 !important;
+}
+
+.md-header__options {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.md-header__button {
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--nav-border);
+  background: var(--nav-control-bg);
+  color: var(--nav-control-text);
+  text-decoration: none;
+  transition: border-color .15s cubic-bezier(.645,.045,.355,1), background-color .15s cubic-bezier(.645,.045,.355,1), color .15s cubic-bezier(.645,.045,.355,1);
+}
+
+.md-header__button:hover {
+  border-color: var(--nav-border-strong);
+  color: var(--nav-text-strong);
+  background: var(--nav-control-bg-hover);
+  text-decoration: none;
+}
+
+.md-header__button svg {
+  width: 16px !important;
+  height: 16px !important;
+  fill: currentColor;
+  stroke: none;
+}
+
+/* Compact mode for smaller screens */
+@media (max-width: 1024px) {
+  .md-header {
+    height: 72px !important;
+    padding: 0 22px !important;
+  }
+
+  .mkdocs-logo__icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .mkdocs-logo__name,
+  .md-header__title {
+    font-size: 17px !important;
+  }
+
+  .md-tabs__link {
+    font-size: 15px !important;
+  }
+
+  .md-header__button {
+    width: 30px;
+    height: 30px;
+  }
+
+  .md-header__button svg {
+    width: 14px !important;
+    height: 14px !important;
+  }
+}

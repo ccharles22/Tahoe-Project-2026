@@ -1,0 +1,207 @@
+/* Homepage-style top header for MkDocs docs pages */
+
+:root {
+  --ease: cubic-bezier(.4, 0, .2, 1);
+  --radius: 10px;
+  --md-header-height: 84px;
+}
+
+.md-header {
+  padding: 0 !important;
+  height: var(--md-header-height) !important;
+  background:
+    linear-gradient(
+      122deg,
+      rgba(20, 52, 79, .92) 0%,
+      rgba(24, 86, 136, .86) 44%,
+      rgba(23, 184, 179, .72) 100%
+    ) !important;
+  border-bottom: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.home-nav {
+  --nav-text: rgba(233, 243, 255, 0.9);
+  --nav-text-strong: #ffffff;
+  --nav-text-active: #ffffff;
+  --nav-control-text: #f0f6ff;
+  --nav-border: rgba(255, 255, 255, 0.36);
+  --nav-border-strong: rgba(255, 255, 255, 0.58);
+  --nav-control-bg: rgba(7, 25, 42, 0.32);
+  --nav-control-bg-hover: rgba(7, 25, 42, 0.52);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 28px;
+}
+
+.home-nav__left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.home-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--nav-text-strong);
+}
+
+.home-nav__brand:hover {
+  text-decoration: none;
+}
+
+.home-nav__brand--portal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  max-width: 100%;
+}
+
+.home-nav__brand-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 8px;
+  box-shadow: 0 8px 14px rgba(18, 56, 93, 0.12);
+}
+
+.home-nav__brand-name {
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -.01em;
+  white-space: nowrap;
+}
+
+.home-nav__brand-title {
+  color: var(--nav-text-active);
+  border-bottom-color: transparent;
+  font-weight: 760;
+  text-shadow: 0 0 14px rgba(157, 211, 255, 0.45);
+}
+
+.home-nav__brand-title:hover {
+  color: var(--nav-text-active);
+  border-bottom-color: transparent;
+}
+
+.home-nav__right {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.home-nav__navlinks {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-right: 2px;
+}
+
+.home-nav__navlink {
+  font-size: 17px;
+  font-weight: 650;
+  color: var(--nav-text);
+  padding: 4px 0;
+  border-bottom: 2px solid transparent;
+  text-decoration: none;
+  transition: color .15s var(--ease), border-color .15s var(--ease);
+}
+
+.home-nav__navlink:hover {
+  color: var(--nav-text-strong);
+  border-bottom-color: rgba(42, 125, 225, 0.35);
+  text-decoration: none;
+}
+
+.home-nav__navlink--active {
+  color: var(--nav-text-active);
+  border-bottom-color: #ffffff;
+}
+
+.home-nav__signin {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--nav-control-text);
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: var(--radius);
+  border: 1px solid var(--nav-border);
+  background: var(--nav-control-bg);
+  transition: all .15s var(--ease);
+}
+
+.home-nav__signin:hover {
+  background: var(--nav-control-bg-hover);
+  border-color: var(--nav-border-strong);
+  color: var(--nav-text-strong);
+  text-decoration: none;
+}
+
+.home-nav__signup {
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: var(--radius);
+  border: 1px solid rgba(31, 200, 195, .9);
+  background: linear-gradient(135deg, #1e90ff, #1fc8c3);
+  box-shadow: 0 8px 18px rgba(30, 144, 255, .28);
+  transition: all .15s var(--ease);
+}
+
+.home-nav__signup:hover {
+  color: #ffffff;
+  border-color: #7fe7e3;
+  box-shadow: 0 10px 22px rgba(30, 144, 255, .38);
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --md-header-height: 72px;
+  }
+
+  .home-nav {
+    padding: 0 22px;
+  }
+
+  .home-nav__brand-icon {
+    width: 42px;
+    height: 42px;
+  }
+
+  .home-nav__brand-name {
+    font-size: 17px;
+  }
+
+  .home-nav__navlink {
+    font-size: 15px;
+  }
+
+  .home-nav__signin,
+  .home-nav__signup {
+    font-size: 12px;
+    padding: 5px 9px;
+  }
+}
+
+@media (max-width: 960px) {
+  .home-nav__brand-name {
+    display: none;
+  }
+
+  .home-nav__signin,
+  .home-nav__signup {
+    display: none;
+  }
+}
