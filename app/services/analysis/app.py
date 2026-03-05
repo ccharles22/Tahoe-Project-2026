@@ -36,12 +36,10 @@ APP_DIR = ROOT_DIR / "app"
 
 
 def _format_pvalue_label(pvalue: float | None) -> str:
-    """Return a human-readable trend p-value label."""
+    """Return p-value label without threshold buckets (show numeric value directly)."""
     if pvalue is None or not np.isfinite(pvalue):
         return "Trend p-value: unavailable"
-    if pvalue < 0.001:
-        return "Trend p-value: < 0.001"
-    return f"Trend p-value: {pvalue:.3f}"
+    return f"Trend p-value: {pvalue:.16g}"
 
 
 def _format_pearson_label(rvalue: float | None) -> str:
