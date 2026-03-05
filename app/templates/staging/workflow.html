@@ -992,9 +992,13 @@
                   {% endif %}
                 </div>
                 {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
-                  <figure class="required-plot">
-                    <img class="required-plot__img" src="{{ analysis_outputs.lineage.url }}" alt="Variant lineage chart showing parent-child evolution branches." loading="lazy">
-                  </figure>
+                  <div class="core-iframe-viewer">
+                    <iframe
+                      src="{{ analysis_outputs.lineage.view_url if analysis_outputs.lineage.view_url else analysis_outputs.lineage.url }}"
+                      title="Interactive variant lineage with expression trend, p-value, and correlation line"
+                      loading="lazy"
+                    ></iframe>
+                  </div>
                 {% else %}
                   <div class="empty">
                     <div class="empty__icon" aria-hidden="true">&#x1F9EC;</div>
