@@ -54,7 +54,8 @@ def _format_pearson_label(rvalue: float | None) -> str:
 
 
 def _build_expression_trend(
-    conn, experiment_id: int
+    conn,
+    experiment_id: int,
 ) -> tuple[pd.DataFrame, str, float | None, float | None]:
     """Compute per-generation relative protein expression and trend statistics."""
     raw = fetch_variant_raw(conn, experiment_id)
@@ -109,14 +110,18 @@ def _build_expression_trend(
     if (
         linregress is not None
         and len(trend) >= 2
-        and trend["mean_relative_expression"].nunique() > 1
+        and trend["generation_number"].nunique() > 1
     ):
-        result = linregress(
-            trend["generation_number"].to_numpy(dtype=float),
-            trend["mean_relative_expression"].to_numpy(dtype=float),
-        )
-        pvalue = float(result.pvalue)
-        rvalue = float(result.rvalue)
+        try:
+            result = linregress(
+                trend["generation_number"].to_numpy(dtype=float),
+                trend["mean_relative_expression"].to_numpy(dtype=float),
+            )
+            pvalue = float(result.pvalue)
+            rvalue = float(result.rvalue)
+        except ValueError:
+            pvalue = None
+            rvalue = None
 
     if missing_generations:
         label = "Relative to WT baseline when available; otherwise generation median"
@@ -189,7 +194,10 @@ def register_analysis_routes(target_app: Flask) -> None:
                 expression_baseline_label,
                 expression_pvalue,
                 expression_rvalue,
-            ) = _build_expression_trend(conn, experiment_id)
+            ) = _build_expression_trend(
+                conn,
+                experiment_id,
+            )
 
         out_path = plots_dir / f"lineage_exp{experiment_id}.png"
         expr_out_path = plots_dir / f"lineage_expr_exp{experiment_id}.png"

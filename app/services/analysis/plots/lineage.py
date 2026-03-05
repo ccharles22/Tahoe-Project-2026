@@ -866,20 +866,24 @@ def plot_relative_expression_trend(
                 zorder=3,
             )
 
-            # Add a fitted correlation line to make the cross-generation trend explicit.
-            if len(x) >= 2 and np.unique(x).size >= 2 and np.unique(mean_arr).size >= 2:
-                slope, intercept = np.polyfit(x, mean_arr, 1)
-                fit_y = slope * x + intercept
-                ax.plot(
-                    x,
-                    fit_y,
-                    color="#0f766e",
-                    linewidth=2.0,
-                    linestyle="-.",
-                    alpha=0.95,
-                    label="Correlation trend line",
-                    zorder=2,
-                )
+            # Add a fitted correlation line so users can see overall expression trend direction.
+            if len(x) >= 2 and np.unique(x).size >= 2:
+                try:
+                    slope, intercept = np.polyfit(x, mean_arr, 1)
+                    fit_y = slope * x + intercept
+                    ax.plot(
+                        x,
+                        fit_y,
+                        color="#0f766e",
+                        linewidth=2.0,
+                        linestyle="-.",
+                        alpha=0.95,
+                        label="Correlation trend line",
+                        zorder=2,
+                    )
+                except Exception:
+                    # Keep plotting robust even if fit cannot be computed on degenerate input.
+                    pass
 
                 if rvalue is None and np.std(x) > 0 and np.std(mean_arr) > 0:
                     rvalue = float(np.corrcoef(x, mean_arr)[0, 1])
