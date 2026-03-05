@@ -3053,6 +3053,10 @@ a:hover { text-decoration: underline; }
   border: 0;
 }
 
+.advanced-tabs__viewer iframe.is-tall {
+  height: min(90vh, 1120px);
+}
+
 .advanced-tabs__downloads {
   margin-top: 10px;
   display: flex;

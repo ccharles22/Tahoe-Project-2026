@@ -6,7 +6,7 @@
     <title>Experiment Workflow</title>
 
     <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css', v='20260304f') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css', v='20260304f') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/workflow.css', v='20260305a') }}">
     <link rel="icon" type="image/png" sizes="128x128" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
   </head>
@@ -1173,11 +1173,13 @@
               {% set advanced_default_src = '' %}
               {% set advanced_default_title = '' %}
               {% set advanced_default_description = '' %}
+              {% set advanced_default_frame_size = '' %}
               {% set advanced_default_png = '' %}
               {% if analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists %}
                 {% set advanced_default_src = analysis_outputs.bonus_mutation_frequency.url %}
                 {% set advanced_default_title = 'Mutation frequency / hotspots' %}
                 {% set advanced_default_description = 'Highlights mutation prevalence by position to reveal potential hotspots across generations.' %}
+                {% set advanced_default_frame_size = 'tall' %}
               {% elif analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
                 {% set advanced_default_src = analysis_outputs.bonus_fingerprint.url %}
                 {% set advanced_default_title = 'Mutation fingerprint' %}
@@ -1190,6 +1192,7 @@
                 {% set advanced_default_src = analysis_outputs.bonus_landscape.url %}
                 {% set advanced_default_title = '3D activity landscape' %}
                 {% set advanced_default_description = 'Projects variants onto an activity landscape to reveal high-performing regions and outlier trajectories.' %}
+                {% set advanced_default_frame_size = 'tall' %}
                 {% if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists %}
                   {% set advanced_default_png = analysis_outputs.bonus_surface.url %}
                 {% endif %}
@@ -1202,7 +1205,7 @@
               <div class="advanced-tabs">
                 <div class="advanced-tabs__list" role="tablist" aria-label="Advanced visualisations">
                   {% if analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists %}
-                    <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_mutation_frequency.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_mutation_frequency.url }}" data-title="Mutation frequency / hotspots" data-description="Highlights mutation prevalence by position to reveal potential hotspots across generations." data-png="">Mutation frequency</button>
+                    <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_mutation_frequency.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_mutation_frequency.url }}" data-title="Mutation frequency / hotspots" data-description="Highlights mutation prevalence by position to reveal potential hotspots across generations." data-frame-size="tall" data-png="">Mutation frequency</button>
                   {% endif %}
                   {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
                     <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_fingerprint.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_fingerprint.url }}" data-title="Mutation fingerprint" data-description="Profiles defining mutations for top variants to compare sequence signatures by generation." data-png="">Mutation fingerprint</button>
@@ -1211,7 +1214,7 @@
                     <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_domain_heatmap.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_domain_heatmap.url }}" data-title="Domain enrichment heatmap" data-description="Summarises mutation density and enrichment across protein domains." data-png="">Domain heatmap</button>
                   {% endif %}
                   {% if analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists %}
-                    <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_landscape.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_landscape.url }}" data-title="3D activity landscape" data-description="Projects variants onto an activity landscape to reveal high-performing regions and outlier trajectories." data-png="{{ analysis_outputs.bonus_surface.url if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists else '' }}">3D activity landscape</button>
+                    <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_landscape.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_landscape.url }}" data-title="3D activity landscape" data-description="Projects variants onto an activity landscape to reveal high-performing regions and outlier trajectories." data-frame-size="tall" data-png="{{ analysis_outputs.bonus_surface.url if analysis_outputs.bonus_surface and analysis_outputs.bonus_surface.exists else '' }}">3D activity landscape</button>
                   {% endif %}
                   {% if analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists %}
                     <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_trajectory.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_trajectory.url }}" data-title="Mutation trajectory" data-description="Tracks mutation-load progression for top-ranked variants across generations." data-png="">Mutation trajectory</button>
@@ -1221,7 +1224,7 @@
                   <h4 class="advanced-tabs__title" id="advancedTabsTitle">{{ advanced_default_title }}</h4>
                   <p class="advanced-tabs__description" id="advancedTabsDescription">{{ advanced_default_description }}</p>
                   <div class="advanced-tabs__viewer">
-                    <iframe id="advancedTabsFrame" src="{{ advanced_default_src }}" title="{{ advanced_default_title }}" loading="lazy"></iframe>
+                    <iframe id="advancedTabsFrame" class="{% if advanced_default_frame_size == 'tall' %}is-tall{% endif %}" src="{{ advanced_default_src }}" title="{{ advanced_default_title }}" loading="lazy"></iframe>
                   </div>
                   <div class="advanced-tabs__downloads" id="advancedTabsDownloads">
                     <a class="btn btn--sm btn--ghost" href="{{ advanced_default_src }}" target="_blank" rel="noopener">Open in new tab</a>
@@ -1286,6 +1289,6 @@
       </main>
 </div>
 
-    <script src="{{ url_for('static', filename='js/staging.js', v='20260304f') }}"></script>
+    <script src="{{ url_for('static', filename='js/staging.js', v='20260305b') }}"></script>
   </body>
 </html>

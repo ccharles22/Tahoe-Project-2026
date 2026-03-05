@@ -1119,6 +1119,38 @@ function initAdvancedVisualTabs() {
   const downloads = document.getElementById('advancedTabsDownloads');
   if (!buttons.length || !frame || !title || !description || !downloads) return;
 
+  const applyLandscapeFrameTweaks = () => {
+    try {
+      const frameWindow = frame.contentWindow;
+      const frameDoc = frame.contentDocument || (frameWindow && frameWindow.document);
+      if (!frameWindow || !frameDoc) return;
+
+      const modebar = frameDoc.querySelector('.modebar');
+      if (modebar) {
+        modebar.style.left = '10px';
+        modebar.style.right = 'auto';
+        modebar.style.top = '8px';
+      }
+
+      const plotRoot = frameDoc.querySelector('.js-plotly-plot');
+      if (!plotRoot || !frameWindow.Plotly || typeof frameWindow.Plotly.relayout !== 'function') return;
+
+      frameWindow.Plotly.relayout(plotRoot, {
+        'updatemenus[0].direction': 'down',
+        'updatemenus[0].x': 0.02,
+        'updatemenus[0].xanchor': 'left',
+        'updatemenus[0].y': 1.0,
+        'updatemenus[0].yanchor': 'top',
+        'updatemenus[0].bgcolor': 'rgba(255,255,255,0.88)',
+        'updatemenus[0].bordercolor': 'rgba(148,163,184,0.7)',
+        'updatemenus[0].pad.r': 4,
+        'updatemenus[0].pad.t': 4,
+      });
+    } catch (_) {
+      // Ignore cross-document or relayout errors; viewer still works.
+    }
+  };
+
   const renderDownloads = (src, png) => {
     downloads.innerHTML = '';
     const openLink = document.createElement('a');
@@ -1148,12 +1180,20 @@ function initAdvancedVisualTabs() {
     const nextTitle = btn.getAttribute('data-title') || 'Advanced visualisation';
     const nextDescription = btn.getAttribute('data-description') || '';
     const nextPng = btn.getAttribute('data-png') || '';
+    const nextFrameSize = btn.getAttribute('data-frame-size') || '';
+    const isLandscape = src.toLowerCase().includes('activity_landscape');
 
     title.textContent = nextTitle;
     description.textContent = nextDescription;
     frame.title = nextTitle;
+    frame.classList.toggle('is-tall', nextFrameSize === 'tall');
     if (frame.getAttribute('src') !== src) {
+      if (isLandscape) {
+        frame.addEventListener('load', applyLandscapeFrameTweaks, { once: true });
+      }
       frame.setAttribute('src', src);
+    } else if (isLandscape) {
+      applyLandscapeFrameTweaks();
     }
     renderDownloads(src, nextPng);
   };

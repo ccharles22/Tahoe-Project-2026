@@ -305,14 +305,18 @@ def plot_activity_landscape_plotly(
         updatemenus=[
             dict(
                 type="buttons",
-                direction="right",
-                x=0.5,
-                xanchor="center",
-                y=1.14,
+                direction="down",
+                x=0.02,
+                xanchor="left",
+                y=1.0,
+                yanchor="top",
                 showactive=True,
+                bgcolor="rgba(255,255,255,0.88)",
+                bordercolor="rgba(148,163,184,0.7)",
+                pad=dict(r=4, t=4),
                 buttons=[
                     dict(
-                        label=f"{'PCA' if current_method == 'pca' else 't-SNE'} · {scope_label}",
+                        label=f"{'PCA' if current_method == 'pca' else 't-SNE'} - {scope_label}",
                         method="update",
                         args=[
                             {
@@ -338,7 +342,7 @@ def plot_activity_landscape_plotly(
         ],
         autosize=True,
         height=760,
-        margin=dict(l=18, r=18, t=88, b=16),
+        margin=dict(l=18, r=18, t=96, b=16),
     )
 
     fig.write_html(str(out_path))

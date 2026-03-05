@@ -12,7 +12,9 @@ from app.services.analysis.bonus.embeddings.precompute_embeddings import precomp
 from app.services.analysis.bonus.visualisations.plot_activity_landscape import plot_activity_landscape_plotly
 from app.services.analysis.bonus.visualisations.plot_activity_surface_matplotlib import plot_activity_surface_matplotlib
 from app.services.analysis.bonus.visualisations.plot_mutation_frequency import plot_mutation_frequency
-from app.services.analysis.bonus.visualisations.plot_mutation_fingerprint import plot_mutation_fingerprint
+from app.services.analysis.bonus.visualisations.plot_mutation_fingerprint import (
+    plot_mutation_fingerprint_dropdown,
+)
 from app.services.analysis.bonus.visualisations.plot_mutation_trajectory import plot_mutation_trajectory
 from app.services.analysis.bonus.visualisations.plot_domain_enrichment import plot_domain_enrichment
 
@@ -191,8 +193,8 @@ def activity_scores_available(generation_id: int) -> bool:
     return n > 0
 
 
-def get_top_variant_id(generation_id: int) -> Optional[int]:
-    """Picks the highest-activity variant for fingerprinting."""
+def get_top_variant_ids(generation_id: int, limit: int = 10) -> list[int]:
+    """Return top-ranked variant_ids by activity_score for a generation."""
     with get_cursor() as cur:
         cur.execute(
             """
@@ -204,13 +206,12 @@ def get_top_variant_id(generation_id: int) -> Optional[int]:
              AND m.metric_name='activity_score'
              AND m.metric_type='derived'
             WHERE v.generation_id=%s
-            ORDER BY m.value DESC
-            LIMIT 1
+            ORDER BY m.value DESC, v.variant_id DESC
+            LIMIT %s
             """,
-            (generation_id,),
+            (generation_id, int(limit)),
         )
-        row = cur.fetchone()
-        return int(row[0]) if row else None
+        return [int(row[0]) for row in cur.fetchall()]
 
 
 def get_fallback_variant_id(generation_id: int) -> Optional[int]:
@@ -407,21 +408,30 @@ def run_pipeline(
         placeholder_message="No non-synonymous protein mutations are available yet for this experiment, so mutation frequency cannot be shown.",
     )
 
-    # Use top-activity variant if none specified.
-    vid = fingerprint_variant_id
-    if vid is None and has_activity_scores:
-        vid = get_top_variant_id(generation_id)
-    if vid is None:
-        vid = get_fallback_variant_id(generation_id)
+    # Build fingerprint selector from top-ranked variants.
+    fingerprint_variant_ids: list[int] = []
+    if has_activity_scores:
+        fingerprint_variant_ids = get_top_variant_ids(generation_id, limit=10)
+
+    # Allow explicit override with a specific variant.
+    if fingerprint_variant_id is not None:
+        fingerprint_variant_ids = [int(fingerprint_variant_id)]
+
+    # Fallback to a single best-available variant if ranking data is missing.
+    if not fingerprint_variant_ids:
+        fallback_vid = get_fallback_variant_id(generation_id)
+        if fallback_vid is not None:
+            fingerprint_variant_ids = [fallback_vid]
+
     out_fingerprint = None
-    if vid is not None:
+    if fingerprint_variant_ids:
         out_fingerprint = _run_plot(
             "Fingerprint",
-            plot_mutation_fingerprint,
-            variant_id=vid,
+            plot_mutation_fingerprint_dropdown,
+            variant_ids=fingerprint_variant_ids,
             out_path=outputs_dir / "mutation_fingerprint_latest.html",
             placeholder_title="Mutation Fingerprint",
-            placeholder_message="A mutation fingerprint could not be built for the latest top-ranked variant.",
+            placeholder_message="A mutation fingerprint could not be built for the top-ranked variants.",
         )
     else:
         out_fingerprint = _skip_plot(
