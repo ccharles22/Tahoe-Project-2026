@@ -34,7 +34,7 @@
           Workspace
         </a>
       </div>
-      <a href="/guide/" class="home-nav__navlink" aria-label="User guide" title="User guide">User guide</a>
+      <a href="/guide/" class="home-nav__navlink" aria-label="User Guide" title="User Guide">User Guide</a>
       {% if current_user.is_authenticated %}
       <a href="{{ url_for('auth.settings') }}" class="home-nav__iconbtn" aria-label="Account" title="{{ current_user.username }}">
         <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -100,11 +100,11 @@
             <p class="home-stage__eyebrow">Stage 01</p>
             <h2 class="home-stage__title">Fetch WT</h2>
             <p class="home-stage__description">
-              Create a new experiment linked to your account and set a WT reference.
+              Create a new experiment and link it to a reference Wild-Type sequence from UniProt. This establishes the baseline for comparing your variants.
             </p>
             <p class="home-stage__micro">Starts the workflow and unlocks all downstream stages.</p>
             <div class="home-stage__actions" aria-label="Stage 1 actions">
-              <a class="home-stage__action" href="/guide/#fetch-wt">
+              <a class="home-stage__action" href="/docs/staging_docs/">
                 Learn more &rarr;
               </a>
             </div>
@@ -113,11 +113,11 @@
             <p class="home-stage__eyebrow">Stage 02</p>
             <h2 class="home-stage__title">Validate Plasmid</h2>
             <p class="home-stage__description">
-              Fetch WT sequence + domains from UniProt, then validate the uploaded plasmid FASTA.
+              Validate your uploaded plasmid FASTA against the WT sequence. The system checks sequence integrity and confirms compatibility before downstream analysis.
             </p>
             <p class="home-stage__micro">Runs after you complete Stage 1 and set the WT reference.</p>
             <div class="home-stage__actions" aria-label="Stage 2 actions">
-              <a class="home-stage__action" href="/guide/#validate-plasmid">
+              <a class="home-stage__action" href="/docs/parsing_qc/">
                 Learn more &rarr;
               </a>
             </div>
@@ -126,11 +126,11 @@
             <p class="home-stage__eyebrow">Stage 03</p>
             <h2 class="home-stage__title">Upload Data</h2>
             <p class="home-stage__description">
-              Upload TSV/JSON experiment data, accept extra metadata columns, and reject missing essentials.
+              Upload your experiment data in TSV or JSON format. The system validates metadata, stores all mutations and fitness measurements, and prepares data for analysis.
             </p>
             <p class="home-stage__micro">Requires validated plasmid + uploaded experiment files.</p>
             <div class="home-stage__actions" aria-label="Stage 3 actions">
-              <a class="home-stage__action" href="/guide/#upload-qc">
+              <a class="home-stage__action" href="/docs/staging_docs/">
                 Learn more &rarr;
               </a>
             </div>
@@ -139,11 +139,11 @@
             <p class="home-stage__eyebrow">Stage 04</p>
             <h2 class="home-stage__title">Process Sequences</h2>
             <p class="home-stage__description">
-              Find the gene, translate DNA to protein, call synonymous/non-synonymous mutations, store results.
+              Process all sequence variants. The pipeline identifies the gene, translates DNA to protein, and calls all synonymous and non-synonymous mutations for comprehensive variant analysis.
             </p>
             <p class="home-stage__micro">Runs after Stage 1-3 are complete and quality checks pass.</p>
             <div class="home-stage__actions" aria-label="Stage 4 actions">
-              <a class="home-stage__action" href="/guide/#process-sequences">
+              <a class="home-stage__action" href="/docs/staging_docs/workflow/">
                 Learn more &rarr;
               </a>
             </div>
@@ -152,11 +152,11 @@
             <p class="home-stage__eyebrow">Stage 05</p>
             <h2 class="home-stage__title">Run Analysis</h2>
             <p class="home-stage__description">
-              Generate the Activity Score, top performers table, and activity-by-generation plot.
+              Generate comprehensive analysis outputs: activity scores, top performers tables, and interactive visualizations of your results. Explore domain enrichment and mutation patterns across your dataset.
             </p>
             <p class="home-stage__micro">Available once sequence processing has completed successfully.</p>
             <div class="home-stage__actions" aria-label="Stage 5 actions">
-              <a class="home-stage__action" href="/guide/#run-analysis">
+              <a class="home-stage__action" href="/docs/bonus_visualisations/">
                 Learn more &rarr;
               </a>
             </div>

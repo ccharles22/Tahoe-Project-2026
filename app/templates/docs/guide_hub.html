@@ -178,7 +178,7 @@
           <a href="{{ url_for('auth.homepage') }}" class="home-nav__navlink">Home</a>
           <a href="{{ url_for('staging.create_experiment') }}" class="home-nav__navlink">Workspace</a>
         </div>
-        <a href="/guide/" class="home-nav__navlink home-nav__navlink--active" aria-current="page">User guide</a>
+        <a href="/guide/" class="home-nav__navlink home-nav__navlink--active" aria-current="page">User Guide</a>
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('auth.settings') }}" class="home-nav__iconbtn" aria-label="Account" title="{{ current_user.username }}">
           <svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
