@@ -30,6 +30,8 @@
     const resultsCarousel = document.querySelector("[data-home-results-carousel]");
     const resultsTrack = document.querySelector("[data-home-results-track]");
     const resultsCounter = document.querySelector("[data-home-results-counter]");
+    const resultsPrevBtn = document.querySelector("[data-home-results-prev]");
+    const resultsNextBtn = document.querySelector("[data-home-results-next]");
     const resultsPreview = document.querySelector(".home-results-preview");
     let activeStageId = "";
     const stageTitles = {
@@ -269,6 +271,10 @@
         updateCardStates(clamped);
       };
 
+      const stepCarousel = (direction) => {
+        snapToPhysical(activePhysicalIndex + direction, reduceMotion ? "auto" : "smooth");
+      };
+
       /** When resting on a clone sentinel, silently jump to the real counterpart. */
       const handleLoopEdge = () => {
         if (activePhysicalIndex === 0) {
@@ -289,7 +295,7 @@
         wheelLock = true;
 
         const direction = (absX > absY ? event.deltaX : event.deltaY) > 0 ? 1 : -1;
-        snapToPhysical(activePhysicalIndex + direction, reduceMotion ? "auto" : "smooth");
+        stepCarousel(direction);
 
         window.setTimeout(() => {
           wheelLock = false;
@@ -312,6 +318,24 @@
 
       window.addEventListener("resize", () => {
         jumpToPhysical(activePhysicalIndex);
+      });
+
+      if (resultsPrevBtn) {
+        resultsPrevBtn.addEventListener("click", () => stepCarousel(-1));
+      }
+
+      if (resultsNextBtn) {
+        resultsNextBtn.addEventListener("click", () => stepCarousel(1));
+      }
+
+      resultsCarousel.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft") {
+          event.preventDefault();
+          stepCarousel(-1);
+        } else if (event.key === "ArrowRight") {
+          event.preventDefault();
+          stepCarousel(1);
+        }
       });
 
         jumpToPhysical(1);

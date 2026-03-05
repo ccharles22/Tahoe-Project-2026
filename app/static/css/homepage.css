@@ -2957,6 +2957,15 @@ a:hover { text-decoration: underline; }
   --results-card-width: clamp(250px, 27vw, 360px);
 }
 
+.home-results-carousel {
+  scroll-behavior: smooth;
+}
+
+.home-results-carousel:focus-visible {
+  outline: 2px solid rgba(23, 104, 166, 0.65);
+  outline-offset: 4px;
+}
+
 .home-results-track {
   padding: clamp(18px, 2.6vw, 30px) calc(50% - (var(--results-card-width) * 0.52)) clamp(36px, 4.4vw, 56px);
 }
@@ -2974,20 +2983,20 @@ a:hover { text-decoration: underline; }
   border-radius: 14px;
   background: #ffffff;
   box-shadow: 0 1px 2px rgba(17, 24, 39, 0.04);
-  transform: scale(0.88);
-  opacity: 0.52;
-  filter: blur(0.4px);
+  transform: scale(0.91);
+  opacity: 0.72;
+  filter: none;
 }
 
 .home-results-gallery--carousel .home-results-card.is-side {
-  opacity: 0.68;
-  transform: scale(0.93);
-  filter: blur(0.2px);
+  opacity: 0.86;
+  transform: scale(0.96);
+  filter: none;
 }
 
 .home-results-gallery--carousel .home-results-card.is-active {
   opacity: 1;
-  transform: scale(1.04);
+  transform: scale(1.02);
   filter: none;
   border-color: rgba(196, 203, 213, 0.98);
   box-shadow: 0 10px 22px rgba(17, 24, 39, 0.1);
@@ -3019,8 +3028,44 @@ a:hover { text-decoration: underline; }
   color: rgba(17, 24, 39, 0.95);
 }
 
-.home-results-counter {
+.home-results-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
   margin-top: 8px;
+}
+
+.home-results-control-btn {
+  appearance: none;
+  border: 1px solid rgba(185, 194, 205, 0.95);
+  background: #fff;
+  color: rgba(30, 41, 59, 0.9);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color .16s ease, border-color .16s ease, transform .16s ease;
+}
+
+.home-results-control-btn:hover {
+  background: rgba(241, 246, 252, 0.95);
+  border-color: rgba(144, 159, 176, 0.95);
+}
+
+.home-results-control-btn:active {
+  transform: translateY(1px);
+}
+
+.home-results-control-btn:focus-visible {
+  outline: 2px solid rgba(23, 104, 166, 0.65);
+  outline-offset: 2px;
+}
+
+.home-results-counter {
+  margin: 0;
   font-size: 11px;
   font-weight: 520;
   letter-spacing: 0.005em;
@@ -3056,6 +3101,17 @@ a:hover { text-decoration: underline; }
 .home-insights__card-link {
   border-color: rgba(210, 215, 223, 0.95);
   background: #ffffff;
+}
+
+@media (max-width: 760px) {
+  .home-results-controls {
+    gap: 8px;
+  }
+
+  .home-results-control-btn {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
 }
 
 /* Fade DNA texture before results section */

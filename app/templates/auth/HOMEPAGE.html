@@ -280,105 +280,9 @@
       </header>
 
       <div class="home-results-gallery home-results-gallery--carousel" aria-label="Results preview gallery" data-home-results-gallery>
-        <div class="home-results-carousel" data-home-results-carousel>
+        <div class="home-results-carousel" data-home-results-carousel tabindex="0" aria-label="Visualised graph carousel">
           <div class="home-results-track" data-home-results-track>
             <article class="home-results-card" data-result-title="Activity Distribution by Generation">
-              <div class="home-results-graph-wrap">
-                <img class="home-results-graph" src="{{ url_for('static', filename='generated/exp_109_activity_distribution.png') }}" alt="Activity distribution by generation from experiment 175">
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Activity Distribution by Generation</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Variant Lineage">
-              <div class="home-results-graph-wrap">
-                <img class="home-results-graph" src="{{ url_for('static', filename='generated/exp_109_lineage.png') }}" alt="Variant lineage graph from experiment 175">
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Variant Lineage</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Top 10 Performers">
-              <div class="home-results-graph-wrap">
-                <img class="home-results-graph" src="{{ url_for('static', filename='generated/175/top10_variants.png') }}" alt="Top 10 variants preview from experiment 175">
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Top 10 Performers</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Mutation Frequency / Hotspots">
-              <div class="home-results-graph-wrap">
-                <iframe
-                  class="home-results-embed"
-                  src="{{ url_for('static', filename='generated/175/bonus/mutation_frequency_by_position.html') }}"
-                  title="Mutation frequency by position from experiment 175"
-                  loading="lazy"
-                  tabindex="-1"
-                ></iframe>
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Mutation Frequency / Hotspots</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Mutation Fingerprint">
-              <div class="home-results-graph-wrap">
-                <iframe
-                  class="home-results-embed"
-                  src="{{ url_for('static', filename='generated/175/bonus/mutation_fingerprint_latest.html') }}"
-                  title="Mutation fingerprint preview from experiment 175"
-                  loading="lazy"
-                  tabindex="-1"
-                ></iframe>
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Mutation Fingerprint</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Protein Similarity Network">
-              <div class="home-results-graph-wrap">
-                <img class="home-results-graph" src="{{ url_for('static', filename='generated/exp_109_protein_similarity_cooccurrence.png') }}" alt="Protein similarity network from experiment 175">
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Protein Similarity Network</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="3D Activity Landscape">
-              <div class="home-results-graph-wrap">
-                <img class="home-results-graph" src="{{ url_for('static', filename='generated/175/bonus/activity_surface_pca.png') }}" alt="3D activity landscape from experiment 175">
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">3D Activity Landscape</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Domain by Generation (heatmap)">
-              <div class="home-results-graph-wrap">
-                <iframe
-                  class="home-results-embed"
-                  src="{{ url_for('static', filename='generated/175/bonus/domain_enrichment_heatmap.html') }}"
-                  title="Domain by generation heatmap from experiment 175"
-                  loading="lazy"
-                  tabindex="-1"
-                ></iframe>
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Domain by Generation (heatmap)</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Domain Enrichment Details">
-              <div class="home-results-graph-wrap">
-                <iframe
-                  class="home-results-embed"
-                  src="{{ url_for('static', filename='generated/175/bonus/domain_enrichment_latest.html') }}"
-                  title="Domain enrichment details from experiment 175"
-                  loading="lazy"
-                  tabindex="-1"
-                ></iframe>
-              </div>
-              <p class="home-results-card__micro">EXPERIMENT 175</p>
-              <h3 class="home-results-card__title">Domain Enrichment Details</h3>
-            </article>
-
-            <article class="home-results-card" data-result-title="Activity Distribution by Generation (Exp 243)">
               <div class="home-results-graph-wrap">
                 <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/activity_distribution.png') }}" alt="Activity distribution by generation from experiment 243">
               </div>
@@ -386,7 +290,7 @@
               <h3 class="home-results-card__title">Activity Distribution by Generation</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Variant Lineage (Exp 243)">
+            <article class="home-results-card" data-result-title="Variant Lineage">
               <div class="home-results-graph-wrap">
                 <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/lineage.png') }}" alt="Variant lineage graph from experiment 243">
               </div>
@@ -394,7 +298,7 @@
               <h3 class="home-results-card__title">Variant Lineage</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Top 10 Performers (Exp 243)">
+            <article class="home-results-card" data-result-title="Top 10 Performers">
               <div class="home-results-graph-wrap">
                 <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/top10_variants.png') }}" alt="Top 10 variants preview from experiment 243">
               </div>
@@ -402,7 +306,7 @@
               <h3 class="home-results-card__title">Top 10 Performers</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Mutation Frequency / Hotspots (Exp 243)">
+            <article class="home-results-card" data-result-title="Mutation Frequency / Hotspots">
               <div class="home-results-graph-wrap">
                 <iframe
                   class="home-results-embed"
@@ -416,7 +320,7 @@
               <h3 class="home-results-card__title">Mutation Frequency / Hotspots</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Mutation Fingerprint (Exp 243)">
+            <article class="home-results-card" data-result-title="Mutation Fingerprint">
               <div class="home-results-graph-wrap">
                 <iframe
                   class="home-results-embed"
@@ -430,7 +334,7 @@
               <h3 class="home-results-card__title">Mutation Fingerprint</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Protein Similarity Network (Exp 243)">
+            <article class="home-results-card" data-result-title="Protein Similarity Network">
               <div class="home-results-graph-wrap">
                 <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/protein_similarity.png') }}" alt="Protein similarity network from experiment 243">
               </div>
@@ -438,7 +342,7 @@
               <h3 class="home-results-card__title">Protein Similarity Network</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="3D Activity Landscape (Exp 243)">
+            <article class="home-results-card" data-result-title="3D Activity Landscape">
               <div class="home-results-graph-wrap">
                 <img class="home-results-graph" src="{{ url_for('static', filename='generated/243/bonus/activity_surface_pca.png') }}" alt="3D activity landscape from experiment 243">
               </div>
@@ -446,7 +350,7 @@
               <h3 class="home-results-card__title">3D Activity Landscape</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Domain by Generation (heatmap) (Exp 243)">
+            <article class="home-results-card" data-result-title="Domain by Generation (heatmap)">
               <div class="home-results-graph-wrap">
                 <iframe
                   class="home-results-embed"
@@ -460,7 +364,7 @@
               <h3 class="home-results-card__title">Domain by Generation (heatmap)</h3>
             </article>
 
-            <article class="home-results-card" data-result-title="Mutation Trajectory (Top 10) (Exp 243)">
+            <article class="home-results-card" data-result-title="Mutation Trajectory (Top 10)">
               <div class="home-results-graph-wrap">
                 <iframe
                   class="home-results-embed"
@@ -475,8 +379,12 @@
             </article>
           </div>
         </div>
-        <p class="home-results-counter" data-home-results-counter>1 / 18 - Activity Distribution by Generation</p>
-</div>
+        <div class="home-results-controls" aria-label="Graph carousel controls">
+          <button type="button" class="home-results-control-btn" data-home-results-prev aria-label="Show previous graph">Prev</button>
+          <p class="home-results-counter" data-home-results-counter>1 / 9 - Activity Distribution by Generation</p>
+          <button type="button" class="home-results-control-btn" data-home-results-next aria-label="Show next graph">Next</button>
+        </div>
+      </div>
     </div>
   </section>
 
