@@ -84,8 +84,19 @@ class PlotConfig:
     show_generation_grid: bool = True
     show_horizontal_grid: bool = True
     show_figure_border: bool = False
-    show_best_variant_branch_trend: bool = True
-    best_variant_branch_trend_min_points: int = 3
+    show_top10_branch_trend: bool = False
+    top10_branch_trend_min_points: int = 3
+
+
+@dataclass(frozen=True)
+class BranchTrendStats:
+    top_variant_ids: tuple[Hashable, ...]
+    point_count: int
+    trend_ready: bool
+    r_value: float | None
+    p_value: float | None
+    x_line: tuple[float, float] | None
+    y_line: tuple[float, float] | None
 
 
 # -----------------------------
@@ -553,6 +564,101 @@ def _enforce_consecutive_edges(
     return e.drop(columns=["_gp", "_gc"])
 
 
+def compute_top_variants_branch_trend(
+    nodes: pd.DataFrame,
+    edges: pd.DataFrame | None,
+    *,
+    node_id_col: str = "variant_id",
+    generation_col: str = "generation_number",
+    activity_col: str = "activity_score",
+    top_col: str = "is_top10",
+    parent_col: str = "parent_id",
+    child_col: str = "child_id",
+    top_n: int = 10,
+    min_points: int = 3,
+) -> BranchTrendStats:
+    """Compute trend stats over the ancestor branches of the top-N variants."""
+    if nodes is None or nodes.empty:
+        return BranchTrendStats(tuple(), 0, False, None, None, None, None)
+
+    df = nodes.copy()
+    ids = _coerce_id_series(df[node_id_col])
+    activity = pd.to_numeric(df[activity_col], errors="coerce")
+    valid = ids.notna() & activity.notna()
+    if not valid.any():
+        return BranchTrendStats(tuple(), 0, False, None, None, None, None)
+
+    dfv = df.loc[valid, [node_id_col, generation_col, activity_col]].copy()
+    dfv[node_id_col] = _coerce_id_series(dfv[node_id_col])
+    dfv[activity_col] = pd.to_numeric(dfv[activity_col], errors="coerce")
+
+    if top_col in df.columns:
+        top_mask = pd.to_numeric(df[top_col], errors="coerce").fillna(0).astype(int) == 1
+        top_df = df.loc[top_mask, [node_id_col, activity_col]].copy()
+        top_df[node_id_col] = _coerce_id_series(top_df[node_id_col])
+        top_df[activity_col] = pd.to_numeric(top_df[activity_col], errors="coerce")
+        top_df = top_df.dropna(subset=[node_id_col, activity_col]).sort_values(activity_col, ascending=False)
+    else:
+        top_df = pd.DataFrame(columns=[node_id_col, activity_col])
+
+    if top_df.empty:
+        top_df = dfv[[node_id_col, activity_col]].sort_values(activity_col, ascending=False)
+
+    top_ids = tuple(top_df[node_id_col].head(top_n).tolist())
+    if not top_ids:
+        return BranchTrendStats(tuple(), 0, False, None, None, None, None)
+
+    branch_ids: set[Hashable] = set(top_ids)
+    if edges is not None and not edges.empty:
+        e = edges.copy()
+        e[parent_col] = _coerce_id_series(e[parent_col])
+        e[child_col] = _coerce_id_series(e[child_col])
+        e = e.dropna(subset=[parent_col, child_col])
+        parent_map = dict(zip(e[child_col], e[parent_col]))
+
+        for vid in top_ids:
+            seen: set[Hashable] = set()
+            cur = vid
+            while cur in parent_map and cur not in seen:
+                seen.add(cur)
+                cur = parent_map[cur]
+                branch_ids.add(cur)
+
+    bmask = dfv[node_id_col].isin(branch_ids)
+    x = pd.to_numeric(dfv.loc[bmask, generation_col], errors="coerce")
+    y = pd.to_numeric(dfv.loc[bmask, activity_col], errors="coerce")
+    valid_xy = ~(x.isna() | y.isna())
+    x_arr = x[valid_xy].to_numpy(dtype=float)
+    y_arr = y[valid_xy].to_numpy(dtype=float)
+
+    trend_ready = (
+        len(x_arr) >= min_points
+        and np.unique(x_arr).size > 1
+        and np.unique(y_arr).size > 1
+    )
+    if not trend_ready:
+        return BranchTrendStats(top_ids, int(len(x_arr)), False, None, None, None, None)
+
+    slope, intercept = np.polyfit(x_arr, y_arr, 1)
+    x_line = (float(np.min(x_arr)), float(np.max(x_arr)))
+    y_line = (float(slope * x_line[0] + intercept), float(slope * x_line[1] + intercept))
+
+    r_val: float | None = None
+    p_val: float | None = None
+    if linregress is not None:
+        try:
+            stats = linregress(x_arr, y_arr)
+            r_val = float(stats.rvalue)
+            p_val = float(stats.pvalue)
+        except ValueError:
+            r_val = None
+            p_val = None
+    if r_val is None and np.std(x_arr) > 0 and np.std(y_arr) > 0:
+        r_val = float(np.corrcoef(x_arr, y_arr)[0, 1])
+
+    return BranchTrendStats(top_ids, int(len(x_arr)), True, r_val, p_val, x_line, y_line)
+
+
 # -----------------------------
 # main
 # -----------------------------
@@ -766,89 +872,29 @@ def plot_layered_lineage(
                     label, ha="center", va="bottom",
                     fontsize=config.label_fontsize, zorder=4)
 
-    # Overlay a trendline and significance stats for the best-performing variant branch.
-    if config.show_best_variant_branch_trend and config.y_mode == "activity" and activity_col in df.columns:
-        id_series = _coerce_id_series(df[node_id_col])
-        act_series = pd.to_numeric(df[activity_col], errors="coerce")
-        valid_best = id_series.notna() & act_series.notna()
-        if valid_best.any():
-            best_idx = act_series[valid_best].idxmax()
-            best_variant_id = id_series.loc[best_idx]
-
-            branch_ids: set[Hashable] = {best_variant_id}
-            if eplot is not None and not eplot.empty:
-                parent_map = dict(zip(eplot[child_col], eplot[parent_col]))
-                seen: set[Hashable] = set()
-                cur = best_variant_id
-                while cur in parent_map and cur not in seen:
-                    seen.add(cur)
-                    cur = parent_map[cur]
-                    branch_ids.add(cur)
-
-            branch_mask = id_series.isin(branch_ids)
-            gx = pd.to_numeric(df.loc[branch_mask, generation_col], errors="coerce")
-            gy = pd.to_numeric(df.loc[branch_mask, "y"], errors="coerce")
-            valid_branch = ~(gx.isna() | gy.isna())
-            x_arr = gx[valid_branch].to_numpy(dtype=float)
-            y_arr = gy[valid_branch].to_numpy(dtype=float)
-
-            r_val: float | None = None
-            p_val: float | None = None
-            trend_ready = (
-                len(x_arr) >= config.best_variant_branch_trend_min_points
-                and np.unique(x_arr).size > 1
-                and np.unique(y_arr).size > 1
-            )
-            if trend_ready:
-                slope, intercept = np.polyfit(x_arr, y_arr, 1)
-                x_line = np.array([float(np.min(x_arr)), float(np.max(x_arr))], dtype=float)
-                y_line = slope * x_line + intercept
-                ax.plot(
-                    x_line,
-                    y_line,
-                    color="#0f766e",
-                    linewidth=2.4,
-                    linestyle="-.",
-                    alpha=0.95,
-                    zorder=5,
-                )
-
-                if linregress is not None:
-                    try:
-                        stats = linregress(x_arr, y_arr)
-                        r_val = float(stats.rvalue)
-                        p_val = float(stats.pvalue)
-                    except ValueError:
-                        r_val = None
-                        p_val = None
-
-                if r_val is None and np.std(x_arr) > 0 and np.std(y_arr) > 0:
-                    r_val = float(np.corrcoef(x_arr, y_arr)[0, 1])
-
-            p_text = "n/a"
-            if p_val is not None and np.isfinite(p_val):
-                p_text = "<0.001" if p_val < 0.001 else f"{p_val:.3f}"
-            r_text = f"{r_val:.3f}" if (r_val is not None and np.isfinite(r_val)) else "n/a"
-            stats_label = f"Best variant {best_variant_id} branch trend: r = {r_text} | p = {p_text}"
-            if not trend_ready:
-                stats_label = f"Best variant {best_variant_id} branch trend: unavailable"
-
-            ax.text(
-                0.985,
-                0.965,
-                stats_label,
-                transform=ax.transAxes,
-                ha="right",
-                va="top",
-                fontsize=9.5,
-                color="#0f172a",
-                bbox={
-                    "boxstyle": "round,pad=0.28",
-                    "facecolor": "white",
-                    "edgecolor": "#cbd5e1",
-                    "alpha": 0.9,
-                },
-                zorder=6,
+    # Optional overlay: top-10 branch trendline (enabled by route toggle).
+    if config.show_top10_branch_trend and config.y_mode == "activity":
+        trend = compute_top_variants_branch_trend(
+            df,
+            eplot,
+            node_id_col=node_id_col,
+            generation_col=generation_col,
+            activity_col=activity_col,
+            top_col=top_col,
+            parent_col=parent_col,
+            child_col=child_col,
+            top_n=10,
+            min_points=config.top10_branch_trend_min_points,
+        )
+        if trend.trend_ready and trend.x_line and trend.y_line:
+            ax.plot(
+                np.array([trend.x_line[0], trend.x_line[1]], dtype=float),
+                np.array([trend.y_line[0], trend.y_line[1]], dtype=float),
+                color="#0f766e",
+                linewidth=2.4,
+                linestyle="-.",
+                alpha=0.95,
+                zorder=5,
             )
 
     # axes styling (CRITICAL FIX: ticks from generation integers, not jittered x)

@@ -180,18 +180,33 @@
             i
             <span class="info-chip__tip">
               This graph shows parent-to-child relationships between variants
-              across generations, with a best-performing variant branch trendline
-              and p-value overlaid directly on the chart.
+              across generations. You can toggle a branch trendline based on the
+              top-performing variants, with Pearson r and p-value shown above.
             </span>
           </button>
         </div>
         <div class="panel__body">
           <p class="panel__sub">Experiment {{ experiment_id }}</p>
-          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}?v={{ cache_bust }}" alt="Lineage graph for experiment {{ experiment_id }}">
+          <div class="subpanel__meta">
+            <span>{{ trend_scope_label }}</span>
+            <span>{{ trend_pearson_label }}</span>
+            <span>{{ trend_pvalue_label }}</span>
+            <span>
+              {% if trend_ready %}
+                {{ trend_point_count }} points used
+              {% else %}
+                insufficient points for significance test
+              {% endif %}
+            </span>
+          </div>
           <div class="actions">
+            <a class="link-btn" href="/lineage/{{ experiment_id }}?show_trend={{ '0' if show_trend else '1' }}">
+              {% if show_trend %}Hide trendline{% else %}Show trendline{% endif %}
+            </a>
             <a class="link-btn" href="/lineage/{{ experiment_id }}">Refresh lineage</a>
             <a class="link-btn" href="/protein_similarity/{{ experiment_id }}">Open protein network</a>
           </div>
+          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}?v={{ cache_bust }}" alt="Lineage graph for experiment {{ experiment_id }}">
         </div>
       </section>
     </main>

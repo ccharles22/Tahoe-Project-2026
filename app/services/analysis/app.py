@@ -8,22 +8,20 @@ from flask import Flask, render_template, request
 import numpy as np
 import pandas as pd
 
-try:
-    from scipy.stats import linregress
-except ImportError:  # pragma: no cover - runtime fallback for lean installs.
-    linregress = None
-
 from .database import get_conn
 from .queries import (
     fetch_top10, fetch_distribution,
     fetch_lineage_nodes, fetch_lineage_edges,
-    fetch_variant_raw, fetch_wt_baselines,
     fetch_protein_similarity_nodes, fetch_protein_mutations, fetch_network_diagnostics,
 )
 
 from .plots.top10 import plot_top10_table
 from .plots.distribution import plot_activity_distribution
-from .plots.lineage import plot_layered_lineage, plot_relative_expression_trend
+from .plots.lineage import (
+    PlotConfig,
+    compute_top_variants_branch_trend,
+    plot_layered_lineage,
+)
 from .plots.protein_similarity_network import (
     ProteinNetConfig,
     plot_protein_similarity_network,
@@ -51,84 +49,6 @@ def _format_pearson_label(rvalue: float | None) -> str:
     if rvalue is None or not np.isfinite(rvalue):
         return "Pearson r: unavailable"
     return f"Pearson r: {rvalue:.3f}"
-
-
-def _build_expression_trend(
-    conn,
-    experiment_id: int,
-) -> tuple[pd.DataFrame, str, float | None, float | None]:
-    """Compute per-generation relative protein expression and trend statistics."""
-    raw = fetch_variant_raw(conn, experiment_id)
-    if raw.empty:
-        return pd.DataFrame(), "No expression baseline available", None, None
-
-    baselines, missing_generations = fetch_wt_baselines(conn, experiment_id)
-    baseline_lookup = {gid: values[1] for gid, values in baselines.items()}
-
-    df = raw.copy()
-    df["generation_id"] = pd.to_numeric(df["generation_id"], errors="coerce")
-    df["generation_number"] = pd.to_numeric(df["generation_number"], errors="coerce")
-    df["protein_yield_raw"] = pd.to_numeric(df["protein_yield_raw"], errors="coerce")
-    df = df.dropna(subset=["generation_id", "generation_number", "protein_yield_raw"])
-
-    if df.empty:
-        return pd.DataFrame(), "No expression baseline available", None, None
-
-    df["generation_id"] = df["generation_id"].astype(int)
-    df["generation_number"] = df["generation_number"].astype(int)
-    df["generation_median_protein"] = (
-        df.groupby("generation_id")["protein_yield_raw"].transform("median")
-    )
-    df["expression_baseline"] = df["generation_id"].map(baseline_lookup)
-
-    missing_baseline = (
-        df["expression_baseline"].isna() | (pd.to_numeric(df["expression_baseline"], errors="coerce") <= 0)
-    )
-    df.loc[missing_baseline, "expression_baseline"] = df.loc[missing_baseline, "generation_median_protein"]
-
-    df["expression_baseline"] = pd.to_numeric(df["expression_baseline"], errors="coerce")
-    df = df[df["expression_baseline"] > 0].copy()
-
-    if df.empty:
-        label = "Relative to generation median"
-        return pd.DataFrame(), label, None, None
-
-    df["relative_expression"] = df["protein_yield_raw"] / df["expression_baseline"]
-
-    trend = (
-        df.groupby("generation_number", as_index=False)["relative_expression"]
-        .agg(
-            mean_relative_expression="mean",
-            min_relative_expression="min",
-            max_relative_expression="max",
-        )
-        .sort_values("generation_number")
-    )
-
-    pvalue: float | None = None
-    rvalue: float | None = None
-    if (
-        linregress is not None
-        and len(trend) >= 2
-        and trend["generation_number"].nunique() > 1
-    ):
-        try:
-            result = linregress(
-                trend["generation_number"].to_numpy(dtype=float),
-                trend["mean_relative_expression"].to_numpy(dtype=float),
-            )
-            pvalue = float(result.pvalue)
-            rvalue = float(result.rvalue)
-        except ValueError:
-            pvalue = None
-            rvalue = None
-
-    if missing_generations:
-        label = "Relative to WT baseline when available; otherwise generation median"
-    else:
-        label = "Relative to WT baseline"
-
-    return trend, label, pvalue, rvalue
 
 def register_analysis_routes(target_app: Flask) -> None:
     """Attach the analysis views to an existing Flask app instance."""
@@ -186,17 +106,42 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/lineage/<int:experiment_id>")
     def lineage(experiment_id: int):
+        show_trend = request.args.get("show_trend", "").strip().lower() in {"1", "true", "yes", "on"}
         with get_conn() as conn:
             nodes = fetch_lineage_nodes(conn, experiment_id)
             edges = fetch_lineage_edges(conn, experiment_id)
 
-        out_path = plots_dir / f"lineage_exp{experiment_id}.png"
-        plot_layered_lineage(nodes, edges, out_path)
+        trend_stats = compute_top_variants_branch_trend(
+            nodes,
+            edges,
+            top_n=10,
+            min_points=3,
+        )
+
+        variant_count = len(trend_stats.top_variant_ids)
+        trend_scope_label = (
+            f"Top-{variant_count} branch trend" if variant_count > 0 else "Top-variants branch trend"
+        )
+
+        suffix = "trend" if show_trend else "plain"
+        out_path = plots_dir / f"lineage_exp{experiment_id}_{suffix}.png"
+        plot_layered_lineage(
+            nodes,
+            edges,
+            out_path,
+            config=PlotConfig(show_top10_branch_trend=show_trend),
+        )
 
         return render_template(
             "analysis/lineage.html",
             experiment_id=experiment_id,
-            lineage_png=f"plots/lineage_exp{experiment_id}.png",
+            lineage_png=f"plots/lineage_exp{experiment_id}_{suffix}.png",
+            show_trend=show_trend,
+            trend_scope_label=trend_scope_label,
+            trend_point_count=trend_stats.point_count,
+            trend_ready=trend_stats.trend_ready,
+            trend_pvalue_label=_format_pvalue_label(trend_stats.p_value),
+            trend_pearson_label=_format_pearson_label(trend_stats.r_value),
             cache_bust=int(time.time()),
         )
 
