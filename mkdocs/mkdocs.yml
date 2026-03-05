@@ -1,9 +1,15 @@
 site_name: Direct Evolution Monitoring Portal User Guide Documentation
 site_description: Unified docs for parsing, metrics, visualisation, and bonus workflows
 site_author: BIO727P Group Project Team
+site_url: https://tahoe-docs.example.com/
+docs_dir: docs
+site_dir: site
 
 theme:
   name: material
+  custom_dir: theme
+  logo: ../app/static/img/webpage_tahoe_logo.png
+  favicon: ../app/static/img/webpage_tahoe_favicon_v2.png
   palette:
     - scheme: default
       primary: indigo
@@ -26,6 +32,9 @@ theme:
     - navigation.tracking
     - search.highlight
     - content.code.copy
+
+extra_css:
+  - stylesheets/homepage-header.css
 
 nav:
   - Home Guide: index.md

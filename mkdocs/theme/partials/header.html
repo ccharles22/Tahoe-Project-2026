@@ -1,0 +1,40 @@
+{% set logo_url = config.site_url %}
+
+<header class="md-header mkdocs-header" data-md-component="header">
+  <nav class="md-header__inner md-grid mkdocs-nav__container">
+    <div class="md-header__button md-logo">
+      <a href="{{ config.site_url or '/' }}" title="{{ config.site_name }}" class="md-header__link md-logo__link">
+        <img src="{{ config.logo | url }}" alt="{{ config.site_name }}" class="mkdocs-logo__icon">
+        <span class="md-header__title mkdocs-logo__name">
+          {{ config.site_name }}
+        </span>
+      </a>
+    </div>
+
+    <div class="md-header__nav">
+      {% if nav %}
+      <nav class="md-tabs" data-tabs="{{ nav | first }}">
+        <div class="md-tabs__list">
+          {% for nav_item in nav %}
+          {% if nav_item.children %}
+          <div class="md-tabs__item">
+            <a href="{{ nav_item.url }}" class="md-tabs__link">
+              {{ nav_item.title }}
+            </a>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </nav>
+      {% endif %}
+    </div>
+
+    <div class="md-header__options">
+      {% if config.repo_url %}
+      <a href="{{ config.repo_url }}" title="{{ config.repo_name }}" class="md-header__button md-icon">
+        {% include ".icons/fontawesome/brands/github.svg" %}
+      </a>
+      {% endif %}
+    </div>
+  </nav>
+</header>
