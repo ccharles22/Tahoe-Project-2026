@@ -194,7 +194,12 @@ def register_analysis_routes(target_app: Flask) -> None:
         out_path = plots_dir / f"lineage_exp{experiment_id}.png"
         expr_out_path = plots_dir / f"lineage_expr_exp{experiment_id}.png"
         plot_layered_lineage(nodes, edges, out_path)
-        plot_relative_expression_trend(expression_trend, expr_out_path)
+        plot_relative_expression_trend(
+            expression_trend,
+            expr_out_path,
+            pvalue=expression_pvalue,
+            rvalue=expression_rvalue,
+        )
 
         return render_template(
             "analysis/lineage.html",

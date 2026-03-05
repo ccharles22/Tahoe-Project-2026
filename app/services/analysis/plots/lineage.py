@@ -798,6 +798,8 @@ def plot_relative_expression_trend(
     title: str = "Relative Expression by Generation",
     figsize: tuple[float, float] = (14, 4.2),
     dpi: int = 220,
+    pvalue: float | None = None,
+    rvalue: float | None = None,
 ) -> None:
     """Render a generation-wise relative-expression trend line."""
     out_path = Path(out_path)
@@ -863,6 +865,48 @@ def plot_relative_expression_trend(
                 label="Mean relative expression",
                 zorder=3,
             )
+
+            # Add a fitted correlation line to make the cross-generation trend explicit.
+            if len(x) >= 2 and np.unique(x).size >= 2 and np.unique(mean_arr).size >= 2:
+                slope, intercept = np.polyfit(x, mean_arr, 1)
+                fit_y = slope * x + intercept
+                ax.plot(
+                    x,
+                    fit_y,
+                    color="#0f766e",
+                    linewidth=2.0,
+                    linestyle="-.",
+                    alpha=0.95,
+                    label="Correlation trend line",
+                    zorder=2,
+                )
+
+                if rvalue is None and np.std(x) > 0 and np.std(mean_arr) > 0:
+                    rvalue = float(np.corrcoef(x, mean_arr)[0, 1])
+
+                if pvalue is not None and np.isfinite(pvalue):
+                    p_label = "<0.001" if pvalue < 0.001 else f"{pvalue:.3f}"
+                else:
+                    p_label = "n/a"
+                r_label = f"{rvalue:.3f}" if (rvalue is not None and np.isfinite(rvalue)) else "n/a"
+                stats_text = f"r = {r_label} | p = {p_label}"
+                ax.text(
+                    0.985,
+                    0.96,
+                    stats_text,
+                    transform=ax.transAxes,
+                    ha="right",
+                    va="top",
+                    fontsize=9.5,
+                    color="#0f172a",
+                    bbox={
+                        "boxstyle": "round,pad=0.28",
+                        "facecolor": "white",
+                        "edgecolor": "#cbd5e1",
+                        "alpha": 0.9,
+                    },
+                    zorder=4,
+                )
 
         ax.set_xlabel("Generation", fontsize=11)
         ax.set_ylabel("Relative expression", fontsize=11)
