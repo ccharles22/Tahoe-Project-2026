@@ -1,3 +1,7 @@
+<!-- Template: Guide Hub — documentation chooser page.
+     Presents a grid of cards linking to each documentation section (overview,
+     staging, parsing & QC, database, metrics, visualisations, bonus, and the
+     GitHub repository).  Includes a decorative DNA background track. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -159,9 +163,11 @@
     </style>
   </head>
   <body>
+    <!-- Decorative DNA background (hidden by default via CSS) -->
     <div class="guide-dna" aria-hidden="true">
       <div class="guide-dna__track" data-guide-dna-track></div>
     </div>
+    <!-- Navigation -->
     <nav class="home-nav">
       <div class="home-nav__left">
         <a href="{{ url_for('auth.homepage') }}" class="home-nav__brand home-nav__brand--portal">
@@ -195,6 +201,7 @@
     </nav>
     <!-- Guide chooser shell -->
     <main class="guide-page">
+      <!-- Guide Card Grid -->
       <section class="guide-shell">
       <h1 class="guide-title">Choose a documentation path</h1>
       <p class="guide-subtitle">
@@ -289,6 +296,8 @@
       </section>
     </main>
 
+    <!-- DNA background generator script — builds random A/C/G/T rows for
+         the decorative track; respects prefers-reduced-motion. -->
     <script>
       (() => {
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;

@@ -9,7 +9,17 @@ from app.services.analysis.bonus.database.postgres import db_conn
 
 
 def query_top_variants(conn, generation_id: int, limit: int = 10) -> pd.DataFrame:
-    """Top variants by activity_score in a given generation."""
+    """Retrieve the highest-scoring variants by activity_score in a generation.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        generation_id: Generation to query.
+        limit: Maximum number of top variants to return.
+
+    Returns:
+        DataFrame with columns: ``variant_id``, ``generation_id``,
+        ``plasmid_variant_index``, ``activity_score``.
+    """
     return pd.read_sql_query(
         """
         SELECT
@@ -33,7 +43,18 @@ def query_top_variants(conn, generation_id: int, limit: int = 10) -> pd.DataFram
 
 
 def query_lineage_chain(conn, variant_id: int) -> pd.DataFrame:
-    """Recursive CTE walk from leaf to root via parent_variant_id."""
+    """Walk the variant lineage from leaf to root via ``parent_variant_id``.
+
+    Uses a recursive CTE to traverse the ancestry chain.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        variant_id: Leaf variant to start the walk from.
+
+    Returns:
+        DataFrame with columns: ``variant_id``, ``parent_variant_id``,
+        ``generation_id``, ``depth`` (0 = leaf).
+    """
     return pd.read_sql_query(
         """
         WITH RECURSIVE chain AS (
@@ -96,7 +117,19 @@ def query_cumulative_nonsyn_for_chain(conn, chain_variant_ids: list[int]) -> pd.
 
 
 def build_trajectory_dataframe(conn, top_variant_id: int) -> pd.DataFrame:
-    """Walks a variant's lineage root-to-leaf, accumulating unique non-synonymous mutations."""
+    """Build a cumulative mutation trajectory for a single variant's lineage.
+
+    Walks root-to-leaf through the ancestry chain, tracking the running
+    set of unique non-synonymous mutations at each node.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        top_variant_id: Leaf variant whose ancestry to trace.
+
+    Returns:
+        DataFrame with columns: ``variant_id``, ``generation_id``,
+        ``cumulative_nonsyn``.
+    """
     chain = query_lineage_chain(conn, top_variant_id)
     chain_ids = chain["variant_id"].astype(int).tolist()
 

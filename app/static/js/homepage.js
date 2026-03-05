@@ -4,6 +4,11 @@
  */
 
 (() => {
+  /**
+   * Bootstraps all homepage interactive behavior: hero animations,
+   * DNA background, stage-card navigation, results carousel, and
+   * GSAP entrance timeline.
+   */
   function initHomeMotion() {
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const hasGSAP = Boolean(window.gsap);
@@ -35,6 +40,17 @@
       "sequence": "Process Sequences",
     };
 
+    /**
+     * Fill a DNA track element with random A/C/G/T rows.
+     * Content is duplicated so CSS scroll-animation loops seamlessly.
+     * @param {HTMLElement|null} track - Track container element.
+     * @param {Object} opts - Layout tuning parameters.
+     * @param {number} opts.rowHeight   - Pixel height per row.
+     * @param {number} opts.minRows     - Minimum row count.
+     * @param {number} opts.heightScale - Multiplier against viewport height.
+     * @param {number} opts.widthFactor - Base-count scaling factor.
+     * @param {number} opts.widthOffset - Extra bases appended per row.
+     */
     function buildDnaTrack(track, { rowHeight, minRows, heightScale, widthFactor, widthOffset } = {}) {
       if (!track) return;
 
@@ -62,6 +78,7 @@
       }
     }
 
+    /** Build DNA background tracks for the hero and any auth sections. */
     function buildDnaBackground() {
       buildDnaTrack(dnaTrack, {
         rowHeight: 22,
@@ -82,6 +99,11 @@
       });
     }
 
+    /**
+     * Activate a pipeline stage card by its ID and synchronise
+     * the pipeline nav, card highlight, and visual panel.
+     * @param {string} stageId - Stage key (e.g. "fetch-wt", "analyse").
+     */
     function setActiveStage(stageId) {
       if (!stageId) return;
       if (stageId === activeStageId) return;
@@ -131,6 +153,7 @@
     buildDnaBackground();
     window.addEventListener("resize", buildDnaBackground);
 
+    /** Toggle nav contrast class based on whether it overlaps the dark hero. */
     const updateNavContrast = () => {
       if (!homeNav || !heroSection) return;
       const navBottom = homeNav.getBoundingClientRect().bottom;
@@ -144,10 +167,12 @@
     window.addEventListener("resize", updateNavContrast);
     updateNavContrast();
 
+    // --- Results carousel (infinite-loop with clone sentinels) ---
     if (resultsCarousel && resultsTrack) {
       const sourceCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
       const totalCards = sourceCards.length;
       if (totalCards > 0) {
+        // Clone first and last cards as sentinels for seamless infinite scroll
         const firstClone = sourceCards[0].cloneNode(true);
         const lastClone = sourceCards[totalCards - 1].cloneNode(true);
         firstClone.classList.add("is-clone");
@@ -164,15 +189,18 @@
       let rafId = 0;
       let isProgrammaticScroll = false;
 
+      /** Map a physical card index to a logical (user-facing) index, wrapping clones. */
       const toLogicalIndex = (physicalIdx) => {
         if (physicalIdx <= 0) return totalCards - 1;
         if (physicalIdx >= allCards.length - 1) return 0;
         return physicalIdx - 1;
       };
 
+      /** Calculate the scroll offset needed to centre a card in the viewport. */
       const cardCenterTarget = (card) =>
         card.offsetLeft - ((resultsCarousel.clientWidth - card.offsetWidth) / 2);
 
+      /** Find the physical index of the card closest to the viewport centre. */
       const closestPhysicalIndex = () => {
         const viewportCenter = resultsCarousel.scrollLeft + (resultsCarousel.clientWidth / 2);
         let bestIdx = 0;
@@ -212,6 +240,7 @@
         updateCounter(physicalIdx);
       };
 
+      /** Instantly jump to a physical index without animation (used after loop reset). */
       const jumpToPhysical = (physicalIdx) => {
         const card = allCards[physicalIdx];
         if (!card) return;
@@ -227,6 +256,7 @@
         });
       };
 
+      /** Smoothly scroll to centre the card at physicalIdx. */
       const snapToPhysical = (physicalIdx, behavior = "smooth") => {
         const clamped = Math.max(0, Math.min(allCards.length - 1, physicalIdx));
         const card = allCards[clamped];
@@ -239,6 +269,7 @@
         updateCardStates(clamped);
       };
 
+      /** When resting on a clone sentinel, silently jump to the real counterpart. */
       const handleLoopEdge = () => {
         if (activePhysicalIndex === 0) {
           jumpToPhysical(totalCards);
@@ -287,8 +318,10 @@
       }
     }
 
+    // --- Scroll-driven stage highlighting ---
     if (stageCards.length) {
       let rafScheduled = false;
+      /** Pick the stage card closest to the vertical midpoint and activate it. */
       const syncActiveStageFromScroll = () => {
         if (rafScheduled) return;
         rafScheduled = true;
@@ -326,6 +359,7 @@
       syncActiveStageFromScroll();
     }
 
+    // --- GSAP entrance animations (skipped when motion is reduced) ---
     if (reduceMotion || !hasGSAP) return;
 
     const tl = gsap.timeline({ defaults: { ease: "power2.out" } });
@@ -374,6 +408,10 @@
     }
   }
 
+  /**
+   * Auto-resize embedded Plotly charts inside results-preview iframes
+   * when the parent window is resized.
+   */
   function initResultsPreviewResize() {
     const iframes = document.querySelectorAll('.home-results-embed');
     

@@ -50,7 +50,17 @@ def plot_activity_surface_matplotlib(
     grid_size: int = 60,
     out_path: Path | str = "outputs/activity_surface.png",
 ) -> Path:
-    """IDW-interpolated surface + scatter overlay exported as a static PNG."""
+    """Render an IDW-interpolated surface with a scatter overlay as a static PNG.
+
+    Args:
+        generation_id: Any generation in the target experiment.
+        method: Dimensionality reduction method (``"pca"`` or ``"tsne"``).
+        grid_size: Surface interpolation grid resolution.
+        out_path: Destination PNG file path.
+
+    Returns:
+        Path to the written PNG file.
+    """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     experiment_id, df = _load_experiment_landscape_frame(generation_id, method)

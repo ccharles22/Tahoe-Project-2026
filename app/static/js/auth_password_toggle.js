@@ -6,6 +6,7 @@
 (function () {
   "use strict";
 
+  /** Bind each reveal button to its associated password input via data-target. */
   document.querySelectorAll(".btn-reveal").forEach((btn) => {
     const targetId = btn.getAttribute("data-target");
     const input = targetId ? document.getElementById(targetId) : null;
@@ -14,8 +15,10 @@
     btn.addEventListener("click", () => {
       const hidden = input.type === "password";
       input.type = hidden ? "text" : "password";
+      // Keep the aria-label in sync so screen readers announce the current action
       btn.setAttribute("aria-label", hidden ? "Hide password" : "Show password");
 
+      // Swap the SVG between an open-eye and a struck-through eye icon
       const svg = btn.querySelector("svg");
       const path = btn.querySelector("path");
       if (!svg || !path) return;

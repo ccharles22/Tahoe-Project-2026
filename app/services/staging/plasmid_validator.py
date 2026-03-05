@@ -1,4 +1,10 @@
-"""Plasmid-vs-WT validation using translated-frame local alignment."""
+"""Plasmid-vs-WT validation using translated-frame local alignment.
+
+Validates that a circular plasmid DNA sequence encodes a given wild-type
+protein.  First attempts an exact substring match across all six reading
+frames; if none is found, performs local alignment and evaluates identity
+and coverage thresholds.
+"""
 
 from __future__ import annotations
 
@@ -35,7 +41,20 @@ def translate_frame(
     genetic_code_table: int = DEFAULT_GENETIC_CODE_TABLE,
     cds: bool = False,
 ) -> str:
-    """Translate DNA from a reading frame index (0, 1, or 2)."""
+    """Translate DNA from a reading frame index (0, 1, or 2).
+
+    Trims trailing bases that do not form a complete codon before
+    translation.
+
+    Args:
+        dna: DNA sequence string.
+        frame: Reading-frame offset (0, 1, or 2).
+        genetic_code_table: NCBI genetic-code table number.
+        cds: If True, use Biopython's CDS translation mode.
+
+    Returns:
+        Translated protein string, or empty string if the frame is too short.
+    """
     frame_seq = dna[frame:]
     trimmed_len = len(frame_seq) - (len(frame_seq) % 3)
     if trimmed_len <= 0:
@@ -50,7 +69,7 @@ def translate_frame(
 
 
 def _make_local_aligner() -> PairwiseAligner:
-    """Build a local aligner configured for approximate fallback matching."""
+    """Build a local aligner tuned for approximate protein-in-plasmid matching."""
     aligner = PairwiseAligner()
     aligner.mode = 'local'
     aligner.match_score = 2.0
@@ -65,7 +84,16 @@ def _best_local_alignment(
     target: str,
     aligner: PairwiseAligner,
 ) -> tuple[float, float, int, int]:
-    """Find top local alignment and return identity/coverage and target span."""
+    """Find the top-scoring local alignment and compute identity/coverage.
+
+    Args:
+        query: Query protein sequence (WT).
+        target: Target protein sequence (translated frame).
+        aligner: Pre-configured ``PairwiseAligner``.
+
+    Returns:
+        Tuple of (identity_pct, coverage_pct, target_start_aa, target_end_aa).
+    """
     alignments = aligner.align(target, query)
     if len(alignments) == 0:
         return 0.0, 0.0, 0, 0
@@ -106,7 +134,23 @@ def _map_hit_to_plasmid_coords(
     start_aa: int,
     end_aa: int,
 ) -> tuple[int, int, bool]:
-    """Convert frame-space AA coordinates back to 0-based circular plasmid nt coords."""
+    """Convert frame-space AA coordinates back to 0-based circular plasmid nt coords.
+
+    Maps alignment coordinates (which refer to positions in a doubled,
+    frame-shifted translation) back to original single-copy plasmid
+    nucleotide positions.
+
+    Args:
+        dna_length: Length of the original (single-copy) plasmid.
+        source: ``'fwd'`` or ``'rev'`` indicating strand used.
+        frame: Reading-frame offset (0, 1, or 2).
+        start_aa: Start amino-acid position in the translated frame.
+        end_aa: End amino-acid position (exclusive).
+
+    Returns:
+        Tuple of (start_nt, end_nt, wraps) where *wraps* is True if the
+        region spans the plasmid origin.
+    """
     start_nt_s2 = frame + start_aa * 3
     end_nt_s2_excl = frame + end_aa * 3
     len_s2 = dna_length * 2
@@ -132,7 +176,26 @@ def validate_plasmid(
     require_exact: bool = True,
     genetic_code_table: int = DEFAULT_GENETIC_CODE_TABLE,
 ) -> ValidationResult:
-    """Validate that circular plasmid DNA encodes WT protein in one of six frames."""
+    """Validate that circular plasmid DNA encodes WT protein in one of six frames.
+
+    Strategy:
+        1. Translate the doubled plasmid in all six frames.
+        2. Attempt exact substring match of the WT protein in each frame.
+        3. If no exact match, fall back to local alignment scoring.
+        4. Report identity, coverage, strand, and coordinates.
+
+    Args:
+        wt_protein: Reference protein sequence.
+        plasmid_dna: Circular plasmid DNA sequence.
+        min_identity: Minimum percent identity for approximate pass.
+        min_coverage: Minimum percent coverage for approximate pass.
+        require_exact: If True, only exact matches produce a PASS result.
+        genetic_code_table: NCBI genetic code table number.
+
+    Returns:
+        ValidationResult: Structured outcome with PASS/FAIL status,
+            alignment statistics, and human-readable message.
+    """
     protein = wt_protein.strip().upper()
     dna = plasmid_dna.strip().upper()
 

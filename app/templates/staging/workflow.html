@@ -1,4 +1,16 @@
-﻿<!doctype html>
+﻿<!-- Template: Workflow — main experiment workspace and 5-step processing pipeline.
+     This is the primary operational page of the portal.  It contains:
+       • A header bar with experiment context and navigation
+       • A horizontal stepper showing progress through steps A–E
+       • A full-page loader overlay for long-running tasks
+       • A left taskbar + collapsible sidebar with workflow forms and experiment list
+       • A central workspace rendering run summaries, QC results, sequence output,
+         and a tabbed results dashboard (Top 10, Distribution, Lineage, Protein Network)
+       • An advanced-visualisation tab strip for bonus pipeline outputs
+       • A downloads section for CSV/PNG exports
+     Context variables include `experiment_id`, `wt`, `validation`, `parsing_result`,
+     `sequence_status`, `analysis_outputs`, `top10_rows`, `kpis`, and many others. -->
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -11,7 +23,8 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/webpage_tahoe_favicon_v2.png', v='3') }}">
   </head>
 
-  {# -- compute step statuses for reuse -- #}
+  {# -- Compute step statuses for reuse across stepper, sidebar badges, and workspace panels.
+        Each step_X_done / step_X_fail flag drives conditional rendering throughout. -- #}
   {% set step_a_done = wt is not none %}
   {% set step_b_done = validation is not none and validation.is_valid %}
   {% set step_b_fail = validation is not none and not validation.is_valid %}
@@ -42,6 +55,8 @@
   {% set inserted_count = (parsing_result.inserted_count|default(0, true)) if parsing_result else 0 %}
   {% set updated_count = (parsing_result.updated_count|default(0, true)) if parsing_result else 0 %}
   {% set warnings_count = (parsing_result.warnings_count|default(0, true)) if parsing_result else 0 %}
+  {# -- Warning severity classification — split parsing warnings into
+        "critical" (data integrity issues) vs "advisory" (informational). -- #}
   {% set warning_meta = namespace(critical=0, advisory=0) %}
   {% if parsing_result and parsing_result.warnings %}
     {% for w in parsing_result.warnings %}
@@ -150,6 +165,7 @@
     </nav>
     {% endif %}
 
+    <!-- Loading Overlay — full-screen spinner shown while analysis/sequence tasks run -->
     <div class="run-loader" id="runLoader" aria-hidden="true">
       <div class="run-loader__backdrop"></div>
       <div class="run-loader__dialog" role="status" aria-live="polite" aria-atomic="true">
@@ -193,6 +209,7 @@
       </div>
     </div>
 
+    <!-- APP SHELL — wraps taskbar, sidebar, and main workspace in a flex layout -->
     <div class="appShell">
 
       <!-- LEFT TASKBAR -->
@@ -510,6 +527,7 @@
 
       <!-- MAIN RESULTS WORKSPACE -->
       <main class="workspace">
+        <!-- Workspace Header — experiment title, step counter, and methods strip -->
         <div class="workspace__header">
           {% if experiment_id %}
             <h1 class="workspace__title">{{ display_experiment_name }} #{{ experiment_id }}{% if wt %} | {{ wt.uniprot_id }}{% endif %}</h1>
@@ -544,6 +562,9 @@
           {% endif %}
         {% endwith %}
 
+        <!-- Run Summary Banner — context-dependent status card (success / partial / failed).
+             When sequence processing is done but analysis hasn’t run yet, shows an
+             actionable partial state with a one-click "Run Analysis" button. -->
         {% if experiment_id and run_summary_status %}
         {% set actionable_partial = (run_summary_status == 'partial' and step_d_done and not step_e_done and not sequence_failed and not analysis_failed) %}
         <section class="run-summary run-summary--{{ 'success' if actionable_partial else run_summary_status }} run-summary--primary">
@@ -625,6 +646,7 @@
           </section>
         {% else %}
 
+        <!-- Panel A — Wild-Type (UniProt) Output -->
         <section class="panel" data-panel="A">
           <div class="panel__header">
             <span class="panel__step">1</span>
@@ -661,6 +683,7 @@
           {% endif %}
         </section>
 
+        <!-- Panel B — Plasmid Validation -->
         {% if validation or step_a_done %}
         <section class="panel" data-panel="B">
           <div class="panel__header">
@@ -706,6 +729,7 @@
         </section>
         {% endif %}
 
+        <!-- Panel C — Data QC (Upload & Validation) — auto-opens when errors/warnings present -->
         {% if parsing_result or step_a_done %}
         <details class="panel panel--quiet panel--collapsible" data-panel="C" {% if parsing_result and ((parsing_result.errors and parsing_result.errors|length > 0) or (parsing_result.warnings and parsing_result.warnings|length > 0)) %}open{% endif %}>
           <summary class="panel__header panel__header--summary">
@@ -836,6 +860,7 @@
         </details>
         {% endif %}
 
+        <!-- Panel D — Sequence Processing -->
         <section class="panel" data-panel="D">
           <div class="panel__header">
             <span class="panel__step">4</span>
@@ -872,6 +897,7 @@
           {% endif %}
         </section>
 
+        <!-- Panel E — Results Dashboard (KPIs, Core Tabs, Advanced Visuals, Downloads) -->
         <section class="panel results-dashboard panel--primary" data-panel="E">
           <div class="panel__header">
             <div class="panel__header-main panel__header-main--major">
@@ -913,6 +939,7 @@
             </div>
           </section>
 
+          <!-- Core Result Tabs — Top 10 | Distribution | Lineage | Protein Network -->
           <section id="results-core" class="results-section">
             <h3 class="results-section__title">Core Result Visualisations</h3>
             <div class="core-tabs">
@@ -1159,6 +1186,7 @@
             </div>
           </section>
 
+          <!-- Advanced Visualisations — bonus pipeline outputs (mutation frequency, fingerprint, etc.) -->
           <section id="results-advanced" class="results-section">
             <h3 class="results-section__title">Advanced Visualisations</h3>
             <p class="results-section__subtitle">Supplementary views for deeper mutation and landscape analysis.</p>
@@ -1243,6 +1271,7 @@
             {% endif %}
           </section>
 
+          <!-- Downloads Section — CSV and PNG export links -->
           <section id="results-downloads" class="results-section">
             <h3 class="results-section__title">Downloads</h3>
             <div class="downloads-group__list">

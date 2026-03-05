@@ -31,6 +31,20 @@ LabelIdSource = Literal["plasmid_variant_index", "variant_id"]
 # -----------------------------
 @dataclass(frozen=True)
 class PlotConfig:
+    """Frozen configuration for every visual aspect of the lineage plot.
+
+    All fields have sensible defaults; override only what you need.
+    Group summaries:
+
+    * **layout** – controls y-axis mode, jitter, and packing.
+    * **readability** – subgraph filtering, parent-sorted ordering.
+    * **encoding** – colour mapping (lineage / mutations / activity).
+    * **nodes / edges** – sizes, alphas, line-widths.
+    * **labeling** – which nodes get text labels and how.
+    * **highlighting** – emphasise top-k per generation + ancestors.
+    * **presentation** – grid lines, borders, optional trendline.
+    """
+
     figsize: tuple[float, float] = (14, 6)
     dpi: int = 220
     title: str = "Variant Lineage"
@@ -90,6 +104,8 @@ class PlotConfig:
 
 @dataclass(frozen=True)
 class BranchTrendStats:
+    """Summary statistics for a linear trend fitted to top-variant ancestor branches."""
+
     top_variant_ids: tuple[Hashable, ...]
     point_count: int
     trend_ready: bool
@@ -103,22 +119,23 @@ class BranchTrendStats:
 # utils
 # -----------------------------
 def _require_columns(df: pd.DataFrame, required: set[str], name: str) -> None:
+    """Raise ``ValueError`` if *df* is missing any of the *required* columns."""
     missing = required - set(df.columns)
     if missing:
         raise ValueError(f"{name} is missing required column(s): {sorted(missing)}")
 
 
-def _coerce_id_series(s: pd.Series) -> pd.Series: 
+def _coerce_id_series(s: pd.Series) -> pd.Series:
+    """Convert IDs into stable hashable keys WITHOUT forcing numeric.
+
+    - Preserves ints and strings.
+    - Converts float whole-numbers (1.0) → ``Int64(1)``.
+    - Leaves other floats as strings.
     """
-    Convert IDs into stable hashable keys WITHOUT forcing numeric.
-    - preserves ints and strings
-    - converts float whole-numbers (1.0) -> Int64(1)
-    - leaves other floats as strings
-    """
-    if pd.api.types.is_integer_dtype(s) or pd.api.types.is_string_dtype(s): #good for ids, preserves type
+    if pd.api.types.is_integer_dtype(s) or pd.api.types.is_string_dtype(s):
         return s
 
-    if pd.api.types.is_float_dtype(s): #handles floats
+    if pd.api.types.is_float_dtype(s):
         out = s.copy()
         arr = out.to_numpy()
         mask = out.notna() & np.isfinite(arr)
@@ -131,8 +148,8 @@ def _coerce_id_series(s: pd.Series) -> pd.Series:
     return s.astype("object")
 
 
-def _filter_edges_to_nodes( 
-    nodes: pd.DataFrame, 
+def _filter_edges_to_nodes(
+    nodes: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
     node_id_col: str,
@@ -143,17 +160,17 @@ def _filter_edges_to_nodes(
     if edges is None or edges.empty:
         return edges
 
-    _require_columns(nodes, {node_id_col}, "nodes") #important for filtering
-    _require_columns(edges, {parent_col, child_col}, "edges") #important for filtering
+    _require_columns(nodes, {node_id_col}, "nodes")
+    _require_columns(edges, {parent_col, child_col}, "edges")
 
-    node_ids = set(_coerce_id_series(nodes[node_id_col]).dropna().tolist()) #valid node IDs as hashable keys
+    node_ids = set(_coerce_id_series(nodes[node_id_col]).dropna().tolist())
 
-    e = edges.copy() #parent/child ids coercion for filtering
+    e = edges.copy()
     e[parent_col] = _coerce_id_series(e[parent_col])
     e[child_col] = _coerce_id_series(e[child_col])
     e = e.dropna(subset=[parent_col, child_col])
 
-    return e[e[parent_col].isin(node_ids) & e[child_col].isin(node_ids)].copy() #only edges with valid node references
+    return e[e[parent_col].isin(node_ids) & e[child_col].isin(node_ids)].copy()
 
 
 def _ensure_top_col(nodes: pd.DataFrame, *, top_col: str, activity_col: str) -> pd.DataFrame:
@@ -181,7 +198,7 @@ def _ensure_top_col(nodes: pd.DataFrame, *, top_col: str, activity_col: str) -> 
     return n
 
  
-def _filter_subgraph_top10_and_ancestors(  
+def _filter_subgraph_top10_and_ancestors(
     nodes: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
@@ -208,10 +225,11 @@ def _filter_subgraph_top10_and_ancestors(
     e[child_col] = _coerce_id_series(e[child_col])
     e = e.dropna(subset=[parent_col, child_col])
 
-    parent_map: dict[Hashable, Hashable] = dict(zip(e[child_col], e[parent_col])) #child -> parent mapping for traversal
+    parent_map: dict[Hashable, Hashable] = dict(zip(e[child_col], e[parent_col]))
 
-    keep: set[Hashable] = set(top_ids) 
-    stack = list(top_ids) 
+    # BFS-style walk up ancestor chains from each top-10 node.
+    keep: set[Hashable] = set(top_ids)
+    stack = list(top_ids)
     while stack:
         cid = stack.pop()
         pid = parent_map.get(cid)
@@ -224,7 +242,7 @@ def _filter_subgraph_top10_and_ancestors(
     return n_f, e_f
 
 
-def _order_by_parent( #reorder nodes within generations so children cluster near parents
+def _order_by_parent(
     df: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
@@ -246,11 +264,12 @@ def _order_by_parent( #reorder nodes within generations so children cluster near
     e[child_col] = _coerce_id_series(e[child_col])
     e = e.dropna(subset=[parent_col, child_col])
 
-    parent = dict(zip(e[child_col], e[parent_col])) #child -> parent mapping for ordering
+    parent = dict(zip(e[child_col], e[parent_col]))
 
     d["_ord"] = d.groupby(generation_col, sort=False).cumcount().astype(float)
 
-    for _ in range(2): 
+    # Two passes: propagate parent ordering to children, then re-sort.
+    for _ in range(2):
         ord_map = dict(zip(d["_vid"], d["_ord"]))
         d["_pord"] = d["_vid"].map(lambda vid: ord_map.get(parent.get(vid, None), np.nan))
         d["_key"] = d["_pord"].fillna(d["_ord"])
@@ -260,7 +279,7 @@ def _order_by_parent( #reorder nodes within generations so children cluster near
     return d.drop(columns=["_ord", "_pord", "_key", "_vid"])
 
 
-def _assign_x_from_current_order( #assign x based on existing order within each generation, with optional jitter
+def _assign_x_from_current_order(
     df: pd.DataFrame,
     cfg: PlotConfig,
     *,
@@ -308,7 +327,7 @@ def _assign_y_rank_mode(
     return out
 
 
-def _layout_nodes( #x/y positions based on generations and parent-child relationships
+def _layout_nodes(
     nodes: pd.DataFrame,
     cfg: PlotConfig,
     *,
@@ -316,6 +335,23 @@ def _layout_nodes( #x/y positions based on generations and parent-child relation
     generation_col: str,
     activity_col: str = "activity_score",
 ) -> pd.DataFrame:
+    """Compute x/y positions for every node based on generation and activity/rank.
+
+    Nodes are sorted within each generation by plasmid variant index (preferred),
+    activity score, or raw ID, then assigned jittered x and either activity-based
+    or rank-based y coordinates.
+
+    Args:
+        nodes: DataFrame containing at least *node_id_col* and *generation_col*.
+        cfg: Plot configuration controlling jitter, y-mode, etc.
+        node_id_col: Column name used as the unique node identifier.
+        generation_col: Column name for the generation/round number.
+        activity_col: Column name for the activity score (used when
+            ``cfg.y_mode == 'activity'``).
+
+    Returns:
+        A copy of *nodes* with added ``x`` and ``y`` columns.
+    """
     _require_columns(nodes, {node_id_col, generation_col}, "nodes")
     df = nodes.copy()
 
@@ -361,7 +397,8 @@ def _layout_nodes( #x/y positions based on generations and parent-child relation
     return df
 
 
-def _build_pos(df: pd.DataFrame, *, node_id_col: str) -> Mapping[Hashable, tuple[float, float]]: #build position dict for nx from dataframe
+def _build_pos(df: pd.DataFrame, *, node_id_col: str) -> Mapping[Hashable, tuple[float, float]]:
+    """Build a ``{node_id: (x, y)}`` position mapping from the laid-out DataFrame."""
     ids = _coerce_id_series(df[node_id_col])
     valid = ids.notna()
     if not valid.any():
@@ -381,6 +418,7 @@ def _node_label(
     node_id_col: str,
     label_id_source: LabelIdSource,
 ) -> str:
+    """Format a concise on-plot label string such as ``G2:14`` for a single node."""
     gen = int(row[generation_col])
     if label_id_source == "plasmid_variant_index":
         if "plasmid_variant_index" in row and pd.notna(row["plasmid_variant_index"]):
@@ -394,7 +432,7 @@ def _node_label(
     return f"G{gen}"
 
 
-def _compute_lineage_ids( #compute lineage IDs by traversing parent links until root for each node
+def _compute_lineage_ids(
     nodes: pd.DataFrame,
     edges: pd.DataFrame | None,
     *,
@@ -402,6 +440,11 @@ def _compute_lineage_ids( #compute lineage IDs by traversing parent links until 
     parent_col: str,
     child_col: str,
 ) -> pd.Series:
+    """Map each node to its root ancestor ID by traversing parent edges.
+
+    Nodes that share the same root belong to the same lineage, which is used
+    for categorical colour assignment.
+    """
     if edges is None or edges.empty:
         return _coerce_id_series(nodes[node_id_col])
 
@@ -413,7 +456,8 @@ def _compute_lineage_ids( #compute lineage IDs by traversing parent links until 
 
     lineage: dict[Hashable, Hashable] = {}
 
-    def _root(node: Hashable) -> Hashable: # traverse up to root ancestor, with cycle protection
+    def _root(node: Hashable) -> Hashable:
+        """Traverse parent links to the root ancestor, with cycle protection."""
         seen: set[Hashable] = set()
         cur = node
         while cur in parent_map and cur not in seen:
@@ -428,7 +472,7 @@ def _compute_lineage_ids( #compute lineage IDs by traversing parent links until 
     return vids.map(lineage)
 
 
-def _compute_highlight_nodes( #compute set of node IDs to highlight based on top-k per generation and their ancestors
+def _compute_highlight_nodes(
     df: pd.DataFrame,
     edges: pd.DataFrame | None,
     cfg: PlotConfig,
@@ -439,6 +483,11 @@ def _compute_highlight_nodes( #compute set of node IDs to highlight based on top
     child_col: str,
     activity_col: str = "activity_score",
 ) -> set[Hashable]:
+    """Return the set of node IDs to visually emphasise.
+
+    Selects the top-k variants per generation (by activity) and walks
+    parent edges upward to include their full ancestor chains.
+    """
     if cfg.highlight_top_k_per_generation <= 0:
         return set()
     if activity_col not in df.columns:
@@ -477,7 +526,7 @@ def _compute_highlight_nodes( #compute set of node IDs to highlight based on top
     return keep
 
 
-def _resolve_color( #determine color values and colormap based on configuration and available data
+def _resolve_color(
     df: pd.DataFrame,
     edges: pd.DataFrame | None,
     cfg: PlotConfig,

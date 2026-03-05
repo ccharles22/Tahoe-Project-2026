@@ -28,7 +28,15 @@ from .. import staging_bp
 
 
 def _static_url_with_mtime(filename: str, abs_path: str) -> str:
-    """Return a cache-busted static URL for generated assets when present."""
+    """Return a cache-busted static URL for generated assets when present.
+
+    Args:
+        filename: Relative path under the ``static/`` folder.
+        abs_path: Absolute filesystem path used to read the modification time.
+
+    Returns:
+        URL string with a ``?v=<mtime>`` query parameter for cache busting.
+    """
     version = None
     try:
         version = int(os.path.getmtime(abs_path))
@@ -40,7 +48,16 @@ def _static_url_with_mtime(filename: str, abs_path: str) -> str:
 
 
 def _build_wt_insights(wt: WildtypeProtein | None, exp: Experiment | None) -> dict:
-    """Build a small WT / UniProt summary for the workspace panels."""
+    """Build a small WT / UniProt summary for the workspace panels.
+
+    Args:
+        wt: The wild-type protein record, or None if not yet fetched.
+        exp: The experiment record (used for experiment-scoped metadata).
+
+    Returns:
+        Dict with keys ``protein_name``, ``organism``, ``sequence_summary``,
+        ``annotation_summary``, and ``feature_highlights``.
+    """
     if not wt:
         return {
             'protein_name': 'N/A',
@@ -53,6 +70,7 @@ def _build_wt_insights(wt: WildtypeProtein | None, exp: Experiment | None) -> di
     exp_meta = exp.extra_metadata if exp and isinstance(exp.extra_metadata, dict) else {}
     plasmid_sequence = str(exp_meta.get('wt_plasmid_sequence') or wt.plasmid_sequence or '').strip()
     feature_rows = list(getattr(wt, 'features', []) or [])
+    # Count feature types to build a compact annotation summary (e.g. "Domain (3)").
     feature_counter = Counter()
     for feature in feature_rows:
         feature_type = str(getattr(feature, 'feature_type', '') or '').strip()
@@ -109,6 +127,7 @@ def _build_wt_insights(wt: WildtypeProtein | None, exp: Experiment | None) -> di
 @staging_bp.get('/')
 def create_experiment():
     """Render staging UI for the selected experiment (or latest experiment)."""
+    # Auto-create a guest account so unauthenticated visitors can start immediately.
     if not current_user.is_authenticated:
         try:
             guest_suffix = secrets.token_hex(6)
@@ -182,6 +201,7 @@ def create_experiment():
         if val_dict:
             validation = ValidationProxy(val_dict)
 
+        # Retrieve parsing result from session or recover from DB on session loss.
         parsing_dict = get_parsing_result_from_session(experiment_id)
         if parsing_dict:
             parsing_dict = normalize_parsing_result(parsing_dict)
@@ -234,6 +254,7 @@ def create_experiment():
         ):
             clear_sequence_reprocess_required(int(experiment_id))
 
+        # Discover generated analysis assets on disk for this experiment.
         gen_dir = os.path.join(current_app.root_path, 'static', 'generated', str(experiment_id))
         plot_path = os.path.join(gen_dir, 'activity_distribution.png')
         top10_csv_path = os.path.join(gen_dir, 'top10_variants.csv')
@@ -248,6 +269,7 @@ def create_experiment():
         bonus_domain_heatmap_path = os.path.join(bonus_dir, 'domain_enrichment_heatmap.html')
         bonus_domain_heatmap_file = 'bonus/domain_enrichment_heatmap.html'
         if not os.path.exists(bonus_domain_heatmap_path) and os.path.isdir(gen_dir):
+            # Fall back to a recursive glob when bonus assets live in non-standard paths.
             bonus_domain_heatmap_matches = glob.glob(
                 os.path.join(gen_dir, '**', 'domain_enrichment_heatmap*.html'),
                 recursive=True,
@@ -384,6 +406,7 @@ def create_experiment():
                 .order_by(Experiment.created_at.desc())
                 .all()
             )
+            # Attach the first available analysis thumbnail as an experiment preview.
             preview_candidates = [
                 ('lineage.png', 'Variant lineage'),
                 ('protein_similarity.png', 'Protein similarity network'),

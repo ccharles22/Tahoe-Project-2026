@@ -1,4 +1,17 @@
-/* settings.html page-specific styles */
+/* ================================================================
+   settings.css
+   Page-specific styles for the user settings / profile page
+   (settings.html). Includes a decorative DNA-sequence background
+   animation, the two-column settings layout, profile card, form
+   sections with password strength meter, and responsive overrides.
+
+   Relies on design tokens & shared components from the global
+   design system (base.css / homepage.css).
+   ================================================================ */
+
+/* --- Page Background ---
+   Multi-stop gradient overlaid with soft radial glows
+   to create a deep teal-to-blue atmosphere. */
 
 .settings-body {
   min-height: 100vh;
@@ -16,13 +29,19 @@
     radial-gradient(circle at 82% 20%, rgba(56, 221, 204, 0.14) 0%, transparent 28%);
 }
 
+/* --- Decorative DNA Background ---
+   Fixed full-viewport layer of scrolling DNA base-pair characters.
+   Uses ::before / ::after pseudo-elements for ambient glows and
+   a top-to-bottom vignette, keeping the effect purely decorative
+   (pointer-events: none). */
+
 .settings-dna {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  pointer-events: none;
+  pointer-events: none; /* Click-through so users can interact with content */
   opacity: 0.3;
-  z-index: 0;
+  z-index: 0; /* Behind all interactive content */
 }
 
 .settings-dna::before,
@@ -79,19 +98,23 @@
 .settings-dna__base--G { color: rgba(98, 236, 218, 0.92); }
 .settings-dna__base--T { color: rgba(154, 204, 255, 0.92); }
 
+/* Continuous vertical scroll animation for the DNA track */
 @keyframes settingsDnaScroll {
   from {
     transform: rotate(-3deg) scale(1.02) translateY(0);
   }
   to {
+    /* translateY(-50%) loops seamlessly when the track content is doubled */
     transform: rotate(-3deg) scale(1.02) translateY(-50%);
   }
 }
 
+/* --- Z-Index Layering for Nav & Content --- */
+
 .home-nav,
 .home-container {
   position: relative;
-  z-index: 1;
+  z-index: 1; /* Above the DNA background (z-index: 0) */
 }
 
 .home-container {
@@ -131,6 +154,10 @@
   background: rgba(255, 255, 255, 0.14);
 }
 
+/* --- Screen-Reader Only Utility ---
+   Visually hidden but remain accessible to assistive technology.
+   Uses the standard clip + 1px technique. */
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -151,6 +178,8 @@
   gap: 24px;
   align-items: start;
 }
+
+/* --- Settings Card & Profile Header --- */
 
 .settings-card {
   padding: 28px 32px;
@@ -199,6 +228,8 @@
   color: var(--text-secondary);
 }
 
+/* --- Flash Messages --- */
+
 .flash-messages {
   display: flex;
   flex-direction: column;
@@ -233,6 +264,8 @@
   color: #7f1d1d;
   border: 1px solid rgba(220, 38, 38, 0.2);
 }
+
+/* --- Form Sections & Grid --- */
 
 .form-section {
   border: none;
@@ -316,6 +349,10 @@
   box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.18);
 }
 
+/* --- Password Reveal Toggle ---
+   Absolutely positioned inside the input wrapper, vertically
+   centred with transform: translateY(-50%). */
+
 .btn-reveal {
   position: absolute;
   top: 50%;
@@ -379,6 +416,10 @@
   flex-shrink: 0;
 }
 
+/* --- Password Strength Meter ---
+   Animated bar whose width & color are driven by data-level
+   attributes (1–4) set dynamically via JavaScript. */
+
 .pw-strength {
   display: flex;
   align-items: center;
@@ -433,6 +474,8 @@
   display: none !important;
 }
 
+/* --- Form Actions & Checkbox Row --- */
+
 .form-row--checkbox {
   display: flex;
   align-items: center;
@@ -469,9 +512,11 @@
 
 .btn--primary[aria-busy="true"] {
   opacity: 0.75;
-  pointer-events: none;
+  pointer-events: none; /* Prevent double-submit while saving */
   cursor: wait;
 }
+
+/* --- Sidebar Panels --- */
 
 .settings-side {
   display: flex;
@@ -543,6 +588,8 @@
   vertical-align: middle;
 }
 
+/* --- Responsive Breakpoints --- */
+
 @media (max-width: 860px) {
   .settings-dna {
     display: none;
@@ -570,6 +617,9 @@
     display: none;
   }
 }
+
+/* --- Reduced Motion ---
+   Honour user's OS-level preference by disabling transitions. */
 
 @media (prefers-reduced-motion: reduce) {
   .input,

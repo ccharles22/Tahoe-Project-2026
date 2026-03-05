@@ -6,6 +6,7 @@ from sqlalchemy import text
 from app.extensions import db
 
 
+# Subquery: selects the most recent derived activity_score metric per variant.
 LATEST_ACTIVITY_SCORE_SQL = """
 SELECT
   m.variant_id,
@@ -22,7 +23,14 @@ JOIN (
 
 
 def get_owned_variant_or_none(variant_id: int):
-    """Return variant row if it belongs to current user, else None."""
+    """Return variant row if it belongs to current user, else None.
+
+    Args:
+        variant_id: Primary key of the variant to look up.
+
+    Returns:
+        A SQLAlchemy RowMapping with variant data and joined metrics, or None.
+    """
     row = db.session.execute(
         text(
             f"""

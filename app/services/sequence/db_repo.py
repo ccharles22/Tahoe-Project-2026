@@ -486,8 +486,19 @@ def replace_variant_mutations(
     overwrite: bool = False,
     vsa_id: Optional[int] = None,
 ) -> None:
-    """
-    Backward compatible name, but non-destructive by default unless overwrite=True.
+    """Write mutation rows for a single variant.
+
+    Backward-compatible wrapper around ``_write_mutations``.  Non-destructive
+    by default (skips conflicts) unless *overwrite* is True.
+
+    Args:
+        engine: SQLAlchemy engine.
+        variant_id: Target variant primary key.
+        mutations: Mutation records to persist.
+        mutation_type: Scope label stored in the mutations table (default ``"protein"``).
+        conn: Optional existing connection (if None, a new transaction is opened).
+        overwrite: If True, delete-then-reinsert; otherwise DO NOTHING on conflict.
+        vsa_id: Optional foreign key linking to variant_sequence_analysis.
     """
     if conn is not None:
         _write_mutations(conn, variant_id, mutations, mutation_type, vsa_id=vsa_id, overwrite=overwrite)
@@ -565,12 +576,14 @@ def save_variant_counts_as_metrics(
 # =============================================================================
 
 def _strand_to_smallint(strand: Optional[str]) -> Optional[int]:
+    """Convert strand label to smallint for DB storage (PLUS→1, MINUS→-1)."""
     if strand is None:
         return None
     return 1 if strand.upper() == "PLUS" else -1
 
 
 def _get_existing_vsa_id(conn: Connection, variant_id: int, analysis_version: str) -> Optional[int]:
+    """Look up an existing variant_sequence_analysis row by (variant_id, version)."""
     return conn.execute(
         text("""
             SELECT vsa_id
@@ -592,6 +605,25 @@ def _write_variant_sequence_analysis(
     *,
     overwrite: bool = False,
 ) -> int:
+    """Insert or update a variant_sequence_analysis row and return its vsa_id.
+
+    Packs QC flags, non-insertable mutations, and CDS metadata into the
+    qc_flags JSONB column.  Follows the non-destructive / overwrite
+    convention used throughout this module.
+
+    Args:
+        conn: Active SQLAlchemy connection (caller manages transaction).
+        variant_id: Target variant primary key.
+        result: Sequence processing output with CDS/protein/QC data.
+        counts: Aggregated mutation counts.
+        mutations: Full mutation list (non-insertable types stored in JSON).
+        user_id: Owning user id (recorded inside qc_flags).
+        analysis_version: Version tag for idempotent upserts.
+        overwrite: If True, replace existing row; otherwise DO NOTHING.
+
+    Returns:
+        int: The vsa_id of the inserted or existing row.
+    """
     qc_flags: Dict[str, Any] = {
         "has_ambiguous_bases": result.qc.has_ambiguous_bases,
         "has_frameshift": result.qc.has_frameshift,
@@ -697,6 +729,7 @@ def _build_analysis_payload(
     mutations: List["MutationRecord"],
     user_id: int,
 ) -> Dict[str, Any]:
+    """Build the JSON payload stored in variants.extra_metadata->sequence_analysis."""
     return {
         "user_id": user_id,
         "cds_start_0based": result.cds_start_0based,
@@ -868,8 +901,22 @@ def persist_full_variant_analysis(
     analysis_version: str = "v1",
     overwrite: bool = False,
 ) -> None:
-    """
-    End-to-end persistence in one transaction.
+    """Persist a complete variant analysis in one transaction.
+
+    Writes variant_sequence_analysis, extra_metadata payload, mutation rows,
+    derived metric rows, and a ``last_sequence_processing_run`` metadata
+    marker — all within a single database transaction.
+
+    Args:
+        engine: SQLAlchemy engine.
+        experiment_id: Parent experiment primary key.
+        variant_id: Target variant primary key.
+        result: Sequence processing output.
+        counts: Aggregated mutation counts.
+        mutations: Full mutation record list.
+        user_id: Owning user id.
+        analysis_version: Version tag for idempotent upserts.
+        overwrite: If True, replace existing data; otherwise set-once.
     """
     muts_list = list(mutations)
     payload = _build_analysis_payload(result, counts, muts_list, user_id)
@@ -919,6 +966,8 @@ def persist_full_variant_analysis(
 
 @dataclasses.dataclass
 class VariantAnalysisItem:
+    """Container for one variant's analysis results used in batch persistence."""
+
     variant_id: int
     result: "VariantSeqResult"
     counts: "MutationCounts"
@@ -934,7 +983,19 @@ def insert_variant_analyses_batch(
     analysis_version: str = "v1",
     overwrite: bool = False,
 ) -> None:
-    """Write a batch of sequence-analysis payloads, mutations, and derived metrics."""
+    """Persist multiple variant analysis results in a single transaction.
+
+    Pre-fetches generation ids for all variants, then writes each item's
+    analysis payload, mutations, and metrics within one commit.
+
+    Args:
+        engine: SQLAlchemy engine.
+        experiment_id: Parent experiment primary key.
+        user_id: Owning user id.
+        items: List of ``VariantAnalysisItem`` containers.
+        analysis_version: Version tag for idempotent upserts.
+        overwrite: If True, replace existing data; otherwise set-once.
+    """
     if not items:
         return
 

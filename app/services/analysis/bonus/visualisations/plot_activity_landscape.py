@@ -23,9 +23,17 @@ def _grid_interpolate_idw(
     grid_size: int = 60,
     power: float = 2.0,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """
-    Inverse-distance weighting (IDW) onto a regular grid.
-    Returns (Xg, Yg, Zg) for surface plotting; the scatter overlay shows true values.
+    """Inverse-distance weighting (IDW) onto a regular grid.
+
+    Args:
+        x: Scatter-point X coordinates.
+        y: Scatter-point Y coordinates.
+        z: Scatter-point Z values (e.g. activity scores).
+        grid_size: Number of grid cells per axis.
+        power: Distance exponent controlling influence decay.
+
+    Returns:
+        Tuple of ``(Xg, Yg, Zg)`` meshgrid arrays for surface plotting.
     """
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
@@ -250,13 +258,27 @@ def plot_activity_landscape_plotly(
     grid_size: int = 60,
     out_path: Path | str = "outputs/activity_landscape.html",
 ) -> Path:
-    """
-    3D Plotly landscape: X/Y from PCA or t-SNE diversity, Z = activity score.
-    'scatter' shows raw points; 'surface' adds an IDW-interpolated topography.
+    """Generate a 3D Plotly activity landscape with dropdown view selector.
+
+    X/Y axes are derived from PCA or t-SNE of the mutation-vector
+    space; Z axis represents the activity score.  'scatter' shows raw
+    data points; 'surface' adds an IDW-interpolated topography beneath.
+
+    Args:
+        generation_id: Any generation in the target experiment (used to
+            identify the experiment and load all its generations).
+        method: Initial dimensionality reduction method shown.
+        mode: Initial rendering style.
+        grid_size: Surface interpolation grid resolution.
+        out_path: Destination for the self-contained HTML file.
+
+    Returns:
+        Path to the written HTML file.
     """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     experiment_id, variants, muts = _load_experiment_landscape_inputs(generation_id)
+    # Build both PCA and t-SNE embeddings so the dropdown can switch
     pca_df = _build_landscape_frame(variants, muts, "pca")
     tsne_df = _build_landscape_frame(variants, muts, "tsne")
 
@@ -264,12 +286,14 @@ def plot_activity_landscape_plotly(
     pca_latest = pca_df[pca_df["generation_number"] == latest_generation].copy()
     tsne_latest = tsne_df[tsne_df["generation_number"] == latest_generation].copy()
 
+    # Four view configurations: PCA/t-SNE × whole-experiment/latest-generation
     views: list[tuple[str, Literal["pca", "tsne"], pd.DataFrame]] = [
         ("Whole experiment", "pca", pca_df),
         (f"Latest generation ({latest_generation})", "pca", pca_latest),
         ("Whole experiment", "tsne", tsne_df),
         (f"Latest generation ({latest_generation})", "tsne", tsne_latest),
     ]
+    # Surface mode adds an extra trace (the surface mesh) per group
     trace_group_size = 2 if mode == "surface" else 1
     initial_group = 0 if method == "pca" else 2
 

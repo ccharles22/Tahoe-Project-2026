@@ -89,7 +89,15 @@ def db_conn() -> Generator[PGConnection, None, None]:
 
 @contextmanager
 def get_cursor(commit: bool = False) -> Generator:
-    """Yields a cursor; commits only when commit=True."""
+    """Yield a database cursor within a managed connection.
+
+    Args:
+        commit: If True, commit the transaction on successful exit.
+            Defaults to False (read-only usage).
+
+    Yields:
+        A psycopg2 cursor bound to a fresh connection.
+    """
     conn = get_connection()
     cur = conn.cursor()
     try:
@@ -109,7 +117,15 @@ def get_cursor(commit: bool = False) -> Generator:
 # -------------------------------------------------------------------
 
 def fetch_metric_definition_ids(conn: PGConnection, names: Sequence[str]) -> Dict[Tuple[str, str], int]:
-    """Returns {(name, metric_type): metric_definition_id} for the given names."""
+    """Look up metric definition IDs by name.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        names: Metric names to look up (e.g. ``["pca_x", "pca_y"]``).
+
+    Returns:
+        Mapping of ``(name, metric_type)`` to ``metric_definition_id``.
+    """
     if not names:
         return {}
 
@@ -135,7 +151,17 @@ def delete_metrics_by_name(
     metric_names: List[str],
     metric_type: str = "derived",
 ) -> None:
-    """Idempotent delete; only affects variant metrics, not wt_control rows."""
+    """Idempotently remove variant-level metrics by name for a generation.
+
+    Only deletes rows where ``variant_id IS NOT NULL``, preserving any
+    wild-type control metrics.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        generation_id: Target generation to purge metrics from.
+        metric_names: Metric names to delete (e.g. ``["pca_x", "pca_y"]``).
+        metric_type: Metric type filter. Defaults to ``"derived"``.
+    """
     if not metric_names:
         return
 
@@ -151,9 +177,14 @@ def delete_metrics_by_name(
 
 
 def bulk_insert_metrics(conn: PGConnection, rows: List[Dict[str, Any]]) -> None:
-    """
-    Each row must have exactly one of variant_id or wt_control_id set
-    (schema constraint).
+    """Batch-insert metric rows using psycopg2 ``execute_values``.
+
+    Each row dict must have exactly one of ``variant_id`` or
+    ``wt_control_id`` set (enforced by a schema CHECK constraint).
+
+    Args:
+        conn: Active PostgreSQL connection.
+        rows: List of dicts with keys matching the ``metrics`` table columns.
     """
     if not rows:
         return
@@ -182,6 +213,11 @@ def refresh_materialized_view(conn: PGConnection, view_name: str) -> None:
 
 
 def refresh_views(conn: PGConnection, view_names: Sequence[str]) -> None:
-    """Refresh each named materialized view in order."""
+    """Refresh each named materialized view in order.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        view_names: Materialized view names to refresh sequentially.
+    """
     for v in view_names:
         refresh_materialized_view(conn, v)

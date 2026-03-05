@@ -1,3 +1,9 @@
+<!-- Template: Homepage — main landing page and dashboard for the Direct Evolution Monitoring Portal.
+     Combines a top navigation bar, animated hero section with auth-aware CTAs,
+     a 5-stage workflow card carousel, a scientific insights section, a results
+     preview gallery, a multi-column footer, and a slide-up auth sheet (login/register)
+     for unauthenticated users.  Receives `current_user`, `latest_exp`, form objects,
+     and `open_auth_panel`. -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -65,6 +71,8 @@
         {% else %}
         <h1 class="home-hero__title">Run the workflow now</h1>
         {% endif %}
+      <!-- Auth-aware hero CTA — authenticated users see "New Experiment" / "Continue",
+           guests see "Start Workflow as Guest" / "Sign In" -->
         <div class="home-hero__actions">
           {% if current_user.is_authenticated %}
           <a href="{{ url_for('staging.create_experiment') }}" class="btn btn--hero">
@@ -89,11 +97,13 @@
         </div>
       </div>
 
+      <!-- Convenience URL variables used by stage-card action links -->
       {% set workspace_url = url_for('staging.create_experiment', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('staging.create_experiment') %}
       {% set upload_url = url_for('parsing.upload_form', experiment_id=latest_exp.experiment_id) if latest_exp else url_for('parsing.upload_form') %}
       {% set new_experiment_url = url_for('staging.create_experiment') %}
       {% set guide_url = '/guide/' %}
 
+      <!-- Workflow Stage Cards — five-step pipeline overview carousel -->
       <section class="home-stage" aria-label="Workflow stage descriptions">
         <div class="home-stage__viewport" id="home-stage-viewport">
           <article class="home-stage__card is-active" id="stage-fetch-wt" data-stage="fetch-wt">
@@ -164,6 +174,7 @@
         </div>
       </section>
 
+      <!-- Pipeline Tab Bar — clickable stage names that drive the card carousel -->
       <aside class="home-pipeline" aria-label="Pipeline workflow titles">
         <div class="home-pipeline__viewport">
           <ul class="home-pipeline__list" id="home-stage-list">
@@ -178,6 +189,7 @@
     </div>
   </section>
 
+  <!-- Scientific Insights Section -->
   <section class="home-container home-insights" aria-label="Latest scientific insights">
     <div class="home-insights__intro">
       <p class="home-insights__eyebrow">Latest insights</p>
@@ -254,6 +266,7 @@
     </div>
   </section>
 
+  <!-- Results Preview Section — image/iframe carousel of example experiment outputs -->
   <section class="home-container home-results-preview" aria-label="Results preview">
     <div class="home-results-transition" aria-hidden="true">
       <span class="home-results-transition__label">Results preview</span>
@@ -372,6 +385,7 @@
     </div>
   </section>
 
+  <!-- Footer -->
   <footer class="home-footer" aria-label="Site information">
     <div class="home-footer__inner">
       <div class="home-footer__meta">
@@ -458,6 +472,9 @@
     </div>
   </footer>
 
+  <!-- Auth Sheet — slide-up login/register panel shown for unauthenticated visitors.
+       Contains two togglable views (login and register), each with inline validation
+       error rendering and a decorative DNA background track. -->
   {% if not current_user.is_authenticated %}
   <div class="auth-sheet" id="auth-sheet" aria-hidden="true">
     <button type="button" class="auth-sheet__backdrop" data-auth-close aria-label="Close"></button>
@@ -626,6 +643,7 @@
   </div>
   {% endif %}
 
+  <!-- Scripts — GSAP for scroll animations, homepage JS, and conditional auth helpers -->
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
   <script src="{{ url_for('static', filename='js/homepage.js', v='20260304d') }}"></script>

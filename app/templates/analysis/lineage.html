@@ -1,3 +1,7 @@
+<!-- Template: Lineage — parent-to-child variant relationship graph for a single experiment.
+     Displays a lineage plot image with optional trendline overlay, Pearson correlation
+     statistics, and quick-access links to related views.  Receives `experiment_id`,
+     `lineage_png`, trend statistics, and `show_trend` toggle state. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -172,10 +176,12 @@
     </style>
   </head>
   <body>
+    <!-- Main Content -->
     <main class="page">
       <section class="panel">
         <div class="panel__head">
           <h1>Lineage</h1>
+          <!-- Info tooltip — describes the lineage graph and its trendline feature -->
           <button class="info-chip" type="button" aria-label="What this graph shows">
             i
             <span class="info-chip__tip">
@@ -186,6 +192,7 @@
           </button>
         </div>
         <div class="panel__body">
+          <!-- Trend metadata — scope label, Pearson r, p-value, and point count -->
           <div class="subpanel__meta">
             <span>{{ trend_scope_label }}</span>
             <span>{{ trend_pearson_label }}</span>
@@ -198,6 +205,7 @@
               {% endif %}
             </span>
           </div>
+          <!-- Action links — toggle trendline, refresh, or jump to protein network -->
           <div class="actions">
             <a class="link-btn" href="/lineage/{{ experiment_id }}?show_trend={{ '0' if show_trend else '1' }}">
               {% if show_trend %}Hide trendline{% else %}Show trendline{% endif %}

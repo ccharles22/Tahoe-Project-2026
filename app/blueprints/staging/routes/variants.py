@@ -48,6 +48,7 @@ def _load_mutations_for_variant(variant_id: int, sequence_analysis: dict) -> lis
     if mutations:
         return mutations
 
+    # Fall back to the legacy mutations table when JSONB payload is absent.
     fallback_rows = db.session.execute(
         text(
             """
@@ -84,6 +85,15 @@ def _load_mutations_for_variant(variant_id: int, sequence_analysis: dict) -> lis
 
 
 def _load_stage4_qc_for_variant(experiment_id: int, variant_id: int) -> str:
+    """Read the Stage-4 QC annotation for a single variant from the debug CSV.
+
+    Args:
+        experiment_id: Experiment that owns the generated QC file.
+        variant_id: Variant to look up in the CSV rows.
+
+    Returns:
+        The QC annotation string, or an empty string if unavailable.
+    """
     qc_path = os.path.join(
         current_app.root_path,
         'static',
@@ -119,6 +129,7 @@ def _load_variant_payload(variant_id: int):
     mutations = _load_mutations_for_variant(variant_id, sequence_analysis)
     snippet = ''
 
+    # Extract a ±10-residue window around the first mutation for a quick preview.
     protein_seq = (row['protein_sequence'] or '').strip()
     if protein_seq and mutations:
         first_pos = mutations[0].get('aa_position')

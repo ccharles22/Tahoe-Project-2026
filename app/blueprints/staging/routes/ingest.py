@@ -24,7 +24,12 @@ from .. import staging_bp
 
 
 def _merge_extra_metadata(exp: Experiment, updates: dict) -> None:
-    """Merge JSON-serialisable fields into experiment.extra_metadata."""
+    """Merge JSON-serialisable fields into experiment.extra_metadata.
+
+    Args:
+        exp: Experiment whose metadata should be updated.
+        updates: Key-value pairs to merge into the existing metadata dict.
+    """
     meta = exp.extra_metadata if isinstance(exp.extra_metadata, dict) else {}
     merged = dict(meta)
     merged.update(updates)
@@ -80,6 +85,7 @@ def fetch_uniprot():
         db.session.add(wt)
         db.session.flush()
 
+    # Link the fetched WT protein to an existing experiment or create a new one.
     if experiment_id and experiment_id.isdigit():
         exp = Experiment.query.filter_by(
             experiment_id=int(experiment_id),
@@ -92,6 +98,7 @@ def fetch_uniprot():
                     wt_message='Experiment not found or you do not have access.',
                 )
             )
+        # Track the previous accession to detect WT changes that require cache invalidation.
         previous_accession = (
             exp.wt.uniprot_id.strip().upper()
             if getattr(exp, 'wt', None) and getattr(exp.wt, 'uniprot_id', None)
@@ -120,6 +127,7 @@ def fetch_uniprot():
         exp_meta_updates['wt_plasmid_sequence'] = placeholder_plasmid
     _merge_extra_metadata(exp, exp_meta_updates)
 
+    # Only populate feature rows when none exist yet (avoids duplicating on re-fetch).
     should_refresh_features = (
         ProteinFeature.query.filter_by(wt_id=wt.wt_id).first() is None
     )
@@ -221,6 +229,7 @@ def upload_plasmid():
             )
         )
 
+    # Validate the plasmid against the WT protein and persist to both session and DB.
     result = validate_plasmid(wt.amino_acid_sequence, dna)
     save_validation_to_session(experiment_id, result)
     db.session.add(

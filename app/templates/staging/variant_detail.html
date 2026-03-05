@@ -1,3 +1,7 @@
+<!-- Template: Variant Detail — standalone page showing full metadata and mutation
+     table for a single variant.  Displays variant ID, parent, generation, indexes,
+     activity/DNA/protein yields, QC note, and a mutation list (type, AA change,
+     NT change, position).  Receives `variant` object from the backend. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -9,6 +13,7 @@
   <body class="staging-page">
     <!-- Variant summary and mutation details -->
     <main class="workspace" style="max-width: 980px; margin: 24px auto;">
+      <!-- Variant Key–Value Summary -->
       <section class="panel panel--primary">
         <div class="panel__header">Variant Details</div>
         <div class="kv">
@@ -23,6 +28,7 @@
         </div>
       </section>
 
+      <!-- Mutations Table — lists WT-to-variant amino-acid and nucleotide changes -->
       <section class="panel">
         <div class="panel__header">Mutations</div>
         {% if variant.mutations %}
@@ -55,6 +61,7 @@
         {% endif %}
       </section>
 
+      <!-- Back Link -->
       <section class="panel">
         <a class="btn" href="{{ url_for('staging.create_experiment') }}">Back to workspace</a>
       </section>

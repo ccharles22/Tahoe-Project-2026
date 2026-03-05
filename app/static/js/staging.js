@@ -11,8 +11,10 @@
  * Note: Server-side validation and authorization remain the source of truth.
  */
 
-// Initialize sidebar on page load
-// Restore the last active sidebar section between page loads.
+/**
+ * Restore the last active sidebar section from localStorage.
+ * Falls back to 'tools' when no prior selection is stored.
+ */
 function initializeSidebar() {
   // Get saved section from localStorage, default to 'tools'
   const savedSection = localStorage.getItem('activeSidebarSection') || 'tools';
@@ -24,7 +26,7 @@ function initializeSidebar() {
   }
 }
 
-// Taskbar navigation functionality
+// --- Taskbar navigation: toggle sidebar sections ---
 document.querySelectorAll('.taskbar__item').forEach(item => {
   item.addEventListener('click', function(e) {
     e.preventDefault();
@@ -69,7 +71,7 @@ window.addEventListener('load', () => {
   }
 });
 
-/* STEP COLLAPSING & CURRENT-STEP HIGHLIGHT */
+/* ─── STEP COLLAPSING & CURRENT-STEP HIGHLIGHT ─── */
 (function() {
   const tasks = document.querySelectorAll('.task[data-step]');
   let currentFound = false;
@@ -108,7 +110,7 @@ window.addEventListener('load', () => {
   });
 })();
 
-/* LOADING SPINNER ON FORM SUBMIT */
+/* ─── LOADING SPINNER ON FORM SUBMIT ─── */
 document.querySelectorAll('.btn--submit').forEach(btn => {
   const form = btn.closest('form');
   if (form) {
@@ -118,6 +120,11 @@ document.querySelectorAll('.btn--submit').forEach(btn => {
   }
 });
 
+/**
+ * Wire the full-page loading overlay that appears while sequence-processing
+ * or analysis runs execute on the server. Handles async polling for remote
+ * deployments and auto-refreshes when the job completes.
+ */
 function initRunLoader() {
   const loader = document.getElementById('runLoader');
   if (!loader) return;
@@ -136,6 +143,10 @@ function initRunLoader() {
     },
   };
 
+  /**
+   * Display the loader overlay with mode-specific copy.
+   * @param {'sequence'|'analysis'} mode
+   */
   const showLoader = (mode) => {
     const content = copy[mode] || copy.analysis;
     if (titleEl) titleEl.textContent = content.title;
@@ -145,6 +156,7 @@ function initRunLoader() {
     document.body.classList.add('is-run-loading');
   };
 
+  /** Hide the loader overlay and restore interactivity. */
   const hideLoader = () => {
     loader.classList.remove('is-visible');
     loader.setAttribute('aria-hidden', 'true');
@@ -153,6 +165,11 @@ function initRunLoader() {
 
   const isLocalHost = ['127.0.0.1', 'localhost'].includes(window.location.hostname);
 
+  /**
+   * Safely extract JSON from a fetch response; returns null for non-JSON.
+   * @param {Response} response
+   * @returns {Promise<Object|null>}
+   */
   const readJsonPayload = async (response) => {
     const contentType = (response.headers.get('content-type') || '').toLowerCase();
     if (!contentType.includes('application/json')) {
@@ -161,12 +178,18 @@ function initRunLoader() {
     return response.json();
   };
 
+  /** Redirect to a URL with a cache-busting query parameter. */
   const navigateToUrl = (rawTarget) => {
     const targetUrl = new URL(rawTarget || window.location.href, window.location.href);
     targetUrl.searchParams.set('_refresh', String(Date.now()));
     window.location.assign(targetUrl.toString());
   };
 
+  /**
+   * Poll the server for sequence-processing status and redirect when done.
+   * @param {string} experimentId
+   * @param {string} redirectUrl - Fallback URL if the server doesn't provide one.
+   */
   const pollSequenceUntilDone = async (experimentId, redirectUrl) => {
     const pollUrl = `/staging/sequence/status?experiment_id=${encodeURIComponent(experimentId)}`;
 
@@ -250,7 +273,7 @@ function initRunLoader() {
 
 initRunLoader();
 
-// Click experiment card to open
+// --- Experiment card click-to-open and keyboard activation ---
 document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
   const openCard = () => {
     const openUrl = card.getAttribute('data-open-url');
@@ -276,7 +299,10 @@ document.querySelectorAll('.experiment-item[data-open-url]').forEach(card => {
   });
 });
 
-// Keep iframe explorer labels in sync with the currently selected view.
+/**
+ * Synchronise explorer panel header and tooltip text when the user
+ * switches between visualisation links.
+ */
 function initExplorerLabels() {
   const links = document.querySelectorAll('.js-explorer-label-link[data-explorer-title-target]');
   if (!links.length) return;
@@ -302,6 +328,13 @@ function initExplorerLabels() {
 
 initExplorerLabels();
 
+/**
+ * Attempt to trigger a Plotly PNG export inside a same-origin iframe.
+ * Falls back gracefully if the iframe is cross-origin or lacks Plotly.
+ * @param {HTMLIFrameElement} frame    - Target iframe element.
+ * @param {string}            filename - Suggested download filename.
+ * @returns {Promise<boolean>} Whether the export was triggered successfully.
+ */
 async function exportPlotFromFrame(frame, filename) {
   try {
     const frameWindow = frame.contentWindow;
@@ -331,13 +364,21 @@ async function exportPlotFromFrame(frame, filename) {
   return false;
 }
 
+/**
+ * Return a promise that resolves once the iframe fires its 'load' event.
+ * @param {HTMLIFrameElement} frame
+ * @returns {Promise<void>}
+ */
 function waitForFrameLoad(frame) {
   return new Promise((resolve) => {
     frame.addEventListener('load', () => resolve(), { once: true });
   });
 }
 
-// Trigger Plotly's built-in PNG export inside same-origin analysis iframes.
+/**
+ * Wire download buttons that export the currently visible (or a specific)
+ * Plotly chart from an analysis iframe as a PNG image.
+ */
 function initIframePlotDownloads() {
   const currentButtons = document.querySelectorAll('.js-download-iframe-plot[data-frame-name]');
   const specificButtons = document.querySelectorAll('.js-download-specific-iframe-plot[data-frame-name][data-export-src]');
@@ -390,8 +431,13 @@ function initIframePlotDownloads() {
 
 initIframePlotDownloads();
 
-// Warning drill-down: summary + classification + filters
-// Normalize warning text into structured metadata for summary and filtering.
+/**
+ * Parse free-text warning messages into structured metadata.
+ * Maps common patterns (duplicates, missing fields, invalid values, orphan links)
+ * to a category, severity level, and suggested fix.
+ * @param {string} text - Raw warning string from the server.
+ * @returns {{category: string, severity: string, row: string, field: string, issue: string, fix: string, why: string}}
+ */
 function classifyWarning(text) {
   const t = (text || '').toLowerCase();
   const rowMatch = t.match(/row\s+(\d+)/i);
@@ -440,7 +486,10 @@ function classifyWarning(text) {
   };
 }
 
-// Build warning summary metrics and wire critical/all filter controls.
+/**
+ * Populate the warning insights panel: classify each row, build summary
+ * counts, group-by-field table, and wire severity filter buttons.
+ */
 function initWarningInsights() {
   const rows = Array.from(document.querySelectorAll('.js-warning-row'));
   if (rows.length === 0) return;
@@ -559,6 +608,10 @@ function initWarningInsights() {
 
 initWarningInsights();
 
+/**
+ * Toggle the sidebar between expanded and collapsed rail view.
+ * Persists state to localStorage so it survives page navigations.
+ */
 function initSidebarCollapseToggle() {
   const toggleBtn = document.getElementById('sidebarRailToggle');
   const body = document.body;
@@ -581,12 +634,23 @@ function initSidebarCollapseToggle() {
   });
 }
 
+/**
+ * Initialise the Top-10 variant dashboard table: column sorting,
+ * detail modal (with copy/download/jump actions), and CSV export.
+ */
 function initTop10TableTools() {
   const table = document.querySelector('.js-top10-dashboard-table');
   if (!table) return;
   const tbody = table.querySelector('tbody');
   if (!tbody) return;
 
+  /**
+   * Extract a sortable value from a table row's data attributes.
+   * @param {HTMLElement} row  - <tr> with data-* attributes.
+   * @param {string}      key  - Dataset key to read.
+   * @param {string}      type - 'number' or 'string'.
+   * @returns {number|string}
+   */
   const parseCellValue = (row, key, type) => {
     const raw = row.dataset[key] || '';
     if (type === 'number') {
@@ -647,6 +711,7 @@ function initTop10TableTools() {
     return Number.isFinite(value) ? value : null;
   };
 
+  /** Return the highest activity_score in the current table body. */
   const maxTop10Score = () => {
     const values = Array.from(tbody.querySelectorAll('tr'))
       .map((row) => asNumber(row.dataset.activity_score))
@@ -654,6 +719,7 @@ function initTop10TableTools() {
     return values.length ? Math.max(...values) : null;
   };
 
+  /** Classify mutation count into a human-readable divergence band. */
   const mutationBandLabel = (count) => {
     if (count === null) return 'Unknown';
     if (count === 0) return 'WT-like';
@@ -672,6 +738,7 @@ function initTop10TableTools() {
       .filter(Boolean);
   };
 
+  /** Parse a mutation change token (e.g. "A42G") into position, WT→Mut, and type. */
   const parseChangeToken = (token) => {
     const match = token.match(/^([A-Za-z*])(\d+)([A-Za-z*])$/);
     if (!match) {
@@ -687,6 +754,7 @@ function initTop10TableTools() {
     };
   };
 
+  /** Derive an overall mutation type label from synonym/non-synonym counts. */
   const mutationTypeFromCounts = (total, syn, nonSyn) => {
     if (total === null) return 'Unknown';
     if (total === 0) return 'No mutation detected';
@@ -698,6 +766,7 @@ function initTop10TableTools() {
     return 'Mutated (type split unavailable)';
   };
 
+  /** Classify a variant's score ratio relative to the top performer. */
   const performanceBandLabel = (ratio) => {
     if (ratio === null) return 'Unavailable';
     if (ratio >= 0.97) return 'Top-tier';
@@ -716,6 +785,13 @@ function initTop10TableTools() {
     if (target) target.textContent = value;
   };
 
+  /**
+   * Render a list of items with a "show more" toggle when exceeding 8 entries.
+   * @param {string}   key        - data-top10-list key for the host element.
+   * @param {string[]} items      - Values to display.
+   * @param {string}   emptyLabel - Fallback text when items is empty.
+   * @param {boolean}  [asChips]  - Render as chip tokens instead of comma-separated.
+   */
   const setExpandableList = (key, items, emptyLabel, asChips = false) => {
     const host = listField(key);
     if (!host) return;
@@ -773,6 +849,7 @@ function initTop10TableTools() {
     host.appendChild(moreBtn);
   };
 
+  /** Populate the feature-table body with parsed mutation change tokens. */
   const renderFeatureTable = (changes, generation) => {
     const tbodyTarget = detailField('feature_table_body');
     if (!tbodyTarget) return;
@@ -821,6 +898,11 @@ function initTop10TableTools() {
     });
   };
 
+  /**
+   * Collect variant metadata from a table row's data attributes,
+   * populate the modal fields, and show it.
+   * @param {HTMLElement} row - The <tr> element clicked by the user.
+   */
   const openModalForRow = (row) => {
     if (!modal || !modalCard) return;
 
@@ -1003,6 +1085,7 @@ function initTop10TableTools() {
     });
   }
 
+  /** Trigger a file download from an in-memory CSV string. */
   const downloadBlob = (filename, textValue) => {
     const blob = new Blob([textValue], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -1085,6 +1168,10 @@ function initTop10TableTools() {
   }
 }
 
+/**
+ * Initialise the core results tab bar (Top-10 / Lineage / etc.).
+ * Clicking a tab button shows its associated panel.
+ */
 function initCoreResultsTabs() {
   const buttons = Array.from(document.querySelectorAll('.js-core-tab-btn[data-tab-target]'));
   const panels = Array.from(document.querySelectorAll('.js-core-tab-panel[id]'));
@@ -1111,6 +1198,11 @@ function initCoreResultsTabs() {
   setActive(initial ? (initial.getAttribute('data-tab-target') || 'core-top10') : 'core-top10');
 }
 
+/**
+ * Initialise the advanced visualisation tab bar.
+ * Each tab loads its HTML source into a shared iframe and updates
+ * the title, description, and download links.
+ */
 function initAdvancedVisualTabs() {
   const buttons = Array.from(document.querySelectorAll('.js-advanced-tab-btn[data-src]'));
   const frame = document.getElementById('advancedTabsFrame');

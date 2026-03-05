@@ -1,6 +1,15 @@
+/* ================================================================
+   base.css
+   Shared foundational styles for all application pages.
+   Provides design tokens (CSS custom properties), a global reset,
+   typography defaults, reusable UI components (buttons, cards, badges,
+   panels, forms), utility classes, and entrance animations.
+   Imported by every page-specific stylesheet.
+   ================================================================ */
+
 @import url("https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&f[]=general-sans@400,500,600,700&display=swap");
 
-/* Shared base styles for app pages */
+/* --- Design Tokens (CSS Custom Properties) --- */
 
 :root {
   --bg: #f8f9fb;
@@ -32,8 +41,10 @@
   --radius-lg: 14px;
   --radius-xl: 20px;
 
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease: cubic-bezier(0.4, 0, 0.2, 1); /* Material Design standard easing */
 }
+
+/* --- Reset --- */
 
 *,
 *::before,
@@ -45,7 +56,7 @@
 
 html {
   height: 100%;
-  -webkit-font-smoothing: antialiased;
+  -webkit-font-smoothing: antialiased; /* Smoother font rendering on macOS/WebKit */
 }
 
 body {
@@ -57,9 +68,13 @@ body {
   background: var(--bg);
 }
 
+/* --- Typography --- */
+
 h1, h2, h3, h4, h5, h6 {
   font-family: "Cabinet Grotesk", "General Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+
+/* --- Links --- */
 
 a {
   color: var(--primary);
@@ -69,6 +84,8 @@ a {
 a:hover {
   text-decoration: underline;
 }
+
+/* --- Buttons --- */
 
 .btn {
   display: inline-flex;
@@ -122,6 +139,8 @@ a:hover {
   font-size: 12px;
 }
 
+/* --- Form Elements --- */
+
 .form-group {
   margin-bottom: 16px;
 }
@@ -157,8 +176,10 @@ select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12); /* Focus ring via spread-only box-shadow */
 }
+
+/* --- Cards --- */
 
 .card {
   background: var(--surface);
@@ -172,11 +193,13 @@ textarea:focus {
   box-shadow: var(--shadow-md);
 }
 
+/* --- Badges --- */
+
 .badge {
   display: inline-flex;
   align-items: center;
   padding: 3px 10px;
-  border-radius: 999px;
+  border-radius: 999px; /* Pill shape regardless of content width */
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -202,6 +225,8 @@ textarea:focus {
   color: var(--text-secondary);
 }
 
+/* --- Panels --- */
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -210,6 +235,8 @@ textarea:focus {
   box-shadow: var(--shadow-sm);
   margin-bottom: 14px;
 }
+
+/* --- Key-Value Display Pairs --- */
 
 .kv {
   display: flex;
@@ -229,6 +256,8 @@ textarea:focus {
 .kv__row:last-child {
   border-bottom: none;
 }
+
+/* --- Collapsible Details & Monospace Text --- */
 
 .details {
   border: 1px solid var(--border-light);
@@ -254,6 +283,8 @@ textarea:focus {
   padding-left: 16px;
 }
 
+/* --- Empty State --- */
+
 .empty {
   padding: 20px;
   border: 1px dashed var(--border);
@@ -262,6 +293,8 @@ textarea:focus {
   color: var(--text-secondary);
   font-size: 13px;
 }
+
+/* --- Utility Classes --- */
 
 .text-center {
   text-align: center;
@@ -292,6 +325,10 @@ textarea:focus {
   height: auto;
   display: block;
 }
+
+/* --- Entrance Animation ---
+   Subtle slide-up + fade-in applied to elements entering the viewport.
+   Uses `forwards` fill-mode so elements remain visible after animating. */
 
 @keyframes fadeUp {
   from {

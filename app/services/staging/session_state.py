@@ -1,4 +1,10 @@
-"""Session-backed state helpers used by staging routes."""
+"""Session-backed state helpers used by staging routes.
+
+Manages Flask session keys for validation results, parsing outcomes,
+sequence-processing status, and reprocess markers.  Each experiment
+gets its own namespaced session keys to prevent cross-experiment
+collisions.
+"""
 
 from __future__ import annotations
 
@@ -9,7 +15,11 @@ from app.extensions import db
 
 
 class ValidationProxy:
-    """Lightweight object so templates can use obj.attr access."""
+    """Lightweight attribute-access wrapper so templates can use ``obj.attr``.
+
+    Args:
+        data: Dictionary whose keys become instance attributes.
+    """
 
     def __init__(self, data):
         for key, value in data.items():
@@ -17,7 +27,18 @@ class ValidationProxy:
 
 
 def sanitize_for_json(obj):
-    """Recursively convert non-native scalar values to JSON-safe types."""
+    """Recursively convert non-native scalar values to JSON-safe types.
+
+    Handles NumPy scalars, custom bool types, and nested structures to
+    ensure the result can be stored in Flask's session (which serialises
+    to JSON).
+
+    Args:
+        obj: Arbitrary Python object.
+
+    Returns:
+        A JSON-serialisable equivalent of *obj*.
+    """
     if isinstance(obj, dict):
         return {k: sanitize_for_json(v) for k, v in obj.items()}
     if isinstance(obj, (list, tuple)):
@@ -74,7 +95,17 @@ def get_parsing_result_from_session(experiment_id):
 
 
 def normalize_parsing_result(result_dict):
-    """Backfill expected parsing keys for backward-compatible template access."""
+    """Backfill expected parsing keys for backward-compatible template access.
+
+    Ensures that all keys expected by the staging templates are present,
+    using sensible defaults for any that are missing.
+
+    Args:
+        result_dict: Raw parsing result dictionary (may have missing keys).
+
+    Returns:
+        dict: Copy of *result_dict* with all expected keys guaranteed.
+    """
     if not isinstance(result_dict, dict):
         return result_dict
     out = dict(result_dict)
@@ -89,7 +120,17 @@ def normalize_parsing_result(result_dict):
 
 
 def recover_parsing_result_from_db(experiment_id: int):
-    """Rebuild minimal parsing state from persisted variant rows."""
+    """Rebuild minimal parsing state from persisted variant rows.
+
+    Falls back to querying the database when no session-cached parsing
+    result exists (e.g. after session expiry or server restart).
+
+    Args:
+        experiment_id: Target experiment primary key.
+
+    Returns:
+        dict with estimated parsing counts, or None if no variants exist.
+    """
     try:
         total_records = db.session.execute(
             text(
@@ -156,7 +197,11 @@ def clear_sequence_reprocess_required(experiment_id):
 
 
 def clear_experiment_session_state(experiment_id: int):
-    """Remove all staging session keys tied to one experiment."""
+    """Remove all staging session keys tied to one experiment.
+
+    Args:
+        experiment_id: Target experiment primary key.
+    """
     flask_session.pop(f'validation_{experiment_id}', None)
     flask_session.pop(f'parsing_result_{experiment_id}', None)
     flask_session.pop(f'sequence_status_{experiment_id}', None)

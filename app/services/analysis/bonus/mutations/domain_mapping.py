@@ -11,9 +11,21 @@ from app.services.analysis.bonus.database.postgres import db_conn, detect_wt_id_
 
 
 def query_domain_enrichment(conn, generation_id: int, wt_id: int) -> pd.DataFrame:
-    """
-    Joins protein mutations against UniProt feature intervals (protein_features)
-    to produce per-domain non-synonymous/synonymous counts and density.
+    """Join protein mutations against UniProt feature intervals for enrichment.
+
+    Queries the ``protein_features`` table to compute per-domain counts of
+    non-synonymous and synonymous mutations along with density metrics.
+
+    Args:
+        conn: Active PostgreSQL connection.
+        generation_id: Generation to analyse.
+        wt_id: Wild-type ID used by ``protein_features.wt_id``.
+
+    Returns:
+        DataFrame with columns: ``generation_id``, ``feature_type``,
+        ``domain_label``, ``nonsyn_count``, ``syn_count``,
+        ``total_protein_mutations``, ``domain_length``,
+        ``nonsyn_per_residue``.
     """
     return pd.read_sql_query(
         """

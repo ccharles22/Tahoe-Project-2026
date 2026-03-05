@@ -1,3 +1,8 @@
+<!-- Template: Protein Similarity Network — interactive co-occurrence / Jaccard network page.
+     Provides a two-column layout with a controls sidebar (preset, threshold filters)
+     and a plot output area.  Client-side JS tracks dirty state and enables the
+     "Update network" button only when settings change.  Receives `experiment_id`,
+     `protein_png`, network metadata, filter values, and `cache_buster`. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -304,19 +309,24 @@
     </style>
   </head>
   <body>
+    <!-- Main Content -->
     <main class="page">
       <section class="panel">
         <div class="panel__body">
+          <!-- Metadata pills — current mode, mutation count, and available protein sequences -->
           <div class="meta-row">
             <span class="meta-pill">Mode: {{ mode_label }}</span>
             <span class="meta-pill">Mutations loaded: {{ mutations_loaded }}</span>
             <span class="meta-pill">Protein sequences available: {{ proteins_available }}</span>
           </div>
+          <!-- Optional data warning — shown when network data is incomplete -->
           {% if network_data_warning %}
           <p class="warning-note">{{ network_data_warning }}</p>
           {% endif %}
 
+          <!-- Network layout — controls sidebar + plot viewer -->
           <div class="network-layout">
+            <!-- Controls card — form that reloads the page with new filter parameters -->
             <form method="get" action="/protein_similarity/{{ experiment_id }}" id="networkControlsForm" class="controls-card">
               <div class="controls-grid">
                 <section class="control-group control-group--network">
@@ -397,6 +407,7 @@
               </div>
             </form>
 
+            <!-- Plot output — rendered network image with download link -->
             <section class="plot-wrap">
               <div class="plot-head">
                 <a class="plot-download" href="{{ url_for('static', filename=protein_png) }}?v={{ cache_buster }}" target="_blank" rel="noopener">Download PNG</a>
@@ -408,6 +419,7 @@
       </section>
     </main>
 
+    <!-- Client-side JS — tracks control changes, toggles Apply button, and manages preset auto-fill -->
     <script>
       const controlsForm = document.getElementById("networkControlsForm");
       const applyBtn = document.getElementById("applyBtn");

@@ -1,8 +1,13 @@
-/* db_error.html styles */
-
 /* ================================================================
-   GLOBAL DESIGN SYSTEM — Direct Evolution Monitoring
-   Clean, professional, consistent across all pages.
+   db_error.css
+   Styles for the database connection error page (db_error.html).
+   Includes a full copy of the global design system tokens and
+   reusable components so the error page is self-contained and
+   renders correctly even when the main app stylesheet fails.
+
+   Notable technique: A CSS-only robot illustration is built
+   entirely from positioned <div> elements with gradients,
+   border-radius, and box-shadows — no images required.
    ================================================================ */
 
 /* ---------- DESIGN TOKENS ---------- */
@@ -65,7 +70,7 @@ a:hover { text-decoration: underline; }
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 100; /* Stay above page content when scrolling */
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
@@ -237,12 +242,12 @@ a:hover { text-decoration: underline; }
 .input:focus, input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); /* Focus ring via spread-only box-shadow */
 }
 
 .input.is-invalid, input.is-invalid {
   border-color: var(--danger);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, .08);
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .08); /* Red focus ring for invalid state */
 }
 
 .hint {
@@ -402,7 +407,6 @@ a:hover { text-decoration: underline; }
 
 
 /* ---------- UTILITIES ---------- */
-/* ---------- UTILITIES ---------- */
 .text-center { text-align: center; }
 .ml-auto { margin-left: auto; }
 .text-danger { color: var(--danger); }
@@ -432,7 +436,12 @@ a:hover { text-decoration: underline; }
 }
 
 
-/* ---------- DB Error Page ---------- */
+/* ---------- DB Error Page ----------
+   Full-viewport dark-themed centering layout with a CSS-only
+   robot illustration. Each body part (.robot__head, __body,
+   __arm, __eye, __mouth) is absolutely positioned within a
+   relative container to compose the figure. */
+
 .db-error-page {
   min-height: 100vh;
   display: flex;
@@ -460,6 +469,7 @@ a:hover { text-decoration: underline; }
   flex-shrink: 0;
 }
 
+/* Robot head — z-index: 2 so it overlaps the body below it */
 .db-error-page .robot__head {
   position: absolute;
   background: linear-gradient(135deg, #6c7a89, #8e9eab);
@@ -479,6 +489,7 @@ a:hover { text-decoration: underline; }
   position: relative;
 }
 
+/* Eye highlight — tiny pseudo-element creates a specular light reflection */
 .db-error-page .robot__eye::after {
   content: '';
   position: absolute;
@@ -490,10 +501,11 @@ a:hover { text-decoration: underline; }
   background: rgba(255,255,255,.7);
 }
 
+/* Mouth — half-circle built with top-half border-radius + transparent fill */
 .db-error-page .robot__mouth {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%); /* Horizontally centred on head */
 }
 
 .db-error-page .robot__body {
@@ -562,6 +574,8 @@ a:hover { text-decoration: underline; }
   transform: rotate(-10deg);
 }
 
+/* --- Error Card Content --- */
+
 .db-error-title {
   font-size: 22px;
   color: #1e90ff;
@@ -574,6 +588,8 @@ a:hover { text-decoration: underline; }
   color: #a0a0b8;
   margin-bottom: 10px;
 }
+
+/* --- Troubleshooting Hint Box --- */
 
 .db-error-hint {
   font-size: 12px;
@@ -591,6 +607,8 @@ a:hover { text-decoration: underline; }
   font-family: "Cascadia Code", Consolas, monospace;
   font-size: 12px;
 }
+
+/* --- Retry Action --- */
 
 .db-error-retry {
   display: inline-block;

@@ -17,9 +17,14 @@ class QualityControl:
     def __init__(self, config: Dict = None, *, percentile_mode: bool = False, percentile_low: float = 1.0, percentile_high: float = 99.0):
         """
         Initialize QC validator.
-        
+
         Args:
-            config: Optional custom configuration (defaults to parsing.config)
+            config: Optional custom validation rules that override defaults
+                from ``parsing.config.VALIDATION_RULES``.
+            percentile_mode: When True, yield thresholds are computed from
+                the dataset distribution rather than using static limits.
+            percentile_low: Lower percentile boundary (default 1st).
+            percentile_high: Upper percentile boundary (default 99th).
         """
         self.required_fields = REQUIRED_FIELDS
         self.validation_rules = VALIDATION_RULES

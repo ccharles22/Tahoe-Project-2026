@@ -14,7 +14,21 @@ from matplotlib.patches import Rectangle
 
 
 def plot_top10_table(df_top10: pd.DataFrame, out_path: Union[str, Path]) -> None:
-    """Render the Top 10 ranking table image for one experiment."""
+    """Render the Top 10 ranking table image for one experiment.
+
+    Generates a styled Matplotlib table figure with header emphasis and zebra
+    striping, saved as a raster image.
+
+    Args:
+        df_top10: DataFrame of top-10 variants.  Preferred columns (in order):
+            ``generation_number``, ``plasmid_variant_index``,
+            ``activity_score``, ``total_mutations``.  Falls back to whatever
+            columns are present.
+        out_path: Destination file path for the saved image.
+
+    Raises:
+        ValueError: If *df_top10* is ``None`` or empty.
+    """
     if df_top10 is None or df_top10.empty:
         raise ValueError("df_top10 is empty; nothing to plot")
 

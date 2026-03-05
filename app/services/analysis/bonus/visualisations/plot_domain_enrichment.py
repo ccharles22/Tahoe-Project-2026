@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+﻿"""Plotly heatmap and bar chart for domain-level mutation enrichment."""
+
+from __future__ import annotations
 
 import argparse
 from pathlib import Path
@@ -22,6 +24,7 @@ _METRIC_LABELS = {
 
 
 def _metric_label(metric: str) -> str:
+    """Return a human-readable axis label for the given metric key."""
     return _METRIC_LABELS.get(metric, metric)
 
 
@@ -30,7 +33,19 @@ def plot_domain_enrichment(
     metric: Literal["nonsyn_count", "nonsyn_per_residue"] = "nonsyn_count",
     out_path: Path | str = "outputs/domain_enrichment_heatmap.html",
 ) -> Path:
-    """Bar chart for a single generation, or cross-generation heatmap when generation_id is None."""
+    """Generate a domain-level mutation enrichment visualisation.
+
+    Produces a horizontal bar chart for a single generation, or a
+    cross-generation heatmap when ``generation_id`` is ``None``.
+
+    Args:
+        generation_id: Restrict to one generation, or ``None`` for all.
+        metric: Which enrichment metric to display.
+        out_path: Destination HTML file path.
+
+    Returns:
+        Path to the written HTML file.
+    """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 
@@ -84,6 +99,7 @@ def plot_domain_enrichment(
         return out_path
 
     # ---- Cross-generation heatmap ----
+    # Pivot so rows = domains, columns = generations, values = chosen metric
     heat = df.pivot_table(
         index="domain_label",
         columns="generation",
@@ -100,7 +116,7 @@ def plot_domain_enrichment(
     heat = heat.sort_values("_total", ascending=True)
     heat = heat.drop(columns="_total")
 
-    # Build the heatmap with go.Heatmap for full control
+    # Build annotation text: display the raw value inside each heatmap cell
     z = heat.values
     x_labels = list(heat.columns)
     y_labels = list(heat.index)
@@ -175,6 +191,7 @@ def plot_domain_enrichment(
 
 
 def main():
+    """CLI entrypoint for exporting a domain enrichment heatmap."""
     ap = argparse.ArgumentParser(description="Plot domain-level mutation enrichment heatmap.")
     ap.add_argument("--generation-id", type=int, required=False, help="Optional: filter to one generation.")
     ap.add_argument("--metric", choices=["nonsyn_count", "nonsyn_per_residue"], default="nonsyn_count")

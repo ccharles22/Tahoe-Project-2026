@@ -19,7 +19,25 @@ def plot_activity_distribution(
     out_path: Union[str, Path],
     baseline_label: str = "WT control baseline = 1.0",
 ) -> None:
-    """Render the violin-style activity distribution plot for one experiment."""
+    """Render the violin-style activity distribution plot for one experiment.
+
+    Produces a violin plot overlaid with min/max whiskers, mean, and median
+    markers for each generation, saved as a raster image.
+
+    Args:
+        df_dist: DataFrame containing at least a generation column and an
+            activity-score column.  Recognised generation columns (in
+            priority order): ``generation_number``, ``generation_id``,
+            ``generation``, ``gen``.  Score columns: ``activity_score``,
+            ``value``, ``score``.
+        out_path: Destination file path for the saved figure (PNG recommended).
+        baseline_label: Legend label for the horizontal WT-baseline reference
+            line drawn at *y = 1.0*.
+
+    Raises:
+        ValueError: If *df_dist* is ``None``/empty or the expected columns
+            cannot be found.
+    """
     if df_dist is None or df_dist.empty:
         raise ValueError("df_dist is empty; nothing to plot")
 
@@ -31,12 +49,12 @@ def plot_activity_distribution(
     if gen_col is None or score_col is None:
         raise ValueError(f"Expected generation + score columns, got: {list(df_dist.columns)}")
 
-    d = df_dist[[gen_col, score_col]].copy() #Only relevant colummns, and copy to avoid modifying the original dataframe
+    d = df_dist[[gen_col, score_col]].copy()  # Copy to avoid mutating the caller's DataFrame
     d[score_col] = pd.to_numeric(d[score_col], errors="coerce")
     d = d.dropna(subset=[gen_col, score_col])
 
     # Keep generation order explicit so plot positions and labels stay aligned.
-    generations = sorted(d[gen_col].unique().tolist()) #unique generations in sorted order
+    generations = sorted(d[gen_col].unique().tolist())
     data = [d.loc[d[gen_col] == g, score_col].to_numpy() for g in generations]
     # Use sequential positions to keep spacing/layout consistent with the reference style.
     xs = np.arange(1, len(generations) + 1)
@@ -57,10 +75,10 @@ def plot_activity_distribution(
         body.set_edgecolor("none")
 
     # Summary stats are overlaid to make central tendency and spread easy to compare.
-    mins = np.array([np.min(v) for v in data]) #min value for each generation
-    maxs = np.array([np.max(v) for v in data]) #max value for each generation
-    means = np.array([np.mean(v) for v in data]) #mean value for each generation
-    medians = np.array([np.median(v) for v in data]) #median value for each generation
+    mins = np.array([np.min(v) for v in data])
+    maxs = np.array([np.max(v) for v in data])
+    means = np.array([np.mean(v) for v in data])
+    medians = np.array([np.median(v) for v in data])
 
     ax.vlines(xs, mins, maxs, linewidth=2.5)
     cap = 0.10
@@ -75,11 +93,12 @@ def plot_activity_distribution(
     ax.set_ylabel("Activity Score", fontsize=14)
     ax.axhline(1.0, color="red", linewidth=1.4, alpha=0.8, linestyle="--", label=baseline_label)
 
-    y_min = float(np.min(mins)) #min value across all generations
-    y_max = float(np.max(maxs)) #max value across all generations
+    y_min = float(np.min(mins))
+    y_max = float(np.max(maxs))
     # Add adaptive padding so whiskers and baseline are not clipped.
-    pad = max(0.5, 0.08 * (y_max - y_min)) #bìvisibility of all data points and baseline
-    ax.set_ylim(y_min - pad, y_max + pad) 
+    # Adaptive padding ensures whiskers and the baseline are not clipped.
+    pad = max(0.5, 0.08 * (y_max - y_min))
+    ax.set_ylim(y_min - pad, y_max + pad)
 
     ax.set_xticks(xs)
     ax.set_xticklabels([str(g) for g in generations], fontsize=12)

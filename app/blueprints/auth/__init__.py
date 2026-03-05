@@ -4,4 +4,4 @@ from flask import Blueprint
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
-from . import routes 
+from . import routes  # noqa: E402 – deferred to register routes with the blueprint

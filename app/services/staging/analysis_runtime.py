@@ -13,7 +13,18 @@ logger = logging.getLogger(__name__)
 
 
 def generate_protein_network_plot(experiment_id: int) -> tuple[bool, str]:
-    """Generate protein similarity network PNG for one experiment."""
+    """Generate protein similarity network PNG for one experiment.
+
+    Fetches variant protein sequences from the database, computes pairwise
+    similarity, and renders a network visualisation to the experiment's
+    static output directory.
+
+    Args:
+        experiment_id: Target experiment primary key.
+
+    Returns:
+        Tuple of (success_flag, human-readable message).
+    """
     try:
         from app.services.analysis.database import get_conn
         from app.services.analysis.plots.protein_similarity_network import plot_protein_similarity_network
@@ -47,7 +58,14 @@ def generate_protein_network_plot(experiment_id: int) -> tuple[bool, str]:
 
 
 def _get_latest_generation_id(experiment_id: int) -> int | None:
-    """Return latest generation_id for an experiment, or None when unavailable."""
+    """Return the highest generation_id for an experiment, or None if unavailable.
+
+    Args:
+        experiment_id: Target experiment primary key.
+
+    Returns:
+        The latest generation_id, or None on any failure.
+    """
     try:
         from app.services.analysis.database import get_conn
     except Exception:
@@ -75,7 +93,18 @@ def _get_latest_generation_id(experiment_id: int) -> int | None:
 
 
 def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool, str]:
-    """Run bonus analysis pipeline for the latest generation in this experiment."""
+    """Run the bonus analysis pipeline for the latest generation.
+
+    Spawns ``run_bonus_pipeline`` as a subprocess, writing landscape and
+    supplementary visualisations into the experiment's bonus output directory.
+
+    Args:
+        experiment_id: Target experiment primary key.
+        app_obj: Flask application object (used to locate repo root and static dir).
+
+    Returns:
+        Tuple of (success_flag, human-readable message).
+    """
     generation_id = _get_latest_generation_id(experiment_id)
     if generation_id is None:
         return False, 'Bonus outputs skipped: no generation found.'
@@ -122,7 +151,19 @@ def run_bonus_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool
 
 
 def run_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool, str]:
-    """Run analysis for one experiment and return success state + message."""
+    """Run the full analysis pipeline for one experiment.
+
+    Executes the main analysis report subprocess, then generates the
+    protein similarity network plot and bonus visualisations within an
+    application context.
+
+    Args:
+        experiment_id: Target experiment primary key.
+        app_obj: Flask application object.
+
+    Returns:
+        Tuple of (success_flag, human-readable status message).
+    """
     repo_root = os.path.dirname(app_obj.root_path)
     env = os.environ.copy()
     env['EXPERIMENT_ID'] = str(experiment_id)
@@ -163,5 +204,10 @@ def run_analysis_for_experiment(experiment_id: int, app_obj) -> tuple[bool, str]
 
 
 def run_analysis_background(experiment_id: int, app_obj) -> None:
-    """Run analysis in a background thread to avoid blocking web requests."""
+    """Run analysis in a background thread to avoid blocking web requests.
+
+    Args:
+        experiment_id: Target experiment primary key.
+        app_obj: Flask application object.
+    """
     run_analysis_for_experiment(experiment_id, app_obj)

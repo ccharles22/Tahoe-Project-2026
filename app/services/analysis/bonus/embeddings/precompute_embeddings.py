@@ -54,11 +54,21 @@ def compute_pca_xy(X: pd.DataFrame, seed: int = 42) -> pd.DataFrame:
 
 
 def compute_tsne_xy(X: pd.DataFrame, seed: int = 42, perplexity: int = 30) -> pd.DataFrame:
-    """Return two-dimensional t-SNE coordinates when enough rows are present."""
+    """Return two-dimensional t-SNE coordinates when enough rows are present.
+
+    Args:
+        X: Feature matrix with variant_id as index.
+        seed: Random seed for reproducibility.
+        perplexity: t-SNE perplexity; auto-clamped to ``[2, n-1]``.
+
+    Returns:
+        DataFrame with columns ``variant_id``, ``tsne_x``, ``tsne_y``.
+    """
     n = X.shape[0]
     if n < 3:
         return pd.DataFrame({"variant_id": X.index, "tsne_x": np.nan, "tsne_y": np.nan})
 
+    # Clamp perplexity to valid range: must be < n
     p = min(perplexity, max(2, n - 1))
     tsne = TSNE(
         n_components=2,
@@ -144,16 +154,19 @@ def precompute_embeddings_for_generation(
         if variants.empty:
             raise RuntimeError(f"No variants found for generation_id={generation_id}")
 
+        # Build binary mutation feature matrix for dimensionality reduction
         X = build_mutation_matrix(muts)
 
         all_vids = variants["variant_id"].astype(int).tolist()
 
+        # When no protein mutations exist, assign zero coordinates
         if X.empty:
             coords = pd.DataFrame({"variant_id": all_vids, "pca_x": 0.0, "pca_y": 0.0})
             if include_tsne:
                 coords["tsne_x"] = 0.0
                 coords["tsne_y"] = 0.0
         else:
+            # Ensure all variant IDs are present; missing ones get zero vectors
             X = X.reindex(all_vids, fill_value=0)
             coords = compute_pca_xy(X, seed=seed)
 
@@ -163,6 +176,7 @@ def precompute_embeddings_for_generation(
 
         metric_def_ids = fetch_metric_definition_ids(conn, ["pca_x", "pca_y", "tsne_x", "tsne_y"])
 
+        # Delete-then-insert pattern for idempotent upsert
         names = ["pca_x", "pca_y"] + (["tsne_x", "tsne_y"] if include_tsne else [])
         delete_metrics_by_name(conn, generation_id=generation_id, metric_names=names, metric_type="derived")
 

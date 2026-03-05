@@ -23,6 +23,7 @@ def dev_plasmid_fasta(experiment_id: int):
 
     dna = backtranslate(wt.amino_acid_sequence)
 
+    # Format as FASTA with standard 70-character line wrapping.
     fasta = f'>dev_plasmid_experiment_{experiment_id}\n'
     for i in range(0, len(dna), 70):
         fasta += dna[i:i + 70] + '\n'

@@ -20,6 +20,7 @@ def download_experiment_results_csv(experiment_id: int):
     if not experiment_owned_by_current_user(experiment_id):
         return Response('Experiment not found.', status=404)
 
+    # Pivot metrics into columns so each variant row carries its key KPIs.
     rows = db.session.execute(
         text(
             """
@@ -137,6 +138,7 @@ def download_experiment_mutation_report_csv(experiment_id: int):
         ]
     )
     for r in analysis_rows:
+        # Navigate the nested JSONB: extra_metadata → sequence_analysis → mutations.
         extra_metadata = r['extra_metadata'] if isinstance(r['extra_metadata'], dict) else {}
         seq_payload = extra_metadata.get('sequence_analysis') if isinstance(extra_metadata, dict) else {}
         payload_mutations = seq_payload.get('mutations') if isinstance(seq_payload, dict) else None

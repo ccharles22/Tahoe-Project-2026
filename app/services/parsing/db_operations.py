@@ -203,7 +203,8 @@ def batch_upsert_variants(
         key=lambda item: safe_int(item[0].get("generation")) or 0
     )
 
-    # Pre-create all generations first
+    # Pre-create all Generation rows so foreign-key lookups succeed
+    # during the subsequent variant-insert loop.
     gen_cache: Dict[int, Generation] = {}
     gen_nums_needed: Set[int] = set()
     for core_data, _ in prepared_records:
@@ -228,8 +229,8 @@ def batch_upsert_variants(
         for variant_id, generation_number, plasmid_variant_index in variant_rows
     }
 
-    # Process variants + metrics inside no_autoflush to avoid
-    # mid-loop flushes that can fail on flaky connections.
+    # Process variants + metrics inside no_autoflush to batch writes and
+    # avoid mid-loop flushes that can fail on high-latency connections.
     with session.no_autoflush:
         wt_control_cache: Dict[int, WildtypeControl] = {}
         cleared_wt_generations: Set[int] = set()
@@ -341,6 +342,8 @@ def batch_upsert_variants(
                 variant_lookup[(gen_num, variant_index)] = v.variant_id
                 inserted_count += 1
 
+        # Aggregate WT control replicate values per generation and persist
+        # the averaged metrics as the representative control measurement.
         for gen_num, values in wt_control_values.items():
             wt_control = wt_control_cache[gen_num]
             dna_values = values["dna"]
@@ -377,7 +380,18 @@ def batch_insert_variants(
     experiment_id: int,
     extract_metadata_func: callable,
 ) -> int:
-    """Insert-only variant of batch_upsert_variants."""
+    """Insert-only convenience wrapper around :func:`batch_upsert_variants`.
+
+    Args:
+        session: SQLAlchemy session (caller commits/rollbacks).
+        records: List of parsed record dicts.
+        experiment_id: Target experiment.
+        extract_metadata_func: Parser helper that splits a record into
+            (core_data, extra_metadata).
+
+    Returns:
+        Number of records inserted.
+    """
     inserted, _ = batch_upsert_variants(
         session, records, experiment_id, extract_metadata_func,
     )

@@ -1,3 +1,6 @@
+<!-- Template: Distribution — activity score distribution plot for a single experiment.
+     Renders a standalone page with a violin/box plot image showing how activity
+     scores spread across generations.  Receives `experiment_id` and `dist_png`. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -122,10 +125,12 @@
     </style>
   </head>
   <body>
+    <!-- Main Content — single panel containing the distribution plot -->
     <main class="page">
       <section class="panel">
         <div class="panel__head">
           <h1>Distribution</h1>
+          <!-- Info tooltip — hover/focus reveals an explanation of the chart -->
           <button class="info-chip" type="button" aria-label="What this graph shows">
             i
             <span class="info-chip__tip">

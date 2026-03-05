@@ -1,8 +1,11 @@
 """
 Compatibility adapter for legacy staging imports.
 
-Canonical UniProt implementation lives in:
-    app.services.uniprot_service
+Wraps the canonical UniProt service (``app.services.sequence.uniprot_service``)
+in a dict-shaped interface expected by older staging route code.
+
+Canonical implementation lives in:
+    app.services.sequence.uniprot_service
 """
 
 from app.services.sequence.uniprot_service import (
@@ -16,10 +19,25 @@ class UniprotServiceError(Exception):
 
 
 class UniprotService:
+    """Legacy dict-based UniProt client kept for backward compatibility."""
+
     @staticmethod
     def fetch(accession: str) -> dict:
-        """
-        Legacy dict-shaped response backed by the canonical UniProt service.
+        """Fetch a UniProt entry and return a flat dictionary.
+
+        Delegates to the canonical ``acquire_uniprot_entry_with_features``
+        and re-shapes the result into the dict format expected by older
+        staging templates.
+
+        Args:
+            accession: UniProt accession string.
+
+        Returns:
+            dict with keys: sequence, protein_length, features,
+            protein_name, organism.
+
+        Raises:
+            UniprotServiceError: On any retrieval failure.
         """
         try:
             entry = acquire_uniprot_entry_with_features(accession)

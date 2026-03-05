@@ -58,7 +58,23 @@ def _process_one_variant(
     fallback_search: bool,
     wt_plasmid: Optional[str] = None,
 ) -> VariantAnalysisItem:
-    """Process a single variant — safe for parallel execution via ThreadPoolExecutor."""
+    """Process a single variant and return an analysis item.
+
+    Extracts the variant CDS using WT coordinates, translates to protein,
+    and calls mutations against the WT sequence.
+
+    Args:
+        variant_id: Database ID of the variant to process.
+        variant_plasmid_dna: Full plasmid DNA sequence for the variant.
+        wt_mapping: Pre-computed WT gene mapping (coordinates, strand, frame).
+        fallback_search: If True, attempt backbone-anchor remap when the
+            primary coordinate extraction fails.
+        wt_plasmid: Normalised WT plasmid DNA for backbone-anchor fallback.
+
+    Returns:
+        VariantAnalysisItem containing the sequence result, mutation counts,
+        and mutation records (empty lists for failed extractions).
+    """
     seq_result = process_variant_plasmid(
         variant_plasmid_dna,
         wt_mapping,
@@ -218,7 +234,8 @@ def run_sequence_processing(experiment_id: int, *, force_reprocess: bool = False
             key=lambda x: x[0],
         )
 
-        # Skip already-processed variants unless forced
+        # Filter out variants that already have analysis results to avoid
+        # redundant computation on re-runs (unless force_reprocess is set).
         if not force_reprocess:
             already_done = db_repo.list_processed_variant_ids(engine, experiment_id)
             if already_done:

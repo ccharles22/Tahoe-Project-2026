@@ -66,6 +66,7 @@ def rename_experiment():
 def create_new_blank_experiment():
     """Create a blank experiment so users can configure it step by step."""
     default_name = f"Experiment {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+    # wt_id=0 acts as a placeholder until the user associates a WT protein.
     exp = Experiment(
         name=default_name,
         user_id=current_user.user_id,

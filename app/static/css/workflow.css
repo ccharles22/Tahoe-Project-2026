@@ -1,13 +1,32 @@
-/* workflow.html styles */
-
 /* ================================================================
-   GLOBAL DESIGN SYSTEM — Direct Evolution Monitoring
-   Clean, professional, consistent across all pages.
+   workflow.css
+   Styles for the experiment workflow / staging page (workflow.html).
+   Contains a full copy of the global design system plus all
+   page-specific components:
+
+   - 3D DNA helix loading overlay (run-loader)
+   - Multi-step progress stepper bar
+   - Three-column app shell (taskbar | sidebar | workspace)
+   - Sidebar experiment list with inline rename/delete
+   - Task cards with collapsible bodies and status badges
+   - Run summary banner with KPI grid
+   - Analysis studio with iframe viewer
+   - Top-results table with interactive variant modal drawer
+   - Warning insights filters and grouped table
+   - Core & advanced visualisation tabs
+   - Responsive breakpoints for tablet and mobile
+
+   Key techniques used:
+   - CSS 3D transforms + preserve-3d for the DNA loading helix
+   - CSS zoom with @supports fallback (transform: scale) for
+     the app shell
+   - position: sticky for taskbar, sidebar, and stepper bar
+   - Slide-in modal drawer pattern for variant detail view
    ================================================================ */
 
 /* ---------- DESIGN TOKENS ---------- */
 :root {
-  --ui-scale: 0.9;
+  --ui-scale: 0.9; /* Global zoom factor for the app shell */
   /* Neutrals */
   --bg: #f4f9ff;
   --surface: #ffffff;
@@ -62,16 +81,21 @@ body {
 }
 
 body.is-run-loading {
-  overflow: hidden;
+  overflow: hidden; /* Prevent background scroll during processing overlay */
 }
 
 a { color: var(--primary); text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* --- Run Loader Overlay ---
+   Full-viewport loading indicator shown while sequence processing
+   runs. Features a 3D-animated DNA helix built with CSS
+   transform-style: preserve-3d and rotateX/rotateZ keyframes. */
+
 .run-loader {
   position: fixed;
   inset: 0;
-  z-index: 160;
+  z-index: 160; /* Above stepper (z: 99) and topbar (z: 100) */
   display: grid;
   place-items: center;
   padding: 24px;
@@ -90,7 +114,7 @@ a:hover { text-decoration: underline; }
   inset: 0;
   background:
     linear-gradient(180deg, rgba(244, 250, 255, 0.48) 0%, rgba(228, 242, 255, 0.56) 100%);
-  backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px); /* Frosted glass effect over page content */
 }
 
 .run-loader__dialog {
@@ -112,10 +136,13 @@ a:hover { text-decoration: underline; }
   text-align: center;
 }
 
+/* 3D perspective container for the DNA helix animation */
 .run-loader__dna-shell {
   perspective: 1400px;
 }
 
+/* Rotating disc that carries the DNA rings; preserve-3d keeps
+   children in real 3D space for depth perception. */
 .run-loader__dna-rotor {
   width: 180px;
   aspect-ratio: 1;
@@ -187,6 +214,7 @@ a:hover { text-decoration: underline; }
   line-height: 1.6;
 }
 
+/* Tilted 65° on X axis, continuous 360° rotation on Z */
 @keyframes runLoaderRotate {
   from { transform: rotateX(65deg) rotateZ(0deg); }
   to { transform: rotateX(65deg) rotateZ(360deg); }
@@ -207,7 +235,7 @@ a:hover { text-decoration: underline; }
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 100; /* Stay above page content when scrolling */
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
@@ -379,7 +407,7 @@ a:hover { text-decoration: underline; }
 .input:focus, input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); /* Focus ring via spread-only box-shadow */
 }
 
 .input.is-invalid, input.is-invalid {
@@ -429,6 +457,10 @@ a:hover { text-decoration: underline; }
   letter-spacing: .02em;
   color: var(--text-secondary);
 }
+
+/* --- Badge pseudo-element indicators ---
+   Workflow badges use ::before content characters instead of
+   background colours, keeping the badge inline-clean. */
 
 .badge::before {
   display: inline-block;
@@ -641,7 +673,11 @@ a:hover { text-decoration: underline; }
   font-size: 13px;
 }
 
-/* Sidebar task cards */
+/* --- Sidebar Task Cards ---
+   Collapsible step cards with visual state indicators.
+   Active step glows via box-shadow ring; completed steps
+   show a subtle green gradient background. */
+
 .task {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -659,7 +695,7 @@ a:hover { text-decoration: underline; }
 
 .task.is-locked .task__body { display: none; }
 
-/* Current step emphasis */
+/* Current step emphasis — blue ring draws attention to the active step */
 .task--current {
   border-color: #5b9cff;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, .25), var(--shadow-sm);
@@ -686,7 +722,8 @@ a:hover { text-decoration: underline; }
   filter: none;
 }
 
-/* Completed step (collapsed by default) */
+/* Completed step (collapsed by default) —
+   max-height: 0 + overflow: hidden for CSS-only collapse animation */
 .task--collapsed .task__body {
   max-height: 0;
   overflow: hidden;
@@ -850,14 +887,17 @@ a:hover { text-decoration: underline; }
   border-left-color: var(--danger);
 }
 
-/* ---------- PROGRESS STEPPER (full-width bar) ---------- */
+/* --- Progress Stepper Bar ---
+   Sticky horizontal bar below the topbar showing pipeline
+   progress as numbered circles connected by gradient lines. */
+
 .stepper-bar {
   background: linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
   border-bottom: 1px solid #dbe7f6;
   padding: 10px 24px 8px;
   position: sticky;
-  top: 49px;
-  z-index: 99;
+  top: 49px;  /* Below the 56px topbar minus border */
+  z-index: 99; /* Just below topbar (z: 100) */
   box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.7);
 }
 
@@ -904,6 +944,7 @@ a:hover { text-decoration: underline; }
   position: relative;
 }
 
+/* Checkmark — Unicode character positioned via ::after pseudo-element */
 .stepper__step--done .stepper__circle::after {
   content: "\2713";
   color: #ffffff;
@@ -956,7 +997,10 @@ a:hover { text-decoration: underline; }
   font-weight: 700;
 }
 
-/* Secondary progress indicator */
+/* --- Secondary Progress Bar ---
+   Thin animated fill bar below the step circles for an
+   at-a-glance completion percentage. */
+
 .stepper-bar__progress {
   max-width: 920px;
   margin: 8px auto 0;
@@ -973,7 +1017,10 @@ a:hover { text-decoration: underline; }
   transition: width .5s var(--ease);
 }
 
-/* ---------- RUN SUMMARY BANNER ---------- */
+/* --- Run Summary Banner ---
+   Colour-coded left border indicates overall run status
+   (success / partial / failed). Contains a KPI stat grid. */
+
 .run-summary {
   margin: 0 0 12px;
   padding: 16px 18px;
@@ -1121,7 +1168,10 @@ a:hover { text-decoration: underline; }
   }
 }
 
-/* ---------- SUBMIT BUTTON WITH SPINNER ---------- */
+/* --- Submit Button Spinner ---
+   Inline CSS-only spinner using border + border-top-color.
+   Hidden by default; revealed when .is-loading is toggled. */
+
 .btn--submit {
   position: relative;
 }
@@ -1177,11 +1227,16 @@ a:hover { text-decoration: underline; }
   justify-content: flex-end;
 }
 
+/* --- Collapsible Panel via <details> ---
+   Uses native <details>/<summary> with custom styling;
+   ::after content toggles between "Expand" and "Collapse". */
+
 .panel--collapsible > summary.panel__header {
   cursor: pointer;
   list-style: none;
 }
 
+/* --- Hide native <details> marker across browsers --- */
 .panel--collapsible > summary.panel__header::-webkit-details-marker {
   display: none;
 }
@@ -1517,7 +1572,11 @@ a:hover { text-decoration: underline; }
   }
 }
 
-/* ---------- APP SHELL: 3-column grid ---------- */
+/* --- App Shell: 3-Column Grid ---
+   Taskbar (112px) | Sidebar (312px) | Workspace (fluid).
+   CSS zoom scales the entire shell; @supports fallback uses
+   transform: scale() for browsers without zoom support. */
+
 .staging-page {
   height: 100vh;
   overflow: hidden;
@@ -1526,7 +1585,8 @@ a:hover { text-decoration: underline; }
   zoom: var(--ui-scale);
 }
 
-/* Fallback for browsers that do not support zoom */
+/* Fallback for browsers that do not support zoom —
+   uses transform: scale() with compensating width/height */
 @supports not (zoom: 1) {
   .staging-page {
     transform: scale(var(--ui-scale));
@@ -1552,10 +1612,14 @@ a:hover { text-decoration: underline; }
   display: none;
 }
 
+/* --- Sidebar Rail Toggle ---
+   Small handle button that slides the sidebar open/closed.
+   Positioned absolutely so it sits on the sidebar’s right edge. */
+
 .sidebar-rail-toggle {
   position: absolute;
   top: 18px;
-  left: 412px;
+  left: 412px; /* 112px taskbar + 312px sidebar – 12px overlap */
   z-index: 35;
   width: 22px;
   height: 42px;
@@ -1578,6 +1642,7 @@ a:hover { text-decoration: underline; }
   border-color: #b9d7f3;
 }
 
+/* When sidebar is collapsed, shift toggle to taskbar edge */
 .staging-page.sidebar-collapsed .sidebar-rail-toggle {
   left: 100px;
 }
@@ -1587,7 +1652,10 @@ a:hover { text-decoration: underline; }
   min-height: 0;
 }
 
-/* ---------- TASKBAR (leftmost narrow rail) ---------- */
+/* --- Taskbar (Leftmost Narrow Rail) ---
+   Vertically stacked icon buttons for switching sidebar sections.
+   Sticky within the app shell so it remains visible on scroll. */
+
 .taskbar {
   display: flex;
   flex-direction: column;
@@ -1664,7 +1732,9 @@ a:hover { text-decoration: underline; }
 }
 
 
-/* Keep staging sidebar scroll independent from workspace/page */
+/* --- Sticky Sidebar Scroll ---
+   Keep sidebar scroll independent from workspace/page so each
+   pane scrolls autonomously. */
 .appShell > .sidebar {
   position: sticky;
   top: 48px;
@@ -1818,6 +1888,10 @@ a:hover { text-decoration: underline; }
   padding: 0;
   display: flex;
 }
+
+/* --- Experiment Item Actions ---
+   Delete and rename buttons are hidden by default (opacity: 0)
+   and revealed on hover for a clean, progressive-disclosure UI. */
 
 .experiment-item__delete {
   width: 24px;
@@ -1999,6 +2073,10 @@ a:hover { text-decoration: underline; }
   margin: 14px 0;
 }
 
+/* --- Analysis Studio ---
+   Embedded iframe viewer for interactive Plotly / Bokeh
+   visualisations, with responsive height constraints. */
+
 .analysis-studio {
   margin: 14px 0 18px;
   padding: 14px;
@@ -2058,6 +2136,11 @@ a:hover { text-decoration: underline; }
   cursor: help;
   flex-shrink: 0;
 }
+
+/* --- Info Tooltip ---
+   Tooltip appears above the info button on hover/focus-visible.
+   Uses opacity + transform for a smooth entrance; pointer-events: none
+   prevents the tooltip from interfering with click targets. */
 
 .analysis-title-info__tip {
   position: absolute;
@@ -2384,10 +2467,14 @@ a:hover { text-decoration: underline; }
   background: #eff6ff;
 }
 
+/* --- Variant Detail Modal ---
+   Right-aligned slide-in drawer for viewing individual variant
+   records. Backdrop darkens the page behind it. */
+
 .variant-modal {
   position: fixed;
   inset: 0;
-  z-index: 210;
+  z-index: 210; /* Above stepper/topbar but below advanced modal (z: 250) */
   display: none;
 }
 
@@ -3064,10 +3151,13 @@ a:hover { text-decoration: underline; }
   gap: 8px;
 }
 
+/* --- Advanced Visualisation Modal ---
+   Wider drawer (980px) for detailed plot exploration. */
+
 .advanced-modal {
   position: fixed;
   inset: 0;
-  z-index: 250;
+  z-index: 250; /* Topmost modal layer */
   display: none;
 }
 
@@ -3148,10 +3238,11 @@ a:hover { text-decoration: underline; }
   gap: 8px;
 }
 
-/* ---------- RESPONSIVE: collapse 4-col to 2 or 1 ---------- */
+/* --- Responsive: Collapse App Shell --- */
+
 @media (max-width: 1100px) {
   .appShell {
-    grid-template-columns: 112px 1fr;
+    grid-template-columns: 112px 1fr; /* Drop sidebar, keep taskbar */
   }
   .sidebar { display: none; }
   .sidebar-rail-toggle { display: none; }
@@ -3159,7 +3250,7 @@ a:hover { text-decoration: underline; }
 
 @media (max-width: 640px) {
   .appShell {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr; /* Single column — taskbar hidden */
   }
   .taskbar { display: none; }
   .stats { grid-template-columns: repeat(2, 1fr); }

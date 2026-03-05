@@ -10,6 +10,11 @@
   /* 0. Decorative DNA side rails */
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  /**
+   * Populate a single DNA track element with randomised base-pair spans.
+   * Rows are duplicated so CSS animations can scroll seamlessly.
+   * @param {HTMLElement|null} track - Container element for the DNA decoration.
+   */
   function buildDnaForTrack(track) {
     if (!track) return;
 
@@ -39,12 +44,14 @@
     }
   }
 
+  /** Rebuild all DNA rail tracks present on the page. */
   function rebuildDnaRails() {
     document.querySelectorAll("[data-settings-dna-track]").forEach((track) => {
       buildDnaForTrack(track);
     });
   }
 
+  // Debounce resize events via requestAnimationFrame to avoid layout thrashing
   let resizeFrame = null;
   const scheduleRebuild = () => {
     if (resizeFrame !== null) {
@@ -138,6 +145,11 @@
       { label: "Strong",  color: "#10b981" },
     ];
 
+    /**
+     * Score a password on a 0-4 scale based on length and character diversity.
+     * @param {string} pw - The password string to evaluate.
+     * @returns {number} Score capped at 4.
+     */
     function scorePassword(pw) {
       if (!pw) return 0;
       let score = 0;
@@ -228,6 +240,10 @@
   const currentPwInput = document.getElementById("current_password");
 
   if (newPwInput && currentPwInput) {
+    /**
+     * Ensure both password fields are populated before submission.
+     * Prevents a wasted round-trip when the server would reject anyway.
+     */
     function checkPasswordPair() {
       if (newPwInput.value && !currentPwInput.value) {
         setFieldError(

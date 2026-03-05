@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+﻿"""Two-panel Plotly chart showing mutation frequency by amino-acid position."""
+
+from __future__ import annotations
 
 import argparse
 from pathlib import Path
@@ -25,6 +27,7 @@ _DOMAIN_COLOURS = [
 
 
 def _domain_colour(idx: int) -> str:
+    """Return a semi-transparent RGBA colour for domain background bands."""
     return _DOMAIN_COLOURS[idx % len(_DOMAIN_COLOURS)]
 
 
@@ -101,13 +104,23 @@ def plot_mutation_frequency(
     out_path: Path | str = "outputs/mutation_frequency_by_position.html",
     show_domains: bool = True,
 ) -> Path:
-    """Two-panel mutation frequency plot:
+    """Generate a two-panel mutation frequency plot.
 
-    Top panel - Total non-synonymous mutation count per position
-                (all generations combined), single colour.
-    Bottom panel - Same data stacked by generation for breakdown.
+    Top panel: Total non-synonymous mutation count per amino-acid
+    position (all generations combined), rendered as a bar chart with
+    hotspot annotations.
 
-    Both panels share the x-axis and show optional domain background bands.
+    Bottom panel: Same data stacked by generation as an area chart,
+    with optional domain background bands.
+
+    Args:
+        generation_id: Restrict to one generation, or ``None`` for all.
+        out_path: Destination HTML file path.
+        show_domains: If True, overlay protein domain regions as
+            semi-transparent background bands.
+
+    Returns:
+        Path to the written HTML file.
     """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -222,8 +235,8 @@ def plot_mutation_frequency(
         )
 
     # ---- BOTTOM PANEL: Stacked area by generation ----
-    # Pivot to a full position x generation matrix so the area chart
-    # has a value at every position (fill gaps with 0).
+    # Pivot into a full position × generation matrix so the stacked area
+    # chart has a value at every position (filling gaps with 0).
     all_positions = sorted(df["position"].unique())
     generations = sorted(df["generation_number"].unique())
 
@@ -293,6 +306,7 @@ def plot_mutation_frequency(
 
 
 def main():
+    """CLI entrypoint for exporting the mutation-frequency plot."""
     ap = argparse.ArgumentParser(
         description="Plot mutation frequency by amino acid position (stacked by generation)."
     )

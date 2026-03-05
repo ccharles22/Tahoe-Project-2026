@@ -17,11 +17,13 @@ class TSVParser(BaseParser):
         self.delimiter = None
 
     def _detect_delimiter(self, first_line: str) -> str:
+        """Auto-detect whether the file is tab- or comma-delimited from the header line."""
         tab_count = first_line.count("\t")
         comma_count = first_line.count(",")
         return "\t" if tab_count > comma_count else ","
 
     def _clean_row(self, row: Dict[str, str]) -> Dict[str, Any]:
+        """Strip whitespace, normalise DNA sequences, and coerce known numeric/boolean columns."""
         cleaned = {}
 
         for key, value in row.items():
@@ -62,9 +64,13 @@ class TSVParser(BaseParser):
 
         return cleaned
 
-    # ✅ REQUIRED concrete implementation
     def parse(self) -> bool:
-        """Parse TSV/CSV file."""
+        """Parse TSV/CSV file, auto-detecting the delimiter.
+
+        Returns:
+            True if at least one data row was successfully parsed, False on
+            any fatal error (empty file, encoding issues, no data rows).
+        """
         try:
             with open(self.filepath, "r", encoding="utf-8") as f:
                 first_line = f.readline()

@@ -113,6 +113,7 @@ class BaseParser(ABC):
             pass
 
     def get_summary(self) -> Dict[str, Any]:
+        """Return a summary dict of parsed records, detected fields, and QC results."""
         return {
             "total_records": len(self.records),
             "detected_fields": sorted(self.detected_fields),

@@ -13,9 +13,15 @@
   const closeButton = sheet.querySelector(".auth-sheet__close");
   const backdrop = sheet.querySelector(".auth-sheet__backdrop");
   const openAuth = (document.body.getAttribute("data-open-auth") || "").trim();
+
+  // Detect page reloads (F5 / cmd-R) to avoid re-opening the sheet on refresh
   const navEntry = performance.getEntriesByType("navigation")[0];
   const isReload = (navEntry && navEntry.type === "reload") || (performance.navigation && performance.navigation.type === 1);
 
+  /**
+   * Switch the visible tab inside the auth sheet.
+   * @param {string} name - Tab identifier ("register" or "login").
+   */
   function setTab(name) {
     const target = name === "register" ? "register" : "login";
     tabs.forEach((btn) => {
@@ -28,6 +34,12 @@
     });
   }
 
+  /**
+   * Reveal the auth sheet with a specific tab selected.
+   * @param {string} panel  - Tab to activate on open ("login" | "register").
+   * @param {Object} [options]
+   * @param {boolean} [options.instant] - Skip the opening animation.
+   */
   function openSheet(panel, options = {}) {
     const instant = Boolean(options.instant);
     setTab(panel);
@@ -40,6 +52,7 @@
     }
   }
 
+  /** Hide the auth sheet and restore body scroll. */
   function closeSheet() {
     sheet.classList.remove("is-open");
     sheet.setAttribute("aria-hidden", "true");
@@ -70,5 +83,6 @@
     });
   }
 
+  // Auto-open the sheet on first load when the server requests it via data attribute
   if (openAuth && !isReload) openSheet(openAuth, { instant: true });
 })();

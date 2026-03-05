@@ -23,8 +23,14 @@ LabelMode = Literal["none", "top10", "all"]
 NetworkMode = Literal["identity", "cooccurrence"]
 
 
-@dataclass(frozen=True) #configuration for the protein similarity network plot, with defaults and type annotations
+@dataclass(frozen=True)
 class ProteinNetConfig:
+	"""Frozen configuration for the protein similarity/co-occurrence network plot.
+
+	Covers node/edge styling, spring-layout parameters, similarity thresholds,
+	co-occurrence filters, and node-selection caps to keep the network readable.
+	"""
+
 	# plotting
 	figsize: tuple[float, float] = (14, 8)
 	dpi: int = 200
@@ -73,6 +79,7 @@ class ProteinNetConfig:
 
 
 def _require_networkx() -> None:
+	"""Raise ``ImportError`` with an install hint if *networkx* is unavailable."""
 	if nx is None:
 		raise ImportError(
 			"This plot requires networkx. Install it with:\n"
@@ -98,7 +105,7 @@ def _hamming_distance(a: str, b: str, *, max_dist: int) -> int | None:
 	return d
 
 
-def _pick_nodes_for_network( 
+def _pick_nodes_for_network(
 	nodes: pd.DataFrame,
 	cfg: ProteinNetConfig,
 	*,
@@ -179,14 +186,26 @@ def _pick_nodes_for_network(
 	return base
 
 
-def build_protein_similarity_edges( #build edges based on sequence identity above threshold; only for equal-length sequences; O(N^2) so keep input small
+def build_protein_similarity_edges(
 	nodes_sub: pd.DataFrame,
 	*,
 	id_col: str,
 	seq_col: str,
 	identity_threshold: float,
 ) -> pd.DataFrame:
-	"""Build pairwise similarity edges for equal-length protein sequences."""
+	"""Build pairwise similarity edges for equal-length protein sequences.
+
+	.. warning:: O(N²) all-vs-all comparison — keep *nodes_sub* small (≤ ~400).
+
+	Args:
+		nodes_sub: Subset of variant nodes with at least *id_col* and *seq_col*.
+		id_col: Column used as the unique variant identifier.
+		seq_col: Column containing the protein amino-acid sequence.
+		identity_threshold: Minimum fractional sequence identity to retain an edge.
+
+	Returns:
+		DataFrame with columns ``['u', 'v', 'identity']`` for all passing pairs.
+	"""
 
 	# WARNING: O(N^2) - keep nodes_sub small (<= ~400).
 	ids = nodes_sub[id_col].tolist()
@@ -212,7 +231,7 @@ def build_protein_similarity_edges( #build edges based on sequence identity abov
 	return pd.DataFrame(edges, columns=["u", "v", "identity"])
 
 
-def _build_mutation_sets( 
+def _build_mutation_sets(
 	mutations: pd.DataFrame,
 	*,
 	variant_col: str,
@@ -220,6 +239,18 @@ def _build_mutation_sets(
 	original_col: str,
 	mutated_col: str,
 ) -> dict[int, set[str]]:
+	"""Build per-variant sets of mutation labels (e.g. ``{'A42G', 'R118K'}``).
+
+	Args:
+		mutations: Long-format mutation table with one row per variant-position pair.
+		variant_col: Column identifying the variant.
+		position_col: Column for the residue position number.
+		original_col: Column for the wild-type residue.
+		mutated_col: Column for the mutant residue.
+
+	Returns:
+		Dict mapping each variant ID to its set of ``'{orig}{pos}{mut}'`` labels.
+	"""
 	sets: dict[int, set[str]] = {}
 	if mutations is None or mutations.empty:
 		return sets

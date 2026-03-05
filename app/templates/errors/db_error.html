@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿<!-- Template: Database Error — friendly error page shown when the PostgreSQL
+     server is unreachable.  Displays a CSS robot illustration, diagnostic hints
+     (Tailscale/VPN, pg_isready), and a retry link. -->
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -24,9 +27,11 @@
       <div class="robot__arm robot__arm--right"></div>
     </div>
 
+    <!-- Error Title and Description -->
     <h1 class="db-error-title">Database Unavailable</h1>
     <p class="db-error-text">The PostgreSQL server couldn't be reached. This usually means the database host is offline or the network connection timed out.</p>
 
+    <!-- Diagnostic Hints -->
     <div class="db-error-hint">
       <strong>Things to check:</strong><br>
       &bull; Is the database server running?<br>
@@ -35,6 +40,7 @@
       &bull; Try: <code>pg_isready -h 100.80.183.102 -p 5432</code>
     </div>
 
+    <!-- Retry Action -->
     <a href="/" class="db-error-retry">Retry Connection</a>
   </div>
 </body>

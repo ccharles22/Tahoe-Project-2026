@@ -1,3 +1,7 @@
+<!-- Template: Top 10 — ranked table of the highest-activity variants in an experiment.
+     Features client-side column sorting, CSV clipboard export, and a slide-out
+     drawer that lazy-loads full variant details via the /staging/variant/<id>/details
+     JSON endpoint.  Receives `experiment_id` and `top10_rows`. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -444,6 +448,7 @@
   </head>
   <body>
     <main class="page">
+      <!-- Hero header -->
       <header class="hero">
         <div class="hero__title">
           <h1>Top 10 Variants</h1>
@@ -462,6 +467,7 @@
         </p>
       </header>
 
+      <!-- Interactive Ranking Panel -->
       <section class="panel">
         <div class="panel__head">
           <div>
@@ -533,6 +539,7 @@
       </section>
 
     </main>
+    <!-- Variant Drawer — slide-out panel for full variant details loaded via AJAX -->
     <div class="variant-drawer" id="variantDrawer" aria-hidden="true">
       <div class="variant-drawer__backdrop js-close-variant-drawer"></div>
       <div class="variant-drawer__card" role="dialog" aria-modal="true" aria-labelledby="variantDrawerTitle">
@@ -580,6 +587,7 @@
       </div>
     </div>
 
+    <!-- Client-side JS — column sorting, CSV copy, and variant drawer open/close logic -->
     <script>
       (function () {
         const table = document.getElementById("top10Table");

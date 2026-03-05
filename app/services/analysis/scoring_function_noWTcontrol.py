@@ -4,9 +4,19 @@ import numpy as np
 import pandas as pd
 
 def compute_activity_score_fallback(df_raw: pd.DataFrame) -> pd.DataFrame:
-    """
-    WT-free scoring: within each generation, normalise DNA and protein yields
-    by the generation median, then define activity_score as dna_rel / prot_rel.
+    """Compute WT-free activity scores using per-generation median normalisation.
+
+    Within each generation, DNA and protein yields are divided by their
+    respective medians.  The activity score is then ``dna_rel / prot_rel``.
+
+    Args:
+        df_raw: Must contain ``variant_id``, ``generation_id``,
+            ``dna_yield_raw``, and ``protein_yield_raw``.
+
+    Returns:
+        A DataFrame with columns ``variant_id``, ``generation_id``,
+        ``dna_yield_norm``, ``protein_yield_norm``, and ``activity_score``.
+        Rows with non-finite scores are dropped.
     """
 
     # Work on a copy to keep caller data unchanged.

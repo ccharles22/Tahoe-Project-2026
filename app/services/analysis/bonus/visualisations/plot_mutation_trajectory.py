@@ -17,7 +17,20 @@ def plot_mutation_trajectory(
     top_n: int = 5,
     out_path: Path | str = "outputs/mutation_trajectory.html",
 ) -> Path:
-    """Line chart of cumulative non-synonymous mutations vs generation for the top-N variants."""
+    """Plot cumulative non-synonymous mutations vs generation for top-N lineages.
+
+    For each of the ``top_n`` highest-activity variants in the given
+    generation, the ancestry chain is walked root-to-leaf and the
+    running count of unique protein mutations is plotted.
+
+    Args:
+        generation_id: Generation to select top variants from.
+        top_n: Number of top-ranked variants to include.
+        out_path: Destination HTML file path.
+
+    Returns:
+        Path to the written HTML file.
+    """
     out_path = Path(out_path)
     out_path.parent.mkdir(parents=True, exist_ok=True)
 

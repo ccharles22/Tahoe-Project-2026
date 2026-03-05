@@ -6,7 +6,15 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 def plot_activity_distribution(df_dist: pd.DataFrame, outpath: str) -> str:
-    """Render the legacy boxplot preview from generation/activity-score data."""
+    """Render a legacy boxplot of activity scores grouped by generation.
+
+    Args:
+        df_dist: DataFrame with ``generation_number`` and ``activity_score`` columns.
+        outpath: File path for the saved PNG image.
+
+    Returns:
+        The *outpath* string, echoed back for convenience.
+    """
     if df_dist.empty:
         raise ValueError("No distribution data to plot (df_dist is empty).")
 

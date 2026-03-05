@@ -98,7 +98,11 @@ def _run_sequence_processing_for_experiment(
 
 
 def _sequence_run_state(experiment_id: int) -> tuple[str, str]:
-    """Summarize the current sequence-processing state for polling clients."""
+    """Summarize the current sequence-processing state for polling clients.
+
+    Merges session-level state (set by the request thread) with DB-level
+    status (set by the background worker) to produce a single user-facing state.
+    """
     session_state = get_sequence_status_from_session(experiment_id) or {}
     session_code = str(session_state.get('status', '')).lower()
     session_summary = str(session_state.get('summary') or '').strip()
@@ -162,6 +166,7 @@ def run_analysis():
         return redirect(url_for('staging.create_experiment', analysis_message='Missing experiment_id.'))
 
     exp_id_int = int(experiment_id)
+    # Analysis is downstream of sequence processing; block if outputs are absent.
     if not _has_sequence_outputs(exp_id_int):
         message = 'Run sequence processing first. Analysis only generates plots and reports from existing sequence outputs.'
         redirect_url = url_for(
@@ -215,6 +220,7 @@ def run_sequence():
         sequence_message='Sequence processing is running.',
     )
 
+    # XHR clients receive JSON progress updates; form submissions get redirects.
     if is_xhr:
         state, message = _sequence_run_state(exp_id_int)
         if state == 'running':

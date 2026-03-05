@@ -1,3 +1,7 @@
+<!-- Template: Settings — account management page for authenticated users.
+     Provides profile editing (username, email), password change with a live
+     strength meter, email-notification preferences, and a security-tips sidebar.
+     Uses WTForms `form` object and `current_user` from Flask-Login. -->
 <!doctype html>
 <html lang="en">
   <head>
@@ -12,10 +16,12 @@
   </head>
 
   <body class="settings-body">
+    <!-- Decorative DNA background -->
     <div class="settings-dna" aria-hidden="true">
       <div class="settings-dna__track" data-settings-dna-track></div>
     </div>
 
+    <!-- Navigation -->
     <nav class="home-nav home-nav--on-dark" aria-label="Primary navigation">
       <div class="home-nav__left">
         <a href="{{ url_for('auth.homepage') }}" class="home-nav__brand home-nav__brand--portal">
@@ -43,6 +49,7 @@
       </div>
     </nav>
 
+    <!-- Main Content -->
     <main class="home-container" id="main-content">
 
       <div id="status-announcer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
@@ -51,6 +58,7 @@
       <section class="settings-page" aria-labelledby="settings-title">
 
         <div class="settings-card card card--elevated">
+          <!-- Profile header with avatar initial -->
           <header class="settings-header">
             <div class="profile-meta">
               <div class="avatar" aria-hidden="true">{{ current_user.username[0]|upper }}</div>
@@ -61,6 +69,7 @@
             </div>
           </header>
 
+          <!-- Flash Messages — success/error banners from server-side form processing -->
           {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
               <div class="flash-messages" role="alert" aria-live="assertive" aria-atomic="true" id="flash-region">
@@ -80,10 +89,12 @@
             {% endif %}
           {% endwith %}
 
+          <!-- Settings Form -->
           <form method="post" class="settings-form" id="settings-form" novalidate aria-describedby="form-intro">
             {{ form.hidden_tag() }}
             <p id="form-intro" class="sr-only">Update your account details below. Fields marked with an asterisk are required.</p>
 
+            <!-- Profile Section — username and email -->
             <fieldset class="form-section">
               <legend class="form-section__legend">Profile</legend>
               <div class="form-grid">
@@ -113,6 +124,7 @@
               </div>
             </fieldset>
 
+            <!-- Password Section — current + new password with reveal toggles -->
             <fieldset class="form-section" id="password-section">
               <legend class="form-section__legend">Change Password</legend>
               <p class="form-section__desc">Leave both fields blank if you don't want to change your password.</p>
@@ -155,6 +167,7 @@
               </div>
             </fieldset>
 
+            <!-- Preferences Section — email notification opt-in -->
             <fieldset class="form-section">
               <legend class="form-section__legend">Preferences</legend>
               <div class="form-row form-row--checkbox">
@@ -171,6 +184,7 @@
           </form>
         </div>
 
+        <!-- Sidebar — security tips and profile metadata -->
         <aside class="settings-side" aria-label="Account information and tips">
           <div class="card panel">
             <h2 class="panel__title">Security tips</h2>

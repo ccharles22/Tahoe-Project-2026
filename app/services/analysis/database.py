@@ -49,7 +49,12 @@ def get_conn() -> Iterator[psycopg2.extensions.connection]:
 
 
 def get_cursor(conn):
-    """
-    Returns a cursor that yields rows as dictionaries.
+    """Return a ``RealDictCursor`` that yields rows as dictionaries.
+
+    Args:
+        conn: An active psycopg2 connection object.
+
+    Returns:
+        A psycopg2 cursor whose rows behave like ``dict`` objects.
     """
     return conn.cursor(cursor_factory=RealDictCursor)

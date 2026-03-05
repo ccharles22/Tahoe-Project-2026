@@ -14,7 +14,14 @@ from . import sequence_bp
 
 @sequence_bp.post("/experiments/<int:experiment_id>/stage-wt")
 def stage_wt(experiment_id: int):
-    """Fetch and persist a staged UniProt WT protein for an experiment."""
+    """Fetch and persist a staged UniProt WT protein for an experiment.
+
+    Args:
+        experiment_id: Target experiment to associate the WT protein with.
+
+    Returns:
+        JSON with accession, protein length, and staging status (200).
+    """
     payload = request.get_json(force=True) or {}
     accession = payload.get("accession")
 
@@ -47,10 +54,18 @@ def stage_wt(experiment_id: int):
 
 @sequence_bp.post("/experiments/<int:experiment_id>/run")
 def run_processing(experiment_id: int):
-    """Submit sequence processing for the selected experiment."""
+    """Submit sequence processing for the selected experiment.
+
+    Args:
+        experiment_id: Experiment whose variants should be processed.
+
+    Returns:
+        JSON with status (202 Accepted, or 409 Conflict if already running).
+    """
     engine = get_engine()
     payload = request.get_json(silent=True) or {}
 
+    # Guard against concurrent processing submissions for the same experiment.
     current_status = db_repo.get_experiment_status(engine, experiment_id)
     if current_status == "ANALYSIS_RUNNING":
         return jsonify(
@@ -64,6 +79,7 @@ def run_processing(experiment_id: int):
     # Default to full overwrite reruns so mutation outputs are refreshed
     # deterministically unless callers explicitly opt out.
     force_reprocess = bool(payload.get("force_reprocess", True))
+    # Always force full reprocessing when new UniProt staging data is pending.
     if db_repo.has_uniprot_staging(engine, experiment_id):
         force_reprocess = True
 

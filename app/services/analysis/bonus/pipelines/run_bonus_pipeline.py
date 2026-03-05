@@ -24,6 +24,7 @@ from app.services.analysis.bonus.visualisations.plot_domain_enrichment import pl
 # -----------
 
 def _read_sql_file(path: Path) -> str:
+    """Read a SQL file and return its contents as a string."""
     if not path.exists():
         raise FileNotFoundError(f"SQL file not found: {path}")
     return path.read_text(encoding="utf-8")
@@ -260,7 +261,28 @@ def run_pipeline(
     fingerprint_variant_id: Optional[int],
     skip_create_views: bool,
 ) -> None:
-    """Run the full bonus-analysis pipeline for one generation."""
+    """Run the full bonus-analysis pipeline for one generation.
+
+    Orchestrates embedding computation, materialized view refreshes,
+    and all bonus plot generation, writing HTML/PNG outputs to
+    ``outputs_dir``.  Failures in individual plots are caught and
+    reported; a placeholder HTML page is written if the output format
+    is HTML.
+
+    Args:
+        generation_id: Target generation to analyse.
+        sql_dir: Directory containing SQL view definitions.
+        outputs_dir: Directory for generated plot files.
+        include_tsne: Whether to compute t-SNE embeddings alongside PCA.
+        perplexity: t-SNE perplexity parameter.
+        seed: Random seed for reproducible embeddings.
+        landscape_method: Dimensionality reduction method (``"pca"`` or ``"tsne"``).
+        landscape_mode: Landscape rendering style (``"scatter"`` or ``"surface"``).
+        grid_size: IDW interpolation grid resolution for surface plots.
+        top_n: Number of top-ranked variants for trajectory/fingerprint.
+        fingerprint_variant_id: Explicit variant override for fingerprint, or None.
+        skip_create_views: If True, skip MV creation and only refresh.
+    """
     outputs_dir.mkdir(parents=True, exist_ok=True)
     generated_count = 0
     failures: list[str] = []
@@ -273,6 +295,7 @@ def run_pipeline(
         placeholder_message: Optional[str] = None,
         **kwargs,
     ):
+        """Attempt to generate a plot; on failure, write a placeholder HTML page."""
         nonlocal generated_count
         out_path = kwargs.get("out_path")
         try:
@@ -298,6 +321,7 @@ def run_pipeline(
             return None
 
     def _skip_plot(label: str, reason: str, *, out_path: Optional[Path] = None, placeholder_title: Optional[str] = None):
+        """Record a skipped plot and optionally write a placeholder HTML page."""
         nonlocal generated_count
         failures.append(f"{label}: {reason}")
         print(f"[warn] {label} skipped: {reason}")
@@ -413,11 +437,11 @@ def run_pipeline(
     if has_activity_scores:
         fingerprint_variant_ids = get_top_variant_ids(generation_id, limit=10)
 
-    # Allow explicit override with a specific variant.
+    # Allow explicit CLI override with a specific variant ID.
     if fingerprint_variant_id is not None:
         fingerprint_variant_ids = [int(fingerprint_variant_id)]
 
-    # Fallback to a single best-available variant if ranking data is missing.
+    # Fallback: pick the variant with the most non-synonymous mutations.
     if not fingerprint_variant_ids:
         fallback_vid = get_fallback_variant_id(generation_id)
         if fallback_vid is not None:

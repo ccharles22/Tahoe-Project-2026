@@ -1,4 +1,6 @@
-﻿from __future__ import annotations
+﻿"""Plotly mutation-fingerprint visualisation coloured by generation of introduction."""
+
+from __future__ import annotations
 
 import argparse
 from pathlib import Path
@@ -31,6 +33,7 @@ _GEN_COLOURS = [
 
 
 def _colour_for_gen(gen: int) -> str:
+    """Return a distinct hex colour for the given 1-based generation number."""
     return _GEN_COLOURS[(gen - 1) % len(_GEN_COLOURS)]
 
 
@@ -72,6 +75,7 @@ def fetch_lineage(conn, variant_id: int) -> pd.DataFrame:
 
 
 def fetch_mutations_for_variants(conn, variant_ids: list[int]) -> pd.DataFrame:
+    """Fetch non-synonymous protein mutations for a list of variant IDs."""
     return pd.read_sql_query(
         """
         SELECT variant_id, position, original, mutated
@@ -213,9 +217,9 @@ def plot_mutation_fingerprint(
     # Determines protein length for the bar
     max_pos = int(df["position"].max())
     if protein_length is None or protein_length < max_pos:
-        protein_length = max_pos + 20  # small buffer
+        protein_length = max_pos + 20  # small buffer beyond furthest mutation
 
-    # Stacking --- use a wider gap so text labels don't collide.
+    # Stacking: assign each mutation a vertical row to prevent label collisions.
     # The gap accounts for label width (~5-6 chars at font 9) which
     # needs roughly 8% of protein length, with a floor of 40 residues.
     n_muts = len(df)
@@ -284,7 +288,8 @@ def plot_mutation_fingerprint(
             ]),
         ))
 
-        # Vertical dashed lines --- one batched trace instead of per-row add_shape
+        # Vertical dashed lines connecting bar to markers, drawn as a
+        # single batched Scatter trace with None-separated segments
         n = len(gen_df)
         positions = gen_df["position"].values
         y_vals = gen_df["y"].values
@@ -810,6 +815,7 @@ def plot_mutation_fingerprint_dropdown(
 
 
 def main():
+    """CLI entrypoint for exporting mutation fingerprint plots."""
     ap = argparse.ArgumentParser(description="Mutation fingerprint plot coloured by generation introduced.")
     ap.add_argument("--variant-id", type=int, required=False, default=None,
                      help="Single variant (legacy). Prefer --variant-ids for combined plot.")

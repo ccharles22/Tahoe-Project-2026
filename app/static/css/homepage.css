@@ -1,8 +1,18 @@
-/* HOMEPAGE.html styles */
-
 /* ================================================================
-   GLOBAL DESIGN SYSTEM — Direct Evolution Monitoring
-   Clean, professional, consistent across all pages.
+   homepage.css
+   Styles for the public-facing homepage (homepage.html).
+   Contains a full copy of the global design system (tokens, reset,
+   topbar, buttons, forms, cards, badges, panels, etc.) plus all
+   homepage-specific sections: hero with 3D DNA helix, interactive
+   pipeline stage selector, latest-insights grid, results carousel,
+   footer, dashboard cards, and the auth (sign-in / sign-up) sheet.
+
+   Key techniques used:
+   - CSS 3D transforms & preserve-3d for the DNA helix animation
+   - CSS scroll-snap for the results image carousel
+   - ::before aspect-ratio hack for responsive image containers
+   - Fixed nav with scroll-driven compact/dark mode transitions
+   - Full-viewport auth sheet with slide-up panel animation
    ================================================================ */
 
 /* ---------- DESIGN TOKENS ---------- */
@@ -75,7 +85,7 @@ a:hover { text-decoration: underline; }
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 100; /* Stay above page content when scrolling */
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow-sm);
@@ -247,7 +257,7 @@ a:hover { text-decoration: underline; }
 .input:focus, input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, .12); /* Focus ring via spread-only box-shadow */
 }
 
 .input.is-invalid, input.is-invalid {
@@ -441,7 +451,10 @@ a:hover { text-decoration: underline; }
 }
 
 
-/* ---------- Homepage dashboard ---------- */
+/* ---------- Homepage dashboard ----------
+   Body gradient, navigation bar (with light/dark variants),
+   and the full-viewport auth overlay. */
+
 .home-body {
   background:
     linear-gradient(
@@ -456,10 +469,11 @@ a:hover { text-decoration: underline; }
 }
 
 .auth-sheet-open {
-  overflow: hidden;
+  overflow: hidden; /* Prevent background scroll when auth sheet is open */
 }
 
-/* Navigation */
+/* Navigation — fixed at top with theme-aware CSS custom properties.
+   .home-nav--on-dark overrides token values for use over the hero gradient. */
 .home-nav {
   --nav-text: #2d4a68;
   --nav-text-strong: #123758;
@@ -483,7 +497,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   left: 0;
   right: 0;
-  z-index: 100;
+  z-index: 100; /* Above hero content but below auth sheet (z: 280) */
   transition:
     height .18s var(--ease),
     padding .18s var(--ease),
@@ -752,7 +766,10 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 
-/* Hero */
+/* --- Hero Section ---
+   Full-viewport area with layered gradient background,
+   animated DNA text, and a 3-column grid (copy | stage cards | pipeline). */
+
 .home-hero {
   position: relative;
   overflow: visible;
@@ -774,9 +791,14 @@ a:hover { text-decoration: underline; }
   z-index: 0;
 }
 
+/* Suppress the default ::after pseudo on the hero (overridden at the end of file) */
 .home-hero::after {
   content: none;
 }
+
+/* --- Hero DNA Background Texture ---
+   Scrolling monospace base-pair characters with per-nucleotide
+   colouring, masked by radial/linear gradients on ::before/::after. */
 
 .home-hero__dna {
   position: absolute;
@@ -841,6 +863,8 @@ a:hover { text-decoration: underline; }
 .home-hero__dna-base--G { color: rgba(98, 236, 218, .98); }
 .home-hero__dna-base--T { color: rgba(154, 204, 255, .98); }
 
+/* Continuous DNA scroll animation — translateY(-50%) creates a
+   seamless loop when the track content is duplicated. */
 @keyframes homeDnaScroll {
   from {
     transform: rotate(-3deg) scale(1.02) translateY(0);
@@ -850,15 +874,20 @@ a:hover { text-decoration: underline; }
   }
 }
 
+/* Honour user’s OS-level preference for reduced motion */
 @media (prefers-reduced-motion: reduce) {
   .home-hero__dna-track {
     animation: none;
   }
 }
 
+/* --- Hero Content Grid ---
+   Three columns at desktop: left copy, centre stage cards, right pipeline list.
+   Items stick to the bottom of the viewport via sticky + bottom. */
+
 .home-hero__content {
   position: relative;
-  z-index: 3;
+  z-index: 3; /* Above DNA texture layers */
   max-width: 1280px;
   margin: 0 auto;
   display: grid;
@@ -989,6 +1018,11 @@ a:hover { text-decoration: underline; }
   justify-items: start;
 }
 
+/* --- Interactive Stage Visual ---
+   3D DNA helix built with CSS transform-style: preserve-3d.
+   --dna-turn is updated per-stage via data-stage attribute
+   selectors to rotate the helix to a new angle. */
+
 .home-stage__visual {
   position: absolute;
   top: 24px;
@@ -998,6 +1032,8 @@ a:hover { text-decoration: underline; }
   justify-items: center;
   gap: 14px;
   z-index: 1;
+  pointer-events: none;
+}
   pointer-events: none;
 }
 
@@ -1086,6 +1122,7 @@ a:hover { text-decoration: underline; }
   line-height: 1.5;
 }
 
+/* Stage-specific DNA helix rotation angles via custom property */
 [data-home-stage-visual][data-stage="fetch-wt"] .home-stage__visual-rotor { --dna-turn: 0deg; }
 [data-home-stage-visual][data-stage="validate"] .home-stage__visual-rotor { --dna-turn: 58deg; }
 [data-home-stage-visual][data-stage="upload"] .home-stage__visual-rotor { --dna-turn: 122deg; }
@@ -1116,6 +1153,7 @@ a:hover { text-decoration: underline; }
   box-shadow: none;
 }
 
+/* 3D idle floating animation for the DNA helix */
 @keyframes homeDnaFloat {
   0%, 100% {
     transform: rotateX(66deg) rotateZ(var(--dna-turn)) translateY(0);
@@ -1284,7 +1322,10 @@ a:hover { text-decoration: underline; }
   content: none;
 }
 
-/* Latest insights section */
+/* --- Latest Insights Section ---
+   Two-column grid: intro copy on the left, 2×2 card grid on the right.
+   Rounded container with frosted-glass-style background. */
+
 .home-insights {
   width: min(1380px, 100%);
   margin-top: clamp(64px, 8vw, 112px);
@@ -1431,7 +1472,10 @@ a:hover { text-decoration: underline; }
   text-decoration: none;
 }
 
-/* Results preview section */
+/* --- Results Preview / Carousel Section ---
+   Showcases analysis output graphs in a horizontally-scrollable
+   carousel with CSS scroll-snap alignment. */
+
 .home-results-preview {
   --results-radius: 18px;
   margin-top: clamp(160px, 20vw, 280px);
@@ -1596,6 +1640,8 @@ a:hover { text-decoration: underline; }
   background: var(--primary-light);
   text-decoration: none;
 }
+
+/* --- Footer --- */
 
 .home-footer {
   position: relative;
@@ -1814,10 +1860,12 @@ a:hover { text-decoration: underline; }
   box-shadow: var(--shadow-md);
 }
 
+/* Aspect-ratio hack: padding-top on ::before maintains 16:9 ratio
+   so the absolutely positioned image fills the space proportionally. */
 .home-results-graph-wrap::before {
   content: "";
   display: block;
-  padding-top: 56.25%;
+  padding-top: 56.25%; /* 16:9 aspect ratio */
 }
 
 .home-results-graph {
@@ -1895,7 +1943,7 @@ a:hover { text-decoration: underline; }
   font-family: inherit;
 }
 
-/* Section title */
+/* --- Section title --- */
 .home-section-title {
   font-size: 20px;
   font-weight: 700;
@@ -1903,6 +1951,8 @@ a:hover { text-decoration: underline; }
   margin: 0;
   padding-top: 0;
 }
+
+/* --- Dashboard Cards Grid --- */
 
 .home-container {
   max-width: 1500px;
@@ -2029,11 +2079,15 @@ a:hover { text-decoration: underline; }
   pointer-events: none;
 }
 
-/* Homepage auth sheet (inline sign in/up) */
+/* --- Auth Sheet (Inline Sign In / Sign Up) ---
+   Full-viewport overlay that slides up from the bottom.
+   Contains a two-column layout: form card + decorative visual
+   with its own DNA background animation. */
+
 .auth-sheet {
   position: fixed;
   inset: 0;
-  z-index: 280;
+  z-index: 280; /* Above everything including the nav (z: 100) */
   pointer-events: none;
 }
 
@@ -2046,6 +2100,7 @@ a:hover { text-decoration: underline; }
   transition: opacity .3s var(--ease);
 }
 
+/* Panel slides up via translateY; cubic-bezier gives an elastic feel */
 .auth-sheet__panel {
   position: fixed;
   inset: 0;
@@ -2056,7 +2111,7 @@ a:hover { text-decoration: underline; }
   border-radius: 0;
   box-shadow: none;
   padding: 0;
-  transform: translateY(102%);
+  transform: translateY(102%); /* Start off-screen below */
   transition: transform .6s cubic-bezier(.22, 1, .36, 1);
 }
 
@@ -2072,6 +2127,7 @@ a:hover { text-decoration: underline; }
   transform: translateY(0);
 }
 
+/* Skip transition when opening directly from URL (e.g. /login redirect) */
 .auth-sheet.is-instant .auth-sheet__panel {
   transition: none;
 }
@@ -2115,6 +2171,8 @@ a:hover { text-decoration: underline; }
   stroke: #061423;
 }
 
+/* Segmented tab control — pill shape via 999px border-radius,
+   frosted glass background with backdrop-filter */
 .auth-sheet__tabs {
   position: absolute;
   top: 14px;
@@ -2399,6 +2457,8 @@ a:hover { text-decoration: underline; }
 .auth-sheet .auth-visual__dna-row:nth-child(4n) { opacity: .72; }
 .auth-sheet .auth-visual__dna-row:nth-child(3n) { opacity: .82; }
 
+/* --- Responsive Breakpoints --- */
+
 @media (max-width: 960px) {
   .home-insights {
     grid-template-columns: 1fr;
@@ -2654,7 +2714,11 @@ a:hover { text-decoration: underline; }
 .auth-sheet .text-link { font-size: 11px; }
 }
 
-/* Results carousel refresh */
+/* --- Results Carousel (Horizontal Snap-Scroll) ---
+   Cards scale & fade based on proximity to the centre via
+   JS-toggled .is-active / .is-side classes. Scroll-snap
+   ensures cards land neatly in the viewport centre. */
+
 .home-results-shell {
   gap: clamp(22px, 3vw, 34px);
 }
@@ -2670,17 +2734,20 @@ a:hover { text-decoration: underline; }
   position: relative;
   overflow-x: auto;
   overflow-y: visible;
-  scroll-snap-type: x mandatory;
-  overscroll-behavior-x: contain;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  scroll-snap-type: x mandatory; /* Snap to each card on scroll stop */
+  overscroll-behavior-x: contain; /* Prevent parent scroll chain */
+  -webkit-overflow-scrolling: touch; /* Momentum scrolling on iOS */
+  scrollbar-width: none; /* Hide scrollbar (Firefox) */
   touch-action: pan-x;
 }
 
+/* Hide scrollbar in WebKit browsers */
 .home-results-carousel::-webkit-scrollbar {
   display: none;
 }
 
+/* Edge fade masks — gradient pseudo-elements over left/right edges
+   so cards fade out smoothly instead of clipping abruptly. */
 .home-results-carousel::before,
 .home-results-carousel::after {
   content: "";
@@ -2688,7 +2755,7 @@ a:hover { text-decoration: underline; }
   top: 0;
   bottom: 0;
   width: min(10vw, 120px);
-  pointer-events: none;
+  pointer-events: none; /* Click-through so users can interact with cards beneath */
   z-index: 4;
 }
 
@@ -2721,8 +2788,8 @@ a:hover { text-decoration: underline; }
   background: #fff;
   box-shadow: none;
   overflow: hidden;
-  scroll-snap-align: center;
-  scroll-snap-stop: always;
+  scroll-snap-align: center; /* Each card snaps to the centre of the track */
+  scroll-snap-stop: always; /* Prevent flyby on fast swipe */
   transform: scale(0.86);
   transform-origin: center center;
   opacity: 0.62;
@@ -2760,11 +2827,13 @@ a:hover { text-decoration: underline; }
   background: #f9fbff;
 }
 
+/* Scale up the iframe content to fill its container at a smaller rendered size,
+   then counter-scale the embed element to reverse the visual zoom. */
 .home-results-gallery--carousel .home-results-embed {
   pointer-events: none;
   transform: scale(0.85);
   transform-origin: 0 0;
-  width: 117.647%;
+  width: 117.647%;  /* 1 / 0.85 ≈ 117.647% to compensate for scale(0.85) */
   height: 117.647%;
 }
 
@@ -2839,6 +2908,10 @@ a:hover { text-decoration: underline; }
   position: relative;
   z-index: 1;
 }
+
+/* --- Full-bleed overrides ---
+   Remove max-width constraints so results and insights
+   sections span the entire viewport width. */
 
 /* Make results/insights sections full-bleed so body blue does not show on side gutters */
 .home-container.home-results-preview,

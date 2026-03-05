@@ -5,10 +5,25 @@ from typing import Any, Dict, List
 
 
 def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
-    """Insert or update the supplied metric rows for analysed variants."""
+    """Insert or update the supplied metric rows for analysed variants.
+
+    Uses an update-first strategy: each row is first attempted as an UPDATE
+    keyed on ``(variant_id, metric_name, metric_type)``; if no existing row
+    matches, a new row is INSERTed with the ``generation_id`` resolved from
+    the ``variants`` table.
+
+    Args:
+        conn: An active psycopg2 database connection (caller manages commit).
+        rows: Each dict must contain keys ``variant_id``, ``metric_name``,
+            ``metric_type``, ``value``, and ``unit``.
+
+    Returns:
+        The number of metric rows processed (inserted or updated).
+    """
     if not rows:
         return 0
 
+    # Phase 1: attempt to update an existing metric row matching the composite key.
     update_sql = """
     UPDATE metrics AS m
     SET
@@ -19,6 +34,7 @@ def upsert_variant_metrics(conn, rows: List[Dict[str, Any]]) -> int:
       AND m.metric_type = %(metric_type)s;
     """
 
+    # Phase 2: if UPDATE touched zero rows, insert a new metric row.
     insert_sql = """
     INSERT INTO metrics (generation_id, variant_id, metric_name, metric_type, value, unit)
     SELECT

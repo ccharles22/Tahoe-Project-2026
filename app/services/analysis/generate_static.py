@@ -26,7 +26,14 @@ print("Writing outputs to:", OUT_DIR.resolve())
 
 
 def generate_all(experiment_id: int) -> None:
-    """Render the core static plots for a single experiment."""
+    """Render the core static plots (top-10, distribution, lineage) for one experiment.
+
+    Plots are written to ``app/static/generated/`` as PNG files.  Experiments
+    lacking derived metric data (e.g. no activity scores) are silently skipped.
+
+    Args:
+        experiment_id: Primary key of the target experiment in the database.
+    """
     with get_conn() as conn:
         df_top10 = fetch_top10(conn, experiment_id)
         df_dist = fetch_distribution(conn, experiment_id)

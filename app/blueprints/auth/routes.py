@@ -52,6 +52,7 @@ def homepage():
     open_auth_panel = requested_auth_panel if requested_auth_panel in {"login", "register"} else None
     login_next = (request.args.get("next") or "").strip()
 
+    # Dispatch based on which inline auth form (login or register) was submitted.
     if request.method == "POST":
         auth_action = (request.form.get("auth_action") or "").strip().lower()
         if auth_action == "login":
@@ -59,6 +60,7 @@ def homepage():
             if login_form.validate():
                 user = User.query.filter_by(username=login_form.username.data).first()
                 if user:
+                    # Strip trailing whitespace that may pad fixed-width DB columns.
                     stored_hash = (user.password_hash or "").rstrip()
                     if bcrypt.check_password_hash(stored_hash, login_form.password.data):
                         login_user(user)
@@ -82,6 +84,7 @@ def homepage():
                     flash("Account created successfully!", "success")
                     return redirect(url_for("auth.homepage"))
                 except IntegrityError as e:
+                    # Determine which unique constraint was violated for targeted feedback.
                     db.session.rollback()
                     err = str(getattr(e, "orig", e)).lower()
                     if "email" in err:
@@ -94,6 +97,7 @@ def homepage():
                     db.session.rollback()
                     register_form.username.errors.append("Could not create account. Please try again.")
 
+    # Gather dashboard statistics for authenticated users.
     exp_count = 0
     latest_exp = None
     wt_count = 0

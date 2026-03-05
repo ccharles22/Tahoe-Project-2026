@@ -1,9 +1,15 @@
-"""Back-translation utilities for staging workflows."""
+"""Back-translation utilities for staging workflows.
+
+Provides amino-acid-to-codon conversion using the standard genetic code.
+Used by the staging pipeline to synthesise plausible CDS sequences from
+protein inputs when no DNA template is available.
+"""
 
 from __future__ import annotations
 
 import random
 
+# Standard genetic code: each amino acid mapped to all synonymous codons.
 AA_TO_CODONS = {
     'A': ['GCT', 'GCC', 'GCA', 'GCG'],
     'C': ['TGT', 'TGC'],
@@ -32,7 +38,14 @@ AA_TO_CODONS = {
 def backtranslate(protein: str) -> str:
     """Create a plausible DNA coding sequence from an amino-acid sequence.
 
-    Unknown residues map to ``NNN`` to keep output length aligned to input.
+    Randomly selects one synonymous codon per residue.  Unknown residues
+    (``X``) map to ``NNN`` to preserve reading-frame alignment.
+
+    Args:
+        protein: Amino-acid sequence (case-insensitive, whitespace-tolerant).
+
+    Returns:
+        str: DNA sequence whose length equals ``3 * len(protein.strip())``.
     """
     protein = protein.strip().upper()
     dna = []

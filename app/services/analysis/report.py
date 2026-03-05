@@ -33,10 +33,19 @@ OUTPUT_DIR = "app/static/generated"
 def compute_activity_score_fallback(
     df_variants: pd.DataFrame,
 ) -> Tuple[List[Dict[str, Any]], pd.DataFrame]:
-    """
-    WT-free scoring fallback:
-    - Within each generation, normalise DNA and protein yields by generation median
-    - activity_score = dna_norm / protein_norm
+    """WT-free scoring fallback using generation-median normalisation.
+
+    When wild-type control baselines are unavailable, each yield is divided by
+    its generation median instead.  ``activity_score = dna_norm / protein_norm``.
+
+    Args:
+        df_variants: Must contain ``variant_id``, ``generation_id``,
+            ``dna_yield_raw``, and ``protein_yield_raw``.
+
+    Returns:
+        A tuple of (metric_rows, annotated_df) analogous to
+        ``compute_stage4_metrics`` so the caller can use either pathway
+        interchangeably.
     """
     d = df_variants.copy()
 
@@ -90,6 +99,10 @@ def compute_activity_score_fallback(
 
 
 def _env_bool(name: str, default: bool) -> bool:
+    """Read an environment variable as a boolean flag.
+
+    Truthy values: ``1``, ``true``, ``yes``, ``on`` (case-insensitive).
+    """
     value = os.getenv(name)
     if value is None:
         return default
@@ -97,6 +110,11 @@ def _env_bool(name: str, default: bool) -> bool:
 
 
 def _normalize_plasmid_index(value: Any) -> str | None:
+    """Coerce a plasmid variant index to a canonical string form.
+
+    Numeric values like ``3.0`` are converted to ``"3"``; blanks and NaN
+    become ``None``.
+    """
     if pd.isna(value):
         return None
     text = str(value).strip()
@@ -156,6 +174,7 @@ def _build_placeholder_edges(
             child_id = row[node_id_col]
             idx_num = row["_idx_num"]
 
+            # Match child to the closest-index parent in the previous generation.
             parent_id = None
             if pd.notna(idx_num) and len(prev_num) > 0:
                 diffs = np.abs(prev_num[:, 0].astype(float) - float(idx_num))

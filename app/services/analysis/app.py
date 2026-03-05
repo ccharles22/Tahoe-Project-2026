@@ -49,12 +49,18 @@ def _format_pearson_label(rvalue: float | None) -> str:
     return f"Pearson r: {rvalue:.3f}"
 
 def register_analysis_routes(target_app: Flask) -> None:
-    """Attach the analysis views to an existing Flask app instance."""
+    """Attach the analysis views to an existing Flask app instance.
+
+    Registers four routes: ``/top10``, ``/distribution``, ``/lineage``, and
+    ``/protein_similarity``, each parameterised by ``experiment_id``.  Plot
+    images are written into the app's static directory under ``plots/``.
+    """
     plots_dir = Path(target_app.static_folder) / "plots"
     plots_dir.mkdir(parents=True, exist_ok=True)
 
     @target_app.route("/top10/<int:experiment_id>")
     def top10(experiment_id: int):
+        """Render the top-10 variants table page for a given experiment."""
         with get_conn() as conn:
             df = fetch_top10(conn, experiment_id)
 
@@ -90,6 +96,7 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/distribution/<int:experiment_id>")
     def distribution(experiment_id: int):
+        """Render the activity-score distribution plot page."""
         with get_conn() as conn:
             df = fetch_distribution(conn, experiment_id)
 
@@ -104,6 +111,7 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/lineage/<int:experiment_id>")
     def lineage(experiment_id: int):
+        """Render the lineage DAG page, optionally overlaying a branch trend."""
         show_trend = request.args.get("show_trend", "").strip().lower() in {"1", "true", "yes", "on"}
         with get_conn() as conn:
             nodes = fetch_lineage_nodes(conn, experiment_id)
@@ -145,6 +153,7 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/protein_similarity/<int:experiment_id>")
     def protein_similarity(experiment_id: int):
+        """Render the protein co-occurrence network page with tuneable filters."""
         preset = request.args.get("preset", "").strip().lower()
         min_shared = request.args.get("min_shared", "1")
         jaccard_threshold = request.args.get("jaccard_threshold", "")
@@ -179,6 +188,7 @@ def register_analysis_routes(target_app: Flask) -> None:
         if max_nodes_val not in allowed_max_nodes:
             max_nodes_val = 20
 
+        # Named presets override manually entered filter values.
         if preset in {"sparse", "medium", "dense"}:
             preset_map = {
                 "sparse": (4, 0.20),
@@ -200,6 +210,7 @@ def register_analysis_routes(target_app: Flask) -> None:
                 "Co-occurrence network may be sparse because few mutation rows were persisted."
             )
 
+        # Build a unique filename suffix from filter parameters to avoid cache collisions.
         mode = "cooccurrence"
         suffix = f"{mode}_n{max_nodes_val}_ms{min_shared_val}"
         if jaccard_threshold_val is not None:
@@ -250,6 +261,8 @@ def register_analysis_routes(target_app: Flask) -> None:
         )
 
 
+# Module-level Flask app instance used when this file is run directly or
+# imported as the WSGI entry point for the analysis sub-application.
 app = Flask(
     __name__,
     template_folder=str(APP_DIR / "templates"),

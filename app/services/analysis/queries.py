@@ -11,6 +11,7 @@ warnings.filterwarnings(
     category=UserWarning,
 )
 
+# Subquery: fetch the most recent activity_score metric per variant.
 LATEST_ACTIVITY_SCORE_SQL = """
 SELECT
   m.variant_id,
@@ -25,6 +26,7 @@ JOIN (
 ) latest ON latest.metric_id = m.metric_id
 """
 
+# Subquery: fetch the most recent total mutation count metric per variant.
 LATEST_MUTATION_TOTAL_SQL = """
 SELECT
   m.variant_id,
@@ -39,6 +41,7 @@ JOIN (
 ) latest ON latest.metric_id = m.metric_id
 """
 
+# Average WT-control DNA and protein yields per generation for an experiment.
 WT_BASELINE_SQL = """
 SELECT
   m.generation_id,
@@ -56,6 +59,7 @@ WHERE m.wt_control_id IS NOT NULL
 GROUP BY m.generation_id;
 """
 
+# Pivot raw DNA and protein yield metrics per variant for an experiment.
 VARIANT_RAW_SQL = """
 SELECT
   v.variant_id,
@@ -75,6 +79,7 @@ GROUP BY v.variant_id, v.generation_id, g.generation_number, v.plasmid_variant_i
 ORDER BY g.generation_number, v.plasmid_variant_index;
 """
 
+# Top-10 variants ranked by activity score, with mutation count from multiple sources.
 TOP10_SQL = f"""
 SELECT
   v.variant_id,
@@ -103,6 +108,7 @@ ORDER BY act.activity_score DESC
 LIMIT 10;
 """
 
+# Activity scores grouped by generation for distribution / violin plots.
 DISTRIBUTION_SQL = f"""
 SELECT
   g.generation_number,
@@ -116,6 +122,7 @@ WHERE g.experiment_id = %s
 ORDER BY g.generation_number;
 """
 
+# Variant nodes for the protein similarity network, ranked by activity score.
 PROTEIN_SIMILARITY_NODES_SQL = f"""
 WITH scores AS (
   SELECT
@@ -152,6 +159,7 @@ LEFT JOIN ranked r ON r.variant_id = v.variant_id
 WHERE g.experiment_id = %s;
 """
 
+# Deduplicated protein mutations from both the mutations table and JSON metadata.
 PROTEIN_MUTATIONS_SQL = """
 WITH table_muts AS (
   SELECT
@@ -207,6 +215,7 @@ FROM ranked
 WHERE rn = 1;
 """
 
+# Diagnostic counts of variant and mutation data availability for UI reporting.
 NETWORK_DIAGNOSTICS_SQL = """
 WITH exp_variants AS (
   SELECT v.variant_id, v.protein_sequence
@@ -242,6 +251,7 @@ FROM mutation_counts mc
 CROSS JOIN json_counts jc;
 """
 
+# Lineage DAG nodes with activity ranking and top-10 highlighting.
 LINEAGE_NODES_SQL = f"""
 WITH scores AS (
   SELECT
@@ -283,6 +293,7 @@ ORDER BY
 """
 
 
+# Directed parent-to-child edges confined to variants within a single experiment.
 LINEAGE_EDGES_SQL = """
 SELECT
   v.parent_variant_id AS parent_id,
@@ -296,6 +307,7 @@ WHERE g.experiment_id = %s
   AND gp.experiment_id = %s;
 """
 
+# Simple listing of all experiment IDs, ordered ascending.
 EXPERIMENT_IDS_SQL = """
 SELECT experiment_id
 FROM experiments
@@ -307,7 +319,17 @@ def fetch_wt_baselines(
     conn,
     experiment_id: int,
 ) -> tuple[Dict[int, Tuple[float, float]], List[int]]:
-    """Return available per-generation WT baselines and missing generation numbers."""
+    """Return available per-generation WT baselines and missing generation numbers.
+
+    Args:
+        conn: Active database connection.
+        experiment_id: Target experiment.
+
+    Returns:
+        A tuple of (baselines_dict, missing_generation_numbers) where the dict
+        maps ``generation_id`` to ``(dna_wt, protein_wt)`` and the list contains
+        ``generation_number`` values with no usable WT data.
+    """
     df = pd.read_sql(WT_BASELINE_SQL, conn, params=(experiment_id,))
     baselines: Dict[int, Tuple[float, float]] = {}
 

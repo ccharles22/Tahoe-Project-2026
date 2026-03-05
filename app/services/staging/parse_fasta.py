@@ -1,4 +1,9 @@
-"""FASTA parsing and validation for plasmid uploads."""
+"""FASTA parsing and validation for plasmid uploads.
+
+Accepts raw bytes from a file upload, validates FASTA structure and base
+composition, and returns the cleaned DNA sequence.  Only single-record
+FASTA files are supported.
+"""
 
 from __future__ import annotations
 
@@ -8,6 +13,20 @@ _ALLOWED_DNA = set('ACGTNRYWSKMBDHV')
 
 def parse_fasta(file_bytes: bytes) -> str:
     """Parse a single-record FASTA upload and return uppercase DNA sequence.
+
+    Performs the following validation steps:
+        1. Non-empty payload
+        2. Header line starting with '>'
+        3. Single record only (rejects multi-FASTA)
+        4. Valid DNA characters (IUPAC alphabet)
+
+    RNA uploads are normalised automatically (U → T).
+
+    Args:
+        file_bytes: Raw bytes from the uploaded file.
+
+    Returns:
+        str: Validated, uppercase DNA sequence.
 
     Raises:
         ValueError: For empty payloads, invalid FASTA shape, or invalid bases.

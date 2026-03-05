@@ -4,13 +4,33 @@ import math
 from typing import Dict, Tuple, List, Any
 import pandas as pd
 
+# Epsilon guard to prevent division-by-zero in normalised protein yield.
 EPS = 1e-9
+
 
 def compute_stage4_metrics(
     df_variants: pd.DataFrame,
     baselines: Dict[int, Tuple[float, float]],
 ) -> tuple[list[dict[str, Any]], pd.DataFrame]:
-    """Return derived metric rows plus a QC-annotated dataframe copy."""
+    """Compute WT-normalised activity scores and QC annotations for all variants.
+
+    Each variant's raw DNA and protein yields are divided by the corresponding
+    wild-type baseline for its generation.  The activity score is defined as
+    ``dna_yield_norm / protein_yield_norm``.  Rows that fail any quality-control
+    check are flagged but still included in the returned DataFrame.
+
+    Args:
+        df_variants: Must contain columns ``variant_id``, ``generation_id``,
+            ``dna_yield_raw``, and ``protein_yield_raw``.
+        baselines: Mapping of ``generation_id`` to ``(dna_wt, protein_wt)``
+            wild-type average yields.
+
+    Returns:
+        A tuple of (rows_to_insert, df_out) where *rows_to_insert* is a list
+        of metric dicts ready for database upsert and *df_out* is the input
+        DataFrame augmented with normalised yields, activity scores, and a
+        ``qc_stage4`` column indicating pass/fail reason.
+    """
 
     required_cols = {"variant_id", "generation_id", "dna_yield_raw", "protein_yield_raw"}
     missing = required_cols - set(df_variants.columns)
@@ -74,6 +94,7 @@ def compute_stage4_metrics(
 
     df_valid = df_out[df_out["qc_stage4"] == "ok"].copy()
 
+    # Build metric rows for DB upsert from QC-passing variants only.
     rows_to_insert: List[dict[str, Any]] = []
     for _, r in df_valid.iterrows():
         vid = int(r["variant_id"])
