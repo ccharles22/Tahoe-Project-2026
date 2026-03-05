@@ -84,8 +84,8 @@ class PlotConfig:
     show_generation_grid: bool = True
     show_horizontal_grid: bool = True
     show_figure_border: bool = False
-    show_latest_generation_trend: bool = True
-    latest_generation_trend_min_points: int = 3
+    show_best_variant_branch_trend: bool = True
+    best_variant_branch_trend_min_points: int = 3
 
 
 # -----------------------------
@@ -766,23 +766,36 @@ def plot_layered_lineage(
                     label, ha="center", va="bottom",
                     fontsize=config.label_fontsize, zorder=4)
 
-    # Overlay a trendline and significance stats for the latest generation only.
-    if config.show_latest_generation_trend and config.y_mode == "activity":
-        gen_vals = pd.to_numeric(df[generation_col], errors="coerce")
-        if gen_vals.notna().any():
-            latest_gen = int(gen_vals.max())
-            latest_mask = gen_vals == latest_gen
-            x_latest = pd.to_numeric(df.loc[latest_mask, "x"], errors="coerce")
-            y_latest = pd.to_numeric(df.loc[latest_mask, "y"], errors="coerce")
-            valid_latest = ~(x_latest.isna() | y_latest.isna())
+    # Overlay a trendline and significance stats for the best-performing variant branch.
+    if config.show_best_variant_branch_trend and config.y_mode == "activity" and activity_col in df.columns:
+        id_series = _coerce_id_series(df[node_id_col])
+        act_series = pd.to_numeric(df[activity_col], errors="coerce")
+        valid_best = id_series.notna() & act_series.notna()
+        if valid_best.any():
+            best_idx = act_series[valid_best].idxmax()
+            best_variant_id = id_series.loc[best_idx]
 
-            x_arr = x_latest[valid_latest].to_numpy(dtype=float)
-            y_arr = y_latest[valid_latest].to_numpy(dtype=float)
+            branch_ids: set[Hashable] = {best_variant_id}
+            if eplot is not None and not eplot.empty:
+                parent_map = dict(zip(eplot[child_col], eplot[parent_col]))
+                seen: set[Hashable] = set()
+                cur = best_variant_id
+                while cur in parent_map and cur not in seen:
+                    seen.add(cur)
+                    cur = parent_map[cur]
+                    branch_ids.add(cur)
+
+            branch_mask = id_series.isin(branch_ids)
+            gx = pd.to_numeric(df.loc[branch_mask, generation_col], errors="coerce")
+            gy = pd.to_numeric(df.loc[branch_mask, "y"], errors="coerce")
+            valid_branch = ~(gx.isna() | gy.isna())
+            x_arr = gx[valid_branch].to_numpy(dtype=float)
+            y_arr = gy[valid_branch].to_numpy(dtype=float)
 
             r_val: float | None = None
             p_val: float | None = None
             trend_ready = (
-                len(x_arr) >= config.latest_generation_trend_min_points
+                len(x_arr) >= config.best_variant_branch_trend_min_points
                 and np.unique(x_arr).size > 1
                 and np.unique(y_arr).size > 1
             )
@@ -816,9 +829,9 @@ def plot_layered_lineage(
             if p_val is not None and np.isfinite(p_val):
                 p_text = "<0.001" if p_val < 0.001 else f"{p_val:.3f}"
             r_text = f"{r_val:.3f}" if (r_val is not None and np.isfinite(r_val)) else "n/a"
-            stats_label = f"Latest G{latest_gen} trend: r = {r_text} | p = {p_text}"
+            stats_label = f"Best variant {best_variant_id} branch trend: r = {r_text} | p = {p_text}"
             if not trend_ready:
-                stats_label = f"Latest G{latest_gen} trend: unavailable"
+                stats_label = f"Best variant {best_variant_id} branch trend: unavailable"
 
             ax.text(
                 0.985,
