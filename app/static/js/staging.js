@@ -703,7 +703,7 @@ function initTop10TableTools() {
   const detailField = (key) => (modal ? modal.querySelector(`[data-top10-detail="${key}"]`) : null);
   const chipField = (key) => (modal ? modal.querySelector(`[data-top10-chip="${key}"]`) : null);
   const listField = (key) => (modal ? modal.querySelector(`[data-top10-list="${key}"]`) : null);
-  let lastFocusedRow = null;
+  let lastFocusedTrigger = null;
   let activeModalState = null;
 
   const asNumber = (raw) => {
@@ -901,9 +901,10 @@ function initTop10TableTools() {
   /**
    * Collect variant metadata from a table row's data attributes,
    * populate the modal fields, and show it.
-   * @param {HTMLElement} row - The <tr> element clicked by the user.
+   * @param {HTMLElement} row - The source <tr> element.
+   * @param {HTMLElement|null} triggerEl - The focus origin to restore on close.
    */
-  const openModalForRow = (row) => {
+  const openModalForRow = (row, triggerEl = null) => {
     if (!modal || !modalCard) return;
 
     const rank = row.dataset.rank || 'N/A';
@@ -998,7 +999,7 @@ function initTop10TableTools() {
       relative,
     };
 
-    lastFocusedRow = row;
+    lastFocusedTrigger = triggerEl || row;
     setJumpAvailability();
     modal.hidden = false;
     modal.classList.add('is-open');
@@ -1009,18 +1010,17 @@ function initTop10TableTools() {
     if (!modal) return;
     modal.classList.remove('is-open');
     modal.hidden = true;
-    if (lastFocusedRow && typeof lastFocusedRow.focus === 'function') {
-      lastFocusedRow.focus();
+    if (lastFocusedTrigger && typeof lastFocusedTrigger.focus === 'function') {
+      lastFocusedTrigger.focus();
     }
     activeModalState = null;
   };
 
-  Array.from(tbody.querySelectorAll('tr.js-top10-row')).forEach((row) => {
-    row.addEventListener('click', () => openModalForRow(row));
-    row.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      openModalForRow(row);
+  Array.from(tbody.querySelectorAll('.js-top10-open-details')).forEach((btn) => {
+    btn.addEventListener('click', (event) => {
+      const row = event.currentTarget.closest('tr.js-top10-row');
+      if (!row) return;
+      openModalForRow(row, event.currentTarget);
     });
   });
 
@@ -1208,6 +1208,7 @@ function initAdvancedVisualTabs() {
   const frame = document.getElementById('advancedTabsFrame');
   const title = document.getElementById('advancedTabsTitle');
   const description = document.getElementById('advancedTabsDescription');
+  const infoTip = document.getElementById('advancedTabsInfoTip');
   const downloads = document.getElementById('advancedTabsDownloads');
   if (!buttons.length || !frame || !title || !description || !downloads) return;
 
@@ -1277,6 +1278,9 @@ function initAdvancedVisualTabs() {
 
     title.textContent = nextTitle;
     description.textContent = nextDescription;
+    if (infoTip) {
+      infoTip.textContent = nextDescription || 'Advanced view for deeper mutation and activity analysis.';
+    }
     frame.title = nextTitle;
     frame.classList.toggle('is-tall', nextFrameSize === 'tall');
     if (frame.getAttribute('src') !== src) {

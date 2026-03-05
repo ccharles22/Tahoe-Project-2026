@@ -951,7 +951,16 @@
               </div>
               <div class="core-tabs__panel js-core-tab-panel is-active" id="core-top10">
                 <div class="results-section__header">
-                  <h4 class="results-section__title">Top 10 Performers</h4>
+                  <div class="results-title-row">
+                    <h4 class="results-section__title">Top 10 Performers</h4>
+                    <button class="results-info-chip" type="button" aria-label="What this graph shows">
+                      i
+                      <span class="results-info-chip__tip">
+                        This table ranks the strongest variants by activity score and compares their mutation load,
+                        so you can quickly see high performers and how diverged they are from wild type.
+                      </span>
+                    </button>
+                  </div>
                   <div class="results-section__actions">
                     <button type="button" class="btn btn--sm btn--ghost js-copy-top10-csv">Copy as CSV</button>
                     {% if analysis_outputs.top10 and analysis_outputs.top10.exists %}
@@ -969,15 +978,13 @@
                           <th><button type="button" class="results-sort-btn js-top10-sort" data-sort-key="variant_index" data-sort-type="string">Variant</button></th>
                           <th><button type="button" class="results-sort-btn js-top10-sort" data-sort-key="activity_score" data-sort-type="number">Activity Score</button></th>
                           <th><button type="button" class="results-sort-btn js-top10-sort" data-sort-key="total_mutations" data-sort-type="number">Total Mutations vs WT</button></th>
+                          <th class="top-results__details-col">Details</th>
                         </tr>
                       </thead>
                       <tbody>
                         {% for row in top10_rows %}
                           <tr
                             class="js-top10-row{% if row.rank == 1 %} top-results__row--top1{% elif row.rank == 2 %} top-results__row--top2{% elif row.rank == 3 %} top-results__row--top3{% endif %}"
-                            tabindex="0"
-                            role="button"
-                            aria-label="Open details for variant {{ row.variant_index if row.variant_index is not none else 'N/A' }}"
                             data-rank="{{ row.rank if row.rank is not none else '' }}"
                             data-generation="{{ row.generation_number if row.generation_number is not none else '' }}"
                             data-variant_index="{{ row.variant_index|e if row.variant_index is not none else '' }}"
@@ -1002,12 +1009,21 @@
                             <td>{{ row.variant_index }}</td>
                             <td>{{ row.activity_score if row.activity_score else 'N/A' }}</td>
                             <td>{{ row.protein_mutations if row.protein_mutations is not none else 'N/A' }}</td>
+                            <td class="top-results__details-cell">
+                              <button
+                                type="button"
+                                class="btn btn--sm btn--ghost js-top10-open-details"
+                                aria-label="Open details for variant {{ row.variant_index if row.variant_index is not none else 'N/A' }}"
+                              >
+                                View details
+                              </button>
+                            </td>
                           </tr>
                         {% endfor %}
                       </tbody>
                     </table>
                   </div>
-                  <p class="top-results__hint">Click a row to open the variant entry.</p>
+                  <p class="top-results__hint">Use the View details button to open the variant entry.</p>
 
                   <div class="variant-modal" id="top10VariantModal" hidden>
                     <button type="button" class="variant-modal__backdrop js-top10-modal-close" aria-label="Close variant details"></button>
@@ -1103,7 +1119,7 @@
                       <details class="variant-modal__section">
                         <summary class="variant-modal__section-title">Links / Exports</summary>
                         <div class="variant-modal__links">
-                          <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="lineage">View in Lineage</button>
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="lineage">View in Variant Lineage</button>
                           <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="hotspots">View in Hotspots</button>
                           <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="fingerprint">View in Fingerprint</button>
                         </div>
@@ -1120,7 +1136,16 @@
               </div>
               <div class="core-tabs__panel js-core-tab-panel" id="core-distribution">
                 <div class="results-section__header">
-                  <h4 class="results-section__title">Activity Distribution by Generation</h4>
+                  <div class="results-title-row">
+                    <h4 class="results-section__title">Activity Distribution by Generation</h4>
+                    <button class="results-info-chip" type="button" aria-label="What this graph shows">
+                      i
+                      <span class="results-info-chip__tip">
+                        This plot shows how activity scores spread across generations, helping you spot narrowing,
+                        widening, and upward shifts in performance as evolution progresses.
+                      </span>
+                    </button>
+                  </div>
                   {% if analysis_outputs.plot and analysis_outputs.plot.exists %}
                     <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.plot.url }}" target="_blank" rel="noopener">Download PNG</a>
                   {% endif %}
@@ -1139,7 +1164,16 @@
               </div>
               <div class="core-tabs__panel js-core-tab-panel" id="core-lineage">
                 <div class="results-section__header">
-                  <h4 class="results-section__title">Variant lineage</h4>
+                  <div class="results-title-row">
+                    <h4 class="results-section__title">Variant Lineage</h4>
+                    <button class="results-info-chip" type="button" aria-label="What this graph shows">
+                      i
+                      <span class="results-info-chip__tip">
+                        This graph traces parent-to-child variant relationships over generations,
+                        so you can follow how top-performing branches evolved.
+                      </span>
+                    </button>
+                  </div>
                   {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
                     <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">Download PNG</a>
                   {% endif %}
@@ -1162,7 +1196,16 @@
               </div>
               <div class="core-tabs__panel js-core-tab-panel" id="core-protein-network">
                 <div class="results-section__header">
-                  <h4 class="results-section__title">Protein similarity / co-occurrence network</h4>
+                  <div class="results-title-row">
+                    <h4 class="results-section__title">Protein similarity / co-occurrence network</h4>
+                    <button class="results-info-chip" type="button" aria-label="What this graph shows">
+                      i
+                      <span class="results-info-chip__tip">
+                        This network connects variants that share similar protein mutation patterns,
+                        making cluster structure and related mutation paths easier to interpret.
+                      </span>
+                    </button>
+                  </div>
                   {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
                     <a class="btn btn--sm btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">Download PNG</a>
                   {% endif %}
@@ -1249,7 +1292,13 @@
                   {% endif %}
                 </div>
                 <div class="advanced-tabs__panel">
-                  <h4 class="advanced-tabs__title" id="advancedTabsTitle">{{ advanced_default_title }}</h4>
+                  <div class="results-title-row">
+                    <h4 class="advanced-tabs__title" id="advancedTabsTitle">{{ advanced_default_title }}</h4>
+                    <button class="results-info-chip" type="button" aria-label="What this graph shows">
+                      i
+                      <span class="results-info-chip__tip" id="advancedTabsInfoTip">{{ advanced_default_description }}</span>
+                    </button>
+                  </div>
                   <p class="advanced-tabs__description" id="advancedTabsDescription">{{ advanced_default_description }}</p>
                   <div class="advanced-tabs__viewer">
                     <iframe id="advancedTabsFrame" class="{% if advanced_default_frame_size == 'tall' %}is-tall{% endif %}" src="{{ advanced_default_src }}" title="{{ advanced_default_title }}" loading="lazy"></iframe>
@@ -1297,7 +1346,7 @@
                 <a class="btn btn--ghost" href="{{ analysis_outputs.top10_png.url }}" target="_blank" rel="noopener">Top 10 table PNG</a>
               {% endif %}
               {% if analysis_outputs.lineage and analysis_outputs.lineage.exists %}
-                <a class="btn btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">Lineage PNG</a>
+                <a class="btn btn--ghost" href="{{ analysis_outputs.lineage.url }}" target="_blank" rel="noopener">Variant Lineage PNG</a>
               {% endif %}
               {% if analysis_outputs.protein_network and analysis_outputs.protein_network.exists %}
                 <a class="btn btn--ghost" href="{{ analysis_outputs.protein_network.url }}" target="_blank" rel="noopener">Protein network PNG</a>

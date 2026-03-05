@@ -7,7 +7,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Lineage – Experiment {{ experiment_id }}</title>
+    <title>Variant Lineage – Experiment {{ experiment_id }}</title>
     <style>
       :root {
         --ink: #122033;
@@ -180,7 +180,7 @@
     <main class="page">
       <section class="panel">
         <div class="panel__head">
-          <h1>Lineage</h1>
+          <h1>Variant Lineage</h1>
           <!-- Info tooltip — describes the lineage graph and its trendline feature -->
           <button class="info-chip" type="button" aria-label="What this graph shows">
             i
@@ -213,7 +213,7 @@
             <a class="link-btn" href="/lineage/{{ experiment_id }}">Refresh lineage</a>
             <a class="link-btn" href="/protein_similarity/{{ experiment_id }}">Open protein network</a>
           </div>
-          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}?v={{ cache_bust }}" alt="Lineage graph for experiment {{ experiment_id }}">
+          <img class="plot-image" src="{{ url_for('static', filename=lineage_png) }}?v={{ cache_bust }}" alt="Variant lineage graph for experiment {{ experiment_id }}">
         </div>
       </section>
     </main>

@@ -62,6 +62,12 @@
         gap: 12px;
       }
 
+      .panel__head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
       .panel__sub {
         margin: 0;
         color: var(--muted);
@@ -281,6 +287,47 @@
         object-fit: contain;
       }
 
+      .info-chip {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 0;
+        border-radius: 999px;
+        background: rgba(28, 90, 155, 0.12);
+        color: var(--accent);
+        font-weight: 700;
+        font-family: Arial, sans-serif;
+        cursor: help;
+      }
+
+      .info-chip__tip {
+        position: absolute;
+        top: calc(100% + 10px);
+        left: 50%;
+        width: min(340px, 80vw);
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: #102a43;
+        color: #f8fbff;
+        font-size: 0.9rem;
+        line-height: 1.45;
+        box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+        opacity: 0;
+        transform: translate(-50%, -6px);
+        pointer-events: none;
+        transition: opacity 140ms ease, transform 140ms ease;
+        z-index: 40;
+      }
+
+      .info-chip:hover .info-chip__tip,
+      .info-chip:focus-visible .info-chip__tip {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
       @media (max-width: 720px) {
         .controls-grid {
           grid-template-columns: 1fr;
@@ -313,6 +360,17 @@
     <main class="page">
       <section class="panel">
         <div class="panel__body">
+          <div class="panel__head">
+            <h1>Protein Network</h1>
+            <button class="info-chip" type="button" aria-label="What this graph shows">
+              i
+              <span class="info-chip__tip">
+                This network links variants by shared mutation patterns, helping you identify
+                tight clusters, bridge variants, and how strongly different branches are connected.
+              </span>
+            </button>
+          </div>
+          <p class="panel__sub">Experiment {{ experiment_id }}</p>
           <!-- Metadata pills — current mode, mutation count, and available protein sequences -->
           <div class="meta-row">
             <span class="meta-pill">Mode: {{ mode_label }}</span>

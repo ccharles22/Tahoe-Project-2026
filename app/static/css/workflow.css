@@ -2432,18 +2432,18 @@ a:hover { text-decoration: underline; }
   color: var(--text-secondary);
 }
 
-.top-results__table tr.js-top10-row {
-  cursor: pointer;
+.top-results__table tr.js-top10-row:hover td {
+  background: #f5f9ff;
 }
 
-.top-results__table tr.js-top10-row:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: -2px;
+.top-results__details-col,
+.top-results__details-cell {
+  text-align: center;
+  white-space: nowrap;
 }
 
-.top-results__table tr.js-top10-row:hover td,
-.top-results__table tr.js-top10-row:focus-visible td {
-  background: #eef6ff;
+.top-results__details-cell .btn {
+  min-width: 110px;
 }
 
 .top-results__table tr.js-variant-row[data-variant-id]:not([data-variant-id=""]) {
@@ -2894,6 +2894,61 @@ a:hover { text-decoration: underline; }
   margin: 0 0 8px;
   font-size: 15px;
   font-weight: 700;
+}
+
+.results-title-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.results-title-row .results-section__title,
+.results-title-row .advanced-tabs__title {
+  margin: 0;
+}
+
+.results-info-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(16, 109, 108, 0.12);
+  color: #106d6c;
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.results-info-chip__tip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  width: min(320px, 78vw);
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: #102a43;
+  color: #f8fbff;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  box-shadow: 0 16px 28px rgba(15, 23, 42, 0.22);
+  opacity: 0;
+  transform: translate(-50%, 6px);
+  pointer-events: none;
+  transition: opacity 140ms var(--ease), transform 140ms var(--ease);
+  z-index: 900;
+}
+
+.results-info-chip:hover .results-info-chip__tip,
+.results-info-chip:focus-visible .results-info-chip__tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 .results-section__subtitle {
