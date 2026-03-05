@@ -13,6 +13,11 @@ import pandas as pd
 from matplotlib.colors import Normalize
 from matplotlib.patches import Rectangle
 
+try:
+    from scipy.stats import linregress
+except ImportError:  # pragma: no cover - optional runtime dependency.
+    linregress = None
+
 LabelMode = Literal["none", "topk", "all"]
 LayoutMode = Literal["stack", "pack"]
 YMode = Literal["rank", "activity"]
@@ -79,6 +84,8 @@ class PlotConfig:
     show_generation_grid: bool = True
     show_horizontal_grid: bool = True
     show_figure_border: bool = False
+    show_latest_generation_trend: bool = True
+    latest_generation_trend_min_points: int = 3
 
 
 # -----------------------------
@@ -758,6 +765,78 @@ def plot_layered_lineage(
             ax.text(float(row["x"]), float(row["y"]) + float(label_offset),
                     label, ha="center", va="bottom",
                     fontsize=config.label_fontsize, zorder=4)
+
+    # Overlay a trendline and significance stats for the latest generation only.
+    if config.show_latest_generation_trend and config.y_mode == "activity":
+        gen_vals = pd.to_numeric(df[generation_col], errors="coerce")
+        if gen_vals.notna().any():
+            latest_gen = int(gen_vals.max())
+            latest_mask = gen_vals == latest_gen
+            x_latest = pd.to_numeric(df.loc[latest_mask, "x"], errors="coerce")
+            y_latest = pd.to_numeric(df.loc[latest_mask, "y"], errors="coerce")
+            valid_latest = ~(x_latest.isna() | y_latest.isna())
+
+            x_arr = x_latest[valid_latest].to_numpy(dtype=float)
+            y_arr = y_latest[valid_latest].to_numpy(dtype=float)
+
+            r_val: float | None = None
+            p_val: float | None = None
+            trend_ready = (
+                len(x_arr) >= config.latest_generation_trend_min_points
+                and np.unique(x_arr).size > 1
+                and np.unique(y_arr).size > 1
+            )
+            if trend_ready:
+                slope, intercept = np.polyfit(x_arr, y_arr, 1)
+                x_line = np.array([float(np.min(x_arr)), float(np.max(x_arr))], dtype=float)
+                y_line = slope * x_line + intercept
+                ax.plot(
+                    x_line,
+                    y_line,
+                    color="#0f766e",
+                    linewidth=2.4,
+                    linestyle="-.",
+                    alpha=0.95,
+                    zorder=5,
+                )
+
+                if linregress is not None:
+                    try:
+                        stats = linregress(x_arr, y_arr)
+                        r_val = float(stats.rvalue)
+                        p_val = float(stats.pvalue)
+                    except ValueError:
+                        r_val = None
+                        p_val = None
+
+                if r_val is None and np.std(x_arr) > 0 and np.std(y_arr) > 0:
+                    r_val = float(np.corrcoef(x_arr, y_arr)[0, 1])
+
+            p_text = "n/a"
+            if p_val is not None and np.isfinite(p_val):
+                p_text = "<0.001" if p_val < 0.001 else f"{p_val:.3f}"
+            r_text = f"{r_val:.3f}" if (r_val is not None and np.isfinite(r_val)) else "n/a"
+            stats_label = f"Latest G{latest_gen} trend: r = {r_text} | p = {p_text}"
+            if not trend_ready:
+                stats_label = f"Latest G{latest_gen} trend: unavailable"
+
+            ax.text(
+                0.985,
+                0.965,
+                stats_label,
+                transform=ax.transAxes,
+                ha="right",
+                va="top",
+                fontsize=9.5,
+                color="#0f172a",
+                bbox={
+                    "boxstyle": "round,pad=0.28",
+                    "facecolor": "white",
+                    "edgecolor": "#cbd5e1",
+                    "alpha": 0.9,
+                },
+                zorder=6,
+            )
 
     # axes styling (CRITICAL FIX: ticks from generation integers, not jittered x)
     ax.set_title(config.title, fontsize=16)

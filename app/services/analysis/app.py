@@ -189,34 +189,14 @@ def register_analysis_routes(target_app: Flask) -> None:
         with get_conn() as conn:
             nodes = fetch_lineage_nodes(conn, experiment_id)
             edges = fetch_lineage_edges(conn, experiment_id)
-            (
-                expression_trend,
-                expression_baseline_label,
-                expression_pvalue,
-                expression_rvalue,
-            ) = _build_expression_trend(
-                conn,
-                experiment_id,
-            )
 
         out_path = plots_dir / f"lineage_exp{experiment_id}.png"
-        expr_out_path = plots_dir / f"lineage_expr_exp{experiment_id}.png"
         plot_layered_lineage(nodes, edges, out_path)
-        plot_relative_expression_trend(
-            expression_trend,
-            expr_out_path,
-            pvalue=expression_pvalue,
-            rvalue=expression_rvalue,
-        )
 
         return render_template(
             "analysis/lineage.html",
             experiment_id=experiment_id,
             lineage_png=f"plots/lineage_exp{experiment_id}.png",
-            expression_png=f"plots/lineage_expr_exp{experiment_id}.png",
-            expression_baseline_label=expression_baseline_label,
-            expression_pvalue_label=_format_pvalue_label(expression_pvalue),
-            expression_pearson_label=_format_pearson_label(expression_rvalue),
             cache_bust=int(time.time()),
         )
 
