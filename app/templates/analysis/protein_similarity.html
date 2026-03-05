@@ -322,17 +322,9 @@
                 <section class="control-group control-group--network">
                   <h2 class="control-group__title">Network Settings</h2>
                   <div class="control-group__fields control-group__fields--stacked">
-                    <label for="mode">
-                      Network type
-                      <select name="mode" id="mode">
-                        <option value="cooccurrence" {% if mode == 'cooccurrence' %}selected{% endif %}>Mutation co-occurrence</option>
-                        <option value="pearson" {% if mode == 'pearson' %}selected{% endif %}>Pearson correlation</option>
-                      </select>
-                    </label>
-
                     <label for="preset">
                       Preset
-                      <select name="preset" id="preset" {% if mode != 'cooccurrence' %}disabled{% endif %}>
+                      <select name="preset" id="preset">
                         <option value="" {% if not preset %}selected{% endif %}>Custom</option>
                         <option value="sparse" {% if preset == 'sparse' %}selected{% endif %}>Sparse</option>
                         <option value="medium" {% if preset == 'medium' %}selected{% endif %}>Medium</option>
@@ -345,50 +337,43 @@
                 <section class="control-group control-group--thresholds">
                   <h2 class="control-group__title">Filters / Thresholds</h2>
                   <div class="control-group__fields">
-                    <div data-mode="cooccurrence">
-                      <label for="min_shared">
-                        Min shared mutations
-                        <input
-                          type="number"
-                          id="min_shared"
-                          name="min_shared"
-                          min="1"
-                          step="1"
-                          value="{{ min_shared }}"
-                        >
-                      </label>
-                    </div>
+                    <label for="min_shared">
+                      Min shared mutations
+                      <input
+                        type="number"
+                        id="min_shared"
+                        name="min_shared"
+                        min="1"
+                        step="1"
+                        value="{{ min_shared }}"
+                      >
+                    </label>
 
-                    <div data-mode="cooccurrence">
-                      <label for="jaccard_threshold">
-                        Jaccard threshold
-                        <input
-                          type="number"
-                          id="jaccard_threshold"
-                          name="jaccard_threshold"
-                          step="0.01"
-                          min="0"
-                          max="1"
-                          value="{{ jaccard_threshold }}"
-                        >
-                      </label>
-                    </div>
+                    <label for="jaccard_threshold">
+                      Jaccard threshold
+                      <input
+                        type="number"
+                        id="jaccard_threshold"
+                        name="jaccard_threshold"
+                        step="0.01"
+                        min="0"
+                        max="1"
+                        value="{{ jaccard_threshold }}"
+                      >
+                    </label>
 
-                    <div data-mode="pearson">
-                      <label for="pearson_threshold">
-                        Pearson threshold
-                        <input
-                          type="number"
-                          id="pearson_threshold"
-                          name="pearson_threshold"
-                          step="0.05"
-                          min="-1"
-                          max="1"
-                          value="{{ pearson_threshold }}"
-                          {% if mode != 'pearson' %}disabled{% endif %}
-                        >
-                      </label>
-                    </div>
+                    <label for="pearson_threshold">
+                      Pearson threshold
+                      <input
+                        type="number"
+                        id="pearson_threshold"
+                        name="pearson_threshold"
+                        step="0.05"
+                        min="-1"
+                        max="1"
+                        value="{{ pearson_threshold }}"
+                      >
+                    </label>
 
                     <label for="max_nodes">
                       Variants shown
@@ -399,7 +384,7 @@
                       </select>
                     </label>
                   </div>
-                  <p class="hint">Higher values produce a sparser network. Presets auto-fill thresholds.</p>
+                  <p class="hint">Higher values produce a sparser network. Presets auto-fill shared/Jaccard thresholds.</p>
                 </section>
               </div>
 
@@ -427,37 +412,13 @@
       const controlsForm = document.getElementById("networkControlsForm");
       const applyBtn = document.getElementById("applyBtn");
       const controlsStatus = document.getElementById("controlsStatus");
-      const modeSelect = document.getElementById("mode");
       const presetSelect = document.getElementById("preset");
       const minSharedInput = document.getElementById("min_shared");
       const jaccardInput = document.getElementById("jaccard_threshold");
       const pearsonInput = document.getElementById("pearson_threshold");
-      const modeSections = document.querySelectorAll("[data-mode]");
-      const trackedInputs = [modeSelect, presetSelect, minSharedInput, jaccardInput, pearsonInput, document.getElementById("max_nodes")];
-
-      function applyMode() {
-        const mode = modeSelect.value;
-        modeSections.forEach((section) => {
-          section.style.display = section.getAttribute("data-mode") === mode ? "block" : "none";
-        });
-        const isCooccurrence = mode === "cooccurrence";
-        presetSelect.disabled = !isCooccurrence;
-        if (!isCooccurrence) {
-          minSharedInput.disabled = true;
-          jaccardInput.disabled = true;
-          pearsonInput.disabled = false;
-        } else {
-          pearsonInput.disabled = true;
-          setThresholdEnabledState();
-        }
-      }
+      const trackedInputs = [presetSelect, minSharedInput, jaccardInput, pearsonInput, document.getElementById("max_nodes")];
 
       function setThresholdEnabledState() {
-        if (modeSelect.value !== "cooccurrence") {
-          minSharedInput.disabled = true;
-          jaccardInput.disabled = true;
-          return;
-        }
         const isCustom = !presetSelect.value;
         minSharedInput.disabled = !isCustom;
         jaccardInput.disabled = !isCustom;
@@ -498,10 +459,6 @@
         }
       }
 
-      modeSelect.addEventListener("change", () => {
-        applyMode();
-        updateDirtyState();
-      });
       presetSelect.addEventListener("change", () => {
         applyPreset();
         updateDirtyState();
@@ -516,7 +473,6 @@
         applyBtn.textContent = "Updating...";
       });
 
-      applyMode();
       setThresholdEnabledState();
       updateDirtyState();
     </script>

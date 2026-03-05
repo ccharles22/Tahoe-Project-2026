@@ -209,10 +209,6 @@ def register_analysis_routes(target_app: Flask) -> None:
 
     @target_app.route("/protein_similarity/<int:experiment_id>")
     def protein_similarity(experiment_id: int):
-        mode = request.args.get("mode", "cooccurrence").strip().lower()
-        if mode not in {"cooccurrence", "pearson"}:
-            mode = "cooccurrence"
-
         preset = request.args.get("preset", "").strip().lower()
         min_shared = request.args.get("min_shared", "1")
         jaccard_threshold = request.args.get("jaccard_threshold", "")
@@ -233,20 +229,21 @@ def register_analysis_routes(target_app: Flask) -> None:
             except ValueError:
                 jaccard_threshold_val = None
 
-        try:
-            pearson_threshold_val = float(pearson_threshold)
-        except ValueError:
-            pearson_threshold_val = 0.20
-        pearson_threshold_val = float(np.clip(pearson_threshold_val, -1.0, 1.0))
+        pearson_threshold_val = None
+        if pearson_threshold.strip():
+            try:
+                pearson_threshold_val = float(np.clip(float(pearson_threshold), -1.0, 1.0))
+            except ValueError:
+                pearson_threshold_val = 0.20
 
         try:
             max_nodes_val = int(max_nodes)
         except ValueError:
-            max_nodes_val = 40
+            max_nodes_val = 20
         if max_nodes_val not in allowed_max_nodes:
             max_nodes_val = 20
 
-        if mode == "cooccurrence" and preset in {"sparse", "medium", "dense"}:
+        if preset in {"sparse", "medium", "dense"}:
             preset_map = {
                 "sparse": (4, 0.20),
                 "medium": (2, 0.10),
@@ -263,35 +260,25 @@ def register_analysis_routes(target_app: Flask) -> None:
         proteins_available = diagnostics.get("protein_sequences_available", 0)
         network_data_warning = ""
         if mutations_loaded < 50:
-            if mode == "pearson":
-                network_data_warning = (
-                    "Pearson network may be sparse because few mutation rows were persisted."
-                )
-            else:
-                network_data_warning = (
-                    "Co-occurrence network may be sparse because few mutation rows were persisted."
-                )
+            network_data_warning = (
+                "Co-occurrence network may be sparse because few mutation rows were persisted."
+            )
 
-        suffix = f"{mode}_n{max_nodes_val}"
-        if mode == "cooccurrence":
-            suffix = f"{suffix}_ms{min_shared_val}"
-            if jaccard_threshold_val is not None:
-                suffix = f"{suffix}_jt{jaccard_threshold_val:.2f}"
-        elif mode == "pearson":
+        mode = "cooccurrence"
+        suffix = f"{mode}_n{max_nodes_val}_ms{min_shared_val}"
+        if jaccard_threshold_val is not None:
+            suffix = f"{suffix}_jt{jaccard_threshold_val:.2f}"
+        if pearson_threshold_val is not None:
             suffix = f"{suffix}_pt{pearson_threshold_val:.2f}"
         out_path = plots_dir / f"protein_exp{experiment_id}_{suffix}.png"
 
-        if mode == "pearson":
-            title = f"Protein Pearson Correlation Network (Top {max_nodes_val} Variants by Activity)"
-            mode_label = "Pearson correlation"
-        else:
-            title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
-            mode_label = "Mutation co-occurrence"
+        title = f"Protein Co-Occurrence Network (Top {max_nodes_val} Variants by Activity)"
+        mode_label = "Mutation co-occurrence (Jaccard + Pearson filters)"
         config = ProteinNetConfig(
             title=title,
             cooccur_min_shared_mutations=min_shared_val,
             cooccur_jaccard_threshold=jaccard_threshold_val,
-            pearson_threshold=pearson_threshold_val,
+            cooccur_pearson_threshold=pearson_threshold_val,
             top_n_by_activity=max_nodes_val,
             max_nodes_final=max_nodes_val,
             mode=mode,
@@ -314,7 +301,7 @@ def register_analysis_routes(target_app: Flask) -> None:
             preset=preset,
             min_shared=min_shared_val,
             jaccard_threshold=jaccard_threshold_val if jaccard_threshold_val is not None else "",
-            pearson_threshold=pearson_threshold_val,
+            pearson_threshold=pearson_threshold_val if pearson_threshold_val is not None else "",
             max_nodes=max_nodes_val,
             max_node_options=sorted(allowed_max_nodes),
             mutations_loaded=mutations_loaded,

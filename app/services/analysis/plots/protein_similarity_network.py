@@ -20,7 +20,7 @@ except Exception:  # pragma: no cover
 
 
 LabelMode = Literal["none", "top10", "all"]
-NetworkMode = Literal["identity", "cooccurrence", "pearson"]
+NetworkMode = Literal["identity", "cooccurrence"]
 
 
 @dataclass(frozen=True) #configuration for the protein similarity network plot, with defaults and type annotations
@@ -56,10 +56,8 @@ class ProteinNetConfig:
 	# co-occurrence rule (variant-variant edges from shared protein mutations)
 	cooccur_min_shared_mutations: int = 1
 	cooccur_jaccard_threshold: float | None = None
+	cooccur_pearson_threshold: float | None = None
 	cooccur_weight: Literal["shared", "jaccard"] = "shared"
-
-	# pearson rule (variant-variant correlation over binary mutation vectors)
-	pearson_threshold: float = 0.20
 
 	# diagnostics
 	debug: bool = False
@@ -254,10 +252,14 @@ def build_protein_cooccurrence_edges(
 	mutated_col: str,
 	min_shared: int,
 	jaccard_threshold: float | None,
+	pearson_threshold: float | None = None,
 ) -> pd.DataFrame:
 	"""
 	Build undirected edges when variants share protein mutations.
-	Weights are both shared mutation count and Jaccard similarity.
+	Edge filters:
+	  - shared mutation count
+	  - Jaccard index
+	  - Pearson/phi correlation over binary mutation vectors (optional)
 	"""
 	mut_sets = _build_mutation_sets(
 		mutations,
@@ -267,8 +269,13 @@ def build_protein_cooccurrence_edges(
 		mutated_col=mutated_col,
 	)
 
+	union_labels: set[str] = set()
+	for labels in mut_sets.values():
+		union_labels.update(labels)
+	n_features = len(union_labels)
+
 	ids = nodes_sub[id_col].tolist()
-	edges: list[tuple[int, int, int, float]] = []
+	edges: list[tuple[int, int, int, float, float]] = []
 	for i in range(len(ids)):
 		set_i = mut_sets.get(int(ids[i]), set())
 		for j in range(i + 1, len(ids)):
@@ -283,9 +290,20 @@ def build_protein_cooccurrence_edges(
 			jaccard = (shared_n / len(union)) if union else 0.0
 			if jaccard_threshold is not None and jaccard < jaccard_threshold:
 				continue
-			edges.append((int(ids[i]), int(ids[j]), shared_n, float(jaccard)))
 
-	return pd.DataFrame(edges, columns=["u", "v", "shared", "jaccard"])
+			# Pearson on binary mutation vectors (equivalent to phi coefficient).
+			a = shared_n
+			b = len(set_i - set_j)
+			c = len(set_j - set_i)
+			d = n_features - len(union)
+			denom = (a + b) * (a + c) * (b + d) * (c + d)
+			pearson = float((a * d - b * c) / np.sqrt(denom)) if denom > 0 else 0.0
+			if pearson_threshold is not None and pearson < pearson_threshold:
+				continue
+
+			edges.append((int(ids[i]), int(ids[j]), shared_n, float(jaccard), pearson))
+
+	return pd.DataFrame(edges, columns=["u", "v", "shared", "jaccard", "pearson"])
 
 
 def build_protein_pearson_edges(
@@ -367,7 +385,7 @@ def plot_protein_similarity_network(
 	if mode is not None and mode != config.mode:
 		config = replace(config, mode=mode)
 
-	if config.mode in {"cooccurrence", "pearson"}:
+	if config.mode == "cooccurrence":
 		config = replace(config, neighbors_per_top10=0)
 
 	out_path = Path(out_path)
@@ -434,6 +452,7 @@ def plot_protein_similarity_network(
 			mutated_col="mutated",
 			min_shared=config.cooccur_min_shared_mutations,
 			jaccard_threshold=config.cooccur_jaccard_threshold,
+			pearson_threshold=config.cooccur_pearson_threshold,
 		)
 		if edges.empty:
 			fig, ax = plt.subplots(figsize=config.figsize)
@@ -442,32 +461,6 @@ def plot_protein_similarity_network(
 				0.5,
 				0.5,
 				"No shared protein mutations to build a co-occurrence network",
-				ha="center",
-				va="center",
-			)
-			ax.set_axis_off()
-			fig.tight_layout()
-			fig.savefig(out_path, dpi=config.dpi)
-			plt.close(fig)
-			return
-	elif config.mode == "pearson":
-		edges = build_protein_pearson_edges(
-			sub,
-			mutations,
-			id_col=id_col,
-			variant_col="variant_id",
-			position_col="position",
-			original_col="original",
-			mutated_col="mutated",
-			threshold=config.pearson_threshold,
-		)
-		if edges.empty:
-			fig, ax = plt.subplots(figsize=config.figsize)
-			ax.set_title(config.title)
-			ax.text(
-				0.5,
-				0.5,
-				"No correlated mutation profiles above the Pearson threshold",
 				ha="center",
 				va="center",
 			)
@@ -491,12 +484,9 @@ def plot_protein_similarity_network(
 		G.add_node(vid)
 
 	if config.mode == "cooccurrence":
-		for u, v, shared, jaccard in edges.itertuples(index=False):
+		for u, v, shared, jaccard, pearson in edges.itertuples(index=False):
 			weight = shared if config.cooccur_weight == "shared" else jaccard
-			G.add_edge(u, v, weight=weight)
-	elif config.mode == "pearson":
-		for u, v, pearson in edges.itertuples(index=False):
-			G.add_edge(u, v, weight=pearson)
+			G.add_edge(u, v, weight=weight, shared=shared, jaccard=jaccard, pearson=pearson)
 	else:
 		for u, v, identity in edges.itertuples(index=False):
 			G.add_edge(u, v, weight=identity)
