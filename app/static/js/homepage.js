@@ -169,41 +169,23 @@
     window.addEventListener("resize", updateNavContrast);
     updateNavContrast();
 
-    // --- Results carousel (infinite-loop with clone sentinels) ---
+    // --- Results carousel ---
     if (resultsCarousel && resultsTrack) {
-      const sourceCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
-      const totalCards = sourceCards.length;
-      if (totalCards > 0) {
-        // Clone first and last cards as sentinels for seamless infinite scroll
-        const firstClone = sourceCards[0].cloneNode(true);
-        const lastClone = sourceCards[totalCards - 1].cloneNode(true);
-        firstClone.classList.add("is-clone");
-        lastClone.classList.add("is-clone");
-        resultsTrack.insertBefore(lastClone, sourceCards[0]);
-        resultsTrack.appendChild(firstClone);
-      }
-
       const allCards = Array.from(resultsTrack.querySelectorAll(".home-results-card"));
-      if (allCards.length >= 3) {
+      const totalCards = allCards.length;
+      if (totalCards >= 1) {
 
-      let activePhysicalIndex = 1;
+      let activeIndex = 0;
       let wheelLock = false;
       let rafId = 0;
       let isProgrammaticScroll = false;
-
-      /** Map a physical card index to a logical (user-facing) index, wrapping clones. */
-      const toLogicalIndex = (physicalIdx) => {
-        if (physicalIdx <= 0) return totalCards - 1;
-        if (physicalIdx >= allCards.length - 1) return 0;
-        return physicalIdx - 1;
-      };
 
       /** Calculate the scroll offset needed to centre a card in the viewport. */
       const cardCenterTarget = (card) =>
         card.offsetLeft - ((resultsCarousel.clientWidth - card.offsetWidth) / 2);
 
-      /** Find the physical index of the card closest to the viewport centre. */
-      const closestPhysicalIndex = () => {
+      /** Find the card index closest to the viewport centre. */
+      const closestIndex = () => {
         const viewportCenter = resultsCarousel.scrollLeft + (resultsCarousel.clientWidth / 2);
         let bestIdx = 0;
         let bestDelta = Number.POSITIVE_INFINITY;
@@ -220,21 +202,17 @@
 
       const updateCounter = (physicalIdx) => {
         if (!resultsCounter) return;
-        const logicalIdx = toLogicalIndex(physicalIdx);
         const title = allCards[physicalIdx].dataset.resultTitle || "";
-        resultsCounter.textContent = `${logicalIdx + 1} / ${totalCards} - ${title}`;
+        resultsCounter.textContent = `${physicalIdx + 1} / ${totalCards} - ${title}`;
       };
 
       const updateCardStates = (physicalIdx) => {
-        const logicalIdx = toLogicalIndex(physicalIdx);
-        const prevLogical = (logicalIdx - 1 + totalCards) % totalCards;
-        const nextLogical = (logicalIdx + 1) % totalCards;
-        const isEdgeClone = physicalIdx === 0 || physicalIdx === allCards.length - 1;
+        const prevIdx = (physicalIdx - 1 + totalCards) % totalCards;
+        const nextIdx = (physicalIdx + 1) % totalCards;
 
         allCards.forEach((card, idx) => {
-          const cardLogical = toLogicalIndex(idx);
           const isActive = idx === physicalIdx;
-          const isSide = !isActive && !isEdgeClone && (cardLogical === prevLogical || cardLogical === nextLogical);
+          const isSide = totalCards > 2 && !isActive && (idx === prevIdx || idx === nextIdx);
           card.classList.toggle("is-active", isActive);
           card.classList.toggle("is-side", isSide);
         });
@@ -242,8 +220,8 @@
         updateCounter(physicalIdx);
       };
 
-      /** Instantly jump to a physical index without animation (used after loop reset). */
-      const jumpToPhysical = (physicalIdx) => {
+      /** Instantly jump to an index without animation. */
+      const jumpToIndex = (physicalIdx) => {
         const card = allCards[physicalIdx];
         if (!card) return;
         isProgrammaticScroll = true;
@@ -251,7 +229,7 @@
           left: cardCenterTarget(card),
           behavior: "auto",
         });
-        activePhysicalIndex = physicalIdx;
+        activeIndex = physicalIdx;
         updateCardStates(physicalIdx);
         requestAnimationFrame(() => {
           isProgrammaticScroll = false;
@@ -259,11 +237,11 @@
       };
 
       /** Smoothly scroll to centre the card at physicalIdx. */
-      const snapToPhysical = (physicalIdx, behavior = "smooth") => {
-        const clamped = Math.max(0, Math.min(allCards.length - 1, physicalIdx));
+      const snapToIndex = (physicalIdx, behavior = "smooth") => {
+        const clamped = Math.max(0, Math.min(totalCards - 1, physicalIdx));
         const card = allCards[clamped];
         if (!card) return;
-        activePhysicalIndex = clamped;
+        activeIndex = clamped;
         resultsCarousel.scrollTo({
           left: cardCenterTarget(card),
           behavior,
@@ -272,18 +250,8 @@
       };
 
       const stepCarousel = (direction) => {
-        snapToPhysical(activePhysicalIndex + direction, reduceMotion ? "auto" : "smooth");
-      };
-
-      /** When resting on a clone sentinel, silently jump to the real counterpart. */
-      const handleLoopEdge = () => {
-        if (activePhysicalIndex === 0) {
-          jumpToPhysical(totalCards);
-          return;
-        }
-        if (activePhysicalIndex === allCards.length - 1) {
-          jumpToPhysical(1);
-        }
+        const nextIdx = (activeIndex + direction + totalCards) % totalCards;
+        snapToIndex(nextIdx, reduceMotion ? "auto" : "smooth");
       };
 
       resultsCarousel.addEventListener("wheel", (event) => {
@@ -307,17 +275,16 @@
         if (rafId) cancelAnimationFrame(rafId);
         rafId = requestAnimationFrame(() => {
           rafId = 0;
-          const nearestIdx = closestPhysicalIndex();
-          if (nearestIdx !== activePhysicalIndex) {
-            activePhysicalIndex = nearestIdx;
+          const nearestIdx = closestIndex();
+          if (nearestIdx !== activeIndex) {
+            activeIndex = nearestIdx;
             updateCardStates(nearestIdx);
           }
-          handleLoopEdge();
         });
       }, { passive: true });
 
       window.addEventListener("resize", () => {
-        jumpToPhysical(activePhysicalIndex);
+        jumpToIndex(activeIndex);
       });
 
       if (resultsPrevBtn) {
@@ -338,7 +305,7 @@
         }
       });
 
-        jumpToPhysical(1);
+        jumpToIndex(0);
       }
     }
 
