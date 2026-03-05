@@ -946,7 +946,30 @@
                       </thead>
                       <tbody>
                         {% for row in top10_rows %}
-                          <tr data-rank="{{ row.rank if row.rank is not none else '' }}" data-generation="{{ row.generation_number if row.generation_number is not none else '' }}" data-variant_index="{{ row.variant_index if row.variant_index is not none else '' }}" data-activity_score="{{ row.activity_score_value if row.activity_score_value is not none else '' }}" data-total_mutations="{{ row.protein_mutations if row.protein_mutations is not none else '' }}">
+                          <tr
+                            class="js-top10-row{% if row.rank == 1 %} top-results__row--top1{% elif row.rank == 2 %} top-results__row--top2{% elif row.rank == 3 %} top-results__row--top3{% endif %}"
+                            tabindex="0"
+                            role="button"
+                            aria-label="Open details for variant {{ row.variant_index if row.variant_index is not none else 'N/A' }}"
+                            data-rank="{{ row.rank if row.rank is not none else '' }}"
+                            data-generation="{{ row.generation_number if row.generation_number is not none else '' }}"
+                            data-variant_index="{{ row.variant_index|e if row.variant_index is not none else '' }}"
+                            data-activity_score="{{ row.activity_score_value if row.activity_score_value is not none else '' }}"
+                            data-activity_score_text="{{ (row.activity_score if row.activity_score else 'N/A')|e }}"
+                            data-total_mutations="{{ row.protein_mutations if row.protein_mutations is not none else '' }}"
+                            data-syn-mutations="{{ row.syn_mutations if row.syn_mutations is not none else '' }}"
+                            data-non-syn-mutations="{{ row.non_syn_mutations if row.non_syn_mutations is not none else '' }}"
+                            data-mutation-type="{{ row.mutation_type|e if row.mutation_type else '' }}"
+                            data-mutation-sites="{{ row.mutation_sites|e if row.mutation_sites else '' }}"
+                            data-mutation-changes="{{ row.mutation_changes|e if row.mutation_changes else '' }}"
+                            data-mutation-source="{{ row.mutation_source|e if row.mutation_source else '' }}"
+                            data-seq-identity="{{ row.seq_identity if row.seq_identity is not none else '' }}"
+                            data-seq-coverage="{{ row.seq_coverage if row.seq_coverage is not none else '' }}"
+                            data-variant_id="{{ row.variant_id if row.variant_id is not none else '' }}"
+                            data-is_mutant="{{ 'true' if row.is_mutant else 'false' }}"
+                            data-qc_flagged="{{ 'true' if row.qc_flagged else 'false' }}"
+                            data-qc_note="{{ row.qc_note|e if row.qc_note else '' }}"
+                          >
                             <td>{{ row.rank }}</td>
                             <td>G{{ row.generation_number }}</td>
                             <td>{{ row.variant_index }}</td>
@@ -956,6 +979,109 @@
                         {% endfor %}
                       </tbody>
                     </table>
+                  </div>
+                  <p class="top-results__hint">Click a row to open the variant entry.</p>
+
+                  <div class="variant-modal" id="top10VariantModal" hidden>
+                    <button type="button" class="variant-modal__backdrop js-top10-modal-close" aria-label="Close variant details"></button>
+                    <section class="variant-modal__card" role="dialog" aria-modal="true" aria-labelledby="top10VariantModalTitle" tabindex="-1">
+                      <button type="button" class="variant-modal__close js-top10-modal-close" aria-label="Close">&times;</button>
+
+                      <header class="variant-modal__header">
+                        <h4 class="variant-modal__title" id="top10VariantModalTitle">Variant entry</h4>
+                        <p class="variant-modal__subtitle-line" data-top10-detail="entry_subtitle">-</p>
+                        <div class="variant-modal__chips">
+                          <span class="variant-chip" data-top10-chip="generation">G-</span>
+                          <span class="variant-chip" data-top10-chip="rank">Rank #-</span>
+                          <span class="variant-chip" data-top10-chip="activity">Activity -</span>
+                          <span class="variant-chip" data-top10-chip="mutations">- vs WT</span>
+                          <span class="variant-chip" data-top10-chip="qc">QC: -</span>
+                          <span class="variant-chip" data-top10-chip="tier">Tier: -</span>
+                        </div>
+                        <div class="variant-modal__header-actions">
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-copy-summary">Copy summary</button>
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-download-row">Download variant CSV row</button>
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-download-mutations">Download mutation list</button>
+                        </div>
+                        <div class="variant-modal__esc-hint">Esc to close</div>
+                      </header>
+
+                      <details class="variant-modal__section" open>
+                        <summary class="variant-modal__section-title">Overview</summary>
+                        <dl class="variant-modal__record">
+                          <div class="variant-modal__record-row"><dt>Variant index</dt><dd data-top10-detail="variant">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Variant ID</dt><dd data-top10-detail="variant_id">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Generation</dt><dd data-top10-detail="generation">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Rank</dt><dd data-top10-detail="rank">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Activity score</dt><dd data-top10-detail="activity_score">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Relative to top performer</dt><dd data-top10-detail="relative_score">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>QC status</dt><dd data-top10-detail="qc_status">-</dd></div>
+                        </dl>
+                      </details>
+
+                      <details class="variant-modal__section" open>
+                        <summary class="variant-modal__section-title">Mutations</summary>
+                        <dl class="variant-modal__record">
+                          <div class="variant-modal__record-row"><dt>Mutations vs WT</dt><dd data-top10-detail="mutation_load">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Synonymous / Non-synonymous</dt><dd data-top10-detail="mutation_split">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Divergence tier</dt><dd data-top10-detail="mutation_band">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Mutation type</dt><dd data-top10-detail="mutation_type">-</dd></div>
+                        </dl>
+
+                        <div class="variant-modal__list-block">
+                          <div class="variant-modal__list-header">
+                            <h5>Mutation sites (positions)</h5>
+                            <button type="button" class="btn btn--sm btn--ghost js-top10-copy-list" data-copy-list="sites">Copy positions</button>
+                          </div>
+                          <div class="variant-modal__list-body" data-top10-list="sites"></div>
+                        </div>
+
+                        <div class="variant-modal__list-block">
+                          <div class="variant-modal__list-header">
+                            <h5>AA changes</h5>
+                            <button type="button" class="btn btn--sm btn--ghost js-top10-copy-list" data-copy-list="changes">Copy AA changes</button>
+                          </div>
+                          <div class="variant-modal__list-body" data-top10-list="changes"></div>
+                        </div>
+
+                        <div class="variant-modal__mut-wrap">
+                          <table class="variant-modal__mut-table">
+                            <thead>
+                              <tr>
+                                <th>Position</th>
+                                <th>WT→Mut</th>
+                                <th>Type</th>
+                                <th>Introduced gen</th>
+                                <th>Notes</th>
+                              </tr>
+                            </thead>
+                            <tbody data-top10-detail="feature_table_body">
+                              <tr><td colspan="5">No mutation features available.</td></tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </details>
+
+                      <details class="variant-modal__section">
+                        <summary class="variant-modal__section-title">Quality / Provenance</summary>
+                        <dl class="variant-modal__record">
+                          <div class="variant-modal__record-row"><dt>QC status</dt><dd data-top10-detail="qc_status_repeat">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Warning reasons</dt><dd data-top10-detail="qc_reasons">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Mutation source</dt><dd data-top10-detail="mutation_source">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Data coverage</dt><dd data-top10-detail="data_coverage">-</dd></div>
+                          <div class="variant-modal__record-row"><dt>Identity %</dt><dd data-top10-detail="identity_pct">-</dd></div>
+                        </dl>
+                      </details>
+
+                      <details class="variant-modal__section">
+                        <summary class="variant-modal__section-title">Links / Exports</summary>
+                        <div class="variant-modal__links">
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="lineage">View in Lineage</button>
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="hotspots">View in Hotspots</button>
+                          <button type="button" class="btn btn--sm btn--ghost js-top10-jump" data-jump-target="fingerprint">View in Fingerprint</button>
+                        </div>
+                      </details>
+                    </section>
                   </div>
                 {% else %}
                   <div class="empty">
@@ -1039,7 +1165,6 @@
             {% set has_advanced_outputs = (analysis_outputs and (
               (analysis_outputs.bonus_mutation_frequency and analysis_outputs.bonus_mutation_frequency.exists) or
               (analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists) or
-              (analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists) or
               (analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists) or
               (analysis_outputs.bonus_landscape and analysis_outputs.bonus_landscape.exists) or
               (analysis_outputs.bonus_trajectory and analysis_outputs.bonus_trajectory.exists)
@@ -1057,10 +1182,6 @@
                 {% set advanced_default_src = analysis_outputs.bonus_fingerprint.url %}
                 {% set advanced_default_title = 'Mutation fingerprint' %}
                 {% set advanced_default_description = 'Profiles defining mutations for top variants to compare sequence signatures by generation.' %}
-              {% elif analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
-                {% set advanced_default_src = analysis_outputs.bonus_domain_generation.url %}
-                {% set advanced_default_title = 'Domain by generation / enrichment detail' %}
-                {% set advanced_default_description = 'Shows domain enrichment concentrated in the latest generation and highlights emerging functional regions.' %}
               {% elif analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
                 {% set advanced_default_src = analysis_outputs.bonus_domain_heatmap.url %}
                 {% set advanced_default_title = 'Domain enrichment heatmap' %}
@@ -1085,9 +1206,6 @@
                   {% endif %}
                   {% if analysis_outputs.bonus_fingerprint and analysis_outputs.bonus_fingerprint.exists %}
                     <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_fingerprint.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_fingerprint.url }}" data-title="Mutation fingerprint" data-description="Profiles defining mutations for top variants to compare sequence signatures by generation." data-png="">Mutation fingerprint</button>
-                  {% endif %}
-                  {% if analysis_outputs.bonus_domain_generation and analysis_outputs.bonus_domain_generation.exists %}
-                    <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_domain_generation.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_domain_generation.url }}" data-title="Domain by generation / enrichment detail" data-description="Shows domain enrichment concentrated in the latest generation and highlights emerging functional regions." data-png="">Domain by generation</button>
                   {% endif %}
                   {% if analysis_outputs.bonus_domain_heatmap and analysis_outputs.bonus_domain_heatmap.exists %}
                     <button class="advanced-tab-btn js-advanced-tab-btn {% if advanced_default_src == analysis_outputs.bonus_domain_heatmap.url %}is-active{% endif %}" type="button" role="tab" data-src="{{ analysis_outputs.bonus_domain_heatmap.url }}" data-title="Domain enrichment heatmap" data-description="Summarises mutation density and enrichment across protein domains." data-png="">Domain heatmap</button>

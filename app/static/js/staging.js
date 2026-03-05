@@ -628,30 +628,461 @@ function initTop10TableTools() {
     });
   });
 
-  const copyBtn = document.querySelector('.js-copy-top10-csv');
-  if (!copyBtn) return;
-  copyBtn.addEventListener('click', async () => {
-    const headers = Array.from(table.querySelectorAll('thead th')).map((th) => {
-      const btn = th.querySelector('button');
-      return (btn ? btn.textContent : th.textContent || '').trim();
-    });
-    const rows = Array.from(tbody.querySelectorAll('tr')).map((row) =>
-      Array.from(row.querySelectorAll('td')).map((td) => `"${(td.textContent || '').trim().replace(/"/g, '""')}"`).join(',')
-    );
-    const csvText = [headers.join(','), ...rows].join('\n');
-    let copied = false;
-    try {
-      await navigator.clipboard.writeText(csvText);
-      copied = true;
-    } catch (_) {
-      copied = false;
+  const modal = document.getElementById('top10VariantModal');
+  const modalCard = modal ? modal.querySelector('.variant-modal__card') : null;
+  const modalCloseButtons = modal ? Array.from(modal.querySelectorAll('.js-top10-modal-close')) : [];
+  const summaryCopyBtn = modal ? modal.querySelector('.js-top10-copy-summary') : null;
+  const rowDownloadBtn = modal ? modal.querySelector('.js-top10-download-row') : null;
+  const mutationDownloadBtn = modal ? modal.querySelector('.js-top10-download-mutations') : null;
+  const jumpButtons = modal ? Array.from(modal.querySelectorAll('.js-top10-jump')) : [];
+  const listCopyButtons = modal ? Array.from(modal.querySelectorAll('.js-top10-copy-list')) : [];
+  const detailField = (key) => (modal ? modal.querySelector(`[data-top10-detail="${key}"]`) : null);
+  const chipField = (key) => (modal ? modal.querySelector(`[data-top10-chip="${key}"]`) : null);
+  const listField = (key) => (modal ? modal.querySelector(`[data-top10-list="${key}"]`) : null);
+  let lastFocusedRow = null;
+  let activeModalState = null;
+
+  const asNumber = (raw) => {
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  };
+
+  const maxTop10Score = () => {
+    const values = Array.from(tbody.querySelectorAll('tr'))
+      .map((row) => asNumber(row.dataset.activity_score))
+      .filter((value) => value !== null);
+    return values.length ? Math.max(...values) : null;
+  };
+
+  const mutationBandLabel = (count) => {
+    if (count === null) return 'Unknown';
+    if (count === 0) return 'WT-like';
+    if (count <= 2) return 'Low drift';
+    if (count <= 5) return 'Moderate divergence';
+    return 'High divergence';
+  };
+
+  const escapeCsvValue = (value) => `"${String(value ?? '').replace(/"/g, '""')}"`;
+
+  const parseDelimitedList = (raw) => {
+    if (!raw) return [];
+    return raw
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  };
+
+  const parseChangeToken = (token) => {
+    const match = token.match(/^([A-Za-z*])(\d+)([A-Za-z*])$/);
+    if (!match) {
+      return { position: '-', wtMut: token, type: 'unknown' };
+    }
+    const wt = match[1];
+    const pos = match[2];
+    const mut = match[3];
+    return {
+      position: pos,
+      wtMut: `${wt}->${mut}`,
+      type: wt === mut ? 'synonymous' : 'non-synonymous',
+    };
+  };
+
+  const mutationTypeFromCounts = (total, syn, nonSyn) => {
+    if (total === null) return 'Unknown';
+    if (total === 0) return 'No mutation detected';
+    if (syn !== null && nonSyn !== null) {
+      if (syn > 0 && nonSyn > 0) return 'Mixed (synonymous + non-synonymous)';
+      if (nonSyn > 0) return 'Non-synonymous';
+      if (syn > 0) return 'Synonymous-only';
+    }
+    return 'Mutated (type split unavailable)';
+  };
+
+  const performanceBandLabel = (ratio) => {
+    if (ratio === null) return 'Unavailable';
+    if (ratio >= 0.97) return 'Top-tier';
+    if (ratio >= 0.9) return 'Strong';
+    if (ratio >= 0.8) return 'Competitive';
+    return 'Lower within Top 10';
+  };
+
+  const setDetail = (key, value) => {
+    const target = detailField(key);
+    if (target) target.textContent = value;
+  };
+
+  const setChip = (key, value) => {
+    const target = chipField(key);
+    if (target) target.textContent = value;
+  };
+
+  const setExpandableList = (key, items, emptyLabel, asChips = false) => {
+    const host = listField(key);
+    if (!host) return;
+    host.innerHTML = '';
+    if (!items.length) {
+      host.textContent = emptyLabel;
+      return;
     }
 
-    copyBtn.textContent = copied ? 'Copied' : 'Copy failed';
-    window.setTimeout(() => {
-      copyBtn.textContent = 'Copy as CSV';
-    }, 1400);
+    const visibleCount = 8;
+    const shown = items.slice(0, visibleCount);
+    const hidden = items.slice(visibleCount);
+
+    const visibleWrap = document.createElement('div');
+    if (asChips) visibleWrap.className = 'variant-modal__chips-list';
+    shown.forEach((item, index) => {
+      if (asChips) {
+        const chip = document.createElement('span');
+        chip.className = 'variant-modal__token';
+        chip.textContent = item;
+        visibleWrap.appendChild(chip);
+      } else {
+        visibleWrap.appendChild(document.createTextNode(item));
+        if (index < shown.length - 1) visibleWrap.appendChild(document.createTextNode(', '));
+      }
+    });
+    host.appendChild(visibleWrap);
+
+    if (!hidden.length) return;
+
+    const hiddenWrap = document.createElement('div');
+    hiddenWrap.className = asChips ? 'variant-modal__chips-list variant-modal__hidden' : 'variant-modal__hidden';
+    hidden.forEach((item, index) => {
+      if (asChips) {
+        const chip = document.createElement('span');
+        chip.className = 'variant-modal__token';
+        chip.textContent = item;
+        hiddenWrap.appendChild(chip);
+      } else {
+        hiddenWrap.appendChild(document.createTextNode(item));
+        if (index < hidden.length - 1) hiddenWrap.appendChild(document.createTextNode(', '));
+      }
+    });
+    host.appendChild(hiddenWrap);
+
+    const moreBtn = document.createElement('button');
+    moreBtn.type = 'button';
+    moreBtn.className = 'variant-modal__more';
+    moreBtn.textContent = `+${hidden.length} more`;
+    moreBtn.addEventListener('click', () => {
+      const collapsed = hiddenWrap.classList.contains('variant-modal__hidden');
+      hiddenWrap.classList.toggle('variant-modal__hidden', !collapsed);
+      moreBtn.textContent = collapsed ? 'Show less' : `+${hidden.length} more`;
+    });
+    host.appendChild(moreBtn);
+  };
+
+  const renderFeatureTable = (changes, generation) => {
+    const tbodyTarget = detailField('feature_table_body');
+    if (!tbodyTarget) return;
+    tbodyTarget.innerHTML = '';
+    if (!changes.length) {
+      tbodyTarget.innerHTML = '<tr><td colspan="5">No mutation features available.</td></tr>';
+      return;
+    }
+    changes.forEach((token) => {
+      const parsed = parseChangeToken(token);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${parsed.position}</td><td>${parsed.wtMut}</td><td>${parsed.type}</td><td>${generation || '-'}</td><td>-</td>`;
+      tbodyTarget.appendChild(tr);
+    });
+  };
+
+  const switchCoreTab = (targetId) => {
+    const btn = document.querySelector(`.js-core-tab-btn[data-tab-target="${targetId}"]`);
+    if (!btn) return false;
+    btn.click();
+    const section = document.getElementById('results-core');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
+  };
+
+  const switchAdvancedTabByKeyword = (keyword) => {
+    const btn = Array.from(document.querySelectorAll('.js-advanced-tab-btn[data-title]')).find((node) =>
+      (node.getAttribute('data-title') || '').toLowerCase().includes(keyword)
+    );
+    if (!btn) return false;
+    btn.click();
+    const section = document.getElementById('results-advanced');
+    if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return true;
+  };
+
+  const setJumpAvailability = () => {
+    jumpButtons.forEach((btn) => {
+      const target = btn.getAttribute('data-jump-target') || '';
+      let available = false;
+      if (target === 'lineage') available = Boolean(document.querySelector('.js-core-tab-btn[data-tab-target="core-lineage"]'));
+      if (target === 'hotspots') available = Boolean(Array.from(document.querySelectorAll('.js-advanced-tab-btn[data-title]')).find((n) => (n.getAttribute('data-title') || '').toLowerCase().includes('hotspot')));
+      if (target === 'fingerprint') available = Boolean(Array.from(document.querySelectorAll('.js-advanced-tab-btn[data-title]')).find((n) => (n.getAttribute('data-title') || '').toLowerCase().includes('fingerprint')));
+      btn.disabled = !available;
+      btn.title = available ? '' : 'Visualisation not available for this run.';
+    });
+  };
+
+  const openModalForRow = (row) => {
+    if (!modal || !modalCard) return;
+
+    const rank = row.dataset.rank || 'N/A';
+    const generationNumber = asNumber(row.dataset.generation);
+    const generation = generationNumber !== null ? `G${generationNumber}` : 'N/A';
+    const variant = row.dataset.variant_index || 'N/A';
+    const variantId = row.dataset.variant_id || 'N/A';
+    const scoreText = row.dataset.activity_score_text || 'N/A';
+    const scoreValue = asNumber(row.dataset.activity_score);
+    const mutationCount = asNumber(row.dataset.total_mutations);
+    const synCount = asNumber(row.dataset.synMutations);
+    const nonSynCount = asNumber(row.dataset.nonSynMutations);
+    const mutationTypeRaw = (row.dataset.mutationType || '').trim();
+    const mutationSource = (row.dataset.mutationSource || '').trim() || 'Unknown';
+    const mutationSitesRaw = (row.dataset.mutationSites || '').trim();
+    const mutationChangesRaw = (row.dataset.mutationChanges || '').trim();
+    const mutationSites = mutationSitesRaw && !/unknown|not available/i.test(mutationSitesRaw)
+      ? parseDelimitedList(mutationSitesRaw)
+      : [];
+    const mutationChanges = mutationChangesRaw && !/unknown|not available/i.test(mutationChangesRaw)
+      ? parseDelimitedList(mutationChangesRaw)
+      : [];
+    const identity = asNumber(row.dataset.seqIdentity);
+    const coverage = asNumber(row.dataset.seqCoverage);
+    const qcFlagged = row.dataset.qc_flagged === 'true';
+    const qcNote = (row.dataset.qc_note || '').trim();
+
+    const bestScore = maxTop10Score();
+    const ratio = scoreValue !== null && bestScore !== null && bestScore > 0 ? (scoreValue / bestScore) : null;
+    const relative = ratio !== null
+      ? `${(ratio * 100).toFixed(1)}% of best (${performanceBandLabel(ratio)})`
+      : 'N/A';
+    const mutationLoad = mutationCount !== null ? `${Math.round(mutationCount)} vs WT` : 'N/A';
+    const mutationType = mutationTypeRaw || mutationTypeFromCounts(mutationCount, synCount, nonSynCount);
+    const mutationSplit = (synCount !== null && nonSynCount !== null)
+      ? `Synonymous: ${Math.round(synCount)}, Non-synonymous: ${Math.round(nonSynCount)}`
+      : 'Not available';
+    const mutationBand = mutationBandLabel(mutationCount);
+    const qcStatus = qcFlagged
+      ? `Flagged${qcNote && qcNote.toLowerCase() !== 'ok' ? `: ${qcNote}` : ''}`
+      : (qcNote ? `Pass (${qcNote})` : 'Pass');
+    const qcReasons = qcFlagged ? (qcNote || 'qc_stage4 flag present') : 'None';
+    const dataCoverage = coverage !== null ? `${coverage.toFixed(1)}%` : 'Not available';
+    const identityPct = identity !== null ? `${identity.toFixed(1)}%` : 'Not available';
+
+    setChip('generation', generation);
+    setChip('rank', `Rank #${rank}`);
+    setChip('activity', `Activity ${scoreText}`);
+    setChip('mutations', mutationLoad);
+    setChip('qc', `QC: ${qcFlagged ? 'Flagged' : 'Pass'}`);
+    setChip('tier', `Tier: ${mutationBand}`);
+
+    setDetail('entry_subtitle', `Variant ${variant} (${generation}) - ID ${variantId}`);
+    setDetail('variant', variant);
+    setDetail('variant_id', variantId);
+    setDetail('rank', rank);
+    setDetail('generation', generation);
+    setDetail('activity_score', scoreText);
+    setDetail('relative_score', relative);
+    setDetail('mutation_load', mutationLoad);
+    setDetail('mutation_type', mutationType);
+    setDetail('mutation_split', mutationSplit);
+    setDetail('mutation_band', mutationBand);
+    setDetail('qc_status', qcStatus);
+    setDetail('qc_status_repeat', qcStatus);
+    setDetail('qc_reasons', qcReasons);
+    setDetail('mutation_source', mutationSource);
+    setDetail('data_coverage', dataCoverage);
+    setDetail('identity_pct', identityPct);
+
+    setExpandableList('sites', mutationSites, mutationSitesRaw || 'None', false);
+    setExpandableList('changes', mutationChanges, mutationChangesRaw || 'None', true);
+    renderFeatureTable(mutationChanges, generation);
+
+    activeModalState = {
+      rank,
+      generation,
+      variant,
+      variantId,
+      scoreText,
+      mutationLoad,
+      mutationType,
+      mutationSplit,
+      mutationBand,
+      qcStatus,
+      qcReasons,
+      mutationSource,
+      dataCoverage,
+      identityPct,
+      mutationSites,
+      mutationChanges,
+      relative,
+    };
+
+    lastFocusedRow = row;
+    setJumpAvailability();
+    modal.hidden = false;
+    modal.classList.add('is-open');
+    modalCard.focus();
+  };
+
+  const closeModal = () => {
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.hidden = true;
+    if (lastFocusedRow && typeof lastFocusedRow.focus === 'function') {
+      lastFocusedRow.focus();
+    }
+    activeModalState = null;
+  };
+
+  Array.from(tbody.querySelectorAll('tr.js-top10-row')).forEach((row) => {
+    row.addEventListener('click', () => openModalForRow(row));
+    row.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      openModalForRow(row);
+    });
   });
+
+  modalCloseButtons.forEach((btn) => {
+    btn.addEventListener('click', () => closeModal());
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal && !modal.hidden) {
+      closeModal();
+    }
+  });
+
+  listCopyButtons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      if (!activeModalState) return;
+      const kind = btn.getAttribute('data-copy-list');
+      const values = kind === 'sites' ? activeModalState.mutationSites : activeModalState.mutationChanges;
+      const payload = values.length ? values.join(', ') : 'None';
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(payload);
+        copied = true;
+      } catch (_) {
+        copied = false;
+      }
+      const original = btn.textContent;
+      btn.textContent = copied ? 'Copied' : 'Copy failed';
+      window.setTimeout(() => {
+        btn.textContent = original;
+      }, 1200);
+    });
+  });
+
+  if (summaryCopyBtn) {
+    summaryCopyBtn.addEventListener('click', async () => {
+      if (!activeModalState) return;
+      const lines = [
+        `Variant: ${activeModalState.variant}`,
+        `Variant ID: ${activeModalState.variantId}`,
+        `Generation: ${activeModalState.generation}`,
+        `Rank: ${activeModalState.rank}`,
+        `Activity score: ${activeModalState.scoreText}`,
+        `Relative to top performer: ${activeModalState.relative}`,
+        `Mutations vs WT: ${activeModalState.mutationLoad}`,
+        `Synonymous / Non-synonymous: ${activeModalState.mutationSplit}`,
+        `Divergence tier: ${activeModalState.mutationBand}`,
+        `QC status: ${activeModalState.qcStatus}`,
+      ].join('\n');
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(lines);
+        copied = true;
+      } catch (_) {
+        copied = false;
+      }
+      const original = summaryCopyBtn.textContent;
+      summaryCopyBtn.textContent = copied ? 'Copied' : 'Copy failed';
+      window.setTimeout(() => {
+        summaryCopyBtn.textContent = original;
+      }, 1200);
+    });
+  }
+
+  const downloadBlob = (filename, textValue) => {
+    const blob = new Blob([textValue], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  };
+
+  if (rowDownloadBtn) {
+    rowDownloadBtn.addEventListener('click', () => {
+      if (!activeModalState) return;
+      const headers = ['variant', 'variant_id', 'generation', 'rank', 'activity_score', 'mutations_vs_wt', 'mutation_type', 'syn_non_syn_split', 'qc_status'];
+      const values = [
+        activeModalState.variant,
+        activeModalState.variantId,
+        activeModalState.generation,
+        activeModalState.rank,
+        activeModalState.scoreText,
+        activeModalState.mutationLoad,
+        activeModalState.mutationType,
+        activeModalState.mutationSplit,
+        activeModalState.qcStatus,
+      ];
+      const csv = `${headers.join(',')}\n${values.map(escapeCsvValue).join(',')}\n`;
+      downloadBlob(`variant_${activeModalState.variant || 'entry'}.csv`, csv);
+    });
+  }
+
+  if (mutationDownloadBtn) {
+    mutationDownloadBtn.addEventListener('click', () => {
+      if (!activeModalState) return;
+      const rows = activeModalState.mutationChanges.map((token) => {
+        const parsed = parseChangeToken(token);
+        return [parsed.position, parsed.wtMut, parsed.type, activeModalState.generation, ''].map(escapeCsvValue).join(',');
+      });
+      const header = ['position', 'wt_to_mut', 'type', 'introduced_generation', 'notes'].join(',');
+      const csv = `${header}\n${rows.join('\n')}\n`;
+      downloadBlob(`variant_${activeModalState.variant || 'entry'}_mutations.csv`, csv);
+    });
+  }
+
+  jumpButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const target = btn.getAttribute('data-jump-target') || '';
+      let moved = false;
+      if (target === 'lineage') moved = switchCoreTab('core-lineage');
+      if (target === 'hotspots') moved = switchAdvancedTabByKeyword('hotspot');
+      if (target === 'fingerprint') moved = switchAdvancedTabByKeyword('fingerprint');
+      if (moved) closeModal();
+    });
+  });
+
+  const copyBtn = document.querySelector('.js-copy-top10-csv');
+  if (copyBtn) {
+    copyBtn.addEventListener('click', async () => {
+      const headers = Array.from(table.querySelectorAll('thead th')).map((th) => {
+        const btn = th.querySelector('button');
+        return (btn ? btn.textContent : th.textContent || '').trim();
+      });
+      const rows = Array.from(tbody.querySelectorAll('tr')).map((row) =>
+        Array.from(row.querySelectorAll('td')).map((td) => `"${(td.textContent || '').trim().replace(/"/g, '""')}"`).join(',')
+      );
+      const csvText = [headers.join(','), ...rows].join('\n');
+      let copied = false;
+      try {
+        await navigator.clipboard.writeText(csvText);
+        copied = true;
+      } catch (_) {
+        copied = false;
+      }
+
+      copyBtn.textContent = copied ? 'Copied' : 'Copy failed';
+      window.setTimeout(() => {
+        copyBtn.textContent = 'Copy as CSV';
+      }, 1400);
+    });
+  }
 }
 
 function initCoreResultsTabs() {

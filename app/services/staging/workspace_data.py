@@ -90,7 +90,11 @@ def load_top10_rows(csv_path, experiment_id):
                     END,
                     CAST(NULLIF(v.extra_metadata->'sequence_analysis'->'mutation_counts'->>'total', '') AS integer),
                     mt.total_mutations
-                  ) AS total_mutations
+                  ) AS total_mutations,
+                  syn.syn_count,
+                  nonsyn.non_syn_count,
+                  vsa.identity AS seq_identity,
+                  vsa.coverage AS seq_coverage
                 FROM variants v
                 JOIN generations g ON g.generation_id = v.generation_id
                 JOIN (
@@ -99,6 +103,19 @@ def load_top10_rows(csv_path, experiment_id):
                 LEFT JOIN (
                   {LATEST_MUTATION_TOTAL_SQL}
                 ) mt ON mt.variant_id = v.variant_id
+                LEFT JOIN (
+                  {LATEST_SYNONYMOUS_COUNTS_SQL}
+                ) syn ON syn.variant_id = v.variant_id
+                LEFT JOIN (
+                  {LATEST_NONSYNONYMOUS_COUNTS_SQL}
+                ) nonsyn ON nonsyn.variant_id = v.variant_id
+                LEFT JOIN LATERAL (
+                  SELECT identity, coverage
+                  FROM variant_sequence_analysis vsa
+                  WHERE vsa.variant_id = v.variant_id
+                  ORDER BY vsa_id DESC
+                  LIMIT 1
+                ) vsa ON TRUE
                 WHERE g.experiment_id = :eid
                 ORDER BY act.activity_score DESC
                 LIMIT 10
@@ -115,6 +132,31 @@ def load_top10_rows(csv_path, experiment_id):
             mutation_count = None
             if row['total_mutations'] is not None:
                 mutation_count = int(row['total_mutations'])
+            syn_count = 0
+            if row['syn_count'] is not None:
+                syn_count = int(row['syn_count'])
+            non_syn_count = 0
+            if row['non_syn_count'] is not None:
+                non_syn_count = int(row['non_syn_count'])
+            seq_identity = None
+            if row['seq_identity'] is not None:
+                seq_identity = float(row['seq_identity'])
+            seq_coverage = None
+            if row['seq_coverage'] is not None:
+                seq_coverage = float(row['seq_coverage'])
+
+            if mutation_count == 0:
+                mutation_type = 'No mutation detected'
+            elif non_syn_count > 0 and syn_count > 0:
+                mutation_type = 'Mixed (synonymous + non-synonymous)'
+            elif non_syn_count > 0:
+                mutation_type = 'Non-synonymous'
+            elif syn_count > 0:
+                mutation_type = 'Synonymous-only'
+            elif mutation_count is None:
+                mutation_type = 'Unknown'
+            else:
+                mutation_type = 'Unknown'
             rows.append(
                 {
                     'rank': idx,
@@ -127,6 +169,12 @@ def load_top10_rows(csv_path, experiment_id):
                     'protein_mutations': mutation_count,
                     'variant_id': int(row['variant_id']),
                     'is_mutant': mutation_count is not None and mutation_count > 0,
+                    'syn_mutations': syn_count,
+                    'non_syn_mutations': non_syn_count,
+                    'mutation_type': mutation_type,
+                    'mutation_source': 'Stage 4 sequence-analysis calls (gated by qc_stage4)',
+                    'seq_identity': seq_identity,
+                    'seq_coverage': seq_coverage,
                     'qc_flagged': False,
                 }
             )
@@ -175,6 +223,12 @@ def load_top10_rows(csv_path, experiment_id):
                             'protein_mutations': mutation_count,
                             'variant_id': None,
                             'is_mutant': mutation_count is not None and mutation_count > 0,
+                            'syn_mutations': None,
+                            'non_syn_mutations': None,
+                            'mutation_type': 'Unknown',
+                            'mutation_source': 'Generated top10 summary',
+                            'seq_identity': None,
+                            'seq_coverage': None,
                             'qc_flagged': False,
                         }
                     )
@@ -262,6 +316,77 @@ def load_top10_rows(csv_path, experiment_id):
                     row['qc_note'] = qc_note
                 else:
                     row['qc_note'] = qc_note or 'ok'
+
+    variant_ids = []
+    for row in rows:
+        vid = row.get('variant_id')
+        if vid is None:
+            continue
+        try:
+            variant_ids.append(int(vid))
+        except Exception:
+            continue
+
+    mutation_meta_by_variant = {}
+    if variant_ids:
+        clauses = []
+        params = {}
+        for i, vid in enumerate(sorted(set(variant_ids))):
+            key = f'vid{i}'
+            clauses.append(f':{key}')
+            params[key] = vid
+        try:
+            sql = f"""
+                SELECT
+                  m.variant_id,
+                  STRING_AGG(
+                    CONCAT(m.original, m.position::text, m.mutated),
+                    ', '
+                    ORDER BY m.position, m.mutation_id
+                  ) AS protein_changes,
+                  STRING_AGG(
+                    m.position::text,
+                    ', '
+                    ORDER BY m.position, m.mutation_id
+                  ) AS protein_sites
+                FROM mutations m
+                WHERE m.mutation_type = 'protein'
+                  AND m.variant_id IN ({', '.join(clauses)})
+                  AND m.position IS NOT NULL
+                  AND m.original IS NOT NULL
+                  AND m.mutated IS NOT NULL
+                GROUP BY m.variant_id
+            """
+            recs = db.session.execute(text(sql), params).mappings().all()
+            for rec in recs:
+                mutation_meta_by_variant[int(rec['variant_id'])] = {
+                    'protein_changes': (rec.get('protein_changes') or '').strip(),
+                    'protein_sites': (rec.get('protein_sites') or '').strip(),
+                }
+        except Exception:
+            db.session.rollback()
+            mutation_meta_by_variant = {}
+
+    for row in rows:
+        row['mutation_sites'] = 'Unknown'
+        row['mutation_changes'] = 'Unknown'
+        mutation_count = row.get('protein_mutations')
+        if mutation_count == 0:
+            row['mutation_sites'] = 'None (WT-like)'
+            row['mutation_changes'] = 'None'
+
+        vid = row.get('variant_id')
+        if vid is None:
+            continue
+        rec = mutation_meta_by_variant.get(int(vid))
+        if rec:
+            if rec.get('protein_sites'):
+                row['mutation_sites'] = rec['protein_sites']
+            if rec.get('protein_changes'):
+                row['mutation_changes'] = rec['protein_changes']
+        elif mutation_count is not None and mutation_count > 0:
+            row['mutation_sites'] = 'Not available in summary'
+            row['mutation_changes'] = 'Not available in summary'
 
     return rows
 

@@ -244,18 +244,21 @@ def create_experiment():
         bonus_dir = os.path.join(gen_dir, 'bonus')
         bonus_surface_path = os.path.join(bonus_dir, 'activity_surface_pca.png')
         bonus_landscape_path = os.path.join(bonus_dir, 'activity_landscape_pca_surface.html')
-        bonus_trajectory_path = os.path.join(bonus_dir, 'mutation_trajectory_top10.html')
         bonus_mutation_frequency_path = os.path.join(bonus_dir, 'mutation_frequency_by_position.html')
         bonus_domain_heatmap_path = os.path.join(bonus_dir, 'domain_enrichment_heatmap.html')
-        bonus_domain_generation_path = os.path.join(bonus_dir, 'domain_enrichment_latest.html')
-        bonus_domain_generation_file = 'domain_enrichment_latest.html'
-        if not os.path.exists(bonus_domain_generation_path) and os.path.isdir(bonus_dir):
-            bonus_domain_generation_matches = glob.glob(os.path.join(bonus_dir, 'domain_enrichment_gen*.html'))
-            bonus_domain_generation_matches.sort(key=os.path.getmtime, reverse=True)
-            bonus_domain_generation_file = (
-                os.path.basename(bonus_domain_generation_matches[0]) if bonus_domain_generation_matches else ''
+        bonus_domain_heatmap_file = 'bonus/domain_enrichment_heatmap.html'
+        if not os.path.exists(bonus_domain_heatmap_path) and os.path.isdir(gen_dir):
+            bonus_domain_heatmap_matches = glob.glob(
+                os.path.join(gen_dir, '**', 'domain_enrichment_heatmap*.html'),
+                recursive=True,
             )
-            bonus_domain_generation_path = bonus_domain_generation_matches[0] if bonus_domain_generation_matches else ''
+            bonus_domain_heatmap_matches.sort(key=os.path.getmtime, reverse=True)
+            if bonus_domain_heatmap_matches:
+                bonus_domain_heatmap_path = bonus_domain_heatmap_matches[0]
+                bonus_domain_heatmap_file = os.path.relpath(
+                    bonus_domain_heatmap_path,
+                    os.path.join(current_app.root_path, 'static'),
+                ).replace(os.sep, '/').replace(f'generated/{experiment_id}/', '', 1)
 
         bonus_fingerprint_path = os.path.join(bonus_dir, 'mutation_fingerprint_latest.html')
         bonus_fingerprint_file = 'mutation_fingerprint_latest.html'
@@ -330,14 +333,6 @@ def create_experiment():
                 'label': 'Bonus activity landscape (HTML)',
                 'exists': os.path.exists(bonus_landscape_path),
             },
-            'bonus_trajectory': {
-                'url': _static_url_with_mtime(
-                    f'{sub}/bonus/mutation_trajectory_top10.html',
-                    bonus_trajectory_path,
-                ),
-                'label': 'Bonus mutation trajectory (HTML)',
-                'exists': os.path.exists(bonus_trajectory_path),
-            },
             'bonus_mutation_frequency': {
                 'url': _static_url_with_mtime(
                     f'{sub}/bonus/mutation_frequency_by_position.html',
@@ -348,23 +343,11 @@ def create_experiment():
             },
             'bonus_domain_heatmap': {
                 'url': _static_url_with_mtime(
-                    f'{sub}/bonus/domain_enrichment_heatmap.html',
+                    f'{sub}/{bonus_domain_heatmap_file}',
                     bonus_domain_heatmap_path,
                 ),
                 'label': 'Bonus domain enrichment heatmap (HTML)',
                 'exists': os.path.exists(bonus_domain_heatmap_path),
-            },
-            'bonus_domain_generation': {
-                'url': (
-                    _static_url_with_mtime(
-                        f'{sub}/bonus/{bonus_domain_generation_file}',
-                        bonus_domain_generation_path,
-                    )
-                    if bonus_domain_generation_file
-                    else ''
-                ),
-                'label': 'Bonus domain enrichment (generation) (HTML)',
-                'exists': os.path.exists(bonus_domain_generation_path),
             },
             'bonus_fingerprint': {
                 'url': (

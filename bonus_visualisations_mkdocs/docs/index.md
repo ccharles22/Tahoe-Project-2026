@@ -9,8 +9,8 @@ directed-evolution experiment run by the Tahoe Project pipeline.
 |---|---|---|
 | Activity Landscape | `activity_landscape_pca_surface_all_gens.html` | 3-D surface (or scatter) of PCA-embedded mutation vectors coloured by activity score |
 | Mutation Fingerprinting | `mutation_fingerprint_selector.html` | Per-variant lollipop chart with a dropdown selector; shows every amino-acid change coloured by the generation it was introduced |
-| Domain Enrichment | `domain_enrichment_heatmap.html` | Heatmap of non-synonymous mutation counts per protein domain across all generations |
 | Mutation Frequency | `mutation_frequency_by_position.html` | Two-panel chart — total mutation counts per amino-acid position (top) and per-generation stacked area (bottom) |
+| Domain Enrichment | `domain_enrichment_heatmap.html` | Heatmap of non-synonymous mutation counts per protein domain across all generations |
 
 ## Quick start
 

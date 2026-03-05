@@ -398,21 +398,10 @@ def run_pipeline(
         placeholder_message="Domain enrichment could not be computed for this experiment because the required domain annotations or protein mutation data are missing.",
     )
 
-    # Single-generation bar chart
-    out_domain_bar = _run_plot(
-        "Domain (gen bar)",
-        plot_domain_enrichment,
-        generation_id=generation_id,
-        metric="nonsyn_count",
-        out_path=outputs_dir / "domain_enrichment_latest.html",
-        placeholder_title="Domain by Generation",
-        placeholder_message="The latest generation does not yet have enough data to show a per-generation domain enrichment view.",
-    )
-
     out_mutation_frequency = _run_plot(
         "Mutation frequency",
         plot_mutation_frequency,
-        generation_id=generation_id,
+        generation_id=None,
         out_path=outputs_dir / "mutation_frequency_by_position.html",
         placeholder_title="Mutation Frequency",
         placeholder_message="No non-synonymous protein mutations are available yet for this experiment, so mutation frequency cannot be shown.",
@@ -454,7 +443,6 @@ def run_pipeline(
     print(f"- Surface (Matplotlib): {out_surface}")
     print(f"- Trajectory: {out_traj}")
     print(f"- Domain heatmap: {out_domain_heat}")
-    print(f"- Domain (gen bar): {out_domain_bar}")
     print(f"- Mutation frequency: {out_mutation_frequency}")
     if out_fingerprint:
         print(f"- Fingerprint: {out_fingerprint}")
