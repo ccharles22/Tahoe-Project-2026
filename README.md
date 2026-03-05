@@ -186,3 +186,9 @@ The system demonstrates:
 ## License
 
 This project is for academic use only.
+
+---
+
+## Acknowledgements
+
+Thank you to Professor Conrad Bessant, Professor Matthew Higgins and Dr Matteo Fumagalli for your support.
